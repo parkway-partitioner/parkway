@@ -1,0 +1,17 @@
+#############
+# UTILITIES #
+#############
+
+This directory contains code for converting hypergraph files into the
+binary format used by Parkway. The following formats are currently
+supported:
+
+- The HMeTiS format is the text file format accepted as input by the
+  hMeTiS tool.
+
+- The PaToH format is the text file format accepted as input by the
+  PaToH tool.
+
+- The Sandia format is the format that I have encountered in
+  correspondence with researchers at Sandia Labs. It appears to be
+  almost the HMeTiS format.  

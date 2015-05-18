@@ -1,0 +1,10 @@
+#!/bin/sh
+
+for a in `cat machines` 
+do
+  echo cleaning $a
+  ssh $a killall -9 parkway
+  ssh $a uptime
+
+done
+

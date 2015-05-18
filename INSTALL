@@ -1,0 +1,104 @@
+################
+# INSTALLATION #
+################
+
+COMPILING
+---------
+	
+    To build the Parkway library, the file Makefile.in needs to be
+    modified such that the appropriate compilation parameters are
+    set. Default settings assume that the gnu compiler g++ is used to
+    compile the library. The compiler can be changed by modifying the
+    CC variable. For some compilers, the path to the MPICH header file
+    mpi.h needs to be provided (e.g. by using the DIRS variable). Once
+    the variables in Makefile.in are set as required, type make in the
+    top-level directory (parkway-2.0) to compile.
+     
+LINKING
+-------
+    
+    In order to use the library, the user is required to link it with
+    a number of libraries in addition to his/her code. mpiCC from
+    MPICH will implicitly link Parkway with the MPI implementations
+    from MPICH. The user also needs to link with the parallel
+    pseudorandom number generator SPRNG, used in the parkway
+    implementation (see TESTING below). In order to take advantage of
+    the interface to partitioning routines from PaToH and hMeTiS, the
+    user is required to link with the PaToH and/or hMeTiS libraries
+    (see http://www-users.cs.umn.edu/~karypis/metis/hmetis/ for hMeTiS and
+    http://bmi.osu.edu/~umit/software.htm for PaToH). To link
+    successfully, the user needs to modify the Config.h file before
+    compilation. Define LINK_HMETIS if linking with libhmetis.a and
+    LINK_PATOH if linking with libpatoh-v3-linux.a. The user also
+    needs to modify the file Makefile.in in the top-level directory,
+    specifically the LIBS variable, so that the appropriate libraries
+    are linked in. An example makefile is provided in the Test
+    directory.  
+
+TESTING
+-------
+
+    Sample code to test the library is provided in the directory
+    Test. The file driver.cpp calls and tests the ParaPartKway
+    partitioning routines from the Parkway library. Further
+    information on the Parkway library can be found in the file(s)
+    manual.pdf(manual.ps) in the Docs directory. The test code should
+    be run as follows:
+
+    (i) distribute hypergraph into p files (p number of processes) as
+	described in the manual. Alternatively, use programs from
+	Utilities directory to convert existing hypergraph files in
+	the Hypergraphs directory. To convert a binary hypergraph file
+	(a file with a .bin ending) into 4 files used for running
+	parkway on 4 processes, use: 
+
+	% ./convert -form 7 -np 4 <hypergraph_filename>
+
+	For more information on convert, type
+
+	% ./convert
+
+    (ii) Having compiled the library and the test code, run the
+	 program parkway with the mpirun command from MPICH: 
+
+	 % mpirun [mpirun_options...] parkway [parkway_options...] <hypergraph_filename>
+    
+	 PARAMETERS:
+	 
+	 -oFile <output_filename>
+	     Name of the file that program information should be
+	     output to. Default behaviour is to display program
+	     information on screen.
+
+	 -tType <test_type>
+	     Integer specifying the routine to be tested. 0 tests
+	     ParaPartKway with hypergraph stored on disk (default), 1
+	     test ParaPartKway with hypergraph stored as a data
+	     structure in memory.
+
+	 -nParts <number_of_parts> 
+	     Integer specifying the number of parts in the partition
+	     sought. By default, will look for partitions of size 4.	 	 
+		    
+    (iii) Test information will be recorded in a file
+	  test_output.p.txt, where p is the number of processes. 
+     		     
+    
+SYSTEM REQUIREMENTS
+-------------------
+
+    Parkway is written in C++ using the MPI library for a Linux
+    platform. The library was tested using gcc, versions 3.2.2-2.96 and
+    MPICH, versions 1.2.4-1.2.5 on Mandrake Linux 9.1 and Red Hat Linux
+    7.2. 
+
+BUG REPORT
+----------
+
+    Any bugs or problems encountered should be reported to 
+    parkway@doc.ic.ac.uk. A bug report should include a description of
+    the problem and, if posible, include a copy of the hypergraph that
+    was being partitioned. Once a bug is found, the user is encouraged
+    to recompile the library with DEBUG_ALL defined in the Config.h
+    file and to run the program again so that the bug may be identified
+    more easily.  

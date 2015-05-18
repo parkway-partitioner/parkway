@@ -1,0 +1,6 @@
+This directory contains a sample hypergraph:
+
+(i) ibm16.hgr.bin - ibm16 hypergraph in binary format
+(ii) ibm16.hgr.bin-0/ibm16.hgr.bin-1: hypergraph decomposition for
+2-processor call to parkway
+(iii) ibm16.hgr.bin.part.4: contains a partition of ibm16 in binary format

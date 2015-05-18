@@ -1,0 +1,16 @@
+#!/bin/sh
+rm -f machines
+for a in `cat $*`
+do
+  echo trying $a
+  OUTPUT=`./limit 10 ssh $a 'uptime'`
+  if [ "$OUTPUT" != "" ] 
+  then
+    LOAD=`echo $OUTPUT | awk '{ print $(NF-2)}' | sed 's/,//g' | awk '{ print $1*100; }'`
+    echo $a $LOAD
+    if [ $LOAD -lt 20 ] 
+    then
+	echo $a >> machines
+    fi    
+  fi
+done

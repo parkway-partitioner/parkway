@@ -1,0 +1,36 @@
+###
+# Compiler 
+###
+CC = g++ 
+
+###
+# Include directory
+###
+
+INC_1 = ../Source/Include
+#INC_2 = /usr/local/encap/mpich-1.2.4..8a-gcc/include
+
+###
+# Linker
+###
+LINKER = mpiCC
+
+###
+# Options (compiler)
+###
+OPTS = -O3 -g -Wall 
+
+###
+# Libraries to link in
+###
+LIBS = -lparkway #-lhmetis 
+#-lsprng -lpatohv3-linux -lhmetis 
+
+###
+# Dirs to look into
+###
+
+DIRS = -I$(INC_1) #-I$(INC_2)
+
+
+
