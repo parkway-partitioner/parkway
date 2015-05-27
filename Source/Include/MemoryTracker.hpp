@@ -1,10 +1,11 @@
+#include <stdlib.h>
 #include <iostream>
 #include <cassert>
 #include <map>
 
 using namespace std;
 
-class MemoryTracker 
+class MemoryTracker
 {
 private:
 
@@ -26,11 +27,11 @@ public:
   inline static void add(void *p, int size) {
     int _power = power;
     power = 0;
-    table[int(p)] = size;
+    table[*static_cast<int*>(p)] = size;
     power = _power;
   }
   inline static int size(void *p) {
-    return table[int(p)];
+    return table[*static_cast<int*>(p)];
   }
   inline static void *allocate(size_t n) {
     void *p = malloc(n);
@@ -44,9 +45,9 @@ public:
     return p;
   }
   inline static void deallocate(void *p) {
-    if (!p) 
+    if (!p)
       return;
-    if (power) 
+    if (power)
       allocated -= size(p);
     free(p);
   }
@@ -57,12 +58,12 @@ public:
     return (double) max/1024.0;
   }
 
-};	
+};
 
 void *operator new(size_t n);
 void *operator new[](size_t n);
-void operator delete[](void *p);
-void operator delete(void *p);
+void operator delete[](void *p) throw();
+void operator delete(void *p) throw();
 
 
 
