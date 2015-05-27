@@ -27,7 +27,7 @@
 using namespace std;
 
 
-void write_log(int rank,char *fmt, ...) 
+void write_log(int rank,const char *fmt, ...) 
 {
   char buffer[2048];
   char output[4096];
