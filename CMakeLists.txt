@@ -21,6 +21,9 @@ set(PROJECT_LIB "lib${PROJECT_NAME}")
 # Find any required packages.
 find_package(MPI REQUIRED)
 
+# Add support for C++11.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 # Look for headers in "include".
 include_directories("${MAINFOLDER}/include")
 # Look for MPI headers.
