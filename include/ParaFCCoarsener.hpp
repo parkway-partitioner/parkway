@@ -6,8 +6,8 @@
 // ### ParaFCCoarsener.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
+//
+// HISTORY:
 //
 // 31/12/2004: Last Modified
 //
@@ -21,10 +21,10 @@ using namespace std;
 
 
 class ParaFCCoarsener
-  : public ParaCoarsener
+: public ParaCoarsener
 {
 
-protected:
+ protected:
 
   int vertexVisitOrder;
   int matchRequestVisitOrder;
@@ -35,7 +35,7 @@ protected:
   MatchRequestTable *table;
   //ConnVertTable *connTable;
 
-public:
+ public:
 
   ParaFCCoarsener(int rank, int nProcs, int nParts, int vertVisOrder, int matchReqOrder, int divByWt, int divByLen, ostream &out);
   ~ParaFCCoarsener();
@@ -51,11 +51,11 @@ public:
   void processReqReplies();
   void permuteVerticesArray(int *verts, int numLocVerts);
   void setClusterIndices(MPI_Comm comm);
-  
+
   int accept(int _locV, int _nonLocCluWt, int hToLow, int _maxWt);
 
   void printVisitOrder(int variable) const;
-  
+
   inline void setVertexVisitOrder(register int vO) { vertexVisitOrder = vO; }
   inline void setMatchRequestVisitOrder(register int mvO) { matchRequestVisitOrder = mvO; }
   inline void setDivByCluWt(register int divBy) { divByCluWt = divBy; }

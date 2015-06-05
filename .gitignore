@@ -1,10 +1,9 @@
+build
+bin
+lib
+hypergraphs
+
 *.a
 *.o
 *.part
 *.part.*
-*.txt
-Hypergraphs/*
-
-Test/parkway
-Utilities/convert
-Utilities/printgraph

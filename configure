@@ -1,0 +1,5 @@
+#! /bin/bash
+
+# Convenieence script -- creates a build directory and runs CMake from the
+# build directory with any of the given arguments.
+(mkdir -p build && cd build >/dev/null 2>&1 && cmake $* .. "$@")
