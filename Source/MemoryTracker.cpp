@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <new>
 #include "MemoryTracker.hpp"
 
 using namespace std;
@@ -9,19 +10,18 @@ int MemoryTracker::allocated = 0;
 int MemoryTracker::max = 0;
 int MemoryTracker::power = 0;
 
-void *operator new(size_t n) throw(bad_alloc) {
-	return MemoryTracker::allocate(n);
+void *operator new(std::size_t n) throw(std::bad_alloc) {
+  return MemoryTracker::allocate(n);
 }
 
-void *operator new[](size_t n) throw(bad_alloc) {
-	return MemoryTracker::allocate(n);
+void *operator new[](std::size_t n) throw(std::bad_alloc) {
+  return MemoryTracker::allocate(n);
 }
 
 void operator delete[](void *p) throw() {
-	MemoryTracker::deallocate(p);
+  MemoryTracker::deallocate(p);
 }
 
 void operator delete(void *p) throw() {
-	MemoryTracker::deallocate(p);
+  MemoryTracker::deallocate(p);
 }
-
