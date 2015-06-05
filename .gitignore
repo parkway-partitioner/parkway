@@ -1,0 +1,10 @@
+*.a
+*.o
+*.part
+*.part.*
+*.txt
+Hypergraphs/*
+
+Test/parkway
+Utilities/convert
+Utilities/printgraph
