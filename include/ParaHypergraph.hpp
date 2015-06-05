@@ -32,7 +32,7 @@
 using namespace std;
 
 class ParaHypergraph : public GlobalCommunicator {
- protected:
+protected:
   int indexInSequence;
   int doNotCoarsen;
   int numTotalVertices;
@@ -60,7 +60,7 @@ class ParaHypergraph : public GlobalCommunicator {
 
   // HedgeIndexTable *table;
 
- public:
+public:
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int *wtArray);
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
@@ -199,16 +199,16 @@ class ParaHypergraph : public GlobalCommunicator {
   // hashKeys.setArray(a,l); }
 
   inline void setCut(register int pNo, register int cut) {
-    #ifdef DEBUG_HYPERGRAPH
+#ifdef DEBUG_HYPERGRAPH
     assert(pNo >= 0 && pNo < numPartitions);
-    #endif
+#endif
     partitionCutsizesVector[pNo] = cut;
   }
 
   inline int getCut(register int i) const {
-    #ifdef DEBUG_HYPERGRAPH
+#ifdef DEBUG_HYPERGRAPH
     assert(i >= 0 && i < numPartitions);
-    #endif
+#endif
     return partitionCutsizesVector[i];
   }
 };

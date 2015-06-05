@@ -1,24 +1,19 @@
-#  ifndef _HGRAPH_TEXTREADER_CPP
-#  define _HGRAPH_TEXTREADER_CPP
-
+#ifndef _HGRAPH_TEXTREADER_CPP
+#define _HGRAPH_TEXTREADER_CPP
 
 // ### HypergraphTextFileReader.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
-// 
+//
+// HISTORY:
+//
 // 01/12/2004: Last Modified
 //
 // ###
 
+#include "HypergraphTextFileReader.hpp"
 
-#  include "HypergraphTextFileReader.hpp"
-
-
-HypergraphTextFileReader::HypergraphTextFileReader()
-: TextFileReader() 
-{
+HypergraphTextFileReader::HypergraphTextFileReader() : TextFileReader() {
   numVertices = 0;
   numHedges = 0;
   numPins = 0;
@@ -26,13 +21,6 @@ HypergraphTextFileReader::HypergraphTextFileReader()
   wtsOnHedges = 0;
 }
 
+HypergraphTextFileReader::~HypergraphTextFileReader() {}
 
-
-HypergraphTextFileReader::~HypergraphTextFileReader()
-{
-  
-}
-
-
-
-#  endif
+#endif

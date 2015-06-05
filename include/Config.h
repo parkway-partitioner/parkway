@@ -1,13 +1,12 @@
-#  ifndef _CONFIG_H
-#  define _CONFIG_H
-
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
 // ### Macros.h ###
-// 
+//
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
 // HISTORY:
-// 
+//
 // 11/1/2005: Last Modified
 //
 // NOTES:
@@ -18,14 +17,13 @@
 // 7. Test para v-cycles
 // ###
 
-
 //#  define LINK_HMETIS
 //#  define LINK_PATOH
 //#  define DEBUG_ALL
-#  define KEY_UINT
+#define KEY_UINT
 //#  define USE_SPRNG
-#  define MEM_OPT
+#define MEM_OPT
 //#  define MEM_CHECK
 //#  define DEBUG_TABLES
 
-#  endif
+#endif

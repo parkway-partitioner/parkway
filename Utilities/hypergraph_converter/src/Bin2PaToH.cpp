@@ -1,38 +1,26 @@
-#  ifndef _BIN2PATOH_CPP
-#  define _BIN2PATOH_CPP
-
+#ifndef _BIN2PATOH_CPP
+#define _BIN2PATOH_CPP
 
 // ### Bin2PaToH.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
-// 
+//
+// HISTORY:
+//
 // 07/12/2004: Last Modified
 //
 // ###
 
+#include "Bin2PaToH.hpp"
 
-#  include "Bin2PaToH.hpp"
+Bin2PaToH::Bin2PaToH() : FromBinConverter() {}
 
+Bin2PaToH::~Bin2PaToH() {}
 
-Bin2PaToH::Bin2PaToH()
-  : FromBinConverter()
-{
-
-}
-
-Bin2PaToH::~Bin2PaToH()
-{
-
-}
-
-
-void Bin2PaToH::convert(const char *filename)
-{
+void Bin2PaToH::convert(const char *filename) {
   ifstream in_stream;
   ofstream out_stream;
-  
+
   char patoh_file[512];
   char preAmble[512];
 
@@ -44,23 +32,21 @@ void Bin2PaToH::convert(const char *filename)
   int numReadHedges;
 
   in_stream.open(filename, ifstream::in | ifstream::binary);
-  
-  if(!in_stream.is_open())
-    {
-      cout << "error opening " << filename << endl;
-      in_stream.close();
-      exit(1);
-    }
+
+  if (!in_stream.is_open()) {
+    cout << "error opening " << filename << endl;
+    in_stream.close();
+    exit(1);
+  }
 
   sprintf(patoh_file, "%s.patoh", filename);
   out_stream.open(patoh_file, ofstream::out);
 
-  if(!out_stream.is_open())
-    {
-      cout << "error opening " << patoh_file << endl;
-      in_stream.close();
-      exit(1);
-    }
+  if (!out_stream.is_open()) {
+    cout << "error opening " << patoh_file << endl;
+    in_stream.close();
+    exit(1);
+  }
 
   readPreamble(in_stream);
   readInVertexWts(in_stream);
@@ -68,52 +54,48 @@ void Bin2PaToH::convert(const char *filename)
   sprintf(&preAmble[0], "%s PaToH file representation of %s\n", "%", filename);
   out_stream << &preAmble[0];
 
-  sprintf(&preAmble[0], "%d %d %d %d %d\n",0,numVerts,numHedges,numPins,2);
+  sprintf(&preAmble[0], "%d %d %d %d %d\n", 0, numVerts, numHedges, numPins, 2);
   out_stream << &preAmble[0];
- 
+
   numReadHedges = 0;
   inData = 0;
   inSourceFile = in_stream.tellg();
 
-  for ( ;numReadHedges < numHedges; )
-    {
-      if(inData == 0)	
-	readInHedgeData(in_stream, inSourceFile); 		
-      
-      for ( ;inData < dataLength; )
-	{
-	  chunkLength = hEdgeData[inData];
-	  out_stream << hEdgeData[inData+1] << " ";
+  for (; numReadHedges < numHedges;) {
+    if (inData == 0)
+      readInHedgeData(in_stream, inSourceFile);
 
-	  for (i=2;i<chunkLength;++i)
-	    {
-	      pin = hEdgeData[inData+i];
+    for (; inData < dataLength;) {
+      chunkLength = hEdgeData[inData];
+      out_stream << hEdgeData[inData + 1] << " ";
 
-	      if(pin < 0 || pin >= numVerts)
-		{
-		  cout << "pin = " << pin << ", numVerts = " << numVerts << endl;
-		  in_stream.close();
-		  out_stream.close();
-		  exit(1);
-		}
+      for (i = 2; i < chunkLength; ++i) {
+        pin = hEdgeData[inData + i];
 
-	      out_stream << pin << " ";
-	    }
+        if (pin < 0 || pin >= numVerts) {
+          cout << "pin = " << pin << ", numVerts = " << numVerts << endl;
+          in_stream.close();
+          out_stream.close();
+          exit(1);
+        }
 
-	  out_stream << "\n";
+        out_stream << pin << " ";
+      }
 
-	  inData += chunkLength;
-	  ++numReadHedges;
-	  
-	  if(numReadHedges == numHedges)
-	    break;
-	}
+      out_stream << "\n";
 
-      if(inData == dataLength)		  
-	inData = 0;	
+      inData += chunkLength;
+      ++numReadHedges;
+
+      if (numReadHedges == numHedges)
+        break;
     }
-  
-  for (i=0;i<numVerts;++i)
+
+    if (inData == dataLength)
+      inData = 0;
+  }
+
+  for (i = 0; i < numVerts; ++i)
     out_stream << vWeights[i] << " ";
   out_stream << "\n";
 
@@ -121,22 +103,4 @@ void Bin2PaToH::convert(const char *filename)
   in_stream.close();
 }
 
-
-
-
-
-
-
-
-#  endif
-
-
-
-
-
-
-
-
-
-
-
+#endif

@@ -1,11 +1,11 @@
 
-#  ifndef _LOG_H
-#  define _LOG_H
-
+#ifndef _LOG_H
+#define _LOG_H
 
 // ### Log.h ###
 //
-// Copyright (C) 2004, Aleksandar Trifunovic, William Knottenbelt, Imperial College London
+// Copyright (C) 2004, Aleksandar Trifunovic, William Knottenbelt, Imperial
+// College London
 //
 // HISTORY:
 //
@@ -13,8 +13,6 @@
 //
 // ###
 
+void write_log(int rank, const char *fmt, ...);
 
-void write_log(int rank,const char *fmt, ...);
-
-
-#  endif
+#endif

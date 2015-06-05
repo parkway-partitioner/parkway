@@ -1,30 +1,24 @@
-#  ifndef _CONVERTER_HPP
-#  define _CONVERTER_HPP
-
+#ifndef _CONVERTER_HPP
+#define _CONVERTER_HPP
 
 // ### Converter.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
-// 
+//
+// HISTORY:
+//
 // 01/12/2004: Last Modified
 //
 // ###
 
-
-#  include <fstream>
-#  include "Dyna.hpp"
-
+#include <fstream>
+#include "Dyna.hpp"
 
 using namespace std;
 
-
-class Converter
-{
+class Converter {
 
 protected:
-
   int locOfLengthParam;
   int dataLength;
   int numVerts;
@@ -33,7 +27,6 @@ protected:
   FastDynaArray<int> vWeights;
 
 public:
-
   Converter();
   virtual ~Converter();
 
@@ -42,19 +35,13 @@ public:
   inline int *getDataArray() { return hEdgeData.getArray(); }
   inline int *getVertWtsArray() { return vWeights.getArray(); }
   inline void setNumVertices(register int n) { numVerts = n; }
-  
+
   void setLengthParameter();
   void resetConverterParameters();
   void addLengthParameter();
-  
-  virtual void convert(const char* filename)=0;
-  virtual void readPreamble(ifstream &in)=0;
 
+  virtual void convert(const char *filename) = 0;
+  virtual void readPreamble(ifstream &in) = 0;
 };
 
-
-
-
-
-
-#  endif
+#endif

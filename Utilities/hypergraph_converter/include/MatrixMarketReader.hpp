@@ -1,31 +1,24 @@
 
-#  ifndef _MTXMKT_READER_HPP
-#  define _MTXMKT_READER_HPP
-
+#ifndef _MTXMKT_READER_HPP
+#define _MTXMKT_READER_HPP
 
 // ### MatrixMarketReader.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
-// 
+//
+// HISTORY:
+//
 // 12/1/2004: Last Modified
 //
 // ###
 
-
-#  include "TextFileReader.hpp"
-#  include "StringUtils.hpp"
-
+#include "TextFileReader.hpp"
+#include "StringUtils.hpp"
 
 using namespace std;
 
-
-class MatrixMarketReader
-  : public TextFileReader
-{
+class MatrixMarketReader : public TextFileReader {
 protected:
-
   int numVertices;
   int numHyperedges;
   int numPins;
@@ -34,7 +27,6 @@ protected:
   FastDynaArray<int> pinList;
 
 public:
-
   MatrixMarketReader();
   ~MatrixMarketReader();
 
@@ -44,7 +36,4 @@ public:
   void skipComments(ifstream &in_stream);
 };
 
-
-
-
-#  endif
+#endif

@@ -1,31 +1,25 @@
 
 
-#  ifndef _SEQ_CONTROLLER_HPP
-#  define _SEQ_CONTROLLER_HPP
-
+#ifndef _SEQ_CONTROLLER_HPP
+#define _SEQ_CONTROLLER_HPP
 
 // ### SeqController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
-// 
+//
+// HISTORY:
+//
 // 30/11/2004: Last Modified
 //
 // ###
 
-
-#  include "ParaHypergraph.hpp"
-#  include "Hypergraph.hpp"
-
+#include "ParaHypergraph.hpp"
+#include "Hypergraph.hpp"
 
 using namespace std;
 
-
-class SeqController
-{
+class SeqController {
 protected:
-  
   ostream &out_stream;
 
   int dispOption;
@@ -37,20 +31,19 @@ protected:
 
   double kWayConstraint;
   double acceptProp;
-  
+
   Hypergraph *h;
 
   FastDynaArray<int> partitionVector;
   FastDynaArray<int> partitionCuts;
   FastDynaArray<int> partitionVectorOffsets;
-  
-public:
 
+public:
   SeqController(int rank, int nProcs, int nParts, ostream &out);
-  
-  virtual ~SeqController();  
-  virtual void dispSeqControllerOptions() const=0;
-  virtual void runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm)=0;
+
+  virtual ~SeqController();
+  virtual void dispSeqControllerOptions() const = 0;
+  virtual void runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm) = 0;
   virtual void initSeqPartitions(ParaHypergraph &h, MPI_Comm comm);
   virtual void initCoarsestHypergraph(ParaHypergraph &hgraph, MPI_Comm comm);
 
@@ -65,6 +58,4 @@ public:
   inline void setAcceptProp(register double p) { acceptProp = p; }
 };
 
-
-
-#  endif
+#endif

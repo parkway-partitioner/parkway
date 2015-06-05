@@ -1,49 +1,38 @@
-#  ifndef _PATOH2BIN_HPP
-#  define _PATOH2BIN_HPP
-
+#ifndef _PATOH2BIN_HPP
+#define _PATOH2BIN_HPP
 
 // ### PaToH2Bin.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
-// 
+//
+// HISTORY:
+//
 // 02/12/2004: Last Modified
 //
-// NOTE: currently do not deal with constraints 
+// NOTE: currently do not deal with constraints
 //
 // ###
 
-
-#  include "HypergraphTextFileReader.hpp"
-#  include "TextToBinConverter.hpp"
-
+#include "HypergraphTextFileReader.hpp"
+#include "TextToBinConverter.hpp"
 
 using namespace std;
 
-
-class PaToH2Bin
-  : public HypergraphTextFileReader, TextToBinConverter
-{
+class PaToH2Bin : public HypergraphTextFileReader, TextToBinConverter {
 
 protected:
-
   int numScheme;
   int constraints;
 
 public:
-  
   PaToH2Bin();
   ~PaToH2Bin();
 
-  void convert(const char* filename);
+  void convert(const char *filename);
   void readPreamble(ifstream &in);
 
   int processHedgeLine(register char *line, register int &numP);
   int processVertLine(register char *line);
-  
 };
 
-
-
-#  endif
+#endif

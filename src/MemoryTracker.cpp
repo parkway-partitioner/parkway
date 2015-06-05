@@ -18,10 +18,6 @@ void *operator new[](std::size_t n) throw(std::bad_alloc) {
   return MemoryTracker::allocate(n);
 }
 
-void operator delete[](void *p) throw() {
-  MemoryTracker::deallocate(p);
-}
+void operator delete[](void *p) throw() { MemoryTracker::deallocate(p); }
 
-void operator delete(void *p) throw() {
-  MemoryTracker::deallocate(p);
-}
+void operator delete(void *p) throw() { MemoryTracker::deallocate(p); }

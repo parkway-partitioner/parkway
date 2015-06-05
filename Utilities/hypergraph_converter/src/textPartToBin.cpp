@@ -1,21 +1,10 @@
 
 
-#  ifndef TXT2BIN
-#  define TXT2BIN
+#ifndef TXT2BIN
+#define TXT2BIN
 
-
-#  include <iostream>
-
+#include <iostream>
 
 using namespace std;
 
-
-
-
-
-
-
-
-
-
-#  endif
+#endif

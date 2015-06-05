@@ -21,7 +21,7 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                          const int *options, MPI_Comm comm) {
   ParaCoarsener *c = NULL;
 
-  int coarsener_type = ParaFCC;  // Para2DModel
+  int coarsener_type = ParaFCC; // Para2DModel
   int min_nodes = options[8];
   int disp_option = options[2];
   int numTotPins = h->getNumTotPins(comm);
@@ -38,22 +38,22 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
     int divByHedgeLen;
 
     switch (divideConnectivity) {
-      case 0:
-        divByCluWt = 0;
-        divByHedgeLen = 0;
-        break;
-      case 1:
-        divByCluWt = 1;
-        divByHedgeLen = 0;
-        break;
-      case 2:
-        divByCluWt = 0;
-        divByHedgeLen = 1;
-        break;
-      default:
-        divByCluWt = 1;
-        divByHedgeLen = 1;
-        break;
+    case 0:
+      divByCluWt = 0;
+      divByHedgeLen = 0;
+      break;
+    case 1:
+      divByCluWt = 1;
+      divByHedgeLen = 0;
+      break;
+    case 2:
+      divByCluWt = 0;
+      divByHedgeLen = 1;
+      break;
+    default:
+      divByCluWt = 1;
+      divByHedgeLen = 1;
+      break;
     }
 
     c = new ParaFCCoarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
@@ -74,22 +74,22 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
     int divByHedgeLen;
 
     switch (divideConnectivity) {
-      case 0:
-        divByCluWt = 0;
-        divByHedgeLen = 0;
-        break;
-      case 1:
-        divByCluWt = 1;
-        divByHedgeLen = 0;
-        break;
-      case 2:
-        divByCluWt = 0;
-        divByHedgeLen = 1;
-        break;
-      default:
-        divByCluWt = 1;
-        divByHedgeLen = 1;
-        break;
+    case 0:
+      divByCluWt = 0;
+      divByHedgeLen = 0;
+      break;
+    case 1:
+      divByCluWt = 1;
+      divByHedgeLen = 0;
+      break;
+    case 2:
+      divByCluWt = 0;
+      divByHedgeLen = 1;
+      break;
+    default:
+      divByCluWt = 1;
+      divByHedgeLen = 1;
+      break;
     }
 
     c = new Para2DModelCoarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
@@ -103,7 +103,8 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
     c->buildAuxiliaryStructs(numTotPins, aveVertDeg, aveHedgeSize);
   }
 
-  if (c && my_rank == 0) c->dispCoarseningOptions();
+  if (c && my_rank == 0)
+    c->dispCoarseningOptions();
 
   return c;
 }
@@ -126,22 +127,22 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
     int divByHedgeLen;
 
     switch (divideConnectivity) {
-      case 0:
-        divByCluWt = 0;
-        divByHedgeLen = 0;
-        break;
-      case 1:
-        divByCluWt = 1;
-        divByHedgeLen = 0;
-        break;
-      case 2:
-        divByCluWt = 0;
-        divByHedgeLen = 1;
-        break;
-      default:
-        divByCluWt = 1;
-        divByHedgeLen = 1;
-        break;
+    case 0:
+      divByCluWt = 0;
+      divByHedgeLen = 0;
+      break;
+    case 1:
+      divByCluWt = 1;
+      divByHedgeLen = 0;
+      break;
+    case 2:
+      divByCluWt = 0;
+      divByHedgeLen = 1;
+      break;
+    default:
+      divByCluWt = 1;
+      divByHedgeLen = 1;
+      break;
     }
 
     c = new ParaRestrFCCoarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
@@ -153,7 +154,8 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
     c->setReductionRatio(r);
   }
 
-  if (c && my_rank == 0) c->dispCoarseningOptions();
+  if (c && my_rank == 0)
+    c->dispCoarseningOptions();
 
   return c;
 }
@@ -172,7 +174,8 @@ ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
     double eeLimit = static_cast<double>(options[27]) / 100;
     int earlyExit = 0;
 
-    if (options[28] == 2 || options[28] == 3) earlyExit = 1;
+    if (options[28] == 2 || options[28] == 3)
+      earlyExit = 1;
 
     r = new ParaGreedyKwayRefiner(my_rank, num_proc, num_parts,
                                   numTotPins / num_proc, earlyExit, eeLimit,
@@ -182,7 +185,8 @@ ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
     r->setBalConstraint(constraint);
   }
 
-  if (r && my_rank == 0) r->dispRefinementOptions();
+  if (r && my_rank == 0)
+    r->dispRefinementOptions();
 
   return r;
 }
@@ -465,7 +469,8 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
   }
 #endif
 
-  if (seqC && my_rank == 0) seqC->dispSeqControllerOptions();
+  if (seqC && my_rank == 0)
+    seqC->dispSeqControllerOptions();
 
   return seqC;
 }
@@ -571,7 +576,8 @@ ParaController *Utils::buildParaController(
 
     paraC->setRandShuffBefRef(0);
 
-    if (my_rank == 0) paraC->dispParaControllerOptions();
+    if (my_rank == 0)
+      paraC->dispParaControllerOptions();
   }
 
   return paraC;

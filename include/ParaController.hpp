@@ -1,39 +1,32 @@
 
-#  ifndef _PARA_CONTROLLER_HPP
-#  define _PARA_CONTROLLER_HPP
-
+#ifndef _PARA_CONTROLLER_HPP
+#define _PARA_CONTROLLER_HPP
 
 // ### ParaController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// 
-// HISTORY: 
-// 
+//
+// HISTORY:
+//
 // 4/1/2005: Last Modified
 //
 // ###
 
-
-#  include "Stack.hpp"
-#  include "ParaFCCoarsener.hpp"
-#  include "Para2DModelCoarsener.hpp"
-#  include "ParaApproxFCCoarsener.hpp"
-#  include "ParaRestrFCCoarsener.hpp"
-#  include "ParaGreedyKwayRefiner.hpp"
-#  include "SeqController.hpp"
-
+#include "Stack.hpp"
+#include "ParaFCCoarsener.hpp"
+#include "Para2DModelCoarsener.hpp"
+#include "ParaApproxFCCoarsener.hpp"
+#include "ParaRestrFCCoarsener.hpp"
+#include "ParaGreedyKwayRefiner.hpp"
+#include "SeqController.hpp"
 
 using namespace std;
 
+class ParaController : public GlobalCommunicator {
 
-class ParaController 
-  : public GlobalCommunicator
-{
-  
 protected:
-
   ostream &out_stream;
-  
+
   /* Parallel partitioning options */
 
   int randShuffBefRef;
@@ -42,7 +35,7 @@ protected:
   int numTotalParts;
   int maxPartWt;
   int numOrigLocVerts;
-  
+
   double keepPartitionsWithin;
   double reductionInKeepThreshold;
 
@@ -79,22 +72,23 @@ protected:
 
   FastDynaArray<int> bestPartition;
   FastDynaArray<int> mapToOrigVerts;
-  
+
   ParaHypergraph *hgraph;
 
-  ParaCoarsener& coarsener;
-  ParaRefiner& refiner;
-  SeqController& seqController;
-  Stack<ParaHypergraph*> hgraphs;
+  ParaCoarsener &coarsener;
+  ParaRefiner &refiner;
+  SeqController &seqController;
+  Stack<ParaHypergraph *> hgraphs;
 
 public:
-  
-  ParaController(ParaCoarsener& c, ParaRefiner& r, SeqController& ref, int rank, int nP, int percentile, int inc, int approxRefine, ostream &out);
+  ParaController(ParaCoarsener &c, ParaRefiner &r, SeqController &ref, int rank,
+                 int nP, int percentile, int inc, int approxRefine,
+                 ostream &out);
 
   virtual ~ParaController();
-  virtual void dispParaControllerOptions() const=0;
-  virtual void resetStructs()=0;
-  virtual void runPartitioner(MPI_Comm comm)=0;
+  virtual void dispParaControllerOptions() const = 0;
+  virtual void resetStructs() = 0;
+  virtual void runPartitioner(MPI_Comm comm) = 0;
   virtual void setWeightConstraints(MPI_Comm comm);
 
   inline int getNumParaRuns() const { return numParaRuns; }
@@ -112,24 +106,21 @@ public:
   inline void setKTFactor(register double kT) { keepPartitionsWithin = kT; }
   inline void setShuffleVertices(register int s) { shuffled = s; }
   inline void setRandShuffBefRef(register int s) { randShuffBefRef = s; }
-  inline void setGraph(register ParaHypergraph *graph) 
-  { 
-    hgraph = graph; 
+  inline void setGraph(register ParaHypergraph *graph) {
+    hgraph = graph;
     numOrigLocVerts = hgraph->getNumLocalVertices();
   }
 
-  //void setShuffleFile(const char *filename);
+  // void setShuffleFile(const char *filename);
   void initMapToOrigVerts();
   void setPrescribedPartition(const char *filename, MPI_Comm comm);
   void storeBestPartition(int numV, const int *array, MPI_Comm comm);
   void partitionToFile(const char *filename, MPI_Comm comm) const;
   void copyOutPartition(register int numVertices, register int *pVector) const;
   void displayPartitionInfo(MPI_Comm comm) const;
-#  ifdef DEBUG_TABLES
+#ifdef DEBUG_TABLES
   void printHashMemUse();
-#  endif
+#endif
 };
 
-
-
-#  endif
+#endif

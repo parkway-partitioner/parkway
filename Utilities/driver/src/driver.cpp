@@ -55,28 +55,36 @@ int main(int argc, char **argv) {
 
   if (argc < 2) {
     if (myRank == 0) {
-      cout << endl << "USAGE: " << endl << endl
+      cout << endl
+           << "USAGE: " << endl
+           << endl
            << "% mpirun [mpirun_options...] " << argv[0]
-           << " [parkway_options...] <hypergraph filename>" << endl << endl
-           << "\t Unrecognized options will be ignored. " << endl << endl
-           << "PARAMETERS: " << endl << endl << "\t -oFile <output_filename> "
-           << endl << "\t     - name of file that program information should "
-                      "be output to. Default behaviour is to" << endl
+           << " [parkway_options...] <hypergraph filename>" << endl
+           << endl
+           << "\t Unrecognized options will be ignored. " << endl
+           << endl
+           << "PARAMETERS: " << endl
+           << endl
+           << "\t -oFile <output_filename> " << endl
+           << "\t     - name of file that program information should "
+              "be output to. Default behaviour is to" << endl
            << "\t       display program information to screen" << endl
            << "\t -tType <test_type> " << endl
            << "\t     - integer specifying the routine to be tested:" << endl
            << "\t       0 -> tests "
               "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm) - "
-              "default" << endl << "\t       1 -> tests "
-                                   "ParaPartKway(int,int,int*,int*,int*,int*,"
-                                   "int,double,int&,int*,int*,char*,MPI_Comm)"
-           << endl << "\t -c <balance_constraint> " << endl
+              "default" << endl
+           << "\t       1 -> tests "
+              "ParaPartKway(int,int,int*,int*,int*,int*,"
+              "int,double,int&,int*,int*,char*,MPI_Comm)" << endl
+           << "\t -c <balance_constraint> " << endl
            << "\t       double precision number defining the balance "
               "constraint on partition" << endl
            << "\t -nParts <number_of_parts> " << endl
            << "\t     - the number of parts in the partition sought. By "
               "default, will look for partitions of" << endl
-           << "\t       size 4" << endl << endl;
+           << "\t       size 4" << endl
+           << endl;
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -234,11 +242,16 @@ int main(int argc, char **argv) {
       test_output << "----- completed testing recorded partition" << endl;
     }
 
-    if (vWeights) delete[] vWeights;
-    if (hEdgeWts) delete[] hEdgeWts;
-    if (pinList) delete[] pinList;
-    if (offsets) delete[] offsets;
-    if (pVector) delete[] pVector;
+    if (vWeights)
+      delete[] vWeights;
+    if (hEdgeWts)
+      delete[] hEdgeWts;
+    if (pinList)
+      delete[] pinList;
+    if (offsets)
+      delete[] offsets;
+    if (pVector)
+      delete[] pVector;
 
     /* END TEST */
   }

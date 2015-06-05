@@ -1,7 +1,6 @@
 
-#  ifndef _PARA_FCCOARSENER_HPP
-#  define _PARA_FCCOARSENER_HPP
-
+#ifndef _PARA_FCCOARSENER_HPP
+#define _PARA_FCCOARSENER_HPP
 
 // ### ParaFCCoarsener.hpp ###
 //
@@ -13,19 +12,13 @@
 //
 // ###
 
-
-#  include "ParaCoarsener.hpp"
-
+#include "ParaCoarsener.hpp"
 
 using namespace std;
 
+class ParaFCCoarsener : public ParaCoarsener {
 
-class ParaFCCoarsener
-: public ParaCoarsener
-{
-
- protected:
-
+protected:
   int vertexVisitOrder;
   int matchRequestVisitOrder;
   int divByCluWt;
@@ -33,15 +26,16 @@ class ParaFCCoarsener
   int limitOnIndexDuringCoarsening;
 
   MatchRequestTable *table;
-  //ConnVertTable *connTable;
+  // ConnVertTable *connTable;
 
- public:
-
-  ParaFCCoarsener(int rank, int nProcs, int nParts, int vertVisOrder, int matchReqOrder, int divByWt, int divByLen, ostream &out);
+public:
+  ParaFCCoarsener(int rank, int nProcs, int nParts, int vertVisOrder,
+                  int matchReqOrder, int divByWt, int divByLen, ostream &out);
   ~ParaFCCoarsener();
 
   void dispCoarseningOptions() const;
-  void buildAuxiliaryStructs(int numPins, double aveVertDeg, double aveHedgeSize);
+  void buildAuxiliaryStructs(int numPins, double aveVertDeg,
+                             double aveHedgeSize);
   void releaseMemory();
 
   ParaHypergraph *coarsen(ParaHypergraph &h, MPI_Comm comm);
@@ -57,10 +51,10 @@ class ParaFCCoarsener
   void printVisitOrder(int variable) const;
 
   inline void setVertexVisitOrder(register int vO) { vertexVisitOrder = vO; }
-  inline void setMatchRequestVisitOrder(register int mvO) { matchRequestVisitOrder = mvO; }
+  inline void setMatchRequestVisitOrder(register int mvO) {
+    matchRequestVisitOrder = mvO;
+  }
   inline void setDivByCluWt(register int divBy) { divByCluWt = divBy; }
-
 };
 
-
-#  endif
+#endif

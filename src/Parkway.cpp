@@ -116,12 +116,12 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   TableUtils::setScatterArray(hgraph->getNumTotalVertices());
   // hgraph->printPercentiles(*output);
 
-  coarsener = Utils::buildParaCoarsener(my_rank, num_procs, num_parts,
-                                        constraint, hgraph, *output,
-                                        init_options, comm);
-  restrC = Utils::buildParaRestrCoarsener(my_rank, num_procs, num_parts,
-                                          constraint, hgraph, *output,
-                                          init_options, comm);
+  coarsener =
+      Utils::buildParaCoarsener(my_rank, num_procs, num_parts, constraint,
+                                hgraph, *output, init_options, comm);
+  restrC =
+      Utils::buildParaRestrCoarsener(my_rank, num_procs, num_parts, constraint,
+                                     hgraph, *output, init_options, comm);
   refiner = Utils::buildParaRefiner(my_rank, num_procs, num_parts, constraint,
                                     hgraph, *output, init_options, comm);
   seqController = Utils::buildSeqController(my_rank, num_procs, num_parts,
