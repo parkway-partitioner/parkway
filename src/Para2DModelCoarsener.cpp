@@ -60,7 +60,7 @@ void Para2DModelCoarsener::buildAuxiliaryStructs(int numTotPins,
   // build the MatchRequestTable
   // ###
 
-  register int i =
+  int i =
       static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
 
   table = new MatchRequestTable(TableUtils::getTableSize(i / numProcs));
@@ -107,8 +107,8 @@ ParaHypergraph *Para2DModelCoarsener::ParaFCCoarsen(ParaHypergraph &h,
   Funct::printMemUse(myRank, "[begin PFCC]");
 #endif
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int index = 0;
   int numNotMatched = numLocalVertices;
@@ -131,8 +131,8 @@ ParaHypergraph *Para2DModelCoarsener::ParaFCCoarsen(ParaHypergraph &h,
   int pairWt;
   int neighbourLoc;
 
-  register int hEdge;
-  register int vertex;
+  int hEdge;
+  int vertex;
 
   double metric;
   double maxMatchMetric;
@@ -436,7 +436,7 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
   Funct::printMemUse(myRank, "[begin PFCC]");
 #endif
 
-  register int i;
+  int i;
 
   int index;
   int numNotMatched = numLocalVertices;
@@ -447,8 +447,8 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
 
   int vPerProc = totalVertices / numProcs;
 
-  register int hEdge;
-  register int vertex;
+  int hEdge;
+  int vertex;
 
   double reducedBy;
 
@@ -675,8 +675,8 @@ void Para2DModelCoarsener::setRequestArrays(int highToLow) {
   int nonLocVertex;
   int cluWt;
 
-  register int i;
-  register int procRank;
+  int i;
+  int procRank;
 
   MatchRequestEntry *entry;
   MatchRequestEntry **entryArray = table->getEntriesArray();
@@ -708,9 +708,9 @@ void Para2DModelCoarsener::setRequestArrays(int highToLow) {
 }
 
 void Para2DModelCoarsener::setReplyArrays(int highToLow, int maxVWt) {
-  register int j;
-  register int i;
-  register int l;
+  int j;
+  int i;
+  int l;
 
   FastDynaArray<int> visitOrder;
 
@@ -805,9 +805,9 @@ void Para2DModelCoarsener::setReplyArrays(int highToLow, int maxVWt) {
 }
 
 void Para2DModelCoarsener::processReqReplies() {
-  register int i;
-  register int j;
-  register int index;
+  int i;
+  int j;
+  int index;
 
   int startOffset = 0;
   int vNonLocReq;
@@ -866,8 +866,8 @@ void Para2DModelCoarsener::setClusterIndices(MPI_Comm comm) {
   MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.getArray(), 1, MPI_INT,
                 comm);
 
-  register int index = 0;
-  register int i;
+  int index = 0;
+  int i;
 
   MatchRequestEntry *entry;
   MatchRequestEntry **entryArray;
@@ -996,7 +996,7 @@ int Para2DModelCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
 }
 
 void Para2DModelCoarsener::permuteVerticesArray(int *verts, int nLocVerts) {
-  register int i;
+  int i;
 
   switch (vertexVisitOrder) {
   case INCREASING_ORDER:

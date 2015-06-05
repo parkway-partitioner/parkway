@@ -28,8 +28,8 @@ protected:
   int length;
   T *array;
 
-  inline int expand(register int index) {
-    register int targetLength = 1;
+  inline int expand(int index) {
+    int targetLength = 1;
     while (index >= targetLength)
       targetLength <<= 1;
     if (!adjust(targetLength - length))
@@ -50,7 +50,7 @@ public:
     array = NULL;
   }
 
-  inline FastDynaArray(register int size) {
+  inline FastDynaArray(int size) {
     if (size <= 0) {
       length = 0;
       array = NULL;
@@ -80,7 +80,7 @@ public:
 
   inline int getLength() const { return length; }
 
-  inline int setLength(register int size) {
+  inline int setLength(int size) {
     if (size == length)
       return 1;
     if (!adjust(size - length))
@@ -90,7 +90,7 @@ public:
   }
 
   inline int search(T target) const {
-    for (register int n = 0; n < length; ++n) {
+    for (int n = 0; n < length; ++n) {
       if (array[n] == target)
         return n;
     }
@@ -105,7 +105,7 @@ public:
     length = size;
   }
 
-  inline T &operator[](register int index) const {
+  inline T &operator[](int index) const {
 #ifdef DEBUG_BASICS
     if ((index >= length) || (index < 0)) {
 #ifdef DEBUG_BASICS
@@ -124,7 +124,7 @@ public:
     return array[index];
   }
 
-  inline T &operator()(register int index) const {
+  inline T &operator()(int index) const {
 #ifdef DEBUG_BASICS
     if ((index >= length) || (index < 0)) {
       char message[512];
@@ -140,18 +140,18 @@ public:
     return array[index];
   }
 
-  inline void check(register int index) {
+  inline void check(int index) {
     if (index >= length)
       expand(index);
   }
 
-  inline void assign(register int index, const T value) {
+  inline void assign(int index, const T value) {
     if (index >= length)
       expand(index);
     array[index] = value;
   }
 
-  inline int adjust(register int size) {
+  inline int adjust(int size) {
     int newLength = length + size;
 
     if (newLength <= 0) {
@@ -175,7 +175,7 @@ public:
       abort();
     }
 
-    register int i;
+    int i;
 
     if (size >= 0)
       for (i = 0; i < length; ++i)

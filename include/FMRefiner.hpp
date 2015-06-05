@@ -77,11 +77,11 @@ public:
   void moveToBucketArray(int vPart, int vGain, int v);
   void removeFromBucketArray(int v, int vPart, int vGain);
 
-  void adjustMaxGainPtr(register int dP);
-  void updateGains(register int v);
-  void updateGains1_0(register int v);
-  void updateGains0_1(register int v);
-  void unmakeMove(register int v);
+  void adjustMaxGainPtr(int dP);
+  void updateGains(int v);
+  void updateGains1_0(int v);
+  void updateGains0_1(int v);
+  void unmakeMove(int v);
 
   void refine(Hypergraph &h);
 
@@ -98,7 +98,7 @@ public:
   inline void removeEEThreshold() { maxNonPosMoves = numVertices; }
 
   inline int checkerHigh(int array) {
-    register int i;
+    int i;
     for (i = (maxPossGain << 1); i > 0; --i) {
       if ((*bucketArrays[array])[i].next)
         return i;
@@ -107,7 +107,7 @@ public:
   }
 
   inline void sanityCheck() {
-    for (register int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; ++i) {
       assert(maxGains[i] == maxGainEntries[i] - maxPossGain);
       assert(maxGainEntries[i] == checkerHigh(i));
     }

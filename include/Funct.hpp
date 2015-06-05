@@ -66,13 +66,13 @@ public:
   inline static int getShift2() { return shift2; }
   inline static int getMaxHedgeLen() { return maxHedgeLen; }
 
-  inline static void setShift1(register int s) { shift1 = s; }
-  inline static void setShift2(register int s) { shift2 = s; }
-  inline static void setMaxHedgeLen(register int m) { maxHedgeLen = m; }
+  inline static void setShift1(int s) { shift1 = s; }
+  inline static void setShift2(int s) { shift2 = s; }
+  inline static void setMaxHedgeLen(int m) { maxHedgeLen = m; }
 
   inline static int search(const int *array, const int length,
-                           const register int target) {
-    register int i = 0;
+                           const int target) {
+    int i = 0;
 
     for (; i < length; ++i)
       if (array[i] == target)
@@ -82,8 +82,8 @@ public:
   }
 
   inline static void qsort(const int left, const int right, int *array) {
-    register int left_arrow = left;
-    register int right_arrow = right;
+    int left_arrow = left;
+    int right_arrow = right;
 
     int pivot = array[(left + right) / 2];
 
@@ -107,14 +107,14 @@ public:
       qsort(left_arrow, right, array);
   }
 
-  inline static void swap(register int &a, register int &b) {
-    register int t = a;
+  inline static void swap(int &a, int &b) {
+    int t = a;
     a = b;
     b = t;
   }
 
-  inline static int log2(register int a) {
-    register int logA = -1;
+  inline static int log2(int a) {
+    int logA = -1;
 
     while (a > 0) {
       ++logA;
@@ -124,7 +124,7 @@ public:
     return logA;
   }
 
-  inline static int isPowerOf2(register int num) {
+  inline static int isPowerOf2(int num) {
     if (num == 1)
       return 1;
 
@@ -147,7 +147,7 @@ public:
   static void qsortByAnotherArray(const int left, const int right, int *array,
                                   const int *valArray, const int order);
 
-  static int setTableSize(register int approxNumElem);
+  static int setTableSize(int approxNumElem);
   static int getParameterAsInteger(int argc, char **argv, const char *cmpr,
                                    int def);
   static char *getParameterAsCharPtr(int argc, char **argv, const char *cmpr,

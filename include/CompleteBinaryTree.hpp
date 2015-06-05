@@ -28,8 +28,8 @@ public:
   CompleteBinaryTree(const T *rootVals, const int *cmprs, int nRoots);
   ~CompleteBinaryTree() {}
 
-  inline int getRootVal(register int vID) const {
-    register int i = 1;
+  inline int getRootVal(int vID) const {
+    int i = 1;
 
     while (i < numRoots) {
       if (vID < tree[i])

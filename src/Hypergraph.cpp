@@ -20,7 +20,7 @@ Hypergraph::Hypergraph(int *vWts, int numVerts) {
   matchVector.setLength(numVertices);
   vWeight.setArray(vWts, numVertices);
 
-  register int i;
+  int i;
 
   for (i = 0; i < numVertices; ++i)
     matchVector[i] = -1;
@@ -40,7 +40,7 @@ Hypergraph::Hypergraph(int *vWts, int *pVector, int numVerts, int cut) {
   partitionVectorOffsets[1] = numVertices;
   partitionCuts[0] = cut;
 
-  register int i;
+  int i;
 
   for (i = 0; i < numVertices; ++i)
     matchVector[i] = -1;
@@ -57,9 +57,9 @@ void Hypergraph::buildVtoHedges() {
   assert(hEdgeOffsets.getLength() >= 0);
 #endif
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int endOffset;
 
@@ -97,7 +97,7 @@ void Hypergraph::buildVtoHedges() {
 }
 
 void Hypergraph::resetMatchVector() {
-  register int i;
+  int i;
 
   for (i = 0; i < numVertices; ++i)
     matchVector[i] = -1;
@@ -117,7 +117,7 @@ void Hypergraph::resetVertexMaps() {
 }
 
 void Hypergraph::projectPartitions(const Hypergraph &coarseGraph) {
-  register int *coarsePartVector = coarseGraph.getPartVectorArray();
+  int *coarsePartVector = coarseGraph.getPartVectorArray();
 
   int *coarsePartOffsets = coarseGraph.getPartOffsetArray();
   int *coarsePartCuts = coarseGraph.getPartCutArray();
@@ -127,8 +127,8 @@ void Hypergraph::projectPartitions(const Hypergraph &coarseGraph) {
   int v;
   int i;
 
-  register int j;
-  register int index;
+  int j;
+  int index;
 
   numPartitions = numP;
 
@@ -156,9 +156,9 @@ void Hypergraph::projectPartitions(const Hypergraph &coarseGraph) {
 }
 
 void Hypergraph::removeBadPartitions(double fractionOK) {
-  register int i;
-  register int indexIntoOld;
-  register int indexIntoNew;
+  int i;
+  int indexIntoOld;
+  int indexIntoNew;
 
   int acceptedCut;
   int bestCut = partitionCuts[0];
@@ -217,8 +217,8 @@ void Hypergraph::removeBadPartitions(double fractionOK) {
 }
 
 void Hypergraph::setNumPartitions(int nPartitions) {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   numPartitions = nPartitions;
 
@@ -234,29 +234,29 @@ void Hypergraph::setNumPartitions(int nPartitions) {
   }
 }
 
-void Hypergraph::copyOutPartition(register int *pVector, int nV,
+void Hypergraph::copyOutPartition(int *pVector, int nV,
                                   int pNo) const {
 #ifdef DEBUG_HYPERGRAPH
   assert(pNo >= 0 && pNo < numPartitions);
   assert(nV == numVertices);
 #endif
 
-  register int i;
-  register int *vOffset = &partitionVector[partitionVectorOffsets[pNo]];
+  int i;
+  int *vOffset = &partitionVector[partitionVectorOffsets[pNo]];
 
   for (i = 0; i < numVertices; ++i)
     pVector[i] = vOffset[i];
 }
 
-void Hypergraph::copyInPartition(const register int *pVector, int nV, int pNo,
+void Hypergraph::copyInPartition(const int *pVector, int nV, int pNo,
                                  int cut) {
 #ifdef DEBUG_HYPERGRAPH
   assert(pNo >= 0 && pNo < numPartitions);
   assert(nV == numVertices);
 #endif
 
-  register int i;
-  register int *vOffset = &partitionVector[partitionVectorOffsets[pNo]];
+  int i;
+  int *vOffset = &partitionVector[partitionVectorOffsets[pNo]];
 
   for (i = 0; i < numVertices; ++i)
     vOffset[i] = pVector[i];
@@ -265,9 +265,9 @@ void Hypergraph::copyInPartition(const register int *pVector, int nV, int pNo,
 }
 
 void Hypergraph::printCharacteristics(ostream &o) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   o << " |cGraph| " << numVertices << " " << numHedges << " " << numPins
     << " : ";
@@ -380,8 +380,8 @@ void Hypergraph::printCharacteristics(ostream &o) {
 }
 
 int Hypergraph::keepBestPartition() {
-  register int i;
-  register int bestOffset;
+  int i;
+  int bestOffset;
 
   int bestPartition = 0;
   int bestCut = partitionCuts[0];
@@ -408,8 +408,8 @@ int Hypergraph::keepBestPartition() {
 }
 
 int Hypergraph::getExposedHedgeWt() const {
-  register int i;
-  register int ij = 0;
+  int i;
+  int ij = 0;
 
   for (i = 0; i < numHedges; ++i)
     ij += hEdgeWeight[i];
@@ -418,9 +418,9 @@ int Hypergraph::getExposedHedgeWt() const {
 }
 
 int Hypergraph::calcCutsize(int nP, int partitionNo) const {
-  register int i;
-  register int j;
-  register int *pVector = &partitionVector[partitionVectorOffsets[partitionNo]];
+  int i;
+  int j;
+  int *pVector = &partitionVector[partitionVectorOffsets[partitionNo]];
 
   FastDynaArray<int> spanned(nP);
 
@@ -454,9 +454,9 @@ int Hypergraph::calcCutsize(int nP, int partitionNo) const {
 }
 
 int Hypergraph::getSOED(int nP, int partitionNo) const {
-  register int i;
-  register int j;
-  register int *pVector = &partitionVector[partitionVectorOffsets[partitionNo]];
+  int i;
+  int j;
+  int *pVector = &partitionVector[partitionVectorOffsets[partitionNo]];
 
   FastDynaArray<int> spanned(nP);
 
@@ -498,16 +498,16 @@ void Hypergraph::initCutsizes(int numParts) {
   assert(partitionVectorOffsets.getLength() > 1);
 #endif
 
-  register int i;
+  int i;
 
   for (i = 0; i < numPartitions; ++i)
     partitionCuts[i] = calcCutsize(numParts, i);
 }
 
 void Hypergraph::checkPartitions(int nP, int maxWt) const {
-  register int i;
-  register int j;
-  register int *pVector;
+  int i;
+  int j;
+  int *pVector;
 
   int cut;
 
@@ -532,8 +532,8 @@ void Hypergraph::checkPartitions(int nP, int maxWt) const {
 }
 
 void Hypergraph::checkPartition(int numPartition, int nP, int maxWt) const {
-  register int i;
-  register int *pVector;
+  int i;
+  int *pVector;
 
   int cut;
 
@@ -654,9 +654,9 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
 }
 
 void Hypergraph::printPercentiles(ostream &o) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   o << " #vertices: " << numVertices << " #hyperedges: " << numHedges
     << " #pins: " << numPins << endl;

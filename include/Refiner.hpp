@@ -39,9 +39,9 @@ public:
 
   inline int getMaxPartWt() const { return maxPartWt; }
 
-  inline void setMaxPartWt(register int max) { maxPartWt = max; }
-  inline void setAvePartWt(register double ave) { avePartWt = ave; }
-  inline void setPartitionVector(register int nP) {
+  inline void setMaxPartWt(int max) { maxPartWt = max; }
+  inline void setAvePartWt(double ave) { avePartWt = ave; }
+  inline void setPartitionVector(int nP) {
     partitionVector = &partitionVectors[partitionOffsets[nP]];
   }
 

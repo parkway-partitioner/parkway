@@ -38,10 +38,10 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   int *localHedgeOffsets;
   int *localHedgeWeights;
 
-  register int j;
-  register int l;
-  register int proc;
-  register int locVert;
+  int j;
+  int l;
+  int proc;
+  int locVert;
 
   FastDynaArray<int> sentToProc;
   FastDynaArray<int> vDegs;
@@ -487,9 +487,9 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
 
   int *array;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   FastDynaArray<int> copyOfSendArray;
 
@@ -506,7 +506,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   vPerProc = totalVertices / numProcs;
 
 #ifdef DEBUG_REFINER
-  for (register int i = 0; i < partitionVectorOffsets[numPartitions]; ++i)
+  for (int i = 0; i < partitionVectorOffsets[numPartitions]; ++i)
     assert(partitionVector[i] >= 0 && partitionVector[i] < numParts);
 #endif
 

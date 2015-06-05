@@ -69,8 +69,8 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
     return NULL;
   }
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int index = 0;
   int numNotMatched = numLocalVertices;
@@ -89,8 +89,8 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
   int maxWt;
   int hEdgeLen;
 
-  register int hEdge;
-  register int vertex;
+  int hEdge;
+  int vertex;
 
   double metricVal;
   double maxMatchMetric;
@@ -310,7 +310,7 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
 }
 
 void ParaRestrFCCoarsener::permuteVerticesArray(int *verts, int nLocVerts) {
-  register int i;
+  int i;
 
   switch (vertexVisitOrder) {
   case INCREASING_ORDER:
@@ -356,7 +356,7 @@ void ParaRestrFCCoarsener::permuteVerticesArray(int *verts, int nLocVerts) {
 }
 
 void ParaRestrFCCoarsener::setClusterIndices(MPI_Comm comm) {
-  register int i;
+  int i;
 
   MPI_Scan(&clusterIndex, &myMinCluIndex, 1, MPI_INT, MPI_SUM, comm);
 

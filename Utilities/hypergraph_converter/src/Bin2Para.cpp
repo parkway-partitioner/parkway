@@ -83,7 +83,7 @@ void Bin2Para::convert(const char *filename) {
 void Bin2Para::buildParaFile(ifstream &in_stream, ofstream &out_stream,
                              const char *p_file, int &inStream, int &inData,
                              int minVertIdx) {
-  register int i;
+  int i;
 
   int pin;
   int chunkLength;

@@ -61,8 +61,8 @@ void ParaController::setShuffleFile(const char *filename)
 */
 
 void ParaController::initMapToOrigVerts() {
-  register int i;
-  register int j = hgraph->getMinVertexIndex();
+  int i;
+  int j = hgraph->getMinVertexIndex();
 
   mapToOrigVerts.setLength(numOrigLocVerts);
 
@@ -72,7 +72,7 @@ void ParaController::initMapToOrigVerts() {
   /*
   if(shuffled)
     {
-      register int *mapToOrig = hgraph->getToOrigVArray();
+      int *mapToOrig = hgraph->getToOrigVArray();
 
       for (i=0;i<numOrigLocVerts;++i)
         mapToOrigVerts[i] = mapToOrig[i];
@@ -138,9 +138,9 @@ void ParaController::storeBestPartition(int numV, const int *array,
   int vertex;
   int vPart;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
 #ifdef DEBUG_CONTROLLER
   assert(numLocalVertices == numV);
@@ -247,7 +247,7 @@ void ParaController::storeBestPartition(int numV, const int *array,
 
 void ParaController::partitionToFile(const char *filename,
                                      MPI_Comm comm) const {
-  register int i;
+  int i;
 
   char message[512];
   ofstream out;
@@ -274,9 +274,9 @@ void ParaController::partitionToFile(const char *filename,
   }
 }
 
-void ParaController::copyOutPartition(register int numVertices,
-                                      register int *pVector) const {
-  register int i;
+void ParaController::copyOutPartition(int numVertices,
+                                      int *pVector) const {
+  int i;
 
   for (i = 0; i < numVertices; ++i)
     pVector[i] = bestPartition[i];

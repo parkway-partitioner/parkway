@@ -23,7 +23,7 @@ Funct::Funct() {}
 
 Funct::~Funct() {}
 
-int Funct::setTableSize(register int approxNumElem) {
+int Funct::setTableSize(int approxNumElem) {
   if (approxNumElem < VSMALL)
     return VSMALL_TABLE;
 
@@ -45,8 +45,8 @@ int Funct::setTableSize(register int approxNumElem) {
 
 int Funct::getParameterAsInteger(int argc, char **argv, const char *cmpr,
                                  int def) {
-  register int i;
-  register int j = argc - 1;
+  int i;
+  int j = argc - 1;
 
   for (i = 0; i < j; ++i) {
     if (strcmp(cmpr, argv[i]) == 0)
@@ -58,8 +58,8 @@ int Funct::getParameterAsInteger(int argc, char **argv, const char *cmpr,
 
 double Funct::getParameterAsDouble(int argc, char **argv, const char *cmpr,
                                    double def) {
-  register int i;
-  register int j = argc - 1;
+  int i;
+  int j = argc - 1;
 
   for (i = 0; i < j; ++i) {
     if (strcmp(cmpr, argv[i]) == 0)
@@ -71,8 +71,8 @@ double Funct::getParameterAsDouble(int argc, char **argv, const char *cmpr,
 
 char *Funct::getParameterAsCharPtr(int argc, char **argv, const char *cmpr,
                                    char *def) {
-  register int i;
-  register int j = argc - 1;
+  int i;
+  int j = argc - 1;
 
   for (i = 0; i < j; ++i) {
     if (strcmp(cmpr, argv[i]) == 0)
@@ -111,8 +111,8 @@ double Funct::toRecurBal(double e, int nP) {
 HashKey Funct::computeHash(const int *vs, int len) {
   HashKey key = 0;
 
-  register unsigned int slide1 = SLIDE1;
-  register unsigned int slide2 = SLIDE2;
+  unsigned int slide1 = SLIDE1;
+  unsigned int slide2 = SLIDE2;
 
   int sum = 0;
   int i;
@@ -136,9 +136,9 @@ HashKey Funct::computeHash(const int *vs, int len) {
 }
 
 void Funct::randomPermutation(int *array, int size) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   for (i = 0; i < size; ++i) {
     ij = RANDOM(i, size);
@@ -148,8 +148,8 @@ void Funct::randomPermutation(int *array, int size) {
 
 void Funct::qsortByAnotherArray(const int left, const int right, int *array,
                                 const int *valArray, const int order) {
-  register int left_arrow = left;
-  register int right_arrow = right;
+  int left_arrow = left;
+  int right_arrow = right;
 
   int pivot = array[(left + right) / 2];
 
@@ -238,7 +238,7 @@ void Funct::write_to_memory()
   int z;
   int **block;
 
-  register int i;
+  int i;
 
   block = new (int*)[1024];
 

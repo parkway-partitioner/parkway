@@ -24,10 +24,10 @@ public:
   StringUtils();
   ~StringUtils();
 
-  static void skipNonDigits(register char *&strPtr, register char comm);
-  static void skipNonDigits(register char *&strPtr);
-  static void skipDigits(register char *&strPtr);
-  static int stringToDigit(register char *&strPtr);
+  static void skipNonDigits(char *&strPtr, char comm);
+  static void skipNonDigits(char *&strPtr);
+  static void skipDigits(char *&strPtr);
+  static int stringToDigit(char *&strPtr);
   static int getParameterAsInteger(int argc, char **argv, const char *cmpr);
   static int getParameterAsInteger(int argc, char **argv, const char *cmpr,
                                    int def);

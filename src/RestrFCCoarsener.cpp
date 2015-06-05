@@ -57,9 +57,9 @@ Hypergraph *RestrFCCoarsener::coarsen(const Hypergraph &h) {
   int candVertex;
   int candVertexEntry;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int v;
   int vPart;

@@ -85,9 +85,9 @@ HypergraphChars::~HypergraphChars() {
 void HypergraphChars::initStructs(const char *filename) {
   ifstream in_stream;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int ijk;
   int preamble[3];
@@ -197,9 +197,9 @@ void HypergraphChars::initStructs(const char *filename) {
 }
 
 void HypergraphChars::outputChars(ostream &out) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   if (removeSingletons)
     out << "AFTER REMOVAL OF SINGLETON HYPEREDGES: " << endl;
@@ -332,8 +332,8 @@ void HypergraphChars::outputChars(ostream &out) {
 
 void HypergraphChars::qsort(const int left, const int right, int *array,
                             const int *cmp) {
-  register int left_arrow = left;
-  register int right_arrow = right;
+  int left_arrow = left;
+  int right_arrow = right;
 
   int pivot = array[(left + right) / 2];
 

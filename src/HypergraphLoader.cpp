@@ -37,8 +37,8 @@ HypergraphLoader::HypergraphLoader(int disp) {
 HypergraphLoader::~HypergraphLoader() {}
 
 void HypergraphLoader::computeHedgesToLoad(BitField &toLoad) {
-  register int i;
-  register int j = 0;
+  int i;
+  int j = 0;
 
   int percentileLen;
   double percentileThreshold;

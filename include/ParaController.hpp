@@ -98,15 +98,15 @@ public:
 
   inline double getBalConstraint() const { return balConstraint; }
 
-  inline void setNumParaRuns(register int n) { numParaRuns = n; }
-  inline void setNumParts(register int n) { numTotalParts = n; }
-  inline void setBalConstraint(register double b) { balConstraint = b; }
-  inline void setDispOpt(register int dO) { dispOption = dO; }
-  inline void setReduction(register double r) { reductionInKeepThreshold = r; }
-  inline void setKTFactor(register double kT) { keepPartitionsWithin = kT; }
-  inline void setShuffleVertices(register int s) { shuffled = s; }
-  inline void setRandShuffBefRef(register int s) { randShuffBefRef = s; }
-  inline void setGraph(register ParaHypergraph *graph) {
+  inline void setNumParaRuns(int n) { numParaRuns = n; }
+  inline void setNumParts(int n) { numTotalParts = n; }
+  inline void setBalConstraint(double b) { balConstraint = b; }
+  inline void setDispOpt(int dO) { dispOption = dO; }
+  inline void setReduction(double r) { reductionInKeepThreshold = r; }
+  inline void setKTFactor(double kT) { keepPartitionsWithin = kT; }
+  inline void setShuffleVertices(int s) { shuffled = s; }
+  inline void setRandShuffBefRef(int s) { randShuffBefRef = s; }
+  inline void setGraph(ParaHypergraph *graph) {
     hgraph = graph;
     numOrigLocVerts = hgraph->getNumLocalVertices();
   }
@@ -116,7 +116,7 @@ public:
   void setPrescribedPartition(const char *filename, MPI_Comm comm);
   void storeBestPartition(int numV, const int *array, MPI_Comm comm);
   void partitionToFile(const char *filename, MPI_Comm comm) const;
-  void copyOutPartition(register int numVertices, register int *pVector) const;
+  void copyOutPartition(int numVertices, int *pVector) const;
   void displayPartitionInfo(MPI_Comm comm) const;
 #ifdef DEBUG_TABLES
   void printHashMemUse();

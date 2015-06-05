@@ -37,7 +37,7 @@ public:
   }
 
   inline void initMap() {
-    register int i;
+    int i;
 
     mapToOrigVerts.setLength(numVertices);
 
@@ -45,7 +45,7 @@ public:
       mapToOrigVerts[i] = i;
   }
 
-  inline void setMap(register int *vMap, register int nV) {
+  inline void setMap(int *vMap, int nV) {
     mapToOrigVerts.setArray(vMap, nV);
   }
 

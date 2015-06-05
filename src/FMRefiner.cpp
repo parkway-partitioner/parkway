@@ -72,8 +72,8 @@ void FMRefiner::printQdis(ostream &out) const {
 }
 
 void FMRefiner::buildBuckets() {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int maxVertDeg = 0;
   int maxHedgeWt = 0;
@@ -117,7 +117,7 @@ void FMRefiner::buildBuckets() {
 }
 
 void FMRefiner::restoreBuckets() {
-  register int i;
+  int i;
 
   for (i = 0; i < bucketArraysLen; ++i) {
     (*bucketArrays[0])[i].next = NULL;
@@ -133,7 +133,7 @@ void FMRefiner::restoreBuckets() {
 }
 
 void FMRefiner::destroyBuckets() {
-  register int i;
+  int i;
 
   for (i = 0; i < numVertices; ++i)
     DynaMem<BucketNode>::deletePtr(buckets[i]);
@@ -143,9 +143,9 @@ void FMRefiner::destroyBuckets() {
 }
 
 void FMRefiner::initPartitionStruct() {
-  register int i;
-  register int j;
-  register int hEdgeOffset;
+  int i;
+  int j;
+  int hEdgeOffset;
 
   int endOffset;
 
@@ -176,8 +176,8 @@ void FMRefiner::prepVertexGains() {
   int endOffset;
   int hEdgeOffset;
 
-  register int vPart;
-  register int hEdge;
+  int vPart;
+  int hEdge;
 
   // ###
   // compute the vertex gains
@@ -216,8 +216,8 @@ void FMRefiner::prepVertexGains() {
 }
 
 void FMRefiner::initGains1to0() {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int hEdge;
   int endOffset;
@@ -258,8 +258,8 @@ void FMRefiner::initGains1to0() {
 }
 
 void FMRefiner::initGains0to1() {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int hEdge;
   int endOffset;
@@ -300,8 +300,8 @@ void FMRefiner::initGains0to1() {
 }
 
 void FMRefiner::removeBucketsFrom1() {
-  register int i;
-  register BucketNode *b;
+  int i;
+  BucketNode *b;
 
   BucketNode *array = bucketArrays[1]->getArray();
 
@@ -324,8 +324,8 @@ void FMRefiner::removeBucketsFrom1() {
 }
 
 void FMRefiner::removeBucketsFrom0() {
-  register int i;
-  register BucketNode *b;
+  int i;
+  BucketNode *b;
 
   BucketNode *array = bucketArrays[0]->getArray();
 
@@ -348,8 +348,8 @@ void FMRefiner::removeBucketsFrom0() {
 }
 
 void FMRefiner::removeUnlockedFromBucketArrays() {
-  register int i;
-  register BucketNode *b;
+  int i;
+  BucketNode *b;
 
   for (i = 0; i < numVertices; ++i) {
     if (!locked(i)) {
@@ -382,8 +382,8 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
 
   int arrayIndex = vGain + maxPossGain;
 
-  register BucketNode *b = buckets[v];
-  register BucketNode *bucket;
+  BucketNode *b = buckets[v];
+  BucketNode *bucket;
 
   // ###
   // first remove from bucket array
@@ -450,7 +450,7 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
   }
 
   if (maxGains[vPart] > vGain) {
-    register int index = maxGainEntries[vPart];
+    int index = maxGainEntries[vPart];
 
     while ((*bucketArrays[vPart])[index].next == NULL) {
 #ifdef DEBUG_FM_REFINER
@@ -475,7 +475,7 @@ void FMRefiner::removeFromBucketArray(int v, int vPart, int vGain) {
   assert(v >= 0 && v < numVertices);
 #endif
 
-  register BucketNode *b = buckets[v];
+  BucketNode *b = buckets[v];
 
 #ifdef DEBUG_FM_REFINER
   assert(b->prev);
@@ -496,7 +496,7 @@ void FMRefiner::removeFromBucketArray(int v, int vPart, int vGain) {
 #endif
 
   if (maxGains[vPart] == vGain) {
-    register int index = vGain + maxPossGain;
+    int index = vGain + maxPossGain;
 
     while ((*bucketArrays[vPart])[index].next == NULL && index > 0)
       --index;
@@ -510,9 +510,9 @@ void FMRefiner::removeFromBucketArray(int v, int vPart, int vGain) {
   }
 }
 
-void FMRefiner::adjustMaxGainPtr(register int dP) {
+void FMRefiner::adjustMaxGainPtr(int dP) {
   if (numBucketsInArray[dP] > 0) {
-    register int index = Shiftl(maxPossGain, 1);
+    int index = Shiftl(maxPossGain, 1);
 
     while ((*bucketArrays[dP])[index].next == NULL) {
 #ifdef DEBUG_FM_REFINER
@@ -531,7 +531,7 @@ void FMRefiner::adjustMaxGainPtr(register int dP) {
   }
 }
 
-void FMRefiner::updateGains(register int v) {
+void FMRefiner::updateGains(int v) {
 #ifdef DEBUG_FM_REFINER
   assert(v >= 0 && v < numVertices);
 #endif
@@ -655,15 +655,15 @@ void FMRefiner::updateGains(register int v) {
   }
 }
 
-void FMRefiner::updateGains1_0(register int v) {
+void FMRefiner::updateGains1_0(int v) {
 #ifdef DEBUG_FM_REFINER
   assert(v >= 0 && v < numVertices);
   assert(partitionVector[v] == 1);
 #endif
 
-  register int i;
-  register int j;
-  register int adjVertex;
+  int i;
+  int j;
+  int adjVertex;
 
   int hEdge;
   int endOffset;
@@ -736,15 +736,15 @@ void FMRefiner::updateGains1_0(register int v) {
   }
 }
 
-void FMRefiner::updateGains0_1(register int v) {
+void FMRefiner::updateGains0_1(int v) {
 #ifdef DEBUG_FM_REFINER
   assert(v >= 0 && v < numVertices);
   assert(partitionVector[v] == 0);
 #endif
 
-  register int i;
-  register int j;
-  register int adjVertex;
+  int i;
+  int j;
+  int adjVertex;
 
   int hEdge;
   int endOffset;
@@ -817,9 +817,9 @@ void FMRefiner::updateGains0_1(register int v) {
   }
 }
 
-void FMRefiner::unmakeMove(register int v) {
-  register int vPart = partitionVector[v];
-  register int hEdge;
+void FMRefiner::unmakeMove(int v) {
+  int vPart = partitionVector[v];
+  int hEdge;
 
   int i;
   int endOffset = vOffsets[v + 1];
@@ -893,9 +893,9 @@ int FMRefiner::doFidMatPass() {
   prepVertexGains();
   locked.clear();
 
-  register int vGain;
-  register int numMoves = 0;
-  register int bestVertex;
+  int vGain;
+  int numMoves = 0;
+  int bestVertex;
 
   int i;
   int numOfBestMove = 0;
@@ -1005,10 +1005,10 @@ int FMRefiner::chooseMaxGainVertex() {
   int _0to1Gain = -maxPossGain;
   int _1to0Gain = -maxPossGain;
 
-  register int index;
-  register int v;
+  int index;
+  int v;
 
-  register Bucket *bucket;
+  Bucket *bucket;
 
   if (numBucketsInArray[0] > 0) {
     index = maxGainEntries[0];
@@ -1094,10 +1094,10 @@ int FMRefiner::chooseLegalMove(int sP) {
   assert(numBucketsInArray[sP] > 0);
 #endif
 
-  register int v;
-  register int index;
+  int v;
+  int index;
 
-  register Bucket *b;
+  Bucket *b;
 
   if (And(sP, 0x1)) {
     index = maxGainEntries[1];

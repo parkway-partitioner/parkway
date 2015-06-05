@@ -83,7 +83,7 @@ void PaToHController::runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm) {
   assert(h);
 #endif
 
-  register int j;
+  int j;
 
   h->setNumPartitions(1);
 

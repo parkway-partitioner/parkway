@@ -58,7 +58,7 @@ public:
 
   void bisect(Hypergraph *h, int maxPartWt);
 
-  inline void setNumRuns(register int r) { numSeqRuns = r; }
+  inline void setNumRuns(int r) { numSeqRuns = r; }
 };
 
 #endif

@@ -31,7 +31,7 @@ public:
 
   void dispCoarsenerOptions(ostream &out) const;
 
-  inline void setUtilFanOut(register int f) { utilFanOut = f; }
+  inline void setUtilFanOut(int f) { utilFanOut = f; }
   inline int getUtilFanOut() const { return utilFanOut; }
 };
 

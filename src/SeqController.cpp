@@ -36,9 +36,9 @@ SeqController::~SeqController() { DynaMem<Hypergraph>::deletePtr(h); }
 
 void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
                                            MPI_Comm comm) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int recvArrayLen;
   int index;
@@ -160,9 +160,9 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
 }
 
 void SeqController::initSeqPartitions(ParaHypergraph &hgraph, MPI_Comm comm) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int keepMyPartition;
   int proc;
@@ -330,8 +330,8 @@ int SeqController::chooseBestPartition() const {
   assert(partitionCuts.getLength() > 0);
 #endif
 
-  register int i = 1;
-  register int j = 0;
+  int i = 1;
+  int j = 0;
 
   for (; i < numSeqRuns; ++i)
     if (partitionCuts[i] < partitionCuts[j])
@@ -341,8 +341,8 @@ int SeqController::chooseBestPartition() const {
 }
 
 int SeqController::getAcceptCut() const {
-  register int i;
-  register int bestCut;
+  int i;
+  int bestCut;
 
 #ifdef DEBUG_CONTROLLER
   assert(h);

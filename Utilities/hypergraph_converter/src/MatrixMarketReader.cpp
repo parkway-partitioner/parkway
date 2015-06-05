@@ -59,8 +59,8 @@ void MatrixMarketReader::readPreamble(ifstream &in_stream) {
 }
 
 void MatrixMarketReader::readMatrix(ifstream &in_stream) {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   char *data;
   int hEdge;

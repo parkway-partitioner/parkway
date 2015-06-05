@@ -99,7 +99,7 @@ void ParaVCycleController::recordVCyclePartition(const ParaHypergraph &h,
   assert(numIteration >= 0);
 #endif
 
-  register int i;
+  int i;
 
   int minVertexIndex;
   int numLocalVertices;
@@ -160,9 +160,9 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
   assert(bestVCyclePartition.getNumElem() > 0);
 #endif
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int minStoredVertexIndex;
   int maxStoredVertexIndex;
@@ -321,7 +321,7 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
   // create a default map (i.e. map[0] = 0 etc.)
   // do a normal projection
 
-  register int i;
+  int i;
 
   int numLocalFineVertices = fG.getNumLocalVertices();
 
@@ -357,8 +357,8 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     int totToSend;
     int sendLength;
 
-    register int j;
-    register int ij;
+    int j;
+    int ij;
 
     FastDynaArray<int> interGraphPVector(numLocalCoarseVertices);
     FastDynaArray<int> requestingLocalVerts;
@@ -607,9 +607,9 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
   // of h
   //
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int minLocVertIdBefShuff = h.getMinVertexIndex();
 
@@ -763,9 +763,9 @@ void ParaVCycleController::randomVCycleVertShuffle(ParaHypergraph &h,
 ParaHypergraph &fineH, MPI_Comm comm)
 {
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   //int minLocVertIdBefShuff = h.getMinVertexIndex();
 
@@ -941,8 +941,8 @@ void ParaVCycleController::shiftVCycleVertsToBalance(ParaHypergraph &h,
   // of h
   //
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int numLocalVertices = h.getNumLocalVertices();
   int minVertexIndex = h.getMinVertexIndex();
@@ -1030,9 +1030,9 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
   int sendLength;
   int vertex;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
 #ifdef DEBUG_CONTROLLER
   assert(mapToOrigVerts.getLength() == numOrigLocVerts);

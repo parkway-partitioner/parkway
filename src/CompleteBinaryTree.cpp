@@ -35,7 +35,7 @@ void CompleteBinaryTree<T>::setupTree(const T *rootVals, const int *cmprs,
   tree.setLength(nRoots);
   roots.setLength(nRoots);
 
-  for (register int i = 0; i < numRoots; ++i)
+  for (int i = 0; i < numRoots; ++i)
     roots[i] = rootVals[i];
 
   tree[0] = 0;

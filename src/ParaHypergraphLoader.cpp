@@ -45,8 +45,8 @@ void ParaHypergraphLoader::computeHedgesToLoad(BitField &toLoad, int numH,
                                                int numLocalPins, int *hEdgeWts,
                                                int *hEdgeOffsets,
                                                MPI_Comm comm) {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   double percentileThreshold;
   double aveLen;

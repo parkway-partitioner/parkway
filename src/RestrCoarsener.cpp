@@ -42,9 +42,9 @@ Hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
   int hEdgeEnd;
   int v;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   Hypergraph *newHypergraph = new Hypergraph(
       coarseWts, coarsePartVector, numCoarseVerts, partitionCutsizes[0]);

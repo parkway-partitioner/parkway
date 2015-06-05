@@ -44,9 +44,9 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   int numZeroWeightVerts;
   FastDynaArray<int> zeroWeightVerts;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   in_stream.open(filename, ifstream::in);
 
@@ -398,8 +398,8 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
 }
 
 void HarwellBoeingTo2dBin::qsort(int *array, int left, int right) {
-  register int left_arrow = left;
-  register int right_arrow = right;
+  int left_arrow = left;
+  int right_arrow = right;
 
   int pivot = array[(left + right) / 2];
 

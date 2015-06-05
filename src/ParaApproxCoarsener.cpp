@@ -40,10 +40,10 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   int *localHedgeOffsets;
   int *localHedgeWeights;
 
-  register int j;
-  register int l;
-  register int proc;
-  register int locVert;
+  int j;
+  int l;
+  int proc;
+  int locVert;
 
   FastDynaArray<int> sentToProc;
   FastDynaArray<int> vDegs;
@@ -230,8 +230,8 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
 void ParaApproxCoarsener::computeHedgesToLoad(BitField &toLoad, int numH,
                                               int *hEdgeWts, int *hEdgeOffsets,
                                               MPI_Comm comm) {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   double percentileThreshold;
   double aveLen;

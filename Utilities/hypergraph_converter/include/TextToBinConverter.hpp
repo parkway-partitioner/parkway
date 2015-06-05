@@ -22,8 +22,8 @@ public:
   TextToBinConverter();
 
   virtual ~TextToBinConverter();
-  virtual int processHedgeLine(register char *line, register int &numP) = 0;
-  virtual int processVertLine(register char *line) = 0;
+  virtual int processHedgeLine(char *line, int &numP) = 0;
+  virtual int processVertLine(char *line) = 0;
 };
 
 #endif

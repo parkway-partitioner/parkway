@@ -41,7 +41,7 @@ public:
   MovementSetTable(int nParts, int nProcs);
   ~MovementSetTable();
 
-  inline void setMaxWt(register int max) { maxPartWt = max; }
+  inline void setMaxWt(int max) { maxPartWt = max; }
 
   inline int *getPartWeightsArray() const { return partWeights.getArray(); }
   inline int *getRestoringMovesLens() const {
@@ -52,8 +52,8 @@ public:
   }
 
   inline int findHeaviest() const {
-    register int i = 0;
-    register int j = -1;
+    int i = 0;
+    int j = -1;
 
     for (; i < numParts; ++i)
       if (partWeights[i] > maxPartWt)

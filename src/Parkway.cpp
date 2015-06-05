@@ -210,8 +210,8 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   char message[512];
   ostream *output;
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   ParaHypergraph *hgraph = NULL;
   ParaCoarsener *coarsener = NULL;

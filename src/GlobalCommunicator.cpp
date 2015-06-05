@@ -15,7 +15,7 @@
 #include "GlobalCommunicator.hpp"
 
 GlobalCommunicator::GlobalCommunicator(int rank, int nProcs) {
-  register int i;
+  int i;
 
   myRank = rank;
   numProcs = nProcs;
@@ -31,14 +31,14 @@ GlobalCommunicator::GlobalCommunicator(int rank, int nProcs) {
 }
 
 GlobalCommunicator::~GlobalCommunicator() {
-  register int i;
+  int i;
 
   for (i = 0; i < numProcs; ++i)
     DynaMem<FastDynaArray<int> >::deletePtr(dataOutSets[i]);
 }
 
 void GlobalCommunicator::freeMemory() {
-  register int i;
+  int i;
 
   for (i = 0; i < numProcs; ++i)
     dataOutSets[i]->setLength(0);
@@ -51,9 +51,9 @@ void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
   int *array;
   int arrayLen;
 
-  register int ij;
-  register int i;
-  register int j;
+  int ij;
+  int i;
+  int j;
 
   j = 0;
   for (i = 0; i < numProcs; ++i) {

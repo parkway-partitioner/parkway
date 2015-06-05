@@ -31,8 +31,8 @@ public:
   void convert(const char *filename);
   void readPreamble(ifstream &in);
 
-  int processHedgeLine(register char *line, register int &numP);
-  int processVertLine(register char *line);
+  int processHedgeLine(char *line, int &numP);
+  int processVertLine(char *line);
 };
 
 #endif

@@ -37,8 +37,8 @@ public:
 
   static inline int getMaxLength() { return maxLength; }
   static inline int getMaxPinsInChunk() { return maxPinsInChunk; }
-  static inline void setMaxLength(register int max) { maxLength = max; }
-  static inline void setMaxPinsInChunk(register int max) {
+  static inline void setMaxLength(int max) { maxLength = max; }
+  static inline void setMaxPinsInChunk(int max) {
     maxPinsInChunk = max;
   }
 };

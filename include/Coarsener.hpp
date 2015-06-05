@@ -34,7 +34,7 @@ public:
   Hypergraph *buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
                                     int totWt) const;
 
-  inline void setMaxVertexWt(register int maxWt) { maxVertexWt = maxWt; }
+  inline void setMaxVertexWt(int maxWt) { maxVertexWt = maxWt; }
   inline int getMaxVertexWt() const { return maxVertexWt; }
 };
 

@@ -38,7 +38,7 @@ public:
 
   static void setScatterArray(int size);
 
-  static inline int scatterKey(register int i) { return scatterArray[i]; }
+  static inline int scatterKey(int i) { return scatterArray[i]; }
   static inline int getTableSize(int n) {
     return (tableSizeTree.getRootVal(n));
   }
@@ -188,25 +188,25 @@ public:
   inline int *getLocalsArray() const { return locVertices.getArray(); }
   inline MatchRequestEntry *getNextEntry() const { return next; }
 
-  inline void setNextEntry(register MatchRequestEntry *newNext) {
+  inline void setNextEntry(MatchRequestEntry *newNext) {
     next = newNext;
   }
-  inline void setCluIndex(register int _index) { clusterIndex = _index; }
-  inline void setNonLocProc(register int _proc) { nonLocProc = _proc; }
-  inline void setCluWeight(register int _cluWt) { clusterWeight = _cluWt; }
+  inline void setCluIndex(int _index) { clusterIndex = _index; }
+  inline void setNonLocProc(int _proc) { nonLocProc = _proc; }
+  inline void setCluWeight(int _cluWt) { clusterWeight = _cluWt; }
   inline void clearEntry() {
     numLocals = 0;
     clusterWeight = 0;
   }
 
-  inline void addLocal(register int _loc, register int _locWt) {
+  inline void addLocal(int _loc, int _locWt) {
     locVertices.assign(numLocals++, _loc);
     clusterWeight += _locWt;
   }
 
-  inline void removeLocal(register int loc, int locWt) {
-    register int i = 0;
-    register int j = numLocals - 1;
+  inline void removeLocal(int loc, int locWt) {
+    int i = 0;
+    int j = numLocals - 1;
 
     for (; i < numLocals; ++i)
       if (locVertices[i] == loc)
@@ -244,25 +244,25 @@ public:
   MatchRequestTable(int _size);
   ~MatchRequestTable();
 
-  int lookupClusterWt(register int _vertex) const;
-  int lookupCluIndex(register int _vertex) const;
-  int lookupNumLocals(register int _vertex) const;
+  int lookupClusterWt(int _vertex) const;
+  int lookupCluIndex(int _vertex) const;
+  int lookupNumLocals(int _vertex) const;
 
   inline int getNumEntries() const { return numEntries; }
   inline int getNumSlots() const { return size; }
-  inline MatchRequestEntry *getEntry(register int i) const {
+  inline MatchRequestEntry *getEntry(int i) const {
     return entryPtrs[i];
   }
   inline MatchRequestEntry **getEntriesArray() const {
     return entryPtrs.getArray();
   }
 
-  MatchRequestEntry *getEntryPtr(register int _vertex) const;
+  MatchRequestEntry *getEntryPtr(int _vertex) const;
 
   void addLocal(int _vertex, int _local, int locWt, int nonLocProc);
-  void setCluIndex(register int _vertex, int _index, int _cluWt);
-  void removeLocal(register int _vertex, int _local, int locWt);
-  void removeEntry(register int _vertex);
+  void setCluIndex(int _vertex, int _index, int _cluWt);
+  void removeLocal(int _vertex, int _local, int locWt);
+  void removeEntry(int _vertex);
   void clearTable();
 };
 

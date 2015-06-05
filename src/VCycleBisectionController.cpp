@@ -84,8 +84,8 @@ void VCycleBisectionController::buildRestrCoarsener(double redRatio, int cType,
 }
 
 void VCycleBisectionController::recordVCyclePartition(
-    const register int *pVector, register int numV) {
-  register int i;
+    const int *pVector, int numV) {
+  int i;
 
   for (i = 0; i < numV; ++i) {
 #ifdef DEBUG_CONTROLLER
@@ -95,9 +95,9 @@ void VCycleBisectionController::recordVCyclePartition(
   }
 }
 
-void VCycleBisectionController::storeBestPartition(const register int *pVector,
-                                                   register int numV) {
-  register int i;
+void VCycleBisectionController::storeBestPartition(const int *pVector,
+                                                   int numV) {
+  int i;
 
   for (i = 0; i < numV; ++i) {
 #ifdef DEBUG_CONTROLLER

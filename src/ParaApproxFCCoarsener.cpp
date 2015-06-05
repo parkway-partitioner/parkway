@@ -65,7 +65,7 @@ void ParaApproxFCCoarsener::buildAuxiliaryStructs(int numTotPins,
   // build the MatchRequestTable
   // ###
 
-  register int i =
+  int i =
       static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
 
   // table = new MatchRequestTable(Funct::setTableSize(i/numProcs));
@@ -101,8 +101,8 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
     return NULL;
   }
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int index = 0;
   int numNotMatched = numLocalVertices;
@@ -124,8 +124,8 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
   int hEdgeLen;
   int pairWt;
 
-  register int hEdge;
-  register int vertex;
+  int hEdge;
+  int vertex;
 
   double metric;
   double maxMatchMetric;
@@ -511,8 +511,8 @@ void ParaApproxFCCoarsener::setRequestArrays(int highToLow) {
   int nonLocVertex;
   int cluWt;
 
-  register int i;
-  register int procRank;
+  int i;
+  int procRank;
 
   MatchRequestEntry *entry;
   MatchRequestEntry **entryArray = table->getEntriesArray();
@@ -544,9 +544,9 @@ void ParaApproxFCCoarsener::setRequestArrays(int highToLow) {
 }
 
 void ParaApproxFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
-  register int j;
-  register int i;
-  register int l;
+  int j;
+  int i;
+  int l;
 
   FastDynaArray<int> visitOrder;
 
@@ -641,9 +641,9 @@ void ParaApproxFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
 }
 
 void ParaApproxFCCoarsener::processReqReplies() {
-  register int i;
-  register int j;
-  register int index;
+  int i;
+  int j;
+  int index;
 
   int startOffset = 0;
   int vNonLocReq;
@@ -696,7 +696,7 @@ void ParaApproxFCCoarsener::processReqReplies() {
 }
 
 void ParaApproxFCCoarsener::permuteVerticesArray(int *verts, int nLocVerts) {
-  register int i;
+  int i;
 
   switch (vertexVisitOrder) {
   case INCREASING_ORDER:
@@ -748,8 +748,8 @@ void ParaApproxFCCoarsener::setClusterIndices(MPI_Comm comm) {
   MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.getArray(), 1, MPI_INT,
                 comm);
 
-  register int index = 0;
-  register int i;
+  int index = 0;
+  int i;
 
   MatchRequestEntry *entry;
   MatchRequestEntry **entryArray;

@@ -61,8 +61,8 @@ public:
   void projectPartitions(const Hypergraph &coarseGraph);
   void removeBadPartitions(double fractionOK);
   void setNumPartitions(int nPartitions);
-  void copyOutPartition(register int *pVector, int numV, int pNo) const;
-  void copyInPartition(const register int *pVector, int numV, int pNo, int cut);
+  void copyOutPartition(int *pVector, int numV, int pNo) const;
+  void copyInPartition(const int *pVector, int numV, int pNo, int cut);
   void printCharacteristics(ostream &o);
   void printPercentiles(ostream &o);
 
@@ -73,7 +73,7 @@ public:
   inline int getNumPins() const { return numPins; }
   inline int getTotWeight() const { return totWeight; }
   inline int getNumPartitions() const { return numPartitions; }
-  inline int getCut(register int pNo) const { return partitionCuts[pNo]; }
+  inline int getCut(int pNo) const { return partitionCuts[pNo]; }
 
   inline int *getVerWeightsArray() const { return vWeight.getArray(); }
   inline int *getHedgeWeightsArray() const { return hEdgeWeight.getArray(); }
@@ -88,37 +88,37 @@ public:
     return partitionVectorOffsets.getArray();
   }
   inline int *getPartCutArray() const { return partitionCuts.getArray(); }
-  inline int *getPartitionVector(register int pNo) const {
+  inline int *getPartitionVector(int pNo) const {
     return (&partitionVector[partitionVectorOffsets[pNo]]);
   }
 
-  inline void setNumHedges(register int newNum) { numHedges = newNum; }
-  inline void setNumPins(register int newNum) { numPins = newNum; }
-  inline void setNumVertices(register int newNum) { numVertices = newNum; }
-  inline void setTotWeight(register int newWt) { totWeight = newWt; }
-  inline void setWtsArray(register int *array, register int len) {
+  inline void setNumHedges(int newNum) { numHedges = newNum; }
+  inline void setNumPins(int newNum) { numPins = newNum; }
+  inline void setNumVertices(int newNum) { numVertices = newNum; }
+  inline void setTotWeight(int newWt) { totWeight = newWt; }
+  inline void setWtsArray(int *array, int len) {
     vWeight.setArray(array, len);
   }
-  inline void setHedgeWtArray(register int *array, register int len) {
+  inline void setHedgeWtArray(int *array, int len) {
     hEdgeWeight.setArray(array, len);
   }
-  inline void setPinListArray(register int *array, register int len) {
+  inline void setPinListArray(int *array, int len) {
     pinList.setArray(array, len);
   }
-  inline void setHedgeOffsetArray(register int *array, register int len) {
+  inline void setHedgeOffsetArray(int *array, int len) {
     hEdgeOffsets.setArray(array, len);
   }
-  inline void setVtoHedgesArray(register int *array, register int len) {
+  inline void setVtoHedgesArray(int *array, int len) {
     vToHedges.setArray(array, len);
   }
-  inline void setVoffsetsArray(register int *array, register int len) {
+  inline void setVoffsetsArray(int *array, int len) {
     vOffsets.setArray(array, len);
   }
 
-  inline void setPartitionCutsArray(register int *a, register int len) {
+  inline void setPartitionCutsArray(int *a, int len) {
     partitionCuts.setArray(a, len);
   }
-  inline void setPartitionVectorArray(register int *a, register int len) {
+  inline void setPartitionVectorArray(int *a, int len) {
     partitionVector.setArray(a, len);
   }
 

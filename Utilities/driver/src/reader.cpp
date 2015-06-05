@@ -21,9 +21,9 @@ void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
   int buffer[3];
   int hEdgeDataLen;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   char my_file[512];
   char message[512];

@@ -20,7 +20,7 @@ KHMetisController::KHMetisController(GreedyKwayRefiner *k, int rank, int nProcs,
                                      int nParts, const int *options,
                                      ostream &out)
     : SeqController(rank, nProcs, nParts, out) {
-  register int i;
+  int i;
 
   kWayRefiner = k;
   lenOfOptions = 9;

@@ -50,11 +50,11 @@ public:
 
   void printVisitOrder(int variable) const;
 
-  inline void setVertexVisitOrder(register int vO) { vertexVisitOrder = vO; }
-  inline void setMatchRequestVisitOrder(register int mvO) {
+  inline void setVertexVisitOrder(int vO) { vertexVisitOrder = vO; }
+  inline void setMatchRequestVisitOrder(int mvO) {
     matchRequestVisitOrder = mvO;
   }
-  inline void setDivByCluWt(register int divBy) { divByCluWt = divBy; }
+  inline void setDivByCluWt(int divBy) { divByCluWt = divBy; }
 };
 
 #endif

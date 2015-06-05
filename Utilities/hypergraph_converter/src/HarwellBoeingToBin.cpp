@@ -39,9 +39,9 @@ void HarwellBoeingToBin::convert(const char *filename) {
   FastDynaArray<int> pinList;
   FastDynaArray<int> vWeights;
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   in_stream.open(filename, ifstream::in);
 

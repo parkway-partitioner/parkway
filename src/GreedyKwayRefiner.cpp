@@ -56,7 +56,7 @@ void GreedyKwayRefiner::dispRefinerOptions(ostream &out) const {
 }
 
 void GreedyKwayRefiner::buildDataStructs() {
-  register int i;
+  int i;
 
   partsSpanned.setLength(numParts);
   vertices.setLength(numVertices);
@@ -93,9 +93,9 @@ void GreedyKwayRefiner::destroyDataStructs() {
 }
 
 int GreedyKwayRefiner::initDataStructs() {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int v;
   int endIndex;
@@ -460,8 +460,8 @@ int GreedyKwayRefiner::runGreedyPass() {
 }
 
 int GreedyKwayRefiner::runRebalancingPass() {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int part;
   int numOverWeight = 0;

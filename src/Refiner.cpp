@@ -31,8 +31,8 @@ int Refiner::calcCutsize() const {
   assert(numParts > 0);
 #endif
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   FastDynaArray<int> spanned(numParts);
 

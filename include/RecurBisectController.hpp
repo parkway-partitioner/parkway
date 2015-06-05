@@ -68,7 +68,7 @@ public:
   int computeMaxWt(int numBisections) const;
   double recursivelyComputeMax(double ave, int depth) const;
 
-  inline void setNumBisectRuns(register int bRuns) { numBisectRuns = bRuns; }
+  inline void setNumBisectRuns(int bRuns) { numBisectRuns = bRuns; }
 };
 
 #endif

@@ -26,9 +26,9 @@ public:
   void convert(const char *filename);
   void readPreamble(ifstream &in);
 
-  int processHedgeLine(register char *line, register int &numP);
-  int countPinsInLine(register char *line, register int &nP);
-  int processVertLine(register char *line);
+  int processHedgeLine(char *line, int &numP);
+  int countPinsInLine(char *line, int &nP);
+  int processVertLine(char *line);
   int computeNumPins(ifstream &in_stream);
 };
 

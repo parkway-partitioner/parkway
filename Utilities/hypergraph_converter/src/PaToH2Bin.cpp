@@ -103,7 +103,7 @@ void PaToH2Bin::convert(const char *filename) {
     vWeights.setLength(numVertices);
     numVerts = numVertices;
 
-    for (register int i = 0; i < numVertices; ++i)
+    for (int i = 0; i < numVertices; ++i)
       vWeights[i] = 1;
   }
 
@@ -181,7 +181,7 @@ void PaToH2Bin::readPreamble(ifstream &in) {
   }
 }
 
-int PaToH2Bin::processHedgeLine(register char *line, register int &numP) {
+int PaToH2Bin::processHedgeLine(char *line, int &numP) {
   int hEdgeLengthSlot = dataLength;
   int pin;
 
@@ -221,7 +221,7 @@ int PaToH2Bin::processHedgeLine(register char *line, register int &numP) {
     return 0;
 }
 
-int PaToH2Bin::processVertLine(register char *line) {
+int PaToH2Bin::processVertLine(char *line) {
   StringUtils::skipNonDigits(line, '%');
 
   while (*line) {

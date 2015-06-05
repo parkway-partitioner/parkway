@@ -31,8 +31,8 @@ public:
 
   void dispBisectionControllerOptions() const;
   void buildRestrCoarsener(double rRatio, int cType, int minV);
-  void recordVCyclePartition(const register int *pVector, register int numV);
-  void storeBestPartition(const register int *pVector, register int numV);
+  void recordVCyclePartition(const int *pVector, int numV);
+  void storeBestPartition(const int *pVector, int numV);
 
   virtual void printVCycleType() const = 0;
   virtual void computeBisection() = 0;

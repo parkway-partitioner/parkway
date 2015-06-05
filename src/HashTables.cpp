@@ -66,7 +66,7 @@ void TableUtils::setScatterArray(int size) {
   scatterSize = size;
   scatterArray.setLength(scatterSize);
 
-  register int i;
+  int i;
 
   for (i = 0; i < scatterSize; ++i)
     scatterArray[i] = i;
@@ -93,7 +93,7 @@ template <class T> void MapFromPosInt<T>::createTable(int _size) {
   keys.setLength(size);
   table.setLength(size);
 
-  register int i;
+  int i;
 
   for (i = 0; i < size; ++i)
     keys[i] = -1;
@@ -110,15 +110,15 @@ template <class T> void MapFromPosInt<T>::recoverTable() {
   keys.setLength(size);
   numEntries = 0;
 
-  register int i;
+  int i;
 
   for (i = 0; i < size; ++i)
     keys[i] = -1;
 }
 
 template <class T> int MapFromPosInt<T>::insertKey(int key, T val) {
-  register int indepKey = TableUtils::scatterKey(key);
-  register int slot = PRIMARY_HASH(indepKey, size);
+  int indepKey = TableUtils::scatterKey(key);
+  int slot = PRIMARY_HASH(indepKey, size);
 
   while (keys[slot] != -1 && keys[slot] != indepKey)
     slot = Mod(slot + SECONDARY_HASH(indepKey, size), size);
@@ -135,8 +135,8 @@ template <class T> int MapFromPosInt<T>::insertKey(int key, T val) {
 }
 
 template <class T> T &MapFromPosInt<T>::getVal(int key) {
-  register int indepKey = TableUtils::scatterKey(key);
-  register int slot = PRIMARY_HASH(indepKey, size);
+  int indepKey = TableUtils::scatterKey(key);
+  int slot = PRIMARY_HASH(indepKey, size);
 
   while (keys[slot] != indepKey) {
     slot = Mod(slot + SECONDARY_HASH(indepKey, size), size);
@@ -163,7 +163,7 @@ void MapToPosInt::createTable(int _size, int use_hash) {
   numEntries = 0;
   entries.setLength(2048);
 
-  register int i;
+  int i;
 
   if (useHash == 0) {
     size = _size;
@@ -196,7 +196,7 @@ void MapToPosInt::destroyTable() {
 }
 
 void MapToPosInt::recoverTable() {
-  register int i;
+  int i;
 
   numEntries = 0;
   entries.setLength(2048);
@@ -225,8 +225,8 @@ int MapToPosInt::insertKey(int key, int val) {
 #endif
 
   if (useHash) {
-    register int indepKey = TableUtils::scatterKey(key);
-    register int slot = PRIMARY_HASH(indepKey, size);
+    int indepKey = TableUtils::scatterKey(key);
+    int slot = PRIMARY_HASH(indepKey, size);
 
     while (keys[slot] != -1 && keys[slot] != indepKey)
       slot = Mod(slot + SECONDARY_HASH(indepKey, size), size);
@@ -268,8 +268,8 @@ int MapToPosInt::insertIfEmpty(int key, int val) {
 #endif
 
   if (useHash) {
-    register int indepKey = TableUtils::scatterKey(key);
-    register int slot = PRIMARY_HASH(indepKey, size);
+    int indepKey = TableUtils::scatterKey(key);
+    int slot = PRIMARY_HASH(indepKey, size);
 
     while (keys[slot] != -1 && keys[slot] != indepKey)
       slot = Mod(slot + SECONDARY_HASH(indepKey, size), size);
@@ -298,8 +298,8 @@ int MapToPosInt::insertIfEmpty(int key, int val) {
 }
 
 void MapToPosInt::resetSlots() {
-  register int i;
-  register int slot;
+  int i;
+  int slot;
 
   if (useHash) {
     for (i = 0; i < numEntries; ++i) {
@@ -322,8 +322,8 @@ int MapToPosInt::getCareful(int key) {
 #endif
 
   if (useHash) {
-    register int indepKey = TableUtils::scatterKey(key);
-    register int slot = PRIMARY_HASH(indepKey, size);
+    int indepKey = TableUtils::scatterKey(key);
+    int slot = PRIMARY_HASH(indepKey, size);
 
     while (keys[slot] != indepKey && keys[slot] != -1)
       slot = Mod(slot + SECONDARY_HASH(indepKey, size), size);
@@ -356,8 +356,8 @@ int MapToPosInt::getVal(int key) {
 #endif
 
   if (useHash) {
-    register int indepKey = TableUtils::scatterKey(key);
-    register int slot = PRIMARY_HASH(indepKey, size);
+    int indepKey = TableUtils::scatterKey(key);
+    int slot = PRIMARY_HASH(indepKey, size);
 
     while (keys[slot] != indepKey) {
       slot = Mod(slot + SECONDARY_HASH(indepKey, size), size);
@@ -391,7 +391,7 @@ void NewHedgeIndexTable::createTable(int _size) {
   table.setLength(size);
   nextSameKey.setLength(size);
 
-  register int i;
+  int i;
 
   for (i = 0; i < size; ++i) {
     table[i] = -1;
@@ -412,7 +412,7 @@ void NewHedgeIndexTable::recoverTable() {
   nextSameKey.setLength(size);
   numEntries = 0;
 
-  register int i;
+  int i;
 
   for (i = 0; i < size; ++i) {
     table[i] = -1;
@@ -421,8 +421,8 @@ void NewHedgeIndexTable::recoverTable() {
 }
 
 void NewHedgeIndexTable::insertKey(HashKey key, int index) {
-  register int slot = PRIMARY_HASH(key, size);
-  register int lastSeen = -1;
+  int slot = PRIMARY_HASH(key, size);
+  int lastSeen = -1;
 
   while (table[slot] != -1) {
     if (keys[slot] == key)
@@ -448,7 +448,7 @@ int NewHedgeIndexTable::getHedgeIndex(HashKey key, int &numSeen) {
   assert(numSeen < size);
 #endif
 
-  register int slot;
+  int slot;
 
   if (numSeen == -1) {
     slot = PRIMARY_HASH(key, size);
@@ -502,21 +502,21 @@ MatchRequestTable::MatchRequestTable(int _size) {
 
   table.setLength(size);
 
-  register int i = 0;
+  int i = 0;
 
   for (; i < size; ++i)
     table[i] = NULL;
 }
 
 MatchRequestTable::~MatchRequestTable() {
-  register int i = 0;
+  int i = 0;
 
   for (; i < size; ++i)
     DynaMem<MatchRequestEntry>::deletePtr(table[i]);
 }
 
-MatchRequestEntry *MatchRequestTable::getEntryPtr(register int _vertex) const {
-  register MatchRequestEntry *entry = table[Mod(_vertex, size)];
+MatchRequestEntry *MatchRequestTable::getEntryPtr(int _vertex) const {
+  MatchRequestEntry *entry = table[Mod(_vertex, size)];
 
   while (entry && entry->getNonLocal() != _vertex)
     entry = entry->getNextEntry();
@@ -524,8 +524,8 @@ MatchRequestEntry *MatchRequestTable::getEntryPtr(register int _vertex) const {
   return entry;
 }
 
-int MatchRequestTable::lookupClusterWt(register int _vertex) const {
-  register MatchRequestEntry *entry = table[Mod(_vertex, size)];
+int MatchRequestTable::lookupClusterWt(int _vertex) const {
+  MatchRequestEntry *entry = table[Mod(_vertex, size)];
 
   while (entry && entry->getNonLocal() != _vertex)
     entry = entry->getNextEntry();
@@ -536,8 +536,8 @@ int MatchRequestTable::lookupClusterWt(register int _vertex) const {
     return -1;
 }
 
-int MatchRequestTable::lookupCluIndex(register int _vertex) const {
-  register MatchRequestEntry *entry = table[Mod(_vertex, size)];
+int MatchRequestTable::lookupCluIndex(int _vertex) const {
+  MatchRequestEntry *entry = table[Mod(_vertex, size)];
 
   while (entry && entry->getNonLocal() != _vertex)
     entry = entry->getNextEntry();
@@ -548,8 +548,8 @@ int MatchRequestTable::lookupCluIndex(register int _vertex) const {
     return -1;
 }
 
-int MatchRequestTable::lookupNumLocals(register int _vertex) const {
-  register MatchRequestEntry *entry = table[Mod(_vertex, size)];
+int MatchRequestTable::lookupNumLocals(int _vertex) const {
+  MatchRequestEntry *entry = table[Mod(_vertex, size)];
 
   while (entry && entry->getNonLocal() != _vertex)
     entry = entry->getNextEntry();
@@ -561,7 +561,7 @@ int MatchRequestTable::lookupNumLocals(register int _vertex) const {
 }
 
 void MatchRequestTable::clearTable() {
-  register int i = 0;
+  int i = 0;
 
   for (; i < size; ++i)
     DynaMem<MatchRequestEntry>::deletePtr(table[i]);
@@ -571,8 +571,8 @@ void MatchRequestTable::clearTable() {
 }
 
 void MatchRequestTable::addLocal(int _vertex, int _local, int locWt, int proc) {
-  register int slot = Mod(_vertex, size);
-  register MatchRequestEntry *entry = table[slot];
+  int slot = Mod(_vertex, size);
+  MatchRequestEntry *entry = table[slot];
 
   while (entry && entry->getNonLocal() != _vertex)
     entry = entry->getNextEntry();
@@ -588,8 +588,8 @@ void MatchRequestTable::addLocal(int _vertex, int _local, int locWt, int proc) {
   }
 }
 
-void MatchRequestTable::setCluIndex(register int vertex, int index, int cluWt) {
-  register MatchRequestEntry *entry = table[Mod(vertex, size)];
+void MatchRequestTable::setCluIndex(int vertex, int index, int cluWt) {
+  MatchRequestEntry *entry = table[Mod(vertex, size)];
 
   while (entry && entry->getNonLocal() != vertex)
     entry = entry->getNextEntry();
@@ -604,9 +604,9 @@ void MatchRequestTable::setCluIndex(register int vertex, int index, int cluWt) {
   }
 }
 
-void MatchRequestTable::removeLocal(register int vertex, int locVertex,
+void MatchRequestTable::removeLocal(int vertex, int locVertex,
                                     int locWt) {
-  register MatchRequestEntry *entry = table[Mod(vertex, size)];
+  MatchRequestEntry *entry = table[Mod(vertex, size)];
 
   while (entry && entry->getNonLocal() != vertex)
     entry = entry->getNextEntry();
@@ -619,8 +619,8 @@ void MatchRequestTable::removeLocal(register int vertex, int locVertex,
     entry->removeLocal(locVertex, locWt);
 }
 
-void MatchRequestTable::removeEntry(register int _vertex) {
-  register MatchRequestEntry *entry = table[Mod(_vertex, size)];
+void MatchRequestTable::removeEntry(int _vertex) {
+  MatchRequestEntry *entry = table[Mod(_vertex, size)];
 
   while (entry && entry->getNonLocal() != _vertex)
     entry = entry->getNextEntry();

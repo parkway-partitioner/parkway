@@ -46,9 +46,9 @@ vertices.
 
   ************************/
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int recvArrayLen;
   int index;
@@ -171,9 +171,9 @@ vertices.
 
 void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
                                               MPI_Comm comm) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int keepMyPartition;
   int proc;

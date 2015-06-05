@@ -37,7 +37,7 @@ void InitBisector::dispInitBisectorOptions(ostream &out) const {
 }
 
 void InitBisector::initBisect(Hypergraph &h) {
-  register int i;
+  int i;
 
   int gain;
   int balanced;
@@ -74,8 +74,8 @@ void InitBisector::initBisect(Hypergraph &h) {
 }
 
 int InitBisector::setBaseVertex() {
-  register int i;
-  register int cut = 0;
+  int i;
+  int cut = 0;
 
   int endOffset;
   int baseVertex = RANDOM(0, numVertices);
@@ -108,8 +108,8 @@ int InitBisector::chooseBestVertex1to0() {
 }
 
 int InitBisector::doGreedyPass() {
-  register int gain = 0;
-  register int bestVertex;
+  int gain = 0;
+  int bestVertex;
 
   while (partWeights[1] > partWeights[0]) {
     bestVertex = chooseBestVertex1to0();

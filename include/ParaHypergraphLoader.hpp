@@ -65,8 +65,8 @@ public:
   inline int getNumParts() const { return numParts; }
   inline int getPercentile() const { return currPercentile; }
 
-  inline void setDispOption(register int d) { dispOption = d; }
-  inline void setPercentile(register int p) { currPercentile = p; }
+  inline void setDispOption(int d) { dispOption = d; }
+  inline void setPercentile(int p) { currPercentile = p; }
 };
 
 #endif

@@ -33,8 +33,8 @@ HarwellBoeingReader::HarwellBoeingReader() : TextFileReader() {
 HarwellBoeingReader::~HarwellBoeingReader() {}
 
 void HarwellBoeingReader::readPreamble(ifstream &in) {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   char *data;
 

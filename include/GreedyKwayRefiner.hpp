@@ -69,8 +69,8 @@ public:
   }
 
   inline int findHeaviestOverweight() const {
-    register int i = 0;
-    register int p = -1;
+    int i = 0;
+    int p = -1;
 
     for (; i < numParts; ++i) {
       if (partWeights[i] > maxPartWt) {

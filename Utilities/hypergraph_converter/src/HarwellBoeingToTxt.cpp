@@ -29,8 +29,8 @@ void HarwellBoeingToTxt::convert(const char *filename) {
   FastDynaArray<int> hEdgeOffsets;
   FastDynaArray<int> pinList;
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   in_stream.open(filename, ifstream::in);
 

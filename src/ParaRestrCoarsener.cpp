@@ -53,10 +53,10 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   int *localHedgeOffsets;
   int *localHedgeWeights;
 
-  register int j;
-  register int l;
-  register int proc;
-  register int locVertex;
+  int j;
+  int l;
+  int proc;
+  int locVertex;
 
   FastDynaArray<int> procs(numProcs);
   FastDynaArray<int> vDegs;

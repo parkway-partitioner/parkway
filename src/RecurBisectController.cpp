@@ -72,8 +72,8 @@ void RecurBisectController::convToBisectionConstraints() {
 
   logK = Funct::log2(numParts);
 
-  register int j;
-  register int i;
+  int j;
+  int i;
 
   double a = (1.0 + kWayConstraint) / numParts;
   double b = 1.0 / logK;
@@ -141,9 +141,9 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
     out_stream << "[R-B]: " << numSeqRuns << " | ";
   }
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int numVertices = h->getNumVertices();
   int *pVector = NULL;
@@ -250,9 +250,9 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
 
 void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
                                               MPI_Comm comm) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int numTotVertices = h->getNumVertices();
   int ijk;
@@ -402,7 +402,7 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
       int *toOrigVmap = b.getMapArray();
       int bisectionPart = b.getPartID();
 
-      register int i;
+      int i;
 
       for (i = 0; i < numVerts; ++i) {
         locVertPartitionInfo.assign(locVertPartInfoLen++, toOrigVmap[i]);
@@ -456,7 +456,7 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
         int *toOrigVmap = b.getMapArray();
         int bisectionPart = b.getPartID();
 
-        register int i;
+        int i;
 
         for (i = 0; i < numVerts; ++i) {
           locVertPartitionInfo.assign(locVertPartInfoLen++, toOrigVmap[i]);
@@ -499,8 +499,8 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
   MPI_Comm_size(comm, &nProcs);
   MPI_Comm_rank(comm, &rank);
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   Hypergraph *newH;
   Hypergraph *h = b.getHypergraph();
@@ -702,8 +702,8 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
 
 void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
                                            Bisection *&r) const {
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   Hypergraph *leftH;
   Hypergraph *rightH;
@@ -878,7 +878,7 @@ int RecurBisectController::getBestPartitionProc(int cut, MPI_Comm comm) const {
   int bestCut;
   int bestProc;
 
-  register int i;
+  int i;
 
   MPI_Comm_size(comm, &nProcs);
   MPI_Comm_rank(comm, &rank);

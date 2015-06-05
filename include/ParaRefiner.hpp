@@ -63,7 +63,7 @@ public:
   void loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm);
   void initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm);
 
-  inline void setBalConstraint(register double b) { balConstraint = b; }
+  inline void setBalConstraint(double b) { balConstraint = b; }
   inline int getMaxPartWt() const { return maxPartWt; }
 };
 

@@ -95,7 +95,7 @@ void HMeTiS2Bin::convert(const char *filename) {
     vWeights.setLength(numVertices);
     numVerts = numVertices;
 
-    for (register int i = 0; i < numVertices; ++i)
+    for (int i = 0; i < numVertices; ++i)
       vWeights[i] = 1;
   }
 
@@ -163,7 +163,7 @@ void HMeTiS2Bin::readPreamble(ifstream &in) {
   }
 }
 
-int HMeTiS2Bin::processHedgeLine(register char *line, register int &numP) {
+int HMeTiS2Bin::processHedgeLine(char *line, int &numP) {
   int hEdgeLengthSlot = dataLength;
   int pin;
 
@@ -203,7 +203,7 @@ int HMeTiS2Bin::processHedgeLine(register char *line, register int &numP) {
     return 0;
 }
 
-int HMeTiS2Bin::countPinsInLine(register char *line, register int &nP) {
+int HMeTiS2Bin::countPinsInLine(char *line, int &nP) {
   StringUtils::skipNonDigits(line, '%');
 
   if (*line) {
@@ -223,7 +223,7 @@ int HMeTiS2Bin::countPinsInLine(register char *line, register int &nP) {
     return 0;
 }
 
-int HMeTiS2Bin::processVertLine(register char *line) {
+int HMeTiS2Bin::processVertLine(char *line) {
   StringUtils::skipNonDigits(line, '%');
 
   if (*line) {

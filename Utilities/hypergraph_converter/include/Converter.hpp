@@ -34,7 +34,7 @@ public:
   inline int getNumVerts() { return numVerts; }
   inline int *getDataArray() { return hEdgeData.getArray(); }
   inline int *getVertWtsArray() { return vWeights.getArray(); }
-  inline void setNumVertices(register int n) { numVerts = n; }
+  inline void setNumVertices(int n) { numVerts = n; }
 
   void setLengthParameter();
   void resetConverterParameters();

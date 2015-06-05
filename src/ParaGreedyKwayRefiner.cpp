@@ -18,9 +18,9 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
                                              int numVperP, int eExit,
                                              double lim, ostream &out)
     : ParaRefiner(rank, nProcs, nParts, out) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   // ###
   // create the move set structures
@@ -71,9 +71,9 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
 }
 
 ParaGreedyKwayRefiner::~ParaGreedyKwayRefiner() {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   DynaMem<MovementSetTable>::deletePtr(movementSets);
 
@@ -134,9 +134,9 @@ void ParaGreedyKwayRefiner::releaseMemory() {
 
 void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
                                             MPI_Comm comm) {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   initPartitionStructs(h, comm);
 
@@ -187,9 +187,9 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
   assert(pNo >= 0 && pNo < numPartitions);
 #endif
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int neighVertOffset;
   int hEdgeVertOffset;
@@ -334,7 +334,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
 void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
   initDataStructs(h, comm);
 
-  register int i;
+  int i;
 
   int gain;
   int lastGain = 0;
@@ -385,7 +385,7 @@ void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
 
 int ParaGreedyKwayRefiner::runGreedyKwayRefinement(ParaHypergraph &h, int pNo,
                                                    MPI_Comm comm) {
-  register int i;
+  int i;
 
   numTotVerticesMoved = 0;
   locked.clear();
@@ -639,9 +639,9 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
 }
 
 int ParaGreedyKwayRefiner::computeCutsize(MPI_Comm comm) {
-  register int i;
-  register int ij;
-  register int locCut = 0;
+  int i;
+  int ij;
+  int locCut = 0;
 
   int totalCut;
 
@@ -661,9 +661,9 @@ int ParaGreedyKwayRefiner::computeCutsize(MPI_Comm comm) {
 
 void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
 
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int prod;
   int arrayLen;
@@ -820,9 +820,9 @@ void ParaGreedyKwayRefiner::takeBackPassMoves() {
   assert(And(numTotVerticesMoved, 0x1) == 0);
 #endif
 
-  register int i;
-  register int v;
-  register int vPart;
+  int i;
+  int v;
+  int vPart;
 
   for (i = 0; i < numTotVerticesMoved; i += 2) {
     v = movedVertices[i];
@@ -841,10 +841,10 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
   sanityHedgeCheck();
 #endif
 
-  register int i;
-  register int j;
-  register int ij;
-  register int ijk;
+  int i;
+  int j;
+  int ij;
+  int ijk;
 
   int index;
   int prod;
@@ -1307,8 +1307,8 @@ void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
   sanityHedgeCheck();
 #endif
 
-  register int v;
-  register int j;
+  int v;
+  int j;
 
   int i;
   int hEdgeOff;
@@ -1406,9 +1406,9 @@ void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
 }
 
 void ParaGreedyKwayRefiner::nonLocVertCheck() const {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int vertPart;
   int endOffset;
@@ -1429,9 +1429,9 @@ void ParaGreedyKwayRefiner::nonLocVertCheck() const {
 }
 
 void ParaGreedyKwayRefiner::sanityHedgeCheck() const {
-  register int i;
-  register int j;
-  register int ij;
+  int i;
+  int j;
+  int ij;
 
   int hEdgeLen;
   int inParts;

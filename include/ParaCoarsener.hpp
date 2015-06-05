@@ -50,15 +50,15 @@ public:
 
   ParaHypergraph *contractHyperedges(ParaHypergraph &h, MPI_Comm comm);
 
-  inline void setReductionRatio(register double ratio) {
+  inline void setReductionRatio(double ratio) {
     reductionRatio = ratio;
   }
-  inline void setBalConstraint(register double constraint) {
+  inline void setBalConstraint(double constraint) {
     balConstraint = constraint;
   }
-  inline void setMinNodes(register int min) { minNodes = min; }
-  inline void setMaxVertexWt(register int m) { maxVertexWt = m; }
-  inline void setTotGraphWt(register int t) { totalHypergraphWt = t; }
+  inline void setMinNodes(int min) { minNodes = min; }
+  inline void setMaxVertexWt(int m) { maxVertexWt = m; }
+  inline void setTotGraphWt(int t) { totalHypergraphWt = t; }
 };
 
 #endif

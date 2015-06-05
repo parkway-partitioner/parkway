@@ -92,8 +92,8 @@ public:
   void setNumberPartitions(int nP);
   void computePartitionChars(int pNum, int numParts, double constraint,
                              ostream &out, MPI_Comm comm);
-  void copyInPartition(const register int *partition, int numV, int nP);
-  void copyOutPartition(register int *partition, int numV, int nP) const;
+  void copyInPartition(const int *partition, int numV, int nP);
+  void copyOutPartition(int *partition, int numV, int nP) const;
   int keepBestPartition();
 
   void prescribedVertexShuffle(int *prescribedAssignment, int nLocVer,
@@ -168,44 +168,44 @@ public:
   // inline HashKey *getHashKeysArray() const { return hashKeys.getArray(); }
   // inline HedgeIndexTable *getHedgeIndexTable() const { return table; }
 
-  inline void setIndexInSeq(register int index) { indexInSequence = index; }
-  inline void setNumTotalVertices(register int v) { numTotalVertices = v; }
-  inline void setNumLocalVertices(register int v) { numLocalVertices = v; }
-  inline void setNumLocalHedges(register int h) { numLocalHedges = h; }
-  inline void setNumLocalPins(register int p) { numLocalPins = p; }
-  inline void setMinVertexIndex(register int m) { minVertexIndex = m; }
-  inline void setLocalVertexWt(register int w) { localVertexWt = w; }
+  inline void setIndexInSeq(int index) { indexInSequence = index; }
+  inline void setNumTotalVertices(int v) { numTotalVertices = v; }
+  inline void setNumLocalVertices(int v) { numLocalVertices = v; }
+  inline void setNumLocalHedges(int h) { numLocalHedges = h; }
+  inline void setNumLocalPins(int p) { numLocalPins = p; }
+  inline void setMinVertexIndex(int m) { minVertexIndex = m; }
+  inline void setLocalVertexWt(int w) { localVertexWt = w; }
 
-  inline void setWeightArray(register int *a, register int l) {
+  inline void setWeightArray(int *a, int l) {
     vWeight.setArray(a, l);
   }
-  inline void setMatchVectorArray(register int *a, register int l) {
+  inline void setMatchVectorArray(int *a, int l) {
     matchVector.setArray(a, l);
   }
-  inline void setPartVectorArray(register int *a, register int l) {
+  inline void setPartVectorArray(int *a, int l) {
     partitionVector.setArray(a, l);
   }
-  inline void setLocalPinsArray(register int *a, register int l) {
+  inline void setLocalPinsArray(int *a, int l) {
     localPins.setArray(a, l);
   }
-  inline void setHedgeOffsetsArray(register int *a, register int l) {
+  inline void setHedgeOffsetsArray(int *a, int l) {
     hEdgeOffsets.setArray(a, l);
   }
-  inline void setHedgeWeightsArray(register int *a, register int l) {
+  inline void setHedgeWeightsArray(int *a, int l) {
     hEdgeWeights.setArray(a, l);
   }
-  // inline void setHedgeIndexTable(register HedgeIndexTable *t) { table = t; }
-  // inline void setHashKeysArray(register HashKey *a, register int l) {
+  // inline void setHedgeIndexTable(HedgeIndexTable *t) { table = t; }
+  // inline void setHashKeysArray(HashKey *a, int l) {
   // hashKeys.setArray(a,l); }
 
-  inline void setCut(register int pNo, register int cut) {
+  inline void setCut(int pNo, int cut) {
 #ifdef DEBUG_HYPERGRAPH
     assert(pNo >= 0 && pNo < numPartitions);
 #endif
     partitionCutsizesVector[pNo] = cut;
   }
 
-  inline int getCut(register int i) const {
+  inline int getCut(int i) const {
 #ifdef DEBUG_HYPERGRAPH
     assert(i >= 0 && i < numPartitions);
 #endif

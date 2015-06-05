@@ -33,7 +33,7 @@ public:
   int chooseBestVertex1to0();
   int doGreedyPass();
 
-  inline void setNumRuns(register int nR) { numInitRuns = nR; }
+  inline void setNumRuns(int nR) { numInitRuns = nR; }
 };
 
 #endif

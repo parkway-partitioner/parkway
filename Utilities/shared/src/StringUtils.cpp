@@ -18,7 +18,7 @@ StringUtils::StringUtils() {}
 
 StringUtils::~StringUtils() {}
 
-void StringUtils::skipNonDigits(register char *&strPtr, register char comm) {
+void StringUtils::skipNonDigits(char *&strPtr, char comm) {
   while (*strPtr != '\0' && *strPtr != comm && (*strPtr < '0' || *strPtr > '9'))
     ++strPtr;
 
@@ -26,18 +26,18 @@ void StringUtils::skipNonDigits(register char *&strPtr, register char comm) {
     *strPtr = '\0';
 }
 
-void StringUtils::skipNonDigits(register char *&strPtr) {
+void StringUtils::skipNonDigits(char *&strPtr) {
   while (*strPtr != '\0' && (*strPtr < '0' || *strPtr > '9'))
     ++strPtr;
 }
 
-void StringUtils::skipDigits(register char *&strPtr) {
+void StringUtils::skipDigits(char *&strPtr) {
   while (*strPtr != '\0' && *strPtr >= '0' && *strPtr <= '9')
     ++strPtr;
 }
 
-int StringUtils::stringToDigit(register char *&strPtr) {
-  register int number = 0;
+int StringUtils::stringToDigit(char *&strPtr) {
+  int number = 0;
 
   while (*strPtr >= '0' && *strPtr <= '9') {
     number *= 10;
@@ -49,8 +49,8 @@ int StringUtils::stringToDigit(register char *&strPtr) {
 
 int StringUtils::getParameterAsInteger(int argc, char **argv,
                                        const char *cmpr) {
-  register int i;
-  register int j = argc - 1;
+  int i;
+  int j = argc - 1;
 
   for (i = 0; i < j; ++i) {
     if (strcmp(cmpr, argv[i]) == 0)
@@ -62,8 +62,8 @@ int StringUtils::getParameterAsInteger(int argc, char **argv,
 
 int StringUtils::getParameterAsInteger(int argc, char **argv, const char *cmpr,
                                        int def) {
-  register int i;
-  register int j = argc - 1;
+  int i;
+  int j = argc - 1;
 
   for (i = 0; i < j; ++i) {
     if (strcmp(cmpr, argv[i]) == 0)
@@ -75,8 +75,8 @@ int StringUtils::getParameterAsInteger(int argc, char **argv, const char *cmpr,
 
 char *StringUtils::getParameterAsCharPtr(int argc, char **argv,
                                          const char *cmpr, char *def) {
-  register int i;
-  register int j = argc - 1;
+  int i;
+  int j = argc - 1;
 
   for (i = 0; i < j; ++i) {
     if (strcmp(cmpr, argv[i]) == 0)

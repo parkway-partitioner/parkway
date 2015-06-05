@@ -153,7 +153,7 @@ void Sandia2Bin::convert(const char *filename) {
     vWeights.setLength(numVertices);
     numVerts = numVertices;
 
-    for (register int i = 0; i < numVertices; ++i)
+    for (int i = 0; i < numVertices; ++i)
       vWeights[i] = 1;
   }
 
@@ -163,7 +163,7 @@ void Sandia2Bin::convert(const char *filename) {
   out_stream.close();
 }
 
-int Sandia2Bin::processHedgeLine(register char *line, register int &numP) {
+int Sandia2Bin::processHedgeLine(char *line, int &numP) {
   int hEdgeLengthSlot = dataLength;
   int pin;
 
@@ -203,7 +203,7 @@ int Sandia2Bin::processHedgeLine(register char *line, register int &numP) {
     return 0;
 }
 
-int Sandia2Bin::processVertLine(register char *line) {
+int Sandia2Bin::processVertLine(char *line) {
   StringUtils::skipNonDigits(line, '%');
 
   if (*line) {

@@ -92,7 +92,7 @@ public:
   }
 
   inline int getPercentile() const { return currPercentile; }
-  inline void setPercentile(register int p) { currPercentile = p; }
+  inline void setPercentile(int p) { currPercentile = p; }
 };
 
 #endif

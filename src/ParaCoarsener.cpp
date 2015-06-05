@@ -51,10 +51,10 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   int *localHedgeOffsets;
   int *localHedgeWeights;
 
-  register int j;
-  register int l;
-  register int proc;
-  register int locVert;
+  int j;
+  int l;
+  int proc;
+  int locVert;
 
   FastDynaArray<int> sentToProc;
   FastDynaArray<int> vDegs;
@@ -347,7 +347,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 
 ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
                                                   MPI_Comm comm) {
-  register int i;
+  int i;
 
   int totalToRecv = 0;
   int numMyClusters;

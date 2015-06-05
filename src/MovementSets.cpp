@@ -23,8 +23,8 @@ MovementSetTable::MovementSetTable(int nParts, int nProcs) {
   partWeights.setLength(numParts);
   sets.setLength(setArrayLen);
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   for (i = 0; i < setArrayLen; ++i) {
     if (Mod(i, numParts) != i / numParts) {
@@ -45,7 +45,7 @@ MovementSetTable::MovementSetTable(int nParts, int nProcs) {
 }
 
 MovementSetTable::~MovementSetTable() {
-  register int i;
+  int i;
 
   for (i = 0; i < setArrayLen; ++i)
     DynaMem<FastDynaArray<MOVE_SET> >::deletePtr(sets[i]);
@@ -59,8 +59,8 @@ void MovementSetTable::initPartWeights(const int *partWts, int nParts) {
   assert(nParts == numParts);
 #endif
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   for (i = 0; i < numParts; ++i)
     partWeights[i] = partWts[i];
@@ -77,8 +77,8 @@ void MovementSetTable::initPartWeights(const int *partWts, int nParts) {
 
 void MovementSetTable::completeProcSets(int proc, int dataLen,
                                         const int *data) {
-  register int i = 0;
-  register int wt;
+  int i = 0;
+  int wt;
 
   int fromPart;
   int toPart;
@@ -111,8 +111,8 @@ void MovementSetTable::computeRestoringArray() {
   assert(heaviest >= -1);
 #endif
 
-  register int i;
-  register int j;
+  int i;
+  int j;
 
   int minIndex;
   int minProc;

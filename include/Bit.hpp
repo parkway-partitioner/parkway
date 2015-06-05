@@ -30,7 +30,7 @@ class BitField {
 
 public:
   BitField() {}
-  BitField(register int bits) { setLength(bits); }
+  BitField(int bits) { setLength(bits); }
 
   ~BitField() {}
 
@@ -43,7 +43,7 @@ public:
     length = data.getLength();
 
     if (length > old) {
-      for (register int n = old; n < length; ++n)
+      for (int n = old; n < length; ++n)
         data[n] = 0;
     }
     bitLength = (length << 5);
@@ -53,41 +53,41 @@ public:
   inline int getLength() const { return length; }
 
   inline unsigned int *getData() const { return data.getArray(); }
-  inline unsigned int getChunk(register int i) const { return data[i]; }
+  inline unsigned int getChunk(int i) const { return data[i]; }
 
-  inline void setLength(register int bits) {
+  inline void setLength(int bits) {
     bitLength = bits;
     length = (bits >> 5) + ((bits & 31) ? 1 : 0);
     data.setLength(length);
   }
 
   inline void clear() {
-    for (register int l = 0; l < length; ++l)
+    for (int l = 0; l < length; ++l)
       data[l] = 0;
   }
 
   inline void set1() {
-    for (register int l = 0; l < length; ++l)
+    for (int l = 0; l < length; ++l)
       data[l] = 0xFFFFFFFF;
   }
 
   inline int allSet() {
-    register int allset = 1;
-    for (register int i = 0; i < length; ++i)
+    int allset = 1;
+    for (int i = 0; i < length; ++i)
       if (data[i] != 0xFFFFFFFF)
         return 0;
     return allset;
   }
 
-  inline int operator()(register int index) const {
+  inline int operator()(int index) const {
     return (data(index >> 5) & (1 << (index & 31))) ? 1 : 0;
   }
 
-  inline void set1(register int index) {
+  inline void set1(int index) {
     data[index >> 5] |= (1 << (index & 31));
   }
 
-  inline void set0(register int index) {
+  inline void set0(int index) {
     data[index >> 5] &= (~(1 << (index & 31)));
   }
 };

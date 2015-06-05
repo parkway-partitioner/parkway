@@ -50,12 +50,12 @@ public:
   int chooseBestPartition() const;
   int getAcceptCut() const;
 
-  inline void setNumSeqRuns(register int r) { numSeqRuns = r; }
-  inline void setDispOption(register int d) { dispOption = d; }
-  inline void setMaxVertexWt(register int max) { maxVertexWt = max; }
-  inline void setHypergraph(register Hypergraph *hGraph) { h = hGraph; }
-  inline void setKwayConstraint(register double c) { kWayConstraint = c; }
-  inline void setAcceptProp(register double p) { acceptProp = p; }
+  inline void setNumSeqRuns(int r) { numSeqRuns = r; }
+  inline void setDispOption(int d) { dispOption = d; }
+  inline void setMaxVertexWt(int max) { maxVertexWt = max; }
+  inline void setHypergraph(Hypergraph *hGraph) { h = hGraph; }
+  inline void setKwayConstraint(double c) { kWayConstraint = c; }
+  inline void setAcceptProp(double p) { acceptProp = p; }
 };
 
 #endif
