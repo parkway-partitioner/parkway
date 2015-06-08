@@ -1,13 +1,13 @@
 # Minimum CMake version.
 cmake_minimum_required(VERSION 2.6)
 
+
 # Application information and version.
 project("parkway")
-set(APPLICATION_NAME "parkway")
+set(APPLICATION_NAME "Parkway")
 set(VERSION_MAJOR 2)
 set(VERSION_MINOR 12)
 set(VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}")
-
 
 # Output directories.
 set(MAINFOLDER ${PROJECT_SOURCE_DIR})
@@ -18,11 +18,24 @@ set(LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
 set(PROJECT_BIN ${PROJECT_NAME})
 set(PROJECT_LIB "lib${PROJECT_NAME}")
 
+# Add a CMake build type requirement. Default to release with debug info.
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
+      "Choose the type of build, options are: Debug Developer MinSizeRel
+      Release RelWithDebInfo." FORCE)
+endif()
+
+# Add -Wall and -pedantic if GCC / Clang and building in debug mode.
+if(${CMAKE_BUILD_TYPE} STREQUAL "debug")
+  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" OR
+     ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    message(STATUS "Configuring in debug mode, adding '-Wall -pedantic' flags")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -pedantic")
+  endif()
+endif()
+
 # Find any required packages.
 find_package(MPI REQUIRED)
-
-# Add support for C++11.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # Look for headers in "include".
 include_directories("${MAINFOLDER}/include")
