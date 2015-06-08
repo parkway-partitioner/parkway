@@ -96,7 +96,8 @@ void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
   for (i = 0; i < hEdgeDataLen; i += ij) {
     ij = data[i];
     hEdgeWts[j] = data[i + 1];
-    offsets[j + 1] = offsets[j++] + (ij - 2);
+    auto offset = offsets[j++] + (ij - 2);
+    offsets[j + 1] = offset;
   }
 
   pinList = new int[offsets[j]];

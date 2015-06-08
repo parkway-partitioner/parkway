@@ -13,8 +13,6 @@
 //
 // ###
 
-using namespace std;
-
 #include "DynamicArray.h"
 
 template <class T> class Stack {

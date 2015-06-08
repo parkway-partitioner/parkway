@@ -12,8 +12,6 @@
 //
 // ###
 
-using namespace std;
-
 class Count {
 private:
   static int numNew;

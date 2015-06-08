@@ -107,7 +107,6 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
 
   /* hyperedges stored in pinlist */
 
-  int index = 0;
   int hEdgeIndex = 0;
   int pinCounter = 0;
 

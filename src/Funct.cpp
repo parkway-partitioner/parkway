@@ -228,8 +228,6 @@ void Funct::printMemUse(int myRank, const char *info) {
   fclose(fp);
 }
 
-void Funct::initStartMem() { startHeap = (char *)(sbrk(0)); }
-
 /*
 void Funct::write_to_memory()
 {
