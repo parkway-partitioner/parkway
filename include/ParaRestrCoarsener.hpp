@@ -13,7 +13,7 @@
 // ###
 
 #include "ParaHypergraphLoader.hpp"
-#include "HashTables.hpp"
+#include "data_structures/HashTables.hpp"
 
 using namespace std;
 

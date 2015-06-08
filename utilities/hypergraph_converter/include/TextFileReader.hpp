@@ -15,7 +15,7 @@
 #include <fstream>
 #include <cstring>
 #include <cstdio>
-#include "DynamicArray.h"
+#include "data_structures/DynamicArray.h"
 
 using namespace std;
 

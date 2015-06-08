@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "DynamicArray.h"
+#include "data_structures/DynamicArray.h"
 
 typedef struct Bucket {
   int vertexID;

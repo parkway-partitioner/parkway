@@ -13,6 +13,7 @@
 //
 // ###
 
+#include "data_structures/DynamicArray.h"
 #include "DynamicArray.h"
 
 template <class T> class Stack {

@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "CompleteBinaryTree.hpp"
+#include "data_structures/CompleteBinaryTree.hpp"
 
 template <class T> CompleteBinaryTree<T>::CompleteBinaryTree() {
   numRoots = 0;

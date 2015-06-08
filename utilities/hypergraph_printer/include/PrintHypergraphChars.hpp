@@ -14,7 +14,7 @@
 
 #include <iostream>
 #include <fstream>
-#include "DynamicArray.h"
+#include "data_structures/DynamicArray.h"
 #include "StringUtils.hpp"
 
 using namespace std;

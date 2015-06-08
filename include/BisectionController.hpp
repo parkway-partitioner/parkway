@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "Stack.hpp"
+#include "data_structures/Stack.hpp"
 #include "FCCoarsener.hpp"
 #include "InitBisector.hpp"
 

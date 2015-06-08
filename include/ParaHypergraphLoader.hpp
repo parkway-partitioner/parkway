@@ -13,7 +13,7 @@
 // ###
 
 #include "ParaHypergraph.hpp"
-#include "Bit.hpp"
+#include "data_structures/Bit.hpp"
 
 using namespace std;
 

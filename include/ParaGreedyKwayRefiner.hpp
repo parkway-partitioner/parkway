@@ -12,8 +12,8 @@
 //
 // ###
 
-#include "Bit.hpp"
-#include "MovementSets.hpp"
+#include "data_structures/Bit.hpp"
+#include "data_structures/MovementSets.hpp"
 #include "ParaRefiner.hpp"
 
 using namespace std;

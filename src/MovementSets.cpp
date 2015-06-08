@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "MovementSets.hpp"
+#include "data_structures/MovementSets.hpp"
 
 MovementSetTable::MovementSetTable(int nParts, int nProcs) {
   numParts = nParts;

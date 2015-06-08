@@ -13,7 +13,7 @@
 // ###
 
 #include "Refiner.hpp"
-#include "VertexNode.hpp"
+#include "hypergraph/VertexNode.hpp"
 
 using namespace std;
 

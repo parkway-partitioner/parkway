@@ -15,7 +15,7 @@
 //
 // ###
 
-#include "HashTables.hpp"
+#include "data_structures/HashTables.hpp"
 
 CompleteBinaryTree<int> TableUtils::tableSizeTree;
 DynamicArray<int> TableUtils::scatterArray;

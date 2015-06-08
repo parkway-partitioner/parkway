@@ -25,9 +25,9 @@
 #include <cassert>
 
 #include "GlobalCommunicator.hpp"
-#include "CompleteBinaryTree.hpp"
-#include "HashTables.hpp"
-#include "Bit.hpp"
+#include "data_structures/CompleteBinaryTree.hpp"
+#include "data_structures/HashTables.hpp"
+#include "data_structures/Bit.hpp"
 
 class ParaHypergraph : public GlobalCommunicator {
 protected:

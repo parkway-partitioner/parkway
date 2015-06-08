@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "Stack.hpp"
+#include "data_structures/Stack.hpp"
 #include "ParaFCCoarsener.hpp"
 #include "Para2DModelCoarsener.hpp"
 #include "ParaApproxFCCoarsener.hpp"

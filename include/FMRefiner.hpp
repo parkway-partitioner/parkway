@@ -20,9 +20,9 @@
 //
 // ###
 
-#include "Bit.hpp"
+#include "data_structures/Bit.hpp"
 #include "Refiner.hpp"
-#include "BucketNode.hpp"
+#include "data_structures/BucketNode.hpp"
 
 using namespace std;
 

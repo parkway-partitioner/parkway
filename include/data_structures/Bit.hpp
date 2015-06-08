@@ -18,7 +18,7 @@
 // ###
 
 #include <iostream>
-#include "DynamicArray.h"
+#include "data_structures/DynamicArray.h"
 
 using namespace std;
 
