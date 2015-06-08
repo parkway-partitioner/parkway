@@ -13,8 +13,8 @@
 // ###
 
 #include "Parkway.h"
-
-using namespace std;
+#include <fstream>
+#include <iostream>
 
 void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
                   double constraint, int &k_1cut, const int *options,
@@ -37,7 +37,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   int seed;
 #endif
 
-  ostream *output;
+  std::ostream *output;
 
   ParaHypergraph *hgraph = nullptr;
   ParaCoarsener *coarsener = nullptr;
@@ -52,7 +52,8 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   MPI_Comm_rank(comm, &my_rank);
 
   if (out_file) {
-    output = new ofstream(out_file, ofstream::app | ofstream::out);
+    output = new std::ofstream(out_file,
+                               std::ofstream::app | std::ofstream::out);
 
     if (!output->good()) {
       sprintf(message, "p[%d] could not open file %s - abort\n", my_rank,
@@ -61,7 +62,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
       MPI_Abort(comm, 0);
     }
   } else {
-    output = &cout;
+    output = &std::cout;
   }
 
   Utils::initDefaultValues(options, init_options);
@@ -114,7 +115,6 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   }
 
   TableUtils::setScatterArray(hgraph->getNumTotalVertices());
-  // hgraph->printPercentiles(*output);
 
   coarsener =
       Utils::buildParaCoarsener(my_rank, num_procs, num_parts, constraint,
@@ -183,7 +183,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   DynaMem<ParaHypergraph>::deletePtr(hgraph);
 
   if (out_file) {
-    DynaMem<ostream>::deletePtr(output);
+    DynaMem<std::ostream>::deletePtr(output);
   }
 
 #ifdef MEM_CHECK
@@ -208,7 +208,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
 #endif
 
   char message[512];
-  ostream *output;
+  std::ostream *output;
 
   int i;
   int j;
@@ -226,16 +226,17 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   MPI_Comm_rank(comm, &my_rank);
 
   if (out_file) {
-    output = new ofstream(out_file, ofstream::app | ofstream::out);
+    output = new std::ofstream(out_file,
+                               std::ofstream::app | std::ofstream::out);
 
     if (!output->good()) {
       sprintf(message, "p[%d] could not open file %s - abort\n", my_rank,
               out_file);
-      cout << message;
+      std::cout << message;
       MPI_Abort(comm, 0);
     }
   } else
-    output = &cout;
+    output = &std::cout;
 
   Utils::initDefaultValues(options, init_options);
   Utils::checkPartsAndProcs(numParts, num_procs, init_options[15],
@@ -290,8 +291,6 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   }
 
   TableUtils::setScatterArray(hgraph->getNumTotalVertices());
-
-  // hgraph->printPercentiles(*output);
 
   coarsener =
       Utils::buildParaCoarsener(my_rank, num_procs, numParts, constraint,
@@ -355,7 +354,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   DynaMem<ParaHypergraph>::deletePtr(hgraph);
 
   if (out_file)
-    DynaMem<ostream>::deletePtr(output);
+    DynaMem<std::ostream>::deletePtr(output);
 }
 
 #endif
