@@ -12,16 +12,17 @@
 //
 // ###
 
-#include "data_structures/Stack.hpp"
+#include <ostream>
+#include "data_structures/stack.hpp"
 #include "FCCoarsener.hpp"
 #include "InitBisector.hpp"
 
-using namespace std;
+using namespace parkway::data_structures;
 
 class BisectionController {
 
 protected:
-  ostream &out_stream;
+  std::ostream &out_stream;
 
   int numSeqRuns;
   int eeParam;
@@ -45,7 +46,7 @@ protected:
 
 public:
   BisectionController(int nRuns, double kT, double redFactor, int eeParam,
-                      int percentile, int inc, int dispL, ostream &out);
+                      int percentile, int inc, int dispL, std::ostream &out);
 
   virtual ~BisectionController();
   virtual void dispBisectionControllerOptions() const;

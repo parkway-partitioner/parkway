@@ -23,7 +23,7 @@
 using namespace std;
 
 template <class T> class DynamicArray {
-protected:
+ protected:
   int length;
   T *array;
 
@@ -43,7 +43,7 @@ protected:
     }
   }
 
-public:
+ public:
   inline DynamicArray() {
     length = 0;
     array = nullptr;
