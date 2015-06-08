@@ -12,7 +12,7 @@
 // ###
 
 #include <fstream>
-#include "Dyna.hpp"
+#include "DynamicArray.h"
 
 using namespace std;
 

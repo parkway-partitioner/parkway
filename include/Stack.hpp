@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#include "Dyna.hpp"
+#include "DynamicArray.h"
 
 template <class T> class Stack {
 

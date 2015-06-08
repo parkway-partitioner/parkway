@@ -18,7 +18,7 @@
 
 #include "Macros.h"
 #include "Funct.hpp"
-#include "Dyna.hpp"
+#include "DynamicArray.h"
 #include "CompleteBinaryTree.hpp"
 
 #define PRIMARY_HASH(a, b) (Mod(a, b))

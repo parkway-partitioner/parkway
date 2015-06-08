@@ -14,7 +14,7 @@
 
 #include "Macros.h"
 #include "HypergraphLoader.hpp"
-#include "Dyna.hpp"
+#include "DynamicArray.h"
 
 using namespace std;
 

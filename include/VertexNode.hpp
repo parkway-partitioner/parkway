@@ -11,7 +11,7 @@
 //
 // ###
 
-#include "Dyna.hpp"
+#include "DynamicArray.h"
 
 typedef struct VertexNode {
   int vertexID;

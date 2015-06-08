@@ -18,7 +18,7 @@
 // ###
 
 #include <iostream>
-#include "Dyna.hpp"
+#include "DynamicArray.h"
 
 using namespace std;
 

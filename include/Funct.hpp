@@ -27,7 +27,7 @@
 
 #include "Macros.h"
 #include "Log.h"
-#include "Dyna.hpp"
+#include "DynamicArray.h"
 
 #ifdef USE_SPRNG
 #define SIMPLE_SPRNG
