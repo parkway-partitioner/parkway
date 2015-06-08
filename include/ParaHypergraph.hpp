@@ -25,7 +25,7 @@
 #include <cassert>
 
 #include "GlobalCommunicator.hpp"
-#include "data_structures/CompleteBinaryTree.hpp"
+#include "data_structures/complete_binary_tree.hpp"
 #include "data_structures/HashTables.hpp"
 #include "data_structures/bit_field.hpp"
 

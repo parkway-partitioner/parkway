@@ -19,44 +19,47 @@
 #include "Macros.h"
 #include "Funct.hpp"
 #include "data_structures/DynamicArray.h"
-#include "CompleteBinaryTree.hpp"
+#include "data_structures/complete_binary_tree.hpp"
 
 #define PRIMARY_HASH(a, b) (Mod(a, b))
 #define SECONDARY_HASH(a, b) (1 + Mod(a, (b - 1)))
 
-using namespace std;
+using parkway::data_structures::CompleteBinaryTree;
 
 class TableUtils {
-protected:
+ protected:
   static CompleteBinaryTree<int> tableSizeTree;
   static DynamicArray<int> scatterArray;
   static int scatterSize;
 
-public:
+ public:
   TableUtils();
   ~TableUtils() {}
 
   static void setScatterArray(int size);
 
-  static inline int scatterKey(int i) { return scatterArray[i]; }
+  static inline int scatterKey(int i) {
+    return scatterArray[i];
+  }
+
   static inline int getTableSize(int n) {
-    return (tableSizeTree.getRootVal(n));
+    return tableSizeTree.getRootVal(n);
   }
 };
 
 /* New MapFromPosInt Class */
 
 template <class T> class MapFromPosInt {
-  /* requires positive int keys */
+/* requires positive int keys */
 
-protected:
+ protected:
   int numEntries;
   int size;
 
   DynamicArray<T> table;
   DynamicArray<int> keys;
 
-public:
+ public:
   MapFromPosInt();
   MapFromPosInt(int _size);
   ~MapFromPosInt() {}
@@ -77,7 +80,7 @@ public:
 class MapToPosInt {
   /* requires positive int keys */
 
-protected:
+ protected:
   int numEntries;
   int size;
   int useHash;
@@ -86,7 +89,7 @@ protected:
   DynamicArray<int> table;
   DynamicArray<int> keys;
 
-public:
+ public:
   MapToPosInt();
   MapToPosInt(int _size, int use_hash);
   ~MapToPosInt() {}
@@ -111,7 +114,7 @@ public:
 /* new HedgeIndexTable */
 
 class NewHedgeIndexTable {
-protected:
+ protected:
   int numEntries;
   int size;
 
@@ -119,7 +122,7 @@ protected:
   DynamicArray<int> nextSameKey;
   DynamicArray<HashKey> keys;
 
-public:
+ public:
   NewHedgeIndexTable(int _size);
   ~NewHedgeIndexTable() {}
 
@@ -141,7 +144,7 @@ public:
 
 class MatchRequestEntry {
 
-protected:
+ protected:
 #ifdef DEBUG_TABLES
   static int numInitialised;
   static int numDestroyed;
@@ -156,7 +159,7 @@ protected:
   DynamicArray<int> locVertices;
   MatchRequestEntry *next;
 
-public:
+ public:
   inline MatchRequestEntry(int _nonlocal, int _local, int _locWt, int _proc,
                            MatchRequestEntry *_next) {
     nonLocVertex = _nonlocal;
@@ -233,14 +236,14 @@ public:
 
 class MatchRequestTable {
 
-protected:
+ protected:
   int numEntries;
   int size;
 
   DynamicArray<MatchRequestEntry *> table;
   DynamicArray<MatchRequestEntry *> entryPtrs;
 
-public:
+ public:
   MatchRequestTable(int _size);
   ~MatchRequestTable();
 
