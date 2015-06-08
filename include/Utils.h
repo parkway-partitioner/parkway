@@ -51,6 +51,7 @@ ParaController *buildParaController(int myRank, int numProcs, int numParts,
 
 void initDefaultValues(const int *userOptions, int *programOptions);
 
+// Checks the set number of parts and processors are compatible.
 void checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
                         int paraOption, ostream &out, MPI_Comm comm);
 }

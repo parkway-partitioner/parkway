@@ -16,8 +16,6 @@
 //
 // 03/12/2004: Last Modified
 //
-// ###
-
 #include <unistd.h>
 #include <fstream>
 #include <iostream>
@@ -32,7 +30,7 @@
 using namespace std;
 
 class ParaHypergraph : public GlobalCommunicator {
-protected:
+ protected:
   int indexInSequence;
   int doNotCoarsen;
   int numTotalVertices;
@@ -60,7 +58,7 @@ protected:
 
   // HedgeIndexTable *table;
 
-public:
+ public:
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int *wtArray);
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,

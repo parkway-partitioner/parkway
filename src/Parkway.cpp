@@ -1,4 +1,3 @@
-
 #ifndef _PARKWAY_CPP
 #define _PARKWAY_CPP
 
@@ -13,12 +12,12 @@
 // ###
 
 #include "Parkway.h"
+#include <fstream>
+#include <iostream>
 
-using namespace std;
-
-void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
-                  double constraint, int &k_1cut, const int *options,
-                  MPI_Comm comm) {
+void parkway::ParaPartKway(const char *file_name, const char *out_file,
+                           int num_parts, double constraint, int &k_1cut,
+                           const int *options, MPI_Comm comm) {
 #ifdef MEM_CHECK
   MemoryTracker::start();
 #endif
@@ -27,51 +26,52 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   char shuffle_file[512];
   char message[512];
 
-  int init_options[26];
-  int disp_option;
-  int output_partition_tofile;
-  int num_procs;
-  int my_rank;
 
 #ifdef USE_SPRNG
   int seed;
 #endif
 
-  ostream *output;
+  std::ostream *output;
 
-  ParaHypergraph *hgraph = NULL;
-  ParaCoarsener *coarsener = NULL;
-  ParaRestrCoarsener *restrC = NULL;
-  ParaRefiner *refiner = NULL;
-  SeqController *seqController = NULL;
-  ParaController *controller = NULL;
+  ParaHypergraph *hgraph = nullptr;
+  ParaCoarsener *coarsener = nullptr;
+  ParaRestrCoarsener *restrC = nullptr;
+  ParaRefiner *refiner = nullptr;
+  SeqController *seqController = nullptr;
+  ParaController *controller = nullptr;
 
   TableUtils tableUtils;
 
+  int num_procs;
+  int my_rank;
   MPI_Comm_size(comm, &num_procs);
   MPI_Comm_rank(comm, &my_rank);
 
+  // Initialize the output (file)stream.
   if (out_file) {
-    output = new ofstream(out_file, ofstream::app | ofstream::out);
-
+    output = new std::ofstream(out_file, ofstream::app | ofstream::out);
     if (!output->good()) {
       sprintf(message, "p[%d] could not open file %s - abort\n", my_rank,
               out_file);
-      cout << message;
+      std::cout << message;
       MPI_Abort(comm, 0);
     }
   } else {
-    output = &cout;
+    output = &std::cout;
   }
 
+  // Initialize default options and update based on options array.
+  int init_options[26];
   Utils::initDefaultValues(options, init_options);
+
+  // Check the given number of parts and processors are compatible.
   Utils::checkPartsAndProcs(num_parts, num_procs, init_options[15],
                             init_options[22], *output, comm);
 
-  disp_option = init_options[2];
-  output_partition_tofile = init_options[3];
+  bool disp_option = static_cast<bool>(init_options[2]);
+  bool output_partition_tofile = static_cast<bool>(init_options[3]);
 
-/* init pseudo-random number generator */
+  /* init pseudo-random number generator */
 
 #ifdef USE_SPRNG
   if (init_options[1] == 0) {
@@ -191,11 +191,11 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 #endif
 }
 
-void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
-                  const int *hEdgeWts, const int *offsets, const int *pinList,
-                  int numParts, double constraint, int &k_1cut,
-                  const int *options, int *pVector, const char *out_file,
-                  MPI_Comm comm) {
+void parkway::ParaPartKway(int numVertices, int numHedges, const int *vWeights,
+                           const int *hEdgeWts, const int *offsets,
+                           const int *pinList, int numParts, double constraint,
+                           int &k_1cut, const int *options, int *pVector,
+                           const char *out_file, MPI_Comm comm) {
   int num_procs;
   int my_rank;
   int maxHedgeLen = 0;
@@ -213,12 +213,12 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   int i;
   int j;
 
-  ParaHypergraph *hgraph = NULL;
-  ParaCoarsener *coarsener = NULL;
-  ParaRestrCoarsener *restrC = NULL;
-  ParaRefiner *refiner = NULL;
-  SeqController *seqController = NULL;
-  ParaController *controller = NULL;
+  ParaHypergraph *hgraph = nullptr;
+  ParaCoarsener *coarsener = nullptr;
+  ParaRestrCoarsener *restrC = nullptr;
+  ParaRefiner *refiner = nullptr;
+  SeqController *seqController = nullptr;
+  ParaController *controller = nullptr;
 
   TableUtils tableUtils;
 
@@ -243,7 +243,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
 
   disp_option = init_options[2];
 
-/* init pseudo-random number generator */
+  /* init pseudo-random number generator */
 
 #ifdef USE_SPRNG
   if (init_options[1] == 0)

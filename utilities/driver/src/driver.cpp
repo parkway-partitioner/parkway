@@ -11,8 +11,12 @@
 // 25/1/2005: Last Modified
 //
 // ###
+#include <iostream>
+#include <fstream>
+#include "Parkway.h"
+#include "reader.h"
 
-#include "driver.h"
+using namespace parkway;
 
 int main(int argc, char **argv) {
   /* DRIVER MAIN */
@@ -46,7 +50,7 @@ int main(int argc, char **argv) {
 
   MPI_Barrier(MPI_COMM_WORLD);
   if (myRank == 0)
-    cout << "prog started" << endl;
+    std::cout << "prog started" << std::endl;
 
 #ifdef MEM_CHECK
   Funct::printMemUse(myRank, "BEGIN PROGRAM: ");
@@ -55,36 +59,36 @@ int main(int argc, char **argv) {
 
   if (argc < 2) {
     if (myRank == 0) {
-      cout << endl
-           << "USAGE: " << endl
-           << endl
+      std::cout << std::endl
+           << "USAGE: " << std::endl
+           << std::endl
            << "% mpirun [mpirun_options...] " << argv[0]
-           << " [parkway_options...] <hypergraph filename>" << endl
-           << endl
-           << "\t Unrecognized options will be ignored. " << endl
-           << endl
-           << "PARAMETERS: " << endl
-           << endl
-           << "\t -oFile <output_filename> " << endl
+           << " [parkway_options...] <hypergraph filename>" << std::endl
+           << std::endl
+           << "\t Unrecognized options will be ignored. " << std::endl
+           << std::endl
+           << "PARAMETERS: " << std::endl
+           << std::endl
+           << "\t -oFile <output_filename> " << std::endl
            << "\t     - name of file that program information should "
-              "be output to. Default behaviour is to" << endl
-           << "\t       display program information to screen" << endl
-           << "\t -tType <test_type> " << endl
-           << "\t     - integer specifying the routine to be tested:" << endl
+              "be output to. Default behaviour is to" << std::endl
+           << "\t       display program information to screen" << std::endl
+           << "\t -tType <test_type> " << std::endl
+           << "\t     - integer specifying the routine to be tested:" << std::endl
            << "\t       0 -> tests "
               "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm) - "
-              "default" << endl
+              "default" << std::endl
            << "\t       1 -> tests "
               "ParaPartKway(int,int,int*,int*,int*,int*,"
-              "int,double,int&,int*,int*,char*,MPI_Comm)" << endl
-           << "\t -c <balance_constraint> " << endl
+              "int,double,int&,int*,int*,char*,MPI_Comm)" << std::endl
+           << "\t -c <balance_constraint> " << std::endl
            << "\t       double precision number defining the balance "
-              "constraint on partition" << endl
-           << "\t -nParts <number_of_parts> " << endl
+              "constraint on partition" << std::endl
+           << "\t -nParts <number_of_parts> " << std::endl
            << "\t     - the number of parts in the partition sought. By "
-              "default, will look for partitions of" << endl
-           << "\t       size 4" << endl
-           << endl;
+              "default, will look for partitions of" << std::endl
+           << "\t       size 4" << std::endl
+           << std::endl;
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
@@ -95,9 +99,9 @@ int main(int argc, char **argv) {
   /* PROCESS COMMAND LINE */
 
   sprintf(testFile, "test_output.%d.txt", numProcs);
-  ofstream test_output(testFile, ofstream::app | ofstream::out);
+  std::ofstream test_output(testFile, std::ofstream::app | std::ofstream::out);
 
-  outputFile = Funct::getParameterAsCharPtr(argc, argv, "-oFile", NULL);
+  outputFile = Funct::getParameterAsCharPtr(argc, argv, "-oFile", nullptr);
   testType = Funct::getParameterAsInteger(argc, argv, "-tType", 0);
   numParts = Funct::getParameterAsInteger(argc, argv, "-nParts", 4);
   constraint = Funct::getParameterAsDouble(argc, argv, "-c", 0.05);
@@ -176,7 +180,7 @@ int main(int argc, char **argv) {
     if (myRank == 0) {
       test_output << "----- testing "
                      "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm): "
-                  << endl;
+                  << std::endl;
     }
 
     ParaPartKway(argv[argc - 1], outputFile, numParts, constraint, bestCut,
@@ -184,15 +188,15 @@ int main(int argc, char **argv) {
 
     if (myRank == 0) {
       test_output << "----- completed ParaPartKway, best cut = " << bestCut
-                  << " -----" << endl;
-      test_output << "----- testing recorded partition: " << endl;
+                  << " -----" << std::endl;
+      test_output << "----- testing recorded partition: " << std::endl;
     }
 
     testRecordedPartition(argv[argc - 1], myRank, numProcs, numParts,
                           constraint, test_output, MPI_COMM_WORLD);
 
     if (myRank == 0)
-      test_output << "----- completed testing recorded partition" << endl;
+      test_output << "----- completed testing recorded partition" << std::endl;
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -204,11 +208,11 @@ int main(int argc, char **argv) {
 
     int numVertices;
     int numHedges;
-    int *vWeights = NULL;
-    int *hEdgeWts = NULL;
-    int *pinList = NULL;
-    int *offsets = NULL;
-    int *pVector = NULL;
+    int *vWeights = nullptr;
+    int *hEdgeWts = nullptr;
+    int *pinList = nullptr;
+    int *offsets = nullptr;
+    int *pVector = nullptr;
 
     initGraphStructs(numVertices, numHedges, vWeights, hEdgeWts, pinList,
                      offsets, argv[argc - 1], myRank);
@@ -221,7 +225,7 @@ int main(int argc, char **argv) {
     if (myRank == 0) {
       test_output << "----- testing "
                      "ParaPartKway(int,int,int*,int*,int*,int*,int,double,int&,"
-                     "int*,int*,char*,MPI_Comm): " << endl;
+                     "int*,int*,char*,MPI_Comm): " << std::endl;
     }
 
     ParaPartKway(numVertices, numHedges, vWeights, hEdgeWts, offsets, pinList,
@@ -230,8 +234,8 @@ int main(int argc, char **argv) {
 
     if (myRank == 0) {
       test_output << "----- tested ParaPartKway, best cut = " << bestCut
-                  << " -----" << endl;
-      test_output << "----- testing recorded partition: " << endl;
+                  << " -----" << std::endl;
+      test_output << "----- testing recorded partition: " << std::endl;
     }
 
     testRecordedPartition(argv[argc - 1], pVector, numVertices, myRank,
@@ -239,7 +243,7 @@ int main(int argc, char **argv) {
                           MPI_COMM_WORLD);
 
     if (myRank == 0) {
-      test_output << "----- completed testing recorded partition" << endl;
+      test_output << "----- completed testing recorded partition" << std::endl;
     }
 
     if (vWeights)

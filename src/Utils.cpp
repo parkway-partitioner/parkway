@@ -1,6 +1,5 @@
 #ifndef _UTILS_CPP
 #define _UTILS_CPP
-
 // ### Utils.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -19,7 +18,7 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                          int num_parts, double constraint,
                                          ParaHypergraph *h, ostream &out,
                                          const int *options, MPI_Comm comm) {
-  ParaCoarsener *c = NULL;
+  ParaCoarsener *c = nullptr;
 
   int coarsener_type = ParaFCC; // Para2DModel
   int min_nodes = options[8];
@@ -118,7 +117,7 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
 
   double r = static_cast<double>(options[9]) / options[10];
 
-  ParaRestrCoarsener *c = NULL;
+  ParaRestrCoarsener *c = nullptr;
 
   if (coarsener_type == ParaRestFCC) {
     int vertexVisitOrder = options[11];
@@ -168,7 +167,7 @@ ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
   int disp_option = options[2];
   int numTotPins = h->getNumTotPins(comm);
 
-  ParaRefiner *r = NULL;
+  ParaRefiner *r = nullptr;
 
   if (refiner_type == ParaGreedyKway) {
     double eeLimit = static_cast<double>(options[27]) / 100;
@@ -198,7 +197,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
   int seqControllerType = options[15];
   int disp_option = options[2];
 
-  SeqController *seqC = NULL;
+  SeqController *seqC = nullptr;
 
   if (seqControllerType == RecurBisect) {
     int numBisectRuns = options[17];
@@ -490,7 +489,7 @@ ParaController *Utils::buildParaController(
   double paraKeepT = static_cast<double>(options[25]) / 100;
   double redFactor = static_cast<double>(options[26]) / 100;
 
-  ParaController *paraC = NULL;
+  ParaController *paraC = nullptr;
 
   if (paraControllerType == BasicParaC) {
     paraC = new BasicParaController(*c, *r, *s, my_rank, num_proc, percentile,
