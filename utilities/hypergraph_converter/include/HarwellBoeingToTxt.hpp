@@ -14,14 +14,10 @@
 // ###
 
 #include "HarwellBoeingReader.hpp"
-#include "data_structures/Bit.hpp"
-
-using namespace std;
 
 class HarwellBoeingToTxt : public HarwellBoeingReader {
-
-protected:
-public:
+ protected:
+ public:
   HarwellBoeingToTxt();
   ~HarwellBoeingToTxt();
 

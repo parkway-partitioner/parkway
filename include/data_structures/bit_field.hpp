@@ -20,19 +20,20 @@
 #include <iostream>
 #include "data_structures/DynamicArray.h"
 
-using namespace std;
+namespace parkway {
+namespace data_structures {
 
 class BitField {
-  int bitLength;
-  int length;
+ public:
+  BitField() {
+  }
 
-  DynamicArray<unsigned int> data;
+  BitField(int bits) {
+    setLength(bits);
+  }
 
-public:
-  BitField() {}
-  BitField(int bits) { setLength(bits); }
-
-  ~BitField() {}
+  ~BitField() {
+  }
 
   inline void check(int bit) {
     int old = data.getLength();
@@ -49,11 +50,21 @@ public:
     bitLength = (length << 5);
   }
 
-  inline int getNumBits() const { return bitLength; }
-  inline int getLength() const { return length; }
+  inline int getNumBits() const {
+    return bitLength;
+  }
 
-  inline unsigned int *getData() const { return data.getArray(); }
-  inline unsigned int getChunk(int i) const { return data[i]; }
+  inline int getLength() const {
+    return length;
+  }
+
+  inline unsigned int *getData() const {
+    return data.getArray();
+  }
+
+  inline unsigned int getChunk(int i) const {
+    return data[i];
+  }
 
   inline void setLength(int bits) {
     bitLength = bits;
@@ -90,6 +101,14 @@ public:
   inline void set0(int index) {
     data[index >> 5] &= (~(1 << (index & 31)));
   }
+
+ private:
+  int bitLength;
+  int length;
+  DynamicArray<unsigned int> data;
 };
+
+}  // namespace data_structures
+}  // namespace parkway
 
 #endif

@@ -20,11 +20,12 @@
 //
 // ###
 
-#include "data_structures/Bit.hpp"
+#include <ostream>
 #include "Refiner.hpp"
+#include "data_structures/bit_field.hpp"
 #include "data_structures/BucketNode.hpp"
 
-using namespace std;
+using namespace parkway::data_structures;
 
 class FMRefiner : public Refiner {
 
@@ -59,8 +60,8 @@ public:
   FMRefiner(int max, int insMethod, int ee, int dL);
   ~FMRefiner();
 
-  void dispRefinerOptions(ostream &out) const;
-  void printQdis(ostream &out) const;
+  void dispRefinerOptions(std::ostream &out) const;
+  void printQdis(std::ostream &out) const;
 
   void buildBuckets();
   void restoreBuckets();

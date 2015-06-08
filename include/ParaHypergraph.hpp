@@ -27,7 +27,9 @@
 #include "GlobalCommunicator.hpp"
 #include "data_structures/CompleteBinaryTree.hpp"
 #include "data_structures/HashTables.hpp"
-#include "data_structures/Bit.hpp"
+#include "data_structures/bit_field.hpp"
+
+using namespace parkway::data_structures;
 
 class ParaHypergraph : public GlobalCommunicator {
 protected:

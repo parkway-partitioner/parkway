@@ -12,11 +12,11 @@
 //
 // ###
 
-#include "data_structures/Bit.hpp"
+#include "data_structures/bit_field.hpp"
 #include "data_structures/MovementSets.hpp"
 #include "ParaRefiner.hpp"
 
-using namespace std;
+using namespace parkway::data_structures;
 
 class ParaGreedyKwayRefiner : public ParaRefiner {
 protected:

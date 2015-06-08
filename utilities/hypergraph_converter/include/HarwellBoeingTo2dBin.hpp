@@ -14,9 +14,6 @@
 // ###
 
 #include "HarwellBoeingReader.hpp"
-#include "data_structures/Bit.hpp"
-
-using namespace std;
 
 class HarwellBoeingTo2dBin : public HarwellBoeingReader {
 

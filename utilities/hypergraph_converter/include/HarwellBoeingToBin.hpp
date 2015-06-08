@@ -15,16 +15,12 @@
 // ###
 
 #include "HarwellBoeingReader.hpp"
-#include "data_structures/Bit.hpp"
-
-using namespace std;
 
 class HarwellBoeingToBin : public HarwellBoeingReader {
-
-protected:
+ protected:
   int hypergraphModelType;
 
-public:
+ public:
   HarwellBoeingToBin(int model);
   ~HarwellBoeingToBin();
 

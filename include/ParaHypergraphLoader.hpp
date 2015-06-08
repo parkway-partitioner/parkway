@@ -13,14 +13,17 @@
 // ###
 
 #include "ParaHypergraph.hpp"
-#include "data_structures/Bit.hpp"
 
-using namespace std;
+#include <iostream>
+#include "data_structures/bit_field.hpp"
+#include "data_structures/DynamicArray.h"
+
+using namespace parkway::data_structures;
 
 class ParaHypergraphLoader : public GlobalCommunicator {
 
 protected:
-  ostream &out_stream;
+  std::ostream &out_stream;
 
   /* hypergraph variables */
 
@@ -53,7 +56,7 @@ protected:
   DynamicArray<int> allocHedges;
 
 public:
-  ParaHypergraphLoader(int rank, int nProcs, int nParts, ostream &o);
+  ParaHypergraphLoader(int rank, int nProcs, int nParts, std::ostream &o);
 
   virtual ~ParaHypergraphLoader();
   virtual void releaseMemory() = 0;

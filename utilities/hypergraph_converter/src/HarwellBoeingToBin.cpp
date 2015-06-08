@@ -12,6 +12,9 @@
 // ###
 
 #include "HarwellBoeingToBin.hpp"
+#include "data_structures/bit_field.hpp"
+
+using namespace parkway::data_structures;
 
 HarwellBoeingToBin::HarwellBoeingToBin(int model) : HarwellBoeingReader() {
   hypergraphModelType = model;

@@ -12,10 +12,11 @@
 //
 // ###
 
-#include "data_structures/Bit.hpp"
+#include <ostream>
+#include "data_structures/bit_field.hpp"
 #include "ParaCoarsener.hpp"
 
-using namespace std;
+using namespace parkway::data_structures;
 
 class ParaApproxCoarsener : public ParaCoarsener {
 
@@ -26,7 +27,7 @@ protected:
 
 public:
   ParaApproxCoarsener(int _rank, int _numProcs, int _numParts, int percentile,
-                      int inc, ostream &out);
+                      int inc, std::ostream &out);
 
   virtual ~ParaApproxCoarsener();
   virtual ParaHypergraph *coarsen(ParaHypergraph &h, MPI_Comm comm) = 0;

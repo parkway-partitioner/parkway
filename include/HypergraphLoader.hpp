@@ -13,9 +13,9 @@
 // ###
 
 #include "Hypergraph.hpp"
-#include "data_structures/Bit.hpp"
+#include "data_structures/bit_field.hpp"
 
-using namespace std;
+using namespace parkway::data_structures;
 
 class HypergraphLoader {
 protected:

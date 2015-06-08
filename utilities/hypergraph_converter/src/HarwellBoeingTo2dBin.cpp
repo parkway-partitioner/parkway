@@ -12,6 +12,9 @@
 // ###
 
 #include "HarwellBoeingTo2dBin.hpp"
+#include "data_structures/bit_field.hpp"
+
+using namespace parkway::data_structures;
 
 HarwellBoeingTo2dBin::HarwellBoeingTo2dBin() : HarwellBoeingReader() {}
 
