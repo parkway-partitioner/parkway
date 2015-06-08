@@ -67,13 +67,13 @@ vertices.
   int numPins;
   int totVertexWt;
 
-  FastDynaArray<int> *vWeights;
-  FastDynaArray<int> *hEdgeWeights;
-  FastDynaArray<int> *hEdgeOffsets;
-  FastDynaArray<int> *pinList;
-  FastDynaArray<int> recvDispls(numProcs);
-  FastDynaArray<int> recvLens(numProcs);
-  FastDynaArray<int> recvArray;
+  DynamicArray<int> *vWeights;
+  DynamicArray<int> *hEdgeWeights;
+  DynamicArray<int> *hEdgeOffsets;
+  DynamicArray<int> *pinList;
+  DynamicArray<int> recvDispls(numProcs);
+  DynamicArray<int> recvLens(numProcs);
+  DynamicArray<int> recvArray;
 
   MPI_Allgather(&numLocalVertices, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
                 comm);
@@ -88,7 +88,7 @@ vertices.
   assert(numVertices == ij);
 #endif
 
-  vWeights = new FastDynaArray<int>(numVertices);
+  vWeights = new DynamicArray<int>(numVertices);
 
   MPI_Allreduce(&localVertexWt, &totVertexWt, 1, MPI_INT, MPI_SUM, comm);
   MPI_Allgatherv(localVertWeight, numLocalVertices, MPI_INT,
@@ -104,7 +104,7 @@ vertices.
   }
 
   numHedges = ij;
-  hEdgeWeights = new FastDynaArray<int>(numHedges);
+  hEdgeWeights = new DynamicArray<int>(numHedges);
 
   MPI_Allgatherv(localHedgeWeights, numLocalHedges, MPI_INT,
                  hEdgeWeights->getArray(), recvLens.getArray(),
@@ -122,7 +122,7 @@ vertices.
   MPI_Allgatherv(localHedgeOffsets, numLocalHedges + 1, MPI_INT,
                  recvArray.getArray(), recvLens.getArray(),
                  recvDispls.getArray(), MPI_INT, comm);
-  hEdgeOffsets = new FastDynaArray<int>(numHedges + 1);
+  hEdgeOffsets = new DynamicArray<int>(numHedges + 1);
 
   j = 1;
   index = 0;
@@ -151,7 +151,7 @@ vertices.
   }
 
   numPins = ij;
-  pinList = new FastDynaArray<int>(numPins);
+  pinList = new DynamicArray<int>(numPins);
   MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->getArray(),
                  recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
 
@@ -192,18 +192,18 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
   int *pVector = h->getPartVectorArray();
   int *pCuts = h->getPartCutArray();
 
-  FastDynaArray<int> numVperProc(numProcs);
-  FastDynaArray<int> procDispls(numProcs);
+  DynamicArray<int> numVperProc(numProcs);
+  DynamicArray<int> procDispls(numProcs);
 
-  FastDynaArray<int> sendLens(numProcs);
-  FastDynaArray<int> sendDispls(numProcs);
-  FastDynaArray<int> recvLens(numProcs);
-  FastDynaArray<int> recvDispls(numProcs);
-  FastDynaArray<int> sendArray;
+  DynamicArray<int> sendLens(numProcs);
+  DynamicArray<int> sendDispls(numProcs);
+  DynamicArray<int> recvLens(numProcs);
+  DynamicArray<int> recvDispls(numProcs);
+  DynamicArray<int> sendArray;
 
-  FastDynaArray<int> procCuts(numProcs);
-  FastDynaArray<int> procs(numProcs);
-  FastDynaArray<int> keepPartitions(numProcs);
+  DynamicArray<int> procCuts(numProcs);
+  DynamicArray<int> procs(numProcs);
+  DynamicArray<int> keepPartitions(numProcs);
 
   // ###
   // First root processor determines

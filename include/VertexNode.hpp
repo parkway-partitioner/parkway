@@ -20,6 +20,6 @@ typedef struct VertexNode {
 } VNode;
 
 typedef VNode *VNodePtr;
-typedef FastDynaArray<VNodePtr> VNodePtrArray;
+typedef DynamicArray<VNodePtr> VNodePtrArray;
 
 #endif

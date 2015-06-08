@@ -19,11 +19,10 @@
 #include <cstdio>
 #include "Macros.h"
 #include "DynaMem.hpp"
-//#  include "Count.hpp"
 
 using namespace std;
 
-template <class T> class FastDynaArray {
+template <class T> class DynamicArray {
 protected:
   int length;
   T *array;
@@ -45,12 +44,12 @@ protected:
   }
 
 public:
-  inline FastDynaArray() {
+  inline DynamicArray() {
     length = 0;
     array = NULL;
   }
 
-  inline FastDynaArray(int size) {
+  inline DynamicArray(int size) {
     if (size <= 0) {
       length = 0;
       array = NULL;
@@ -62,7 +61,7 @@ public:
 #ifdef DEBUG_BASICS
       char message[512];
       sprintf(message,
-              "FastDynaArray: (%d): memory allocation (size %d) failed!\n",
+              "DynamicArray: (%d): memory allocation (size %d) failed!\n",
               (int)this, size);
       cout << message;
 #endif
@@ -73,7 +72,7 @@ public:
     return;
   }
 
-  inline ~FastDynaArray() {
+  inline ~DynamicArray() {
     DynaMem<T>::deleteArr(array);
     length = 0;
   }
@@ -111,7 +110,7 @@ public:
 #ifdef DEBUG_BASICS
       char message[512];
       sprintf(message,
-              "FastDynaArray (%d): Array subscript [%d] out of range (Valid "
+              "DynamicArray (%d): Array subscript [%d] out of range (Valid "
               "range is 0 to %d)",
               (int)this, index, length - 1);
       cout << message;
@@ -129,7 +128,7 @@ public:
     if ((index >= length) || (index < 0)) {
       char message[512];
       sprintf(message,
-              "FastDynaArray: (%d) Array subscript [%d] out of range (Valid "
+              "DynamicArray: (%d) Array subscript [%d] out of range (Valid "
               "range is 0 to %d)",
               (int)this, index, length - 1);
       cout << message;
@@ -168,7 +167,7 @@ public:
 #ifdef DEBUG_BASICS
       char message[512];
       sprintf(message,
-              "FastDynaArray: (%d): memory allocation (size %d) failed!\n",
+              "DynamicArray: (%d): memory allocation (size %d) failed!\n",
               (int)this, size);
       cout << message;
 #endif

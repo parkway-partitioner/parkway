@@ -18,7 +18,7 @@
 #include "HashTables.hpp"
 
 CompleteBinaryTree<int> TableUtils::tableSizeTree;
-FastDynaArray<int> TableUtils::scatterArray;
+DynamicArray<int> TableUtils::scatterArray;
 int TableUtils::scatterSize = 0;
 
 TableUtils::TableUtils() {

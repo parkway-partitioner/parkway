@@ -22,7 +22,7 @@ typedef struct Bucket {
 } BucketNode;
 
 typedef BucketNode *BucketNodePtr;
-typedef FastDynaArray<BucketNode> NodeArray;
-typedef FastDynaArray<BucketNodePtr> NodePtrArray;
+typedef DynamicArray<BucketNode> NodeArray;
+typedef DynamicArray<BucketNodePtr> NodePtrArray;
 
 #endif

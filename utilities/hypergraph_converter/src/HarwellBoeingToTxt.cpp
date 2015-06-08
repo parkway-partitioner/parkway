@@ -26,8 +26,8 @@ void HarwellBoeingToTxt::convert(const char *filename) {
   char txt_file[512];
   char *data;
 
-  FastDynaArray<int> hEdgeOffsets;
-  FastDynaArray<int> pinList;
+  DynamicArray<int> hEdgeOffsets;
+  DynamicArray<int> pinList;
 
   int i;
   int j;

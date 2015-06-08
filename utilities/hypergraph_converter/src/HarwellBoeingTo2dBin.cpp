@@ -32,17 +32,17 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   int hEdgeLengthSlot;
   int maxIntsWritten = TextFileReader::getMaxPinsInChunk();
 
-  FastDynaArray<int> hEdgeData;
-  FastDynaArray<int> hEdgeOffsets;
-  FastDynaArray<int> pinList;
-  FastDynaArray<int> vWeights;
+  DynamicArray<int> hEdgeData;
+  DynamicArray<int> hEdgeOffsets;
+  DynamicArray<int> pinList;
+  DynamicArray<int> vWeights;
 
-  FastDynaArray<int> rowWts;
-  FastDynaArray<int> transposed_cols;
-  FastDynaArray<int> transposed_col_offsets;
+  DynamicArray<int> rowWts;
+  DynamicArray<int> transposed_cols;
+  DynamicArray<int> transposed_col_offsets;
 
   int numZeroWeightVerts;
-  FastDynaArray<int> zeroWeightVerts;
+  DynamicArray<int> zeroWeightVerts;
 
   int i;
   int j;
@@ -192,11 +192,11 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   BitField hasZeroWeight(num2Dvertices);
   hasZeroWeight.clear();
 
-  FastDynaArray<int> convertedCols;
-  FastDynaArray<int> convertedColOffsets(numCols + 1);
+  DynamicArray<int> convertedCols;
+  DynamicArray<int> convertedColOffsets(numCols + 1);
 
-  FastDynaArray<int> vertSet;
-  FastDynaArray<int> vertSetOffsets(numCols + 1);
+  DynamicArray<int> vertSet;
+  DynamicArray<int> vertSetOffsets(numCols + 1);
 
   convertedColOffsets[0] = 0;
   vertSetOffsets[0] = 0;
@@ -301,11 +301,11 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
 
   /* transpose the vertices to get the row hyperedges */
 
-  FastDynaArray<FastDynaArray<int> *> rows(numRows);
-  FastDynaArray<int> rowLens(numRows);
+  DynamicArray<DynamicArray<int> *> rows(numRows);
+  DynamicArray<int> rowLens(numRows);
 
   for (i = 0; i < numRows; ++i) {
-    rows[i] = new FastDynaArray<int>;
+    rows[i] = new DynamicArray<int>;
     rowLens[i] = 0;
   }
 

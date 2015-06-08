@@ -61,8 +61,8 @@ void ParaHypergraphLoader::computeHedgesToLoad(BitField &toLoad, int numH,
   int myData[2];
   int hGraphData[2];
 
-  FastDynaArray<int> hEdges(numH);
-  FastDynaArray<int> hEdgeLens(numH);
+  DynamicArray<int> hEdges(numH);
+  DynamicArray<int> hEdgeLens(numH);
 
   /* compute the hyperedges that will not be communicated */
 

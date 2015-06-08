@@ -95,7 +95,7 @@ void HypergraphChars::initStructs(const char *filename) {
   int numZerosOnMainDiag;
   int zeroOnDiag;
 
-  FastDynaArray<int> hEdgeData;
+  DynamicArray<int> hEdgeData;
 
   in_stream.open(filename, ifstream::in | ifstream::binary);
 
@@ -215,7 +215,7 @@ void HypergraphChars::outputChars(ostream &out) {
   double percentile_50;
   double percentile_25;
 
-  FastDynaArray<int> indices;
+  DynamicArray<int> indices;
 
   /* display hyperedge information */
 

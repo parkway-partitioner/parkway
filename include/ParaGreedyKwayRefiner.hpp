@@ -27,32 +27,32 @@ protected:
 
   // data structures from point of view of vertices
 
-  FastDynaArray<int> numNeighParts;
-  FastDynaArray<int> neighboursOfV;
-  FastDynaArray<int> neighboursOfVOffsets;
+  DynamicArray<int> numNeighParts;
+  DynamicArray<int> neighboursOfV;
+  DynamicArray<int> neighboursOfVOffsets;
 
   // data structures from point of view of hyperedges
 
-  FastDynaArray<int> hEdgeVinPart;
-  FastDynaArray<int> hEdgeVinPartOffsets;
+  DynamicArray<int> hEdgeVinPart;
+  DynamicArray<int> hEdgeVinPartOffsets;
 
   // auxiliary structures
 
-  FastDynaArray<int> vertices;
-  FastDynaArray<int> movedVertices;
-  FastDynaArray<int> seenVertices;
-  FastDynaArray<int> numPartsSpanned;
-  FastDynaArray<int> spannedParts;
+  DynamicArray<int> vertices;
+  DynamicArray<int> movedVertices;
+  DynamicArray<int> seenVertices;
+  DynamicArray<int> numPartsSpanned;
+  DynamicArray<int> spannedParts;
 
   BitField locked;
   BitField vertSeen;
 
   // move set structures
 
-  FastDynaArray<FastDynaArray<int> *> moveSets;
-  FastDynaArray<int> moveSetData;
-  FastDynaArray<int> indexIntoMoveSetData;
-  FastDynaArray<int> numVerticesMoved;
+  DynamicArray<DynamicArray<int> *> moveSets;
+  DynamicArray<int> moveSetData;
+  DynamicArray<int> indexIntoMoveSetData;
+  DynamicArray<int> numVerticesMoved;
 
   MovementSetTable *movementSets;
 

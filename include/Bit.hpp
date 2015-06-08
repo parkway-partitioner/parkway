@@ -26,7 +26,7 @@ class BitField {
   int bitLength;
   int length;
 
-  FastDynaArray<unsigned int> data;
+  DynamicArray<unsigned int> data;
 
 public:
   BitField() {}

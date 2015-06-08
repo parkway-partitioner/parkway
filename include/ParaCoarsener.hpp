@@ -33,7 +33,7 @@ protected:
   double reductionRatio;
   double balConstraint;
 
-  FastDynaArray<int> clusterWeights;
+  DynamicArray<int> clusterWeights;
 
 public:
   ParaCoarsener(int _rank, int _numProcs, int _numParts, ostream &out);

@@ -145,10 +145,10 @@ ParaHypergraph *Para2DModelCoarsener::ParaFCCoarsen(ParaHypergraph &h,
   else
     matchInfoLoc.createTable(totalVertices, 0);
 
-  FastDynaArray<int> neighVerts;
-  FastDynaArray<int> neighCluWts;
-  FastDynaArray<double> connectVals;
-  FastDynaArray<int> vertices(numLocalVertices);
+  DynamicArray<int> neighVerts;
+  DynamicArray<int> neighCluWts;
+  DynamicArray<double> connectVals;
+  DynamicArray<int> vertices(numLocalVertices);
 
   permuteVerticesArray(vertices.getArray(), numLocalVertices);
 
@@ -470,10 +470,10 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
   BitField matchedVertices(totalVertices);
   matchedVertices.clear();
 
-  FastDynaArray<int> hEdges(numHedges);
-  FastDynaArray<int> hEdgeLens(numHedges);
-  FastDynaArray<int> unmatchedLocals;
-  FastDynaArray<int> unmatchedNonLocals;
+  DynamicArray<int> hEdges(numHedges);
+  DynamicArray<int> hEdgeLens(numHedges);
+  DynamicArray<int> unmatchedLocals;
+  DynamicArray<int> unmatchedNonLocals;
 
   for (i = 0; i < numHedges; ++i) {
     hEdges[i] = i;
@@ -712,7 +712,7 @@ void Para2DModelCoarsener::setReplyArrays(int highToLow, int maxVWt) {
   int i;
   int l;
 
-  FastDynaArray<int> visitOrder;
+  DynamicArray<int> visitOrder;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -860,8 +860,8 @@ void Para2DModelCoarsener::processReqReplies() {
 }
 
 void Para2DModelCoarsener::setClusterIndices(MPI_Comm comm) {
-  FastDynaArray<int> numClusters(numProcs);
-  FastDynaArray<int> startIndex(numProcs);
+  DynamicArray<int> numClusters(numProcs);
+  DynamicArray<int> startIndex(numProcs);
 
   MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.getArray(), 1, MPI_INT,
                 comm);

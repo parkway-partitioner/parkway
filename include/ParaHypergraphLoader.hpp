@@ -43,14 +43,14 @@ protected:
   int *vWeight;
   int *matchVector;
 
-  FastDynaArray<int> hEdgeWeight;
-  FastDynaArray<int> hEdgeOffset;
-  FastDynaArray<int> locPinList;
+  DynamicArray<int> hEdgeWeight;
+  DynamicArray<int> hEdgeOffset;
+  DynamicArray<int> locPinList;
 
-  FastDynaArray<int> vToHedgesOffset;
-  FastDynaArray<int> vToHedgesList;
+  DynamicArray<int> vToHedgesOffset;
+  DynamicArray<int> vToHedgesList;
 
-  FastDynaArray<int> allocHedges;
+  DynamicArray<int> allocHedges;
 
 public:
   ParaHypergraphLoader(int rank, int nProcs, int nParts, ostream &o);

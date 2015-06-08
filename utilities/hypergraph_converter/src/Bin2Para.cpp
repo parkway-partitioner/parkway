@@ -90,7 +90,7 @@ void Bin2Para::buildParaFile(ifstream &in_stream, ofstream &out_stream,
   int outLen;
   int numReadHedges;
 
-  FastDynaArray<int> outHedgeData;
+  DynamicArray<int> outHedgeData;
 
   out_stream.open(p_file, ofstream::out | ofstream::binary);
 

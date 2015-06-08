@@ -33,11 +33,11 @@ void HarwellBoeingToBin::convert(const char *filename) {
   int hEdgeLengthSlot;
   int maxIntsWritten = TextFileReader::getMaxPinsInChunk();
 
-  FastDynaArray<int> hEdgeData;
-  FastDynaArray<int> hEdgeOffsets;
-  FastDynaArray<int> hEdgeWeights;
-  FastDynaArray<int> pinList;
-  FastDynaArray<int> vWeights;
+  DynamicArray<int> hEdgeData;
+  DynamicArray<int> hEdgeOffsets;
+  DynamicArray<int> hEdgeWeights;
+  DynamicArray<int> pinList;
+  DynamicArray<int> vWeights;
 
   int i;
   int j;

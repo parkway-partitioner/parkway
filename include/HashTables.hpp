@@ -29,7 +29,7 @@ using namespace std;
 class TableUtils {
 protected:
   static CompleteBinaryTree<int> tableSizeTree;
-  static FastDynaArray<int> scatterArray;
+  static DynamicArray<int> scatterArray;
   static int scatterSize;
 
 public:
@@ -53,8 +53,8 @@ protected:
   int numEntries;
   int size;
 
-  FastDynaArray<T> table;
-  FastDynaArray<int> keys;
+  DynamicArray<T> table;
+  DynamicArray<int> keys;
 
 public:
   MapFromPosInt();
@@ -82,9 +82,9 @@ protected:
   int size;
   int useHash;
 
-  FastDynaArray<int> entries;
-  FastDynaArray<int> table;
-  FastDynaArray<int> keys;
+  DynamicArray<int> entries;
+  DynamicArray<int> table;
+  DynamicArray<int> keys;
 
 public:
   MapToPosInt();
@@ -115,9 +115,9 @@ protected:
   int numEntries;
   int size;
 
-  FastDynaArray<int> table;
-  FastDynaArray<int> nextSameKey;
-  FastDynaArray<HashKey> keys;
+  DynamicArray<int> table;
+  DynamicArray<int> nextSameKey;
+  DynamicArray<HashKey> keys;
 
 public:
   NewHedgeIndexTable(int _size);
@@ -153,7 +153,7 @@ protected:
   int nonLocProc;
   int numLocals;
 
-  FastDynaArray<int> locVertices;
+  DynamicArray<int> locVertices;
   MatchRequestEntry *next;
 
 public:
@@ -237,8 +237,8 @@ protected:
   int numEntries;
   int size;
 
-  FastDynaArray<MatchRequestEntry *> table;
-  FastDynaArray<MatchRequestEntry *> entryPtrs;
+  DynamicArray<MatchRequestEntry *> table;
+  DynamicArray<MatchRequestEntry *> entryPtrs;
 
 public:
   MatchRequestTable(int _size);

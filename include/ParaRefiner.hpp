@@ -31,7 +31,7 @@ protected:
   double balConstraint;
   double avePartWt;
 
-  FastDynaArray<int> partWeights;
+  DynamicArray<int> partWeights;
 
   /* newly added structures */
 
@@ -39,12 +39,12 @@ protected:
   int numNonLocVertsHedges;
   int *currNonLocPVector;
 
-  FastDynaArray<int> nonLocVerts;
-  FastDynaArray<int> partIndices;
-  FastDynaArray<int> indexIntoPartIndices;
+  DynamicArray<int> nonLocVerts;
+  DynamicArray<int> partIndices;
+  DynamicArray<int> indexIntoPartIndices;
 
-  FastDynaArray<int> nonLocVToHedges;
-  FastDynaArray<int> nonLocOffsets;
+  DynamicArray<int> nonLocVToHedges;
+  DynamicArray<int> nonLocOffsets;
 
   MapToPosInt toNonLocVerts;
 

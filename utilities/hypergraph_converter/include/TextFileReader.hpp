@@ -27,7 +27,7 @@ private:
 
 protected:
   int length;
-  FastDynaArray<char> buffer;
+  DynamicArray<char> buffer;
 
 public:
   TextFileReader();

@@ -43,8 +43,8 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   int proc;
   int locVert;
 
-  FastDynaArray<int> sentToProc;
-  FastDynaArray<int> vDegs;
+  DynamicArray<int> sentToProc;
+  DynamicArray<int> vDegs;
 
   numLocalPins = h.getNumLocalPins();
   numLocalHedges = h.getNumLocalHedges();
@@ -96,7 +96,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
     int numActiveProcs;
     int activeProc;
 
-    FastDynaArray<int> activeProcs(numProcs);
+    DynamicArray<int> activeProcs(numProcs);
 
     for (i = 0; i < numLocalHedges; ++i) {
       startOffset = localHedgeOffsets[i];
@@ -491,7 +491,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   int j;
   int ij;
 
-  FastDynaArray<int> copyOfSendArray;
+  DynamicArray<int> copyOfSendArray;
 
   MPI_Allreduce(&locVertWt, &totWt, 1, MPI_INT, MPI_SUM, comm);
 

@@ -96,11 +96,11 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
   double maxMatchMetric;
   double reducedBy = 1;
 
-  FastDynaArray<int> neighVerts;
-  FastDynaArray<int> neighPairWts;
-  FastDynaArray<double> connectVals;
-  FastDynaArray<int> vertexAdjEntry(numLocalVertices);
-  FastDynaArray<int> vertices(numLocalVertices);
+  DynamicArray<int> neighVerts;
+  DynamicArray<int> neighPairWts;
+  DynamicArray<double> connectVals;
+  DynamicArray<int> vertexAdjEntry(numLocalVertices);
+  DynamicArray<int> vertices(numLocalVertices);
 
   permuteVerticesArray(vertices.getArray(), numLocalVertices);
 
@@ -127,8 +127,8 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
   assert(clusterWeights == NULL);
 #endif
 
-  clusterWeights = new FastDynaArray<int>(1024);
-  pVector = new FastDynaArray<int>(1024);
+  clusterWeights = new DynamicArray<int>(1024);
+  pVector = new DynamicArray<int>(1024);
 
   limitOnIndexDuringCoarsening =
       numLocalVertices - static_cast<int>(floor(metricVal - 1.0));

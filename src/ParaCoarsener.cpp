@@ -56,8 +56,8 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   int proc;
   int locVert;
 
-  FastDynaArray<int> sentToProc;
-  FastDynaArray<int> vDegs;
+  DynamicArray<int> sentToProc;
+  DynamicArray<int> vDegs;
 
   numLocalPins = h.getNumLocalPins();
   numLocalHedges = h.getNumLocalHedges();
@@ -358,9 +358,9 @@ ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
   else
     numMyClusters = clustersPerProc + Mod(totalClusters, numProcs);
 
-  FastDynaArray<int> minClusterIndex(numProcs);
-  FastDynaArray<int> maxClusterIndex(numProcs);
-  FastDynaArray<int> *clusterWts = new FastDynaArray<int>(numMyClusters);
+  DynamicArray<int> minClusterIndex(numProcs);
+  DynamicArray<int> maxClusterIndex(numProcs);
+  DynamicArray<int> *clusterWts = new DynamicArray<int>(numMyClusters);
 
   for (i = 0; i < numProcs; ++i) {
     if (i == 0) {

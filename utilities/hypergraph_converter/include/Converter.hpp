@@ -23,8 +23,8 @@ protected:
   int dataLength;
   int numVerts;
 
-  FastDynaArray<int> hEdgeData;
-  FastDynaArray<int> vWeights;
+  DynamicArray<int> hEdgeData;
+  DynamicArray<int> vWeights;
 
 public:
   Converter();

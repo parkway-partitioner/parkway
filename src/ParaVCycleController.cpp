@@ -198,9 +198,9 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
 
   array = bestPartVector->getArray();
 
-  FastDynaArray<int> minStoredIDs(numProcs);
-  FastDynaArray<int> localSendArrayVerts;
-  FastDynaArray<int> procs(numProcs);
+  DynamicArray<int> minStoredIDs(numProcs);
+  DynamicArray<int> localSendArrayVerts;
+  DynamicArray<int> procs(numProcs);
 
   MPI_Allgather(&minStoredVertexIndex, 1, MPI_INT, minStoredIDs.getArray(), 1,
                 MPI_INT, comm);
@@ -360,8 +360,8 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     int j;
     int ij;
 
-    FastDynaArray<int> interGraphPVector(numLocalCoarseVertices);
-    FastDynaArray<int> requestingLocalVerts;
+    DynamicArray<int> interGraphPVector(numLocalCoarseVertices);
+    DynamicArray<int> requestingLocalVerts;
 
     for (i = 0; i < numProcs; ++i)
       sendLens[i] = 0;
@@ -638,8 +638,8 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
   int *vToOrigV = h.getToOrigVArray();
   int *array;
 
-  FastDynaArray<int> *newToInter = new FastDynaArray<int>(numLocVertAftShuff);
-  FastDynaArray<int> requestingLocalVerts;
+  DynamicArray<int> *newToInter = new DynamicArray<int>(numLocVertAftShuff);
+  DynamicArray<int> requestingLocalVerts;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -801,8 +801,8 @@ ParaHypergraph &fineH, MPI_Comm comm)
   int *vToOrigV = h.getToOrigVArray();
   int *array;
 
-  FastDynaArray<int>* newToInter = new FastDynaArray<int>(numLocVertices);
-  FastDynaArray<int> requestingLocalVerts;
+  DynamicArray<int>* newToInter = new DynamicArray<int>(numLocVertices);
+  DynamicArray<int> requestingLocalVerts;
 
   for (i=0;i<numProcs;++i)
     sendLens[i] = 0;
@@ -956,8 +956,8 @@ void ParaVCycleController::shiftVCycleVertsToBalance(ParaHypergraph &h,
   else
     numMyNewVertices = vPerProc + Mod(numTotVertices, numProcs);
 
-  FastDynaArray<int> minNewIndex(numProcs);
-  FastDynaArray<int> maxNewIndex(numProcs);
+  DynamicArray<int> minNewIndex(numProcs);
+  DynamicArray<int> maxNewIndex(numProcs);
 
 #ifdef DEBUG_CONTROLLER
   assert(minVertexIndex == minInterVertIndex);
@@ -970,7 +970,7 @@ void ParaVCycleController::shiftVCycleVertsToBalance(ParaHypergraph &h,
   // newToInter = receiveArray
   // ###
 
-  FastDynaArray<int> *newToInter = new FastDynaArray<int>(numMyNewVertices);
+  DynamicArray<int> *newToInter = new DynamicArray<int>(numMyNewVertices);
 
   for (i = 0; i < numProcs; ++i) {
     if (i == 0) {
@@ -1041,8 +1041,8 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
     assert(numLocalVertices == vertPerProc);
 #endif
 
-  FastDynaArray<int> *newMapToOrig = new FastDynaArray<int>(numOrigLocVerts);
-  FastDynaArray<int> copyOfSendArray;
+  DynamicArray<int> *newMapToOrig = new DynamicArray<int>(numOrigLocVerts);
+  DynamicArray<int> copyOfSendArray;
 
   int *auxArray = newMapToOrig->getArray();
   int *array;

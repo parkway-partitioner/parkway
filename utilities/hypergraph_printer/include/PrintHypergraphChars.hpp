@@ -29,9 +29,9 @@ protected:
 
   char *graphName;
 
-  FastDynaArray<int> vWeights;
-  FastDynaArray<int> hEdgeWeights;
-  FastDynaArray<int> hEdgeLens;
+  DynamicArray<int> vWeights;
+  DynamicArray<int> hEdgeWeights;
+  DynamicArray<int> hEdgeLens;
 
 public:
   HypergraphChars(int remove, int nZ);

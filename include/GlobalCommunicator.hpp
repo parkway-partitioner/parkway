@@ -16,31 +16,34 @@
 #include "Funct.hpp"
 #include "DynamicArray.h"
 
-using namespace std;
-
 class GlobalCommunicator {
-protected:
-  int myRank;
-  int numProcs;
+ protected:
+  const int myRank;
+  const int numProcs;
 
-  FastDynaArray<FastDynaArray<int> *> dataOutSets;
+  DynamicArray<DynamicArray<int> *> dataOutSets;
 
-  FastDynaArray<int> sendLens;
-  FastDynaArray<int> recvLens;
-  FastDynaArray<int> sendDispls;
-  FastDynaArray<int> recvDispls;
-  FastDynaArray<int> sendArray;
-  FastDynaArray<int> receiveArray;
+  DynamicArray<int> sendLens;
+  DynamicArray<int> recvLens;
+  DynamicArray<int> sendDispls;
+  DynamicArray<int> recvDispls;
+  DynamicArray<int> sendArray;
+  DynamicArray<int> receiveArray;
 
-public:
+ public:
   GlobalCommunicator(int rank, int nProcs);
   ~GlobalCommunicator();
 
   void freeMemory();
   void sendFromDataOutArrays(MPI_Comm comm);
 
-  inline int getMyRank() const { return myRank; }
-  inline int getNumProcs() const { return numProcs; }
+  inline int getMyRank() const {
+    return myRank;
+  }
+
+  inline int getNumProcs() const {
+    return numProcs;
+  }
 };
 
 #endif

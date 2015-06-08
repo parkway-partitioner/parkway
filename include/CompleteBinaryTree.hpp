@@ -18,8 +18,8 @@ using namespace std;
 
 template <class T> class CompleteBinaryTree {
 protected:
-  FastDynaArray<int> tree;
-  FastDynaArray<T> roots;
+  DynamicArray<int> tree;
+  DynamicArray<T> roots;
 
   int numRoots;
 

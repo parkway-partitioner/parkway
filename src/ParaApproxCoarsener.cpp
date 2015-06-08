@@ -45,8 +45,8 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   int proc;
   int locVert;
 
-  FastDynaArray<int> sentToProc;
-  FastDynaArray<int> vDegs;
+  DynamicArray<int> sentToProc;
+  DynamicArray<int> vDegs;
 
   BitField toLoad;
 
@@ -244,8 +244,8 @@ void ParaApproxCoarsener::computeHedgesToLoad(BitField &toLoad, int numH,
   int myPercentileLen;
   int percentileLen;
 
-  FastDynaArray<int> hEdges(numH);
-  FastDynaArray<int> hEdgeLens(numH);
+  DynamicArray<int> hEdges(numH);
+  DynamicArray<int> hEdgeLens(numH);
 
   /* compute the hyperedges that will not be communicated */
 

@@ -44,14 +44,14 @@ protected:
   // ###
 
   NodePtrArray buckets;
-  FastDynaArray<NodeArray *> bucketArrays;
+  DynamicArray<NodeArray *> bucketArrays;
 
-  FastDynaArray<int> maxGains;
-  FastDynaArray<int> maxGainEntries;
-  FastDynaArray<int> numBucketsInArray;
-  FastDynaArray<int> vInPart;
-  FastDynaArray<int> vertexGains;
-  FastDynaArray<int> moveList;
+  DynamicArray<int> maxGains;
+  DynamicArray<int> maxGainEntries;
+  DynamicArray<int> numBucketsInArray;
+  DynamicArray<int> vInPart;
+  DynamicArray<int> vertexGains;
+  DynamicArray<int> moveList;
 
   BitField locked;
 

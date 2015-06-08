@@ -41,7 +41,7 @@ protected:
   InitBisector *initBisector;
   Stack<Hypergraph *> hGraphs;
 
-  FastDynaArray<int> bestPartition;
+  DynamicArray<int> bestPartition;
 
 public:
   BisectionController(int nRuns, double kT, double redFactor, int eeParam,

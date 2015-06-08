@@ -32,19 +32,19 @@ protected:
   int numPins;
   int numPartitions;
 
-  FastDynaArray<int> vWeight;
-  FastDynaArray<int> hEdgeWeight;
-  FastDynaArray<int> matchVector;
+  DynamicArray<int> vWeight;
+  DynamicArray<int> hEdgeWeight;
+  DynamicArray<int> matchVector;
 
-  FastDynaArray<int> partitionCuts;
-  FastDynaArray<int> partitionVector;
-  FastDynaArray<int> partitionVectorOffsets;
+  DynamicArray<int> partitionCuts;
+  DynamicArray<int> partitionVector;
+  DynamicArray<int> partitionVectorOffsets;
 
-  FastDynaArray<int> pinList;
-  FastDynaArray<int> hEdgeOffsets;
+  DynamicArray<int> pinList;
+  DynamicArray<int> hEdgeOffsets;
 
-  FastDynaArray<int> vToHedges;
-  FastDynaArray<int> vOffsets;
+  DynamicArray<int> vToHedges;
+  DynamicArray<int> vOffsets;
 
 public:
   Hypergraph(int *vWts, int numV);

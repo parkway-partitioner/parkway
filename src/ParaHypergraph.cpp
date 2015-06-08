@@ -29,22 +29,19 @@
 ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
                                int *wtArray)
-    : GlobalCommunicator(myRank, nProcs) {
-  doNotCoarsen = coarsen;
-  numTotalVertices = _totVerts;
-  numLocalVertices = _numLocVerts;
-  minVertexIndex = _minVertIndex;
+    : GlobalCommunicator(myRank, nProcs),
+      doNotCoarsen(coarsen),
+      numTotalVertices(_totVerts),
+      numLocalVertices(_numLocVerts),
+      minVertexIndex(_minVertIndex),
+      localVertexWt(0),
+      numPartitions(0) {
 
   vWeight.setArray(wtArray, numLocalVertices);
   matchVector.setLength(numLocalVertices);
   vToOrigV.setLength(0);
 
-  localVertexWt = 0;
-  numPartitions = 0;
-
-  int i;
-
-  for (i = 0; i < numLocalVertices; ++i) {
+  for (int i = 0; i < numLocalVertices; ++i) {
     matchVector[i] = -1;
     localVertexWt += vWeight[i];
   }
@@ -53,14 +50,13 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int _numLocVerts,
 ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
                                int cut, int *wtArray, int *partArray)
-    : GlobalCommunicator(myRank, nProcs) {
-  int i;
-
-  doNotCoarsen = coarsen;
-  numTotalVertices = _totVerts;
-  numLocalVertices = _numLocVerts;
-  minVertexIndex = _minVertIndex;
-  numPartitions = 1;
+    : GlobalCommunicator(myRank, nProcs),
+      doNotCoarsen(coarsen),
+      numTotalVertices(_totVerts),
+      numLocalVertices(_numLocVerts),
+      minVertexIndex(_minVertIndex),
+      localVertexWt(0),
+      numPartitions(1) {
 
   vToOrigV.setLength(0);
   vWeight.setArray(wtArray, numLocalVertices);
@@ -73,16 +69,14 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int _numLocVerts,
   partitionOffsetsVector[0] = 0;
   partitionOffsetsVector[1] = numLocalVertices;
 
-  localVertexWt = 0;
-
-  for (i = 0; i < numLocalVertices; ++i) {
+  for (int i = 0; i < numLocalVertices; ++i) {
     matchVector[i] = -1;
     localVertexWt += vWeight[i];
   }
 }
 
 ParaHypergraph::ParaHypergraph(int myRank, int nProcs, const char *filename,
-                               int dispOption, ostream &out, MPI_Comm comm)
+                               int dispOption, std::ostream &out, MPI_Comm comm)
     : GlobalCommunicator(myRank, nProcs) {
   hypergraphFromFile(filename, dispOption, out, comm);
 }
@@ -91,17 +85,8 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
                                int numLocHedges, int maxHedgeLen,
                                const int *vWeights, const int *hEdgeWts,
                                const int *locPinList, const int *offsets,
-                               int dispOption, ostream &out, MPI_Comm comm)
+                               int dispOption, std::ostream &out, MPI_Comm comm)
     : GlobalCommunicator(myRank, nProcs) {
-  int i;
-  int j;
-
-  int startOffset;
-  int endOffset;
-  int hEdgeLength;
-  int pinCounter;
-  int index;
-  int hEdgeIndex;
 
   MPI_Allreduce(&numLocVerts, &numTotalVertices, 1, MPI_INT, MPI_SUM, comm);
   MPI_Scan(&numLocVerts, &minVertexIndex, 1, MPI_INT, MPI_SUM, comm);
@@ -114,7 +99,7 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
   vToOrigV.setLength(0);
   matchVector.setLength(numLocalVertices);
 
-  for (i = 0; i < numLocalVertices; ++i) {
+  for (int i = 0; i < numLocalVertices; ++i) {
     vWeight[i] = vWeights[i];
     localVertexWt += vWeight[i];
     matchVector[i] = -1;
@@ -122,11 +107,14 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
 
   /* hyperedges stored in pinlist */
 
-  index = 0;
-  hEdgeIndex = 0;
-  pinCounter = 0;
+  int index = 0;
+  int hEdgeIndex = 0;
+  int pinCounter = 0;
 
-  for (i = 0; i < numLocHedges; ++i) {
+  int startOffset;
+  int endOffset;
+  int hEdgeLength;
+  for (int i = 0; i < numLocHedges; ++i) {
     startOffset = offsets[i];
     endOffset = offsets[i + 1];
     hEdgeLength = endOffset - startOffset;
@@ -135,7 +123,7 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
       hEdgeWeights.assign(hEdgeIndex, hEdgeWts[i]);
       hEdgeOffsets.assign(hEdgeIndex++, pinCounter);
 
-      for (j = startOffset; j < endOffset; ++j) {
+      for (int j = startOffset; j < endOffset; ++j) {
 #ifdef DEBUG_HYPERGRAPH
         assert(locPinList[j] >= 0 && locPinList[j] < numTotalVertices);
 #endif
@@ -151,16 +139,19 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
   doNotCoarsen = 0;
   numPartitions = 0;
 
+  int i;
+  int j;
+
   if (dispOption > 0) {
     MPI_Reduce(&numLocalPins, &i, 1, MPI_INT, MPI_SUM, 0, comm);
     MPI_Reduce(&numLocalHedges, &j, 1, MPI_INT, MPI_SUM, 0, comm);
 
     if (myRank == 0) {
-      out << "|--- Hypergraph (as loaded):" << endl;
+      out << "|--- Hypergraph (as loaded):" << std::endl;
       out << "| |V| = " << numTotalVertices;
       out << " |E| = " << j;
-      out << " |Pins| = " << i << endl;
-      out << "|" << endl;
+      out << " |Pins| = " << i << std::endl;
+      out << "|" << std::endl;
     }
   }
 
@@ -191,13 +182,13 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
   char my_file[512];
   char message[512];
 
-  ifstream in_stream;
+  std::ifstream in_stream;
 
-  FastDynaArray<int> hEdgeData;
+  DynamicArray<int> hEdgeData;
 
   sprintf(my_file, "%s-%d", filename, myRank);
 
-  in_stream.open(my_file, ifstream::in | ifstream::binary);
+  in_stream.open(my_file, std::ifstream::in | std::ifstream::binary);
 
   if (!in_stream.is_open()) {
     sprintf(message, "p[%d] could not open file %s\n", myRank, my_file);
@@ -217,9 +208,6 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
   numTotalVertices = buffer[0];
   numLocalVertices = buffer[1];
   hEdgeDataLength = buffer[2];
-
-  // write_log(myRank, "nTV = %d, nLV = %d, hLen = %d", numTotalVertices,
-  // numLocalVertices, hEdgeDataLength);
 
   minVertexIndex = (numTotalVertices / numProcs) * myRank;
 
@@ -270,8 +258,8 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
   Funct::setMaxHedgeLen(maxHedgeLen);
 
   if (myRank == 0 && dispOption > 0) {
-    out << "|--- Hypergraph " << filename << " (on file):" << endl
-        << "| |V| = " << numTotalVertices << " |E| = " << i << endl;
+    out << "|--- Hypergraph " << filename << " (on file):" << std::endl
+        << "| |V| = " << numTotalVertices << " |E| = " << i << std::endl;
   }
 
   localVertexWt = 0;
@@ -327,11 +315,11 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
     MPI_Reduce(&numLocalHedges, &j, 1, MPI_INT, MPI_SUM, 0, comm);
 
     if (myRank == 0) {
-      out << "|--- Hypergraph " << filename << " (as loaded):" << endl
+      out << "|--- Hypergraph " << filename << " (as loaded):" << std::endl
           << "| |V| = " << numTotalVertices << " |E| = " << j
-          << " |Pins| = " << i << endl
-          << "| # Processors = " << numProcs << endl
-          << "| " << endl;
+          << " |Pins| = " << i << std::endl
+          << "| # Processors = " << numProcs << std::endl
+          << "| " << std::endl;
     }
   }
 
@@ -431,11 +419,11 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
 
   vFinePerProc = numTotalVertices / numProcs;
 
-  FastDynaArray<int> contractedPinList;
-  FastDynaArray<int> contractedHedgeOffsets;
-  FastDynaArray<int> contractedHedgeWts;
-  FastDynaArray<int> origContractedPinList(numLocalPins);
-  FastDynaArray<int> copyOfReq;
+  DynamicArray<int> contractedPinList;
+  DynamicArray<int> contractedHedgeOffsets;
+  DynamicArray<int> contractedHedgeWts;
+  DynamicArray<int> origContractedPinList(numLocalPins);
+  DynamicArray<int> copyOfReq;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -551,7 +539,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
       if (origContractedPinList[i] == -1)
         origContractedPinList[i] = storedRequests.getVal(localPins[i]);
   } else {
-    FastDynaArray<int> nonLocalMatches(numTotalVertices);
+    DynamicArray<int> nonLocalMatches(numTotalVertices);
 
     for (i = 0; i < totalToSend; ++i)
       nonLocalMatches[copyOfReq[i]] = receiveArray[i];
@@ -681,9 +669,9 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
   // now build the coarse hypergraph pin-list
   // ###
 
-  FastDynaArray<int> coarseLocalPins;
-  FastDynaArray<int> coarseHedgeOffsets;
-  FastDynaArray<int> coarseHedgeWts;
+  DynamicArray<int> coarseLocalPins;
+  DynamicArray<int> coarseHedgeOffsets;
+  DynamicArray<int> coarseHedgeWts;
 
   int numCoarsePins = 0;
   int numCoarseHedges = 0;
@@ -857,13 +845,13 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     assert(matchVector[i] >= 0 && matchVector[i] < numTotCoarseVerts);
 #endif
 
-  FastDynaArray<int> minFineIdxOnProc(numProcs);
-  FastDynaArray<int> procs(numProcs);
-  FastDynaArray<int> contractedPinList;
-  FastDynaArray<int> contractedHedgeOffsets;
-  FastDynaArray<int> contractedHedgeWts;
-  FastDynaArray<int> origContractedPinList(numLocalPins);
-  FastDynaArray<int> copyOfReq;
+  DynamicArray<int> minFineIdxOnProc(numProcs);
+  DynamicArray<int> procs(numProcs);
+  DynamicArray<int> contractedPinList;
+  DynamicArray<int> contractedHedgeOffsets;
+  DynamicArray<int> contractedHedgeWts;
+  DynamicArray<int> origContractedPinList(numLocalPins);
+  DynamicArray<int> copyOfReq;
 
   MPI_Allgather(&minVertexIndex, 1, MPI_INT, minFineIdxOnProc.getArray(), 1,
                 MPI_INT, comm);
@@ -985,7 +973,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
       if (origContractedPinList[i] == -1)
         origContractedPinList[i] = storedRequests.getVal(localPins[i]);
   } else {
-    FastDynaArray<int> nonLocalMatches(numTotalVertices);
+    DynamicArray<int> nonLocalMatches(numTotalVertices);
 
     for (i = 0; i < totalToSend; ++i)
       nonLocalMatches[copyOfReq[i]] = receiveArray[i];
@@ -1115,9 +1103,9 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
   // now build the coarse hypergraph pin-list
   // ###
 
-  FastDynaArray<int> coarseLocalPins;    // = new FastDynaArray<int>(2048);
-  FastDynaArray<int> coarseHedgeOffsets; // = new FastDynaArray<int>(1024);
-  FastDynaArray<int> coarseHedgeWts;     // = new FastDynaArray<int>(1024);
+  DynamicArray<int> coarseLocalPins;    // = new DynamicArray<int>(2048);
+  DynamicArray<int> coarseHedgeOffsets; // = new DynamicArray<int>(1024);
+  DynamicArray<int> coarseHedgeWts;     // = new DynamicArray<int>(1024);
 
   int numCoarsePins = 0;
   int numCoarseHedges = 0;
@@ -1259,7 +1247,7 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
   int j;
   int ij;
 
-  FastDynaArray<int> requestingLocalVerts;
+  DynamicArray<int> requestingLocalVerts;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -1569,8 +1557,8 @@ void ParaHypergraph::computePartitionChars(int pNum, int numParts,
 
   double avePartWt;
 
-  FastDynaArray<int> locPartWeights(numParts);
-  FastDynaArray<int> partWeights(numParts);
+  DynamicArray<int> locPartWeights(numParts);
+  DynamicArray<int> partWeights(numParts);
 
   cut = calcCutsize(numParts, pNum, comm);
 
@@ -1600,12 +1588,12 @@ void ParaHypergraph::computePartitionChars(int pNum, int numParts,
         minPartWt = partWeights[i];
     }
 
-    out << "****** partition summary ******" << endl
-        << endl
-        << "\tcut = " << cut << endl
-        << "\tmaxAllowedPartWt = " << maxAllowedPartWt << endl
-        << "\tminPartWt = " << minPartWt << endl
-        << "\tmaxPartWt = " << maxPartWt << endl;
+    out << "****** partition summary ******" << std::endl
+        << std::endl
+        << "\tcut = " << cut << std::endl
+        << "\tmaxAllowedPartWt = " << maxAllowedPartWt << std::endl
+        << "\tminPartWt = " << minPartWt << std::endl
+        << "\tmaxPartWt = " << maxPartWt << std::endl;
   }
 
   MPI_Barrier(comm);
@@ -1689,17 +1677,17 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
   int j;
   int ij;
 
-  FastDynaArray<int> copyOfMapToOrigV(numLocalVertices);
-  FastDynaArray<int> askingVertex;
+  DynamicArray<int> copyOfMapToOrigV(numLocalVertices);
+  DynamicArray<int> askingVertex;
 
-  FastDynaArray<FastDynaArray<int> *> askingVertices(numProcs);
+  DynamicArray<DynamicArray<int> *> askingVertices(numProcs);
 
   for (i = 0; i < numLocalVertices; ++i)
     copyOfMapToOrigV[i] = mapToOrigV[i];
 
   for (i = 0; i < numProcs; ++i) {
     sendLens[i] = 0;
-    askingVertices[i] = new FastDynaArray<int>(0);
+    askingVertices[i] = new DynamicArray<int>(0);
   }
 
   /* compute mapToOrigV entries required from un-shuffled hypergraph */
@@ -1802,7 +1790,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
   }
 
   for (i = 0; i < numProcs; ++i)
-    DynaMem<FastDynaArray<int> >::deletePtr(askingVertices[i]);
+    DynaMem<DynamicArray<int> >::deletePtr(askingVertices[i]);
 }
 
 void ParaHypergraph::prescribedVertexShuffle(int *prescribedAssignment,
@@ -1813,7 +1801,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *prescribedAssignment,
 
   int i;
 
-  FastDynaArray<int> localVPerProc(numProcs);
+  DynamicArray<int> localVPerProc(numProcs);
 
   for (i = 0; i < numProcs; ++i)
     localVPerProc[i] = 0;
@@ -1839,8 +1827,8 @@ void ParaHypergraph::shuffleVerticesByPartition(int nParts, MPI_Comm comm) {
 
   int numPartsPerProc = nParts / numProcs;
 
-  FastDynaArray<int> vToProc(numLocalVertices);
-  FastDynaArray<int> localVPerProc(numProcs);
+  DynamicArray<int> vToProc(numLocalVertices);
+  DynamicArray<int> localVPerProc(numProcs);
 
   for (i = 0; i < numProcs; ++i)
     localVPerProc[i] = 0;
@@ -1864,11 +1852,11 @@ void ParaHypergraph::randomVertexShuffle(MPI_Comm comm) {
   int j;
   int ij;
 
-  FastDynaArray<int> vertices(numLocalVertices);
-  FastDynaArray<int> vToProc(numLocalVertices);
-  FastDynaArray<int> localVPerProc(numProcs);
-  FastDynaArray<int> vSpareToProc;
-  FastDynaArray<int> indexIntoSpares(numProcs);
+  DynamicArray<int> vertices(numLocalVertices);
+  DynamicArray<int> vToProc(numLocalVertices);
+  DynamicArray<int> localVPerProc(numProcs);
+  DynamicArray<int> vSpareToProc;
+  DynamicArray<int> indexIntoSpares(numProcs);
 
   for (i = 0; i < numProcs; ++i)
     localVPerProc[i] = 0;
@@ -1937,11 +1925,11 @@ void ParaHypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
   int j;
   int ij;
 
-  FastDynaArray<int> vertices(numLocalVertices);
-  FastDynaArray<int> vToProc(numLocalVertices);
-  FastDynaArray<int> localVPerProc(numProcs);
-  FastDynaArray<int> vSpareToProc;
-  FastDynaArray<int> indexIntoSpares(numProcs);
+  DynamicArray<int> vertices(numLocalVertices);
+  DynamicArray<int> vToProc(numLocalVertices);
+  DynamicArray<int> localVPerProc(numProcs);
+  DynamicArray<int> vSpareToProc;
+  DynamicArray<int> indexIntoSpares(numProcs);
 
   /* first compute the V->proc map */
 
@@ -2015,11 +2003,11 @@ void ParaHypergraph::randomVertexShuffle(ParaHypergraph &fG, MPI_Comm comm) {
   int j;
   int ij;
 
-  FastDynaArray<int> vertices(numLocalVertices);
-  FastDynaArray<int> vToProc(numLocalVertices);
-  FastDynaArray<int> localVPerProc(numProcs);
-  FastDynaArray<int> vSpareToProc;
-  FastDynaArray<int> indexIntoSpares(numProcs);
+  DynamicArray<int> vertices(numLocalVertices);
+  DynamicArray<int> vToProc(numLocalVertices);
+  DynamicArray<int> localVPerProc(numProcs);
+  DynamicArray<int> vSpareToProc;
+  DynamicArray<int> indexIntoSpares(numProcs);
 
   /* first compute the V->proc map */
 
@@ -2102,13 +2090,13 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
   int arrayLen;
   int *array;
 
-  FastDynaArray<int> oldIndexToNew(numLocalVertices);
-  FastDynaArray<int> newMinVertIndex(numProcs);
-  FastDynaArray<int> totVperProc(numProcs);
-  FastDynaArray<int> minNewIndexOnProc(numProcs);
+  DynamicArray<int> oldIndexToNew(numLocalVertices);
+  DynamicArray<int> newMinVertIndex(numProcs);
+  DynamicArray<int> totVperProc(numProcs);
+  DynamicArray<int> minNewIndexOnProc(numProcs);
 
-  FastDynaArray<int> idxIntoSendArray(numProcs);
-  FastDynaArray<int> copyOfReq;
+  DynamicArray<int> idxIntoSendArray(numProcs);
+  DynamicArray<int> copyOfReq;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -2133,7 +2121,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
       assert(newMinVertIndex[i] == 0);
 #endif
 
-  FastDynaArray<int> maxNewIndexOnProc(numProcs);
+  DynamicArray<int> maxNewIndexOnProc(numProcs);
 
   minNewIndexOnProc[0] = 0;
   maxNewIndexOnProc[0] = totVperProc[0];
@@ -2274,7 +2262,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
       }
     }
   } else {
-    FastDynaArray<int> nonLocalMatches(numTotalVertices);
+    DynamicArray<int> nonLocalMatches(numTotalVertices);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2441,11 +2429,11 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   int arrayLen;
   int *array;
 
-  FastDynaArray<int> oldIndexToNew(numLocalVertices);
-  FastDynaArray<int> minIndexOfMyVerts(numProcs);
-  FastDynaArray<int> minIndexOnProc(numProcs);
-  FastDynaArray<int> idxIntoSendArray(numProcs);
-  FastDynaArray<int> copyOfReq;
+  DynamicArray<int> oldIndexToNew(numLocalVertices);
+  DynamicArray<int> minIndexOfMyVerts(numProcs);
+  DynamicArray<int> minIndexOnProc(numProcs);
+  DynamicArray<int> idxIntoSendArray(numProcs);
+  DynamicArray<int> copyOfReq;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -2603,7 +2591,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       }
     }
   } else {
-    FastDynaArray<int> storedRequests(numTotalVertices);
+    DynamicArray<int> storedRequests(numTotalVertices);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2787,11 +2775,11 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   int arrayLen;
   int *array;
 
-  FastDynaArray<int> oldIndexToNew(numLocalVertices);
-  FastDynaArray<int> minIndexOfMyVerts(numProcs);
-  FastDynaArray<int> minIndexOnProc(numProcs);
-  FastDynaArray<int> idxIntoSendArray(numProcs);
-  FastDynaArray<int> copyOfReq;
+  DynamicArray<int> oldIndexToNew(numLocalVertices);
+  DynamicArray<int> minIndexOfMyVerts(numProcs);
+  DynamicArray<int> minIndexOnProc(numProcs);
+  DynamicArray<int> idxIntoSendArray(numProcs);
+  DynamicArray<int> copyOfReq;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -2951,7 +2939,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       }
     }
   } else {
-    FastDynaArray<int> storedRequests(numTotalVertices);
+    DynamicArray<int> storedRequests(numTotalVertices);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -3132,11 +3120,11 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   int vToOrigVexist = vToOrigV.getLength();
   int *array;
 
-  FastDynaArray<int> oldIndexToNew(numLocalVertices);
-  FastDynaArray<int> minIndexOfMyVerts(numProcs);
-  FastDynaArray<int> minIndexOnProc(numProcs);
-  FastDynaArray<int> idxIntoSendArray(numProcs);
-  FastDynaArray<int> copyOfReq;
+  DynamicArray<int> oldIndexToNew(numLocalVertices);
+  DynamicArray<int> minIndexOfMyVerts(numProcs);
+  DynamicArray<int> minIndexOnProc(numProcs);
+  DynamicArray<int> idxIntoSendArray(numProcs);
+  DynamicArray<int> copyOfReq;
 
   /* finer graph structs */
 
@@ -3326,7 +3314,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
     }
   } else {
-    FastDynaArray<int> storedRequests(numTotalVertices);
+    DynamicArray<int> storedRequests(numTotalVertices);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -3514,8 +3502,8 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
   else
     numMyVertices = vPerProc + Mod(numTotalVertices, numProcs);
 
-  FastDynaArray<int> minNewIndex(numProcs);
-  FastDynaArray<int> maxNewIndex(numProcs);
+  DynamicArray<int> minNewIndex(numProcs);
+  DynamicArray<int> maxNewIndex(numProcs);
 
   for (i = 0; i < numProcs; ++i) {
     if (i == 0) {
@@ -3657,8 +3645,8 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
   int j;
   int ij;
 
-  FastDynaArray<int> spannedPart(numParts);
-  FastDynaArray<int> copyOfReq;
+  DynamicArray<int> spannedPart(numParts);
+  DynamicArray<int> copyOfReq;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -3813,7 +3801,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
       locCutsize += ((numSpanned - 1) * hEdgeWeights[i]);
     }
   } else {
-    FastDynaArray<int> storedRequests(numTotalVertices);
+    DynamicArray<int> storedRequests(numTotalVertices);
 
     for (i = 0; i < totToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -3883,8 +3871,8 @@ int ParaHypergraph::checkBalance(int numParts, double balConstraint,
 
   int i;
 
-  FastDynaArray<int> locPWeights(numParts);
-  FastDynaArray<int> pWeights(numParts);
+  DynamicArray<int> locPWeights(numParts);
+  DynamicArray<int> pWeights(numParts);
 
   for (i = 0; i < numParts; ++i)
     locPWeights[i] = 0;
@@ -3931,8 +3919,8 @@ void ParaHypergraph::checkPartitions(int numParts, int maxPartWt,
 
   int pOffset;
 
-  FastDynaArray<int> locPWts(numParts);
-  FastDynaArray<int> pWts(numParts);
+  DynamicArray<int> locPWts(numParts);
+  DynamicArray<int> pWts(numParts);
 
   for (i = 0; i < numPartitions; ++i) {
     for (j = 0; j < numParts; ++j)
@@ -3970,8 +3958,8 @@ void ParaHypergraph::checkPartitions(int numParts, double constraint,
 
   char message[512];
 
-  FastDynaArray<int> locPWts(numParts);
-  FastDynaArray<int> pWts(numParts);
+  DynamicArray<int> locPWts(numParts);
+  DynamicArray<int> pWts(numParts);
 
   MPI_Allreduce(&localVertexWt, &totWt, 1, MPI_INT, MPI_SUM, comm);
 
@@ -4005,22 +3993,22 @@ void ParaHypergraph::checkPartitions(int numParts, double constraint,
         if (pWts[j] > maxWt)
           maxWt = pWts[j];
 
-      out << "----- NUM PARTS = " << numParts << endl
-          << "----- p[" << i << "] largest part weight = " << maxWt << endl
+      out << "----- NUM PARTS = " << numParts << std::endl
+          << "----- p[" << i << "] largest part weight = " << maxWt << std::endl
           << "----- p[" << i << "] max allowed part weight = " << maxPartWt
-          << endl;
+          << std::endl;
 
       if (maxWt <= maxPartWt)
-        out << "----- p[" << i << "] satisfies balance constraints" << endl;
+        out << "----- p[" << i << "] satisfies balance constraints" << std::endl;
       else
         out << "----- p[" << i << "] does not satisfy balance constraints"
-            << endl;
+            << std::endl;
     }
 
     cut = calcCutsize(numParts, i, comm);
 
     if (myRank == 0)
-      out << "----- p[" << i << "] k-1 cutsize = " << cut << endl;
+      out << "----- p[" << i << "] k-1 cutsize = " << cut << std::endl;
   }
 }
 
@@ -4048,8 +4036,8 @@ void ParaHypergraph::computeBalanceWarning(int numParts, double constraint,
 
     if (maxVertWt > maxAllowedVertWt)
       out << "*** Warning! Balance constraint " << constraint
-          << " may be too tight ***" << endl
-          << endl;
+          << " may be too tight ***" << std::endl
+          << std::endl;
   }
 }
 
@@ -4105,9 +4093,9 @@ int ParaHypergraph::computeNonConnectedVerts(MPI_Comm comm) {
 
   int numTotPins = 0;
 
-  FastDynaArray<int> pinsAtProc(numProcs);
-  FastDynaArray<int> recvDispls(numProcs);
-  FastDynaArray<int> allPins;
+  DynamicArray<int> pinsAtProc(numProcs);
+  DynamicArray<int> recvDispls(numProcs);
+  DynamicArray<int> allPins;
 
   MPI_Gather(&numLocalPins, 1, MPI_INT, pinsAtProc.getArray(), 1, MPI_INT, 0,
              comm);

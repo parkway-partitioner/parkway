@@ -54,7 +54,7 @@ template <class T> void CompleteBinaryTree<T>::fill(const int *cmprs) {
   int jk;
   int half = 0;
 
-  FastDynaArray<int> searchList(searchLen);
+  DynamicArray<int> searchList(searchLen);
 
   searchList[j++] = Shiftr(numRoots, 1);
 

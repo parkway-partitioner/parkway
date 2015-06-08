@@ -40,8 +40,8 @@ protected:
   int *partitionVectorOffsets;
   int *partitionCuts;
 
-  FastDynaArray<int> *clusterWeights;
-  FastDynaArray<int> *pVector;
+  DynamicArray<int> *clusterWeights;
+  DynamicArray<int> *pVector;
 
 public:
   ParaRestrCoarsener(int _rank, int _numProcs, int _numParts, ostream &out);

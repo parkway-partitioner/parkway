@@ -14,11 +14,8 @@
 
 #include "GlobalCommunicator.hpp"
 
-GlobalCommunicator::GlobalCommunicator(int rank, int nProcs) {
-  int i;
-
-  myRank = rank;
-  numProcs = nProcs;
+GlobalCommunicator::GlobalCommunicator(const int rank, const int nProcs)
+    : myRank(rank), numProcs(nProcs) {
 
   dataOutSets.setLength(numProcs);
   sendLens.setLength(numProcs);
@@ -26,37 +23,28 @@ GlobalCommunicator::GlobalCommunicator(int rank, int nProcs) {
   sendDispls.setLength(numProcs);
   recvDispls.setLength(numProcs);
 
-  for (i = 0; i < numProcs; ++i)
-    dataOutSets[i] = new FastDynaArray<int>(1024);
+  for (int i = 0; i < numProcs; ++i)
+    dataOutSets[i] = new DynamicArray<int>(1024);
 }
 
 GlobalCommunicator::~GlobalCommunicator() {
-  int i;
-
-  for (i = 0; i < numProcs; ++i)
-    DynaMem<FastDynaArray<int> >::deletePtr(dataOutSets[i]);
+  for (int i = 0; i < numProcs; ++i) {
+    DynaMem<DynamicArray<int> >::deletePtr(dataOutSets[i]);
+  }
 }
 
 void GlobalCommunicator::freeMemory() {
-  int i;
-
-  for (i = 0; i < numProcs; ++i)
+  for (int i = 0; i < numProcs; ++i) {
     dataOutSets[i]->setLength(0);
+  }
 
   sendArray.setLength(0);
   receiveArray.setLength(0);
 }
 
 void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
-  int *array;
-  int arrayLen;
-
-  int ij;
-  int i;
-  int j;
-
-  j = 0;
-  for (i = 0; i < numProcs; ++i) {
+  int j = 0;
+  for (int i = 0; i < numProcs; ++i) {
     sendDispls[i] = j;
 #ifdef DEBUG_BASICS
     assert(sendLens[i] >= 0);
@@ -66,12 +54,11 @@ void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
 
   sendArray.setLength(j);
 
-  ij = 0;
-  for (i = 0; i < numProcs; ++i) {
+  int ij = 0;
+  int *array;
+  for (int i = 0; i < numProcs; ++i) {
     array = dataOutSets[i]->getArray();
-    arrayLen = sendLens[i];
-
-    for (j = 0; j < arrayLen; ++j) {
+    for (j = 0; j < sendLens[i]; ++j) {
       sendArray[ij++] = array[j];
     }
   }
@@ -80,7 +67,7 @@ void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
                comm);
 
   j = 0;
-  for (i = 0; i < numProcs; ++i) {
+  for (int i = 0; i < numProcs; ++i) {
     recvDispls[i] = j;
     j += recvLens[i];
   }

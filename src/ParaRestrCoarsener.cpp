@@ -58,11 +58,11 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   int proc;
   int locVertex;
 
-  FastDynaArray<int> procs(numProcs);
-  FastDynaArray<int> vDegs;
-  FastDynaArray<int> minLocIndices(numProcs);
-  FastDynaArray<int> maxLocIndices(numProcs);
-  FastDynaArray<int> vPerProc(numProcs);
+  DynamicArray<int> procs(numProcs);
+  DynamicArray<int> vDegs;
+  DynamicArray<int> minLocIndices(numProcs);
+  DynamicArray<int> maxLocIndices(numProcs);
+  DynamicArray<int> vPerProc(numProcs);
 
   numLocalPins = h.getNumLocalPins();
   numLocalHedges = h.getNumLocalHedges();

@@ -43,8 +43,8 @@ void HypergraphLoader::computeHedgesToLoad(BitField &toLoad) {
   int percentileLen;
   double percentileThreshold;
 
-  FastDynaArray<int> hEdgeLens(numHedges);
-  FastDynaArray<int> hEdges(numHedges);
+  DynamicArray<int> hEdgeLens(numHedges);
+  DynamicArray<int> hEdges(numHedges);
 
   for (i = 0; i < numHedges; ++i) {
     hEdges[i] = i;

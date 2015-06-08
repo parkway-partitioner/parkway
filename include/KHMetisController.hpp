@@ -33,7 +33,7 @@ protected:
 
   double avePartWt;
 
-  FastDynaArray<int> khMetisOptions;
+  DynamicArray<int> khMetisOptions;
 
   GreedyKwayRefiner *kWayRefiner;
 

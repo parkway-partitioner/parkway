@@ -21,7 +21,7 @@ template <class T> class Stack {
 
 protected:
   int numElem;
-  FastDynaArray<T> array;
+  DynamicArray<T> array;
 
 public:
   inline Stack() {

@@ -41,7 +41,7 @@ protected:
 
   /* partition used to assign vertices to processors */
 
-  FastDynaArray<int> shufflePartition;
+  DynamicArray<int> shufflePartition;
 
   /* Approx coarsening and refinement options */
 
@@ -70,8 +70,8 @@ protected:
   double totalTime;
   double accumulator;
 
-  FastDynaArray<int> bestPartition;
-  FastDynaArray<int> mapToOrigVerts;
+  DynamicArray<int> bestPartition;
+  DynamicArray<int> mapToOrigVerts;
 
   ParaHypergraph *hgraph;
 

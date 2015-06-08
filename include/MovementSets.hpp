@@ -31,11 +31,11 @@ protected:
   int maxPartWt;
   int setArrayLen;
 
-  FastDynaArray<int> partWeights;
-  FastDynaArray<int> restoringMovesLens;
+  DynamicArray<int> partWeights;
+  DynamicArray<int> restoringMovesLens;
 
-  FastDynaArray<FastDynaArray<int> *> restoringMoves;
-  FastDynaArray<FastDynaArray<MOVE_SET> *> sets;
+  DynamicArray<DynamicArray<int> *> restoringMoves;
+  DynamicArray<DynamicArray<MOVE_SET> *> sets;
 
 public:
   MovementSetTable(int nParts, int nProcs);
@@ -47,7 +47,7 @@ public:
   inline int *getRestoringMovesLens() const {
     return restoringMovesLens.getArray();
   }
-  inline FastDynaArray<int> **getRestoringMoves() const {
+  inline DynamicArray<int> **getRestoringMoves() const {
     return restoringMoves.getArray();
   }
 

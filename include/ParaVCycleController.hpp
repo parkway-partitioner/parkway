@@ -15,7 +15,7 @@
 #include "ParaController.hpp"
 #include "ParaRestrFCCoarsener.hpp"
 
-typedef FastDynaArray<int> IntArray;
+typedef DynamicArray<int> IntArray;
 
 using namespace std;
 
@@ -31,7 +31,7 @@ protected:
   Stack<int> minLocCurrVertId;
   Stack<IntArray *> bestVCyclePartition;
 
-  FastDynaArray<int> mapToInterVerts;
+  DynamicArray<int> mapToInterVerts;
 
   ParaRestrCoarsener &restrCoarsener;
 

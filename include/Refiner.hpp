@@ -28,7 +28,7 @@ protected:
   double acceptProp;
   double avePartWt;
 
-  FastDynaArray<int> partWeights;
+  DynamicArray<int> partWeights;
 
 public:
   Refiner(int dispL);

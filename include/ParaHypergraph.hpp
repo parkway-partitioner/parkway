@@ -9,7 +9,7 @@
 //
 // 17/4/2004: Modified hyperedge storage:
 //            - removed hyperedges from hash table
-//            - instead, added FastDynaArray<int>
+//            - instead, added DynamicArray<int>
 //              to represent them as a pin list
 //              can be indexed via hash table with key
 //              or directly via index in pin list
@@ -29,8 +29,6 @@
 #include "HashTables.hpp"
 #include "Bit.hpp"
 
-using namespace std;
-
 class ParaHypergraph : public GlobalCommunicator {
 protected:
   int indexInSequence;
@@ -43,22 +41,18 @@ protected:
   int localVertexWt;
   int numPartitions;
 
-  FastDynaArray<int> vWeight;
-  FastDynaArray<int> matchVector;
+  DynamicArray<int> vWeight;
+  DynamicArray<int> matchVector;
 
-  FastDynaArray<int> partitionVector;
-  FastDynaArray<int> partitionOffsetsVector;
-  FastDynaArray<int> partitionCutsizesVector;
+  DynamicArray<int> partitionVector;
+  DynamicArray<int> partitionOffsetsVector;
+  DynamicArray<int> partitionCutsizesVector;
 
-  FastDynaArray<int> localPins;
-  FastDynaArray<int> hEdgeOffsets;
-  FastDynaArray<int> hEdgeWeights;
+  DynamicArray<int> localPins;
+  DynamicArray<int> hEdgeOffsets;
+  DynamicArray<int> hEdgeWeights;
 
-  FastDynaArray<int> vToOrigV;
-
-  // FastDynaArray<HashKey> hashKeys;
-
-  // HedgeIndexTable *table;
+  DynamicArray<int> vToOrigV;
 
 public:
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
@@ -79,8 +73,6 @@ public:
                           MPI_Comm comm);
   void initPartitionFromFile(const char *filename, int numParts, ostream &out,
                              MPI_Comm comm);
-  // void vertexShuffleByPartitionFromFile(const char *filename, int numParts,
-  // ostream &out, MPI_Comm comm);
 
   void allocHedgeMem(int numHedges, int numLocPins);
   void contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm);
