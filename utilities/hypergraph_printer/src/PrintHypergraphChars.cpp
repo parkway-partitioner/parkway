@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   }
 
   char *out_file =
-      StringUtils::getParameterAsCharPtr(argc, argv, "-otype", NULL);
+      StringUtils::getParameterAsCharPtr(argc, argv, "-otype", nullptr);
   int type = StringUtils::getParameterAsInteger(argc, argv, "-ptype", 1);
   int nz = StringUtils::getParameterAsInteger(argc, argv, "-nz", 0);
 

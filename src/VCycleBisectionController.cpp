@@ -19,7 +19,7 @@ VCycleBisectionController::VCycleBisectionController(
     int percentile, int inc, int dispL, ostream &out)
     : BisectionController(nRuns, kT, redFactor, eeParam, percentile, inc, dispL,
                           out) {
-  restrCoarsener = NULL;
+  restrCoarsener = nullptr;
 
   vCyclePartition.setLength(0);
 }

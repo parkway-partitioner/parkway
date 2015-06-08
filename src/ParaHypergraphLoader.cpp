@@ -18,8 +18,8 @@ ParaHypergraphLoader::ParaHypergraphLoader(int rank, int nProcs, int nParts,
                                            ostream &o)
     : GlobalCommunicator(rank, nProcs), out_stream(o) {
   numParts = nParts;
-  vWeight = NULL;
-  matchVector = NULL;
+  vWeight = nullptr;
+  matchVector = nullptr;
 
   numHedges = 0;
   numLocPins = 0;

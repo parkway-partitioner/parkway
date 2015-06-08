@@ -16,21 +16,19 @@
 // for debug purposes, remove dependence on MemoryTracker
 //#  include "MemoryTracker.hpp"
 
-using namespace std;
-
 template <class T> class DynaMem {
 
 public:
   static inline void deletePtr(T *&ptr) {
     if (ptr)
       delete ptr;
-    ptr = NULL;
+    ptr = nullptr;
   }
 
   static inline void deleteArr(T *&ptr) {
     if (ptr)
       delete[] ptr;
-    ptr = NULL;
+    ptr = nullptr;
   }
 };
 

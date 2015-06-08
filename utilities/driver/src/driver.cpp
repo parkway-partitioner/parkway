@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
   sprintf(testFile, "test_output.%d.txt", numProcs);
   ofstream test_output(testFile, ofstream::app | ofstream::out);
 
-  outputFile = Funct::getParameterAsCharPtr(argc, argv, "-oFile", NULL);
+  outputFile = Funct::getParameterAsCharPtr(argc, argv, "-oFile", nullptr);
   testType = Funct::getParameterAsInteger(argc, argv, "-tType", 0);
   numParts = Funct::getParameterAsInteger(argc, argv, "-nParts", 4);
   constraint = Funct::getParameterAsDouble(argc, argv, "-c", 0.05);
@@ -204,11 +204,11 @@ int main(int argc, char **argv) {
 
     int numVertices;
     int numHedges;
-    int *vWeights = NULL;
-    int *hEdgeWts = NULL;
-    int *pinList = NULL;
-    int *offsets = NULL;
-    int *pVector = NULL;
+    int *vWeights = nullptr;
+    int *hEdgeWts = nullptr;
+    int *pinList = nullptr;
+    int *offsets = nullptr;
+    int *pVector = nullptr;
 
     initGraphStructs(numVertices, numHedges, vWeights, hEdgeWts, pinList,
                      offsets, argv[argc - 1], myRank);

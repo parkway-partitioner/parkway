@@ -25,7 +25,7 @@ SeqController::SeqController(int rank, int nProcs, int nParts, ostream &out)
   maxVertexWt = 0;
   acceptProp = 0;
 
-  h = NULL;
+  h = nullptr;
 
   partitionVector.setLength(0);
   partitionCuts.setLength(0);

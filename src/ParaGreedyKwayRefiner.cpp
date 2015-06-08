@@ -217,7 +217,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
 
   currPVector = &partitionVector[partitionVectorOffsets[pNo]];
   if (numNonLocVerts == 0)
-    currNonLocPVector = NULL;
+    currNonLocPVector = nullptr;
   else
     currNonLocPVector = &partIndices[indexIntoPartIndices[pNo]];
   currPnumber = pNo;

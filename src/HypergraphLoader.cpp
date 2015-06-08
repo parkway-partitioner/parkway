@@ -22,16 +22,16 @@ HypergraphLoader::HypergraphLoader(int disp) {
   numPins = 0;
   numPartitions = 0;
 
-  vWeight = NULL;
-  hEdgeWeight = NULL;
-  matchVector = NULL;
-  pinList = NULL;
-  hEdgeOffsets = NULL;
-  vToHedges = NULL;
-  vOffsets = NULL;
-  partitionVectors = NULL;
-  partitionOffsets = NULL;
-  partitionCutsizes = NULL;
+  vWeight = nullptr;
+  hEdgeWeight = nullptr;
+  matchVector = nullptr;
+  pinList = nullptr;
+  hEdgeOffsets = nullptr;
+  vToHedges = nullptr;
+  vOffsets = nullptr;
+  partitionVectors = nullptr;
+  partitionOffsets = nullptr;
+  partitionCutsizes = nullptr;
 }
 
 HypergraphLoader::~HypergraphLoader() {}

@@ -30,11 +30,11 @@ ParaRestrCoarsener::ParaRestrCoarsener(int rank, int nProcs, int nParts,
   balConstraint = 0;
   numPartitions = 0;
 
-  partitionVector = NULL;
-  partitionVectorOffsets = NULL;
-  partitionCuts = NULL;
-  clusterWeights = NULL;
-  pVector = NULL;
+  partitionVector = nullptr;
+  partitionVectorOffsets = nullptr;
+  partitionCuts = nullptr;
+  clusterWeights = nullptr;
+  pVector = nullptr;
 }
 
 ParaRestrCoarsener::~ParaRestrCoarsener() {}
@@ -331,8 +331,8 @@ ParaHypergraph *ParaRestrCoarsener::contractHyperedges(ParaHypergraph &h,
                          myMinCluIndex, stopCoarsening, partitionCuts[0],
                          clusterWeights->getArray(), pVector->getArray());
 
-  clusterWeights = NULL;
-  pVector = NULL;
+  clusterWeights = nullptr;
+  pVector = nullptr;
 
   h.contractRestrHyperedges(*coarseGraph, comm);
   h.setNumberPartitions(0);

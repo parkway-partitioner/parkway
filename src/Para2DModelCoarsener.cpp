@@ -24,7 +24,7 @@ Para2DModelCoarsener::Para2DModelCoarsener(int rank, int nProcs, int nParts,
   divByHedgeLen = divByLen;
   limitOnIndexDuringCoarsening = 0;
 
-  table = NULL;
+  table = nullptr;
 }
 
 Para2DModelCoarsener::~Para2DModelCoarsener() {
@@ -88,7 +88,7 @@ ParaHypergraph *Para2DModelCoarsener::coarsen(ParaHypergraph &h,
   // MPI_Barrier(comm);
 
   if (totalVertices < minNodes || h.dontCoarsen())
-    return NULL;
+    return nullptr;
 
   if (totalVertices < 3000000) {
     // if(myRank == 0) cout << "ParaFCC " << endl;

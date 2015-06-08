@@ -4109,11 +4109,11 @@ int ParaHypergraph::computeNonConnectedVerts(MPI_Comm comm) {
     allPins.setLength(numTotPins);
   }
 
-  assert(localPins.getArray() != NULL);
+  assert(localPins.getArray() != nullptr);
   if (myRank == 0)
-    assert(allPins.getArray() != NULL);
-  assert(pinsAtProc.getArray() != NULL);
-  assert(recvDispls.getArray() != NULL);
+    assert(allPins.getArray() != nullptr);
+  assert(pinsAtProc.getArray() != nullptr);
+  assert(recvDispls.getArray() != nullptr);
 
   MPI_Gatherv(localPins.getArray(), numLocalPins, MPI_INT, allPins.getArray(),
               pinsAtProc.getArray(), recvDispls.getArray(), MPI_INT, 0, comm);

@@ -33,7 +33,7 @@ MovementSetTable::MovementSetTable(int nParts, int nProcs) {
       for (j = 0; j < numProcs; ++j)
         (*sets[i])[j].proc = j;
     } else {
-      sets[i] = NULL;
+      sets[i] = nullptr;
     }
   }
 

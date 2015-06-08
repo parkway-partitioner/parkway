@@ -26,8 +26,8 @@ ParaApproxFCCoarsener::ParaApproxFCCoarsener(int rank, int nProcs, int nParts,
   divByHedgeLen = divByLen;
   limitOnIndexDuringCoarsening = 0;
 
-  table = NULL;
-  // connTable = NULL;
+  table = nullptr;
+  // connTable = nullptr;
 }
 
 ParaApproxFCCoarsener::~ParaApproxFCCoarsener() {
@@ -98,7 +98,7 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
 
   if (totalVertices < minNodes || h.dontCoarsen()) {
     currPercentile = startPercentile;
-    return NULL;
+    return nullptr;
   }
 
   int i;
@@ -318,10 +318,10 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
 
             if(divByHedgeLen)
             vData = new
-            ConnVertData(candidatV,static_cast<double>(hEdgeWeight[hEdge])/(hEdgeLen-1),cluWeight,NULL);
+            ConnVertData(candidatV,static_cast<double>(hEdgeWeight[hEdge])/(hEdgeLen-1),cluWeight,nullptr);
             else
             vData = new
-            ConnVertData(candidatV,static_cast<double>(hEdgeWeight[hEdge]),cluWeight,NULL);
+            ConnVertData(candidatV,static_cast<double>(hEdgeWeight[hEdge]),cluWeight,nullptr);
 
             connTable->addDataStruct(vData,candidatV);
             }

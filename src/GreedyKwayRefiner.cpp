@@ -501,7 +501,7 @@ int GreedyKwayRefiner::runRebalancingPass() {
     vertices[i] = i;
 
   for (i = 0; i < numParts; ++i)
-    verticesInParts[i] = NULL;
+    verticesInParts[i] = nullptr;
 
   Funct::randomPermutation(vertices.getArray(), numVertices);
 
@@ -510,7 +510,7 @@ int GreedyKwayRefiner::runRebalancingPass() {
     part = partitionVector[vertex];
 
     if (overWeight[part] == 0) {
-      vertexNodes[vertex] = NULL;
+      vertexNodes[vertex] = nullptr;
     } else {
       vertexNodes[vertex] = new VNode;
       vertexNodes[vertex]->vertexID = vertex;

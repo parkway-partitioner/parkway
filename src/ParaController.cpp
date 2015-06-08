@@ -45,7 +45,7 @@ ParaController::ParaController(ParaCoarsener &c, ParaRefiner &r,
   totalTime = 0;
   accumulator = 0;
 
-  hgraph = NULL;
+  hgraph = nullptr;
 
   bestPartition.setLength(0);
 }

@@ -40,7 +40,7 @@ void write_log(int rank, const char *fmt, ...) {
   vsprintf(buffer, fmt, argp);
   va_end(argp);
 
-  seconds = time(NULL);
+  seconds = time(nullptr);
 
   t = ctime(&seconds);
   t[19] = '\0';

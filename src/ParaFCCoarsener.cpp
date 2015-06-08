@@ -24,7 +24,7 @@ ParaFCCoarsener::ParaFCCoarsener(int rank, int nProcs, int nParts,
   divByHedgeLen = divByLen;
   limitOnIndexDuringCoarsening = 0;
 
-  table = NULL;
+  table = nullptr;
 }
 
 ParaFCCoarsener::~ParaFCCoarsener() {
@@ -88,7 +88,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
 #endif
 
   if (totalVertices < minNodes || h.dontCoarsen()) {
-    return NULL;
+    return nullptr;
   }
 
   int i;

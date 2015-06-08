@@ -146,7 +146,7 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
   int ij;
 
   int numVertices = h->getNumVertices();
-  int *pVector = NULL;
+  int *pVector = nullptr;
   int destProcessor;
   int myPartitionIdx = 0;
   int v;
@@ -384,8 +384,8 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
   MPI_Comm_rank(comm, &rank);
 
   if (nProcs == 1) {
-    Bisection *left = NULL;
-    Bisection *right = NULL;
+    Bisection *left = nullptr;
+    Bisection *right = nullptr;
 
     bisector->setNumRuns(numBisectRuns);
 

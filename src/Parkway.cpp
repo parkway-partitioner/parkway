@@ -39,12 +39,12 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 
   ostream *output;
 
-  ParaHypergraph *hgraph = NULL;
-  ParaCoarsener *coarsener = NULL;
-  ParaRestrCoarsener *restrC = NULL;
-  ParaRefiner *refiner = NULL;
-  SeqController *seqController = NULL;
-  ParaController *controller = NULL;
+  ParaHypergraph *hgraph = nullptr;
+  ParaCoarsener *coarsener = nullptr;
+  ParaRestrCoarsener *restrC = nullptr;
+  ParaRefiner *refiner = nullptr;
+  SeqController *seqController = nullptr;
+  ParaController *controller = nullptr;
 
   TableUtils tableUtils;
 
@@ -213,12 +213,12 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   int i;
   int j;
 
-  ParaHypergraph *hgraph = NULL;
-  ParaCoarsener *coarsener = NULL;
-  ParaRestrCoarsener *restrC = NULL;
-  ParaRefiner *refiner = NULL;
-  SeqController *seqController = NULL;
-  ParaController *controller = NULL;
+  ParaHypergraph *hgraph = nullptr;
+  ParaCoarsener *coarsener = nullptr;
+  ParaRestrCoarsener *restrC = nullptr;
+  ParaRefiner *refiner = nullptr;
+  SeqController *seqController = nullptr;
+  ParaController *controller = nullptr;
 
   TableUtils tableUtils;
 

@@ -46,13 +46,13 @@ protected:
 public:
   inline DynamicArray() {
     length = 0;
-    array = NULL;
+    array = nullptr;
   }
 
   inline DynamicArray(int size) {
     if (size <= 0) {
       length = 0;
-      array = NULL;
+      array = nullptr;
       return;
     }
     array = new T[size];

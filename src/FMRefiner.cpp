@@ -34,8 +34,8 @@ FMRefiner::FMRefiner(int max, int insMethod, int ee, int dL) : Refiner(dL) {
   maxGainEntries.setLength(2);
   maxGains.setLength(2);
 
-  bucketArrays[0] = NULL;
-  bucketArrays[1] = NULL;
+  bucketArrays[0] = nullptr;
+  bucketArrays[1] = nullptr;
 }
 
 FMRefiner::~FMRefiner() {
@@ -87,8 +87,8 @@ void FMRefiner::buildBuckets() {
   for (i = 0; i < numVertices; ++i) {
     buckets[i] = new BucketNode;
     buckets[i]->vertexID = i;
-    buckets[i]->prev = NULL;
-    buckets[i]->next = NULL;
+    buckets[i]->prev = nullptr;
+    buckets[i]->next = nullptr;
 
     j = vOffsets[i + 1] - vOffsets[i];
 
@@ -109,9 +109,9 @@ void FMRefiner::buildBuckets() {
   bucketArrays[1] = new NodeArray(bucketArraysLen);
 
   for (i = 0; i < bucketArraysLen; ++i) {
-    (*bucketArrays[0])[i].next = NULL;
+    (*bucketArrays[0])[i].next = nullptr;
     (*bucketArrays[0])[i].vertexID = -1;
-    (*bucketArrays[1])[i].next = NULL;
+    (*bucketArrays[1])[i].next = nullptr;
     (*bucketArrays[1])[i].vertexID = -1;
   }
 }
@@ -120,15 +120,15 @@ void FMRefiner::restoreBuckets() {
   int i;
 
   for (i = 0; i < bucketArraysLen; ++i) {
-    (*bucketArrays[0])[i].next = NULL;
+    (*bucketArrays[0])[i].next = nullptr;
     (*bucketArrays[0])[i].vertexID = -1;
-    (*bucketArrays[1])[i].next = NULL;
+    (*bucketArrays[1])[i].next = nullptr;
     (*bucketArrays[1])[i].vertexID = -1;
   }
 
   for (i = 0; i < numVertices; ++i) {
-    buckets[i]->prev = NULL;
-    buckets[i]->next = NULL;
+    buckets[i]->prev = nullptr;
+    buckets[i]->next = nullptr;
   }
 }
 
@@ -250,7 +250,7 @@ void FMRefiner::initGains1to0() {
       moveToBucketArray(1, vertexGains[i], i);
 
 #ifdef DEBUG_FM_REFINER
-      assert(buckets[i]->prev != NULL);
+      assert(buckets[i]->prev != nullptr);
 #endif
       ++numBucketsInArray[1];
     }
@@ -292,7 +292,7 @@ void FMRefiner::initGains0to1() {
       moveToBucketArray(0, vertexGains[i], i);
 
 #ifdef DEBUG_FM_REFINER
-      assert(buckets[i]->prev != NULL);
+      assert(buckets[i]->prev != nullptr);
 #endif
       ++numBucketsInArray[0];
     }
@@ -308,15 +308,15 @@ void FMRefiner::removeBucketsFrom1() {
   int bucketArrayLen = Or(Shiftl(maxPossGain, 1), 0x1);
 
   for (i = 0; i < bucketArrayLen; ++i) {
-    while (array[i].next != NULL) {
+    while (array[i].next != nullptr) {
       b = array[i].next;
 #ifdef DEBUG_FM_REFINER
       assert(b);
 #endif
       array[i].next = b->next;
 
-      b->prev = NULL;
-      b->next = NULL;
+      b->prev = nullptr;
+      b->next = nullptr;
     }
   }
 
@@ -332,15 +332,15 @@ void FMRefiner::removeBucketsFrom0() {
   int bucketArrayLen = Or(Shiftl(maxPossGain, 1), 0x1);
 
   for (i = 0; i < bucketArrayLen; ++i) {
-    while (array[i].next != NULL) {
+    while (array[i].next != nullptr) {
       b = array[i].next;
 #ifdef DEBUG_FM_REFINER
       assert(b);
 #endif
       array[i].next = b->next;
 
-      b->prev = NULL;
-      b->next = NULL;
+      b->prev = nullptr;
+      b->next = nullptr;
     }
   }
 
@@ -357,7 +357,7 @@ void FMRefiner::removeUnlockedFromBucketArrays() {
 
 #ifdef DEBUG_FM_REFINER
       assert(b);
-      assert(b->prev != NULL);
+      assert(b->prev != nullptr);
 #endif
 
       b->prev->next = b->next;
@@ -365,8 +365,8 @@ void FMRefiner::removeUnlockedFromBucketArrays() {
       if (b->next)
         b->next->prev = b->prev;
 
-      b->prev = NULL;
-      b->next = NULL;
+      b->prev = nullptr;
+      b->next = nullptr;
     }
   }
 
@@ -415,7 +415,7 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
 
     bucket->next = b;
     b->prev = bucket;
-    b->next = NULL;
+    b->next = nullptr;
 
     break;
   }
@@ -452,7 +452,7 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
   if (maxGains[vPart] > vGain) {
     int index = maxGainEntries[vPart];
 
-    while ((*bucketArrays[vPart])[index].next == NULL) {
+    while ((*bucketArrays[vPart])[index].next == nullptr) {
 #ifdef DEBUG_FM_REFINER
       assert(index >= 0);
 #endif
@@ -486,8 +486,8 @@ void FMRefiner::removeFromBucketArray(int v, int vPart, int vGain) {
   if (b->next)
     b->next->prev = b->prev;
 
-  b->prev = NULL;
-  b->next = NULL;
+  b->prev = nullptr;
+  b->next = nullptr;
 
   --numBucketsInArray[vPart];
 
@@ -498,7 +498,7 @@ void FMRefiner::removeFromBucketArray(int v, int vPart, int vGain) {
   if (maxGains[vPart] == vGain) {
     int index = vGain + maxPossGain;
 
-    while ((*bucketArrays[vPart])[index].next == NULL && index > 0)
+    while ((*bucketArrays[vPart])[index].next == nullptr && index > 0)
       --index;
 
     maxGainEntries[vPart] = index;
@@ -514,7 +514,7 @@ void FMRefiner::adjustMaxGainPtr(int dP) {
   if (numBucketsInArray[dP] > 0) {
     int index = Shiftl(maxPossGain, 1);
 
-    while ((*bucketArrays[dP])[index].next == NULL) {
+    while ((*bucketArrays[dP])[index].next == nullptr) {
 #ifdef DEBUG_FM_REFINER
       assert(index > 0);
 #endif

@@ -20,7 +20,7 @@ Refiner::Refiner(int dL) : HypergraphLoader(dL) {
   numParts = 0;
   acceptProp = 0;
   avePartWt = 0;
-  partitionVector = NULL;
+  partitionVector = nullptr;
   partWeights.setLength(0);
 }
 

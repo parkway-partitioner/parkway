@@ -77,19 +77,19 @@
 
 #else
 
-#define free_sprng(A) ((deleteID(A) == NULL) ? -1 : free_rng(A))
-#define pack_sprng(A, B) ((checkID(A) == NULL) ? 0 : pack_rng(A, B))
+#define free_sprng(A) ((deleteID(A) == nullptr) ? -1 : free_rng(A))
+#define pack_sprng(A, B) ((checkID(A) == nullptr) ? 0 : pack_rng(A, B))
 #define unpack_sprng(A) addID(unpack_rng(A))
-#define isprng(A) ((checkID(A) == NULL) ? -1 : get_rn_int(A))
+#define isprng(A) ((checkID(A) == nullptr) ? -1 : get_rn_int(A))
 #define spawn_sprng(A, B, C)                                                   \
-  ((checkID(A) == NULL) ? 0 : spawn_rng(A, B, C, CHECK))
+  ((checkID(A) == nullptr) ? 0 : spawn_rng(A, B, C, CHECK))
 #define init_sprng(A, B, C, D, E) addID(init_rng(A, B, C, D, E))
-#define print_sprng(A) ((checkID(A) == NULL) ? 0 : print_rng(A))
+#define print_sprng(A) ((checkID(A) == nullptr) ? 0 : print_rng(A))
 
 #ifdef FLOAT_GEN
-#define sprng(A) ((checkID(A) == NULL) ? -1.0 : get_rn_flt(A))
+#define sprng(A) ((checkID(A) == nullptr) ? -1.0 : get_rn_flt(A))
 #else
-#define sprng(A) ((checkID(A) == NULL) ? -1.0 : get_rn_dbl(A))
+#define sprng(A) ((checkID(A) == nullptr) ? -1.0 : get_rn_dbl(A))
 #endif
 
 #endif

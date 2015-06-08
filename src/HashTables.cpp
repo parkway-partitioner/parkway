@@ -505,7 +505,7 @@ MatchRequestTable::MatchRequestTable(int _size) {
   int i = 0;
 
   for (; i < size; ++i)
-    table[i] = NULL;
+    table[i] = nullptr;
 }
 
 MatchRequestTable::~MatchRequestTable() {

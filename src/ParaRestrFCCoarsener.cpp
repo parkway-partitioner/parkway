@@ -66,7 +66,7 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
   loadHyperGraph(h, comm);
 
   if (totalVertices < minNodes || h.dontCoarsen()) {
-    return NULL;
+    return nullptr;
   }
 
   int i;
@@ -124,7 +124,7 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
   metricVal = static_cast<double>(numLocalVertices) / reductionRatio;
 
 #ifdef DEBUG_COARSENER
-  assert(clusterWeights == NULL);
+  assert(clusterWeights == nullptr);
 #endif
 
   clusterWeights = new DynamicArray<int>(1024);

@@ -28,9 +28,9 @@ BisectionController::BisectionController(int nRuns, double kT, double redFactor,
   numOrigVertices = 0;
   maxPartWt = 0;
 
-  coarsener = NULL;
-  refiner = NULL;
-  initBisector = NULL;
+  coarsener = nullptr;
+  refiner = nullptr;
+  initBisector = nullptr;
 }
 
 BisectionController::~BisectionController() {

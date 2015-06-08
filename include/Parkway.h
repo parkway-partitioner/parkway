@@ -1,4 +1,3 @@
-
 #ifndef _PARKWAY_H
 #define _PARKWAY_H
 
@@ -13,8 +12,6 @@
 // ###
 
 #include "Utils.h"
-
-using namespace std;
 
 void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
                   double constraint, int &k_1cut, const int *options,

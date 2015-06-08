@@ -46,7 +46,7 @@ Hypergraph *RestrFCCoarsener::coarsen(const Hypergraph &h) {
   // ###
 
   if (numVertices < minNodes)
-    return NULL;
+    return nullptr;
 
   int numNotMatched = numVertices;
   int bestMatch;
@@ -234,7 +234,7 @@ Hypergraph *RestrFCCoarsener::coarsen(const Hypergraph &h) {
     // back off
 
     DynaMem<DynamicArray<int> >::deletePtr(coarseWts);
-    return NULL;
+    return nullptr;
   }
 
   // match remaining unmatched vertices as singletons
