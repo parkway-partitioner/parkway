@@ -10,11 +10,11 @@ int MemoryTracker::allocated = 0;
 int MemoryTracker::max = 0;
 int MemoryTracker::power = 0;
 
-void *operator new(std::size_t n) {
+void *operator new(std::size_t n) throw(std::bad_alloc) {
   return MemoryTracker::allocate(n);
 }
 
-void *operator new[](std::size_t n) {
+void *operator new[](std::size_t n) throw(std::bad_alloc) {
   return MemoryTracker::allocate(n);
 }
 

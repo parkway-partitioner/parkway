@@ -4,9 +4,4 @@ include_directories("include")
 
 set(DRIVER_BIN ${PROJECT_NAME}-driver)
 add_executable(${DRIVER_BIN} ${DRIVER_SRCS})
-
-# Require that the driver is compiled with C++11.
-set_property(TARGET ${DRIVER_BIN} PROPERTY CXX_STANDARD 11)
-set_property(TARGET ${DRIVER_BIN} PROPERTY CXX_STANDARD_REQUIRED ON)
-
 target_link_libraries(${DRIVER_BIN} ${PROJECT_LIBRARIES})
