@@ -23,7 +23,7 @@
 #include <ostream>
 #include "Refiner.hpp"
 #include "data_structures/bit_field.hpp"
-#include "data_structures/BucketNode.hpp"
+#include "data_structures/bucket_node.hpp"
 
 using namespace parkway::data_structures;
 

@@ -14,15 +14,20 @@
 
 #include "data_structures/DynamicArray.h"
 
+namespace parkway {
+namespace data_structures {
+
 typedef struct Bucket {
   int vertexID;
   Bucket *prev;
   Bucket *next;
-
 } BucketNode;
 
 typedef BucketNode *BucketNodePtr;
 typedef DynamicArray<BucketNode> NodeArray;
 typedef DynamicArray<BucketNodePtr> NodePtrArray;
+
+}  // namespace data_structures
+}  // namespace parkway
 
 #endif

@@ -16,7 +16,7 @@ set(LIBRARY_OUTPUT_PATH "${MAINFOLDER}/lib")
 
 # Output binary and library names to "parkway" and "libparkway".
 set(PROJECT_BIN ${PROJECT_NAME})
-set(PROJECT_LIB "lib${PROJECT_NAME}")
+set(PROJECT_LIB ${PROJECT_NAME})
 
 # Add a CMake build type requirement. Default to release with debug info.
 if(NOT CMAKE_BUILD_TYPE)
