@@ -10,104 +10,139 @@ class match_request_table {
  public:
   class entry;
 
-  match_request_table(int _size);
+  match_request_table(int initial_capacity);
   ~match_request_table();
 
-  int lookupClusterWt(int _vertex) const;
-  int lookupCluIndex(int _vertex) const;
-  int lookupNumLocals(int _vertex) const;
+  int cluster_weight(int _vertex) const;
+  int cluster_index(int _vertex) const;
+  int local_count(int _vertex) const;
 
-  inline int getNumEntries() const { return numEntries; }
-  inline int getNumSlots() const { return size; }
-  inline entry *getEntry(int i) const {
-    return entryPtrs[i];
-  }
-  inline entry **getEntriesArray() const {
-    return entryPtrs.data();
+  inline int size() const {
+    return size_;
   }
 
-  entry *getEntryPtr(int _vertex) const;
+  inline int capacity() const {
+    return capacity_;
+  }
 
-  void addLocal(int _vertex, int _local, int locWt, int nonLocProc);
-  void setCluIndex(int _vertex, int _index, int _cluWt);
-  void removeLocal(int _vertex, int _local, int locWt);
-  void removeEntry(int _vertex);
-  void clearTable();
+
+  inline entry **get_entries() const {
+    return entries_.data();
+  }
+
+  entry *get_entry(int i) const;
+
+  void add_local(int _vertex, int _local, int locWt, int nonLocProc);
+  void set_cluster_index(int _vertex, int _index, int _cluWt);
+  void remove_local(int _vertex, int _local, int locWt);
+  void remove_entry(int _vertex);
+  void clear();
 
  protected:
-  int numEntries;
-  int size;
+  int size_;
+  int capacity_;
 
-  dynamic_array<entry *> table;
-  dynamic_array<entry *> entryPtrs;
+  dynamic_array<entry *> table_;
+  dynamic_array<entry *> entries_;
 };
 
 
 class match_request_table::entry {
  protected:
-  int nonLocVertex;
-  int clusterWeight;
-  int clusterIndex;
-  int nonLocProc;
-  int numLocals;
+  int non_local_vertex_;
+  int cluster_weight_;
+  int cluster_index_;
+  // TODO(gb610): procress or processors?
+  int non_local_process_;
+  int number_local_;
 
-  dynamic_array<int> locVertices;
-  entry *next;
+  dynamic_array<int> local_vertices_;
+  entry *next_;
 
  public:
   inline entry(int _nonlocal, int _local, int _locWt, int _proc, entry *_next)
-      : nonLocVertex(_nonlocal),
-        clusterWeight(_locWt),
-        clusterIndex(-1),
-        nonLocProc(_proc),
-        numLocals(1),
-        next(_next) {
-    locVertices.assign(0, _local);
+      : non_local_vertex_(_nonlocal),
+        cluster_weight_(_locWt),
+        cluster_index_(-1),
+        non_local_process_(_proc),
+        number_local_(1),
+        next_(_next) {
+    local_vertices_.assign(0, _local);
   }
 
   inline ~entry() {
-    DynaMem<entry>::deletePtr(next);
+    DynaMem<entry>::deletePtr(next_);
   }
 
-  inline int getNonLocal() const { return nonLocVertex; }
-  inline int getClusterWt() const { return clusterWeight; }
-  inline int getCluIndex() const { return clusterIndex; }
-  inline int getNonLocProc() const { return nonLocProc; }
-  inline int getNumLocals() const { return numLocals; }
-  inline int *getLocalsArray() const { return locVertices.data(); }
-  inline entry *getNextEntry() const { return next; }
-
-  inline void setNextEntry(entry *newNext) {
-    next = newNext;
-  }
-  inline void setCluIndex(int _index) { clusterIndex = _index; }
-  inline void setNonLocProc(int _proc) { nonLocProc = _proc; }
-  inline void setCluWeight(int _cluWt) { clusterWeight = _cluWt; }
-  inline void clearEntry() {
-    numLocals = 0;
-    clusterWeight = 0;
+  inline int non_local_vertex() const {
+    return non_local_vertex_;
   }
 
-  inline void addLocal(int _loc, int _locWt) {
-    locVertices.assign(numLocals++, _loc);
-    clusterWeight += _locWt;
+  inline int cluster_weight() const {
+    return cluster_weight_;
   }
 
-  inline void removeLocal(int loc, int locWt) {
+  inline int cluster_index() const {
+    return cluster_index_;
+  }
+
+  inline int non_local_process() const {
+    return non_local_process_;
+  }
+
+  inline int number_local() const {
+    return number_local_;
+  }
+
+  inline int *local_vertices_array() const {
+    return local_vertices_.data();
+  }
+
+  inline entry *next() const {
+    return next_;
+  }
+
+  inline void set_next(entry *newNext) {
+    next_ = newNext;
+  }
+
+  inline void set_cluster_index(int _index) {
+    cluster_index_ = _index;
+  }
+
+  inline void set_non_local_process(int _proc) {
+    non_local_process_ = _proc;
+  }
+
+  inline void set_cluster_weight(int _cluWt) {
+    cluster_weight_ = _cluWt;
+  }
+
+  inline void clear() {
+    number_local_ = 0;
+    cluster_weight_ = 0;
+  }
+
+  inline void add_local(int _loc, int _locWt) {
+    local_vertices_.assign(number_local_++, _loc);
+    cluster_weight_ += _locWt;
+  }
+
+  inline void remove_local(int loc, int locWt) {
     int i = 0;
-    int j = numLocals - 1;
+    int j = number_local_ - 1;
 
-    for (; i < numLocals; ++i)
-      if (locVertices[i] == loc)
+    for (; i < number_local_; ++i)
+      if (local_vertices_[i] == loc)
         break;
 
     while (i < j) {
-      locVertices[i] = locVertices[i + 1];
+      local_vertices_[i] = local_vertices_[i + 1];
       ++i;
     }
 
-    --numLocals;
-    clusterWeight -= locWt;
+    --number_local_;
+    cluster_weight_ -= locWt;
   }
 };
 

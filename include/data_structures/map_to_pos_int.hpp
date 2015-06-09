@@ -11,7 +11,7 @@ class map_to_pos_int {
  protected:
   int size_;
   int capacity_;
-  int useHash;
+  int use_hash_;
 
   dynamic_array<int> entries;
   dynamic_array<int> table;
@@ -34,7 +34,7 @@ class map_to_pos_int {
   int get(int key);
 
   inline int use_hash() {
-    return useHash;
+    return use_hash_;
   }
 
   inline int size() {

@@ -13,13 +13,13 @@ map_to_pos_int::map_to_pos_int(int new_capacity, int use_hash) {
 }
 
 void map_to_pos_int::create(int new_capacity, int use_hash) {
-  useHash = use_hash;
+  use_hash_ = use_hash;
   size_ = 0;
   entries.reserve(2048);
 
   int i;
 
-  if (useHash == 0) {
+  if (use_hash_ == 0) {
     capacity_ = new_capacity;
     keys.reserve(0);
     table.reserve(capacity_);
@@ -55,7 +55,7 @@ void map_to_pos_int::recover() {
   size_ = 0;
   entries.reserve(2048);
 
-  if (useHash) {
+  if (use_hash_) {
     table.reserve(capacity_);
     keys.reserve(capacity_);
 
@@ -78,7 +78,7 @@ int map_to_pos_int::insert(int key, int val) {
   assert(val >= 0);
   #endif
 
-  if (useHash) {
+  if (use_hash_) {
     int indepKey = internal::table_utils::scatter_key(key);
     int slot = internal::hashes::primary(indepKey, capacity_);
 
@@ -122,7 +122,7 @@ int map_to_pos_int::insert_if_empty(int key, int val) {
   assert(key >= 0);
   #endif
 
-  if (useHash) {
+  if (use_hash_) {
     int indepKey = internal::table_utils::scatter_key(key);
     int slot = internal::hashes::primary(indepKey, capacity_);
 
@@ -157,7 +157,7 @@ void map_to_pos_int::clear() {
   int i;
   int slot;
 
-  if (useHash) {
+  if (use_hash_) {
     for (i = 0; i < size_; ++i) {
       slot = entries[i];
       keys[slot] = -1;
@@ -177,7 +177,7 @@ int map_to_pos_int::get_careful(int key) {
   assert(key >= 0);
 #endif
 
-  if (useHash) {
+  if (use_hash_) {
     int indepKey = internal::table_utils::scatter_key(key);
     int slot = internal::hashes::primary(indepKey, capacity_);
 
@@ -212,7 +212,7 @@ int map_to_pos_int::get(int key) {
   assert(key >= 0);
   #endif
 
-  if (useHash) {
+  if (use_hash_) {
     int indepKey = internal::table_utils::scatter_key(key);
     int slot = internal::hashes::primary(indepKey, capacity_);
 

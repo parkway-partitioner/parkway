@@ -5,121 +5,121 @@ namespace data_structures {
 
 
 match_request_table::match_request_table(int _size)
-    : numEntries(0),
-      size(_size) {
+    : size_(0),
+      capacity_(_size) {
 
-  table.reserve(size);
-  for (std::size_t i = 0; i < size; ++i) {
-    table[i] = nullptr;
+  table_.reserve(capacity_);
+  for (std::size_t i = 0; i < capacity_; ++i) {
+    table_[i] = nullptr;
   }
 }
 
 match_request_table::~match_request_table() {
-  for (std::size_t i = 0; i < size; ++i) {
-    DynaMem<entry>::deletePtr(table[i]);
+  for (std::size_t i = 0; i < capacity_; ++i) {
+    DynaMem<entry>::deletePtr(table_[i]);
   }
 }
 
-match_request_table::entry *match_request_table::getEntryPtr(int _vertex) const {
-  entry *entry_ = table[_vertex % size];
+match_request_table::entry *match_request_table::get_entry(int _vertex) const {
+  entry *entry_ = table_[_vertex % capacity_];
 
-  while (entry_ && entry_->getNonLocal() != _vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != _vertex) {
+    entry_ = entry_->next();
   }
 
   return entry_;
 }
 
-int match_request_table::lookupClusterWt(int _vertex) const {
-  entry *entry_ = table[_vertex % size];
+int match_request_table::cluster_weight(int _vertex) const {
+  entry *entry_ = table_[_vertex % capacity_];
 
-  while (entry_ && entry_->getNonLocal() != _vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != _vertex) {
+    entry_ = entry_->next();
   }
 
-  return entry_ ? entry_->getClusterWt() : -1;
+  return entry_ ? entry_->cluster_weight() : -1;
 }
 
-int match_request_table::lookupCluIndex(int _vertex) const {
-  entry *entry_ = table[_vertex % size];
+int match_request_table::cluster_index(int _vertex) const {
+  entry *entry_ = table_[_vertex % capacity_];
 
-  while (entry_ && entry_->getNonLocal() != _vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != _vertex) {
+    entry_ = entry_->next();
   }
 
-  return entry_ ? entry_->getCluIndex() : -1;
+  return entry_ ? entry_->cluster_index() : -1;
 }
 
-int match_request_table::lookupNumLocals(int _vertex) const {
-  entry *entry_ = table[_vertex % size];
+int match_request_table::local_count(int _vertex) const {
+  entry *entry_ = table_[_vertex % capacity_];
 
-  while (entry_ && entry_->getNonLocal() != _vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != _vertex) {
+    entry_ = entry_->next();
   }
 
-  return entry_ ? entry_->getNumLocals() : -1;
+  return entry_ ? entry_->number_local() : -1;
 }
 
-void match_request_table::clearTable() {
-  for (std::size_t i = 0; i < size; ++i)
-    DynaMem<entry>::deletePtr(table[i]);
+void match_request_table::clear() {
+  for (std::size_t i = 0; i < capacity_; ++i)
+    DynaMem<entry>::deletePtr(table_[i]);
 
-  numEntries = 0;
-  entryPtrs.reserve(0);
+  size_ = 0;
+  entries_.reserve(0);
 }
 
-void match_request_table::addLocal(int _vertex, int _local, int locWt,
-                                   int proc) {
-  int slot = _vertex % size;
-  entry *entry_ = table[slot];
+void match_request_table::add_local(int _vertex, int _local, int locWt,
+                                    int proc) {
+  int slot = _vertex % capacity_;
+  entry *entry_ = table_[slot];
 
-  while (entry_ && entry_->getNonLocal() != _vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != _vertex) {
+    entry_ = entry_->next();
   }
 
   if (entry_) {
-    entry_->addLocal(_local, locWt);
+    entry_->add_local(_local, locWt);
   } else {
-    entry *newEntry = new entry(_vertex, _local, locWt, proc, table[slot]);
-    table[slot] = newEntry;
-    entryPtrs.assign(numEntries++, newEntry);
+    entry *newEntry = new entry(_vertex, _local, locWt, proc, table_[slot]);
+    table_[slot] = newEntry;
+    entries_.assign(size_++, newEntry);
   }
 }
 
-void match_request_table::setCluIndex(int vertex, int index, int cluWt) {
-  entry *entry_ = table[vertex % size];
+void match_request_table::set_cluster_index(int vertex, int index, int cluWt) {
+  entry *entry_ = table_[vertex % capacity_];
 
-  while (entry_ && entry_->getNonLocal() != vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != vertex) {
+    entry_ = entry_->next();
   }
 
   if (entry_) {
-    entry_->setCluIndex(index);
-    entry_->setCluWeight(cluWt);
+    entry_->set_cluster_index(index);
+    entry_->set_cluster_weight(cluWt);
   }
 }
 
-void match_request_table::removeLocal(int vertex, int locVertex, int locWt) {
-  entry *entry_ = table[vertex % size];
+void match_request_table::remove_local(int vertex, int locVertex, int locWt) {
+  entry *entry_ = table_[vertex % capacity_];
 
-  while (entry_ && entry_->getNonLocal() != vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != vertex) {
+    entry_ = entry_->next();
   }
 
   if (entry_) {
-    entry_->removeLocal(locVertex, locWt);
+    entry_->remove_local(locVertex, locWt);
   }
 }
 
-void match_request_table::removeEntry(int _vertex) {
-  entry *entry_ = table[_vertex % size];
+void match_request_table::remove_entry(int _vertex) {
+  entry *entry_ = table_[_vertex % capacity_];
 
-  while (entry_ && entry_->getNonLocal() != _vertex) {
-    entry_ = entry_->getNextEntry();
+  while (entry_ && entry_->non_local_vertex() != _vertex) {
+    entry_ = entry_->next();
   }
 
   if (entry_) {
-    entry_->clearEntry();
+    entry_->clear();
   }
 }
 

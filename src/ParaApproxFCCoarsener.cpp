@@ -225,7 +225,7 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
                   nonLocV =
                       matchVector[candidatV - minVertexIndex] - NON_LOCAL_MATCH;
                   cluWeight = vWeight[vertex] +
-                              table->lookupClusterWt(nonLocV) + aveVertexWt;
+                              table->cluster_weight(nonLocV) + aveVertexWt;
                 } else
                   cluWeight =
                       vWeight[vertex] +
@@ -236,7 +236,7 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
                 // vertex matched with a non-local one
                 // ###
 
-                candVwt = table->lookupClusterWt(candidatV);
+                candVwt = table->cluster_weight(candidatV);
 
                 if (candVwt != -1)
                   cluWeight = vWeight[vertex] + candVwt + aveVertexWt;
@@ -366,8 +366,9 @@ assert(bestMatch >= 0);
             if (matchVector[bestMatch - minVertexIndex] >= NON_LOCAL_MATCH) {
               nonLocV =
                   matchVector[bestMatch - minVertexIndex] - NON_LOCAL_MATCH;
-              table->addLocal(nonLocV, vertex + minVertexIndex, vWeight[vertex],
-                              std::min(nonLocV / vPerProc, numProcs - 1));
+              table->add_local(nonLocV, vertex + minVertexIndex,
+                               vWeight[vertex],
+                               std::min(nonLocV / vPerProc, numProcs - 1));
 #ifdef DEBUG_COARSENER
               assert(std::min(nonLocV / vPerProc, numProcs - 1) != myRank);
 #endif
@@ -385,8 +386,8 @@ assert(bestMatch >= 0);
           // best match is not a local vertex
           // ###
 
-          table->addLocal(bestMatch, vertex + minVertexIndex, vWeight[vertex],
-                          std::min(bestMatch / vPerProc, numProcs - 1));
+          table->add_local(bestMatch, vertex + minVertexIndex, vWeight[vertex],
+                           std::min(bestMatch / vPerProc, numProcs - 1));
 #ifdef DEBUG_COARSENER
           assert(std::min(bestMatch / vPerProc, numProcs - 1) != myRank);
 #endif
@@ -401,7 +402,7 @@ assert(bestMatch >= 0);
 
       if (index > limitOnIndexDuringCoarsening) {
         reducedBy = static_cast<double>(numLocalVertices) /
-                    (numNotMatched + clusterIndex + table->getNumEntries());
+                    (numNotMatched + clusterIndex + table->size());
         break;
       }
     }
@@ -439,7 +440,7 @@ assert(bestMatch >= 0);
     stopCoarsening = 1;
   }
 
-  table->clearTable();
+  table->clear();
 
   // ###
   // now construct the coarse hypergraph using the matching vector
@@ -449,7 +450,7 @@ assert(bestMatch >= 0);
 }
 
 void ParaApproxFCCoarsener::setRequestArrays(int highToLow) {
-  int numRequests = table->getNumEntries();
+  int numRequests = table->size();
   int nonLocVertex;
   int cluWt;
 
@@ -457,7 +458,7 @@ void ParaApproxFCCoarsener::setRequestArrays(int highToLow) {
   int procRank;
 
   ds::match_request_table::entry *entry;
-  ds::match_request_table::entry **entryArray = table->getEntriesArray();
+  ds::match_request_table::entry **entryArray = table->get_entries();
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -469,9 +470,9 @@ void ParaApproxFCCoarsener::setRequestArrays(int highToLow) {
     assert(entry);
 #endif
 
-    nonLocVertex = entry->getNonLocal();
-    cluWt = entry->getClusterWt();
-    procRank = entry->getNonLocProc();
+    nonLocVertex = entry->non_local_vertex();
+    cluWt = entry->cluster_weight();
+    procRank = entry->non_local_process();
 
 #ifdef DEBUG_COARSENER
     assert(procRank < numProcs);
@@ -608,29 +609,29 @@ void ParaApproxFCCoarsener::processReqReplies() {
         // ###
 
         cluWt = receiveArray[startOffset + (j++)];
-        entry = table->getEntryPtr(vNonLocReq);
+        entry = table->get_entry(vNonLocReq);
 
 #ifdef DEBUG_COARSENER
         assert(entry);
 #endif
 
-        entry->setCluIndex(matchIndex);
-        entry->setCluWeight(cluWt);
+        entry->set_cluster_index(matchIndex);
+        entry->set_cluster_weight(cluWt);
       } else {
         // ###
         // match not successful - match requesting
         // vertices into a cluster
         // ###
 
-        entry = table->getEntryPtr(vNonLocReq);
-        locals = entry->getLocalsArray();
-        numLocals = entry->getNumLocals();
-        entry->setCluIndex(MATCHED_LOCALLY);
+        entry = table->get_entry(vNonLocReq);
+        locals = entry->local_vertices_array();
+        numLocals = entry->number_local();
+        entry->set_cluster_index(MATCHED_LOCALLY);
 
         for (index = 0; index < numLocals; ++index)
           matchVector[locals[index] - minVertexIndex] = clusterIndex;
 
-        clusterWeights.assign(clusterIndex++, entry->getClusterWt());
+        clusterWeights.assign(clusterIndex++, entry->cluster_weight());
       }
     }
     startOffset += recvLens[i];
@@ -698,7 +699,7 @@ void ParaApproxFCCoarsener::setClusterIndices(MPI_Comm comm) {
 
   int numLocals;
   int cluIndex;
-  int numEntries = table->getNumEntries();
+  int numEntries = table->size();
   int *locals;
 
   i = 0;
@@ -723,7 +724,7 @@ void ParaApproxFCCoarsener::setClusterIndices(MPI_Comm comm) {
   // now set the non-local matches' cluster indices
   // ###
 
-  entryArray = table->getEntriesArray();
+  entryArray = table->get_entries();
 
   for (index = 0; index < numEntries; ++index) {
     entry = entryArray[index];
@@ -732,16 +733,16 @@ void ParaApproxFCCoarsener::setClusterIndices(MPI_Comm comm) {
     assert(entry);
 #endif
 
-    cluIndex = entry->getCluIndex();
+    cluIndex = entry->cluster_index();
 
     if (cluIndex >= 0 && cluIndex != MATCHED_LOCALLY) {
-      numLocals = entry->getNumLocals();
-      locals = entry->getLocalsArray();
+      numLocals = entry->number_local();
+      locals = entry->local_vertices_array();
 
 #ifdef DEBUG_COARSENER
       assert(locals);
 #endif
-      cluIndex += startIndex[entry->getNonLocProc()];
+      cluIndex += startIndex[entry->non_local_process()];
 
       // indicate - there is no reason now why a vertex may not
       // match non-locally with a vertex that was matched non-locally
@@ -789,7 +790,7 @@ int ParaApproxFCCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
     // here think about allowing more than one cross-processor match
     // ###
 
-    if (table->lookupCluIndex(nonLocReq) != -1)
+    if (table->cluster_index(nonLocReq) != -1)
       return 0;
 
     int cluWt = vWeight[locVertexIndex] + nonLocCluWt;
@@ -804,7 +805,7 @@ int ParaApproxFCCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
       // remove locVertex from the request table
       // ###
 
-      table->removeLocal(nonLocReq, locVertex, vWeight[locVertexIndex]);
+      table->remove_local(nonLocReq, locVertex, vWeight[locVertexIndex]);
       matchVector[locVertexIndex] = clusterIndex;
       clusterWeights.assign(clusterIndex++, cluWt);
 
