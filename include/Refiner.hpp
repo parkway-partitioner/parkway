@@ -12,15 +12,15 @@
 //
 // ###
 
+#include <ostream>
 #include "Macros.h"
 #include "HypergraphLoader.hpp"
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 class Refiner : public HypergraphLoader {
-
-protected:
+ protected:
   int maxPartWt;
   int numParts;
   int *partitionVector;
@@ -30,12 +30,12 @@ protected:
 
   DynamicArray<int> partWeights;
 
-public:
+ public:
   Refiner(int dispL);
 
   virtual ~Refiner();
   virtual void refine(Hypergraph &h) = 0;
-  virtual void dispRefinerOptions(ostream &out) const = 0;
+  virtual void dispRefinerOptions(std::ostream &out) const = 0;
 
   inline int getMaxPartWt() const { return maxPartWt; }
 

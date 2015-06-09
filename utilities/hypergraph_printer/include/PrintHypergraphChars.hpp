@@ -14,13 +14,13 @@
 
 #include <iostream>
 #include <fstream>
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 #include "StringUtils.hpp"
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 class HypergraphChars {
-protected:
+ protected:
   int zerosOnDiag;
   int removeSingletons;
   int numVertices;
@@ -33,7 +33,7 @@ protected:
   DynamicArray<int> hEdgeWeights;
   DynamicArray<int> hEdgeLens;
 
-public:
+ public:
   HypergraphChars(int remove, int nZ);
   ~HypergraphChars();
 

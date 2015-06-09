@@ -63,18 +63,18 @@ public:
                  int _minVertIndex, int coarsen, int cut, int *wtArray,
                  int *partArray);
   ParaHypergraph(int myRank, int nProcs, const char *filename, int dispOption,
-                 ostream &out, MPI_Comm comm);
+                 std::ostream &out, MPI_Comm comm);
   ParaHypergraph(int myRank, int nProcs, int numLocVerts, int numLocHedges,
                  int maxHedgeLen, const int *vWeights, const int *hEdgeWts,
                  const int *locPinList, const int *hEdgeOffsets, int dispOption,
-                 ostream &out, MPI_Comm comm);
+                 std::ostream &out, MPI_Comm comm);
 
   ~ParaHypergraph();
 
-  void hypergraphFromFile(const char *filename, int dispOption, ostream &out,
-                          MPI_Comm comm);
-  void initPartitionFromFile(const char *filename, int numParts, ostream &out,
-                             MPI_Comm comm);
+  void hypergraphFromFile(const char *filename, int dispOption,
+                          std::ostream &out, MPI_Comm comm);
+  void initPartitionFromFile(const char *filename, int numParts,
+                             std::ostream &out, MPI_Comm comm);
 
   void allocHedgeMem(int numHedges, int numLocPins);
   void contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm);
@@ -85,7 +85,7 @@ public:
   void removeBadPartitions(double cutThreshold);
   void setNumberPartitions(int nP);
   void computePartitionChars(int pNum, int numParts, double constraint,
-                             ostream &out, MPI_Comm comm);
+                             std::ostream &out, MPI_Comm comm);
   void copyInPartition(const int *partition, int numV, int nP);
   void copyOutPartition(int *partition, int numV, int nP) const;
   int keepBestPartition();
@@ -120,9 +120,9 @@ public:
 
   void checkValidityOfPartitions(int numParts) const;
   void checkPartitions(int numParts, int maxPartWt, MPI_Comm comm);
-  void checkPartitions(int numParts, double constraint, ostream &out,
+  void checkPartitions(int numParts, double constraint, std::ostream &out,
                        MPI_Comm comm);
-  void computeBalanceWarning(int numParts, double constraint, ostream &out,
+  void computeBalanceWarning(int numParts, double constraint, std::ostream &out,
                              MPI_Comm comm);
 
   int getNumTotPins(MPI_Comm comm);

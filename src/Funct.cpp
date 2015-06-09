@@ -190,12 +190,12 @@ void Funct::qsortByAnotherArray(const int left, const int right, int *array,
   }
 }
 
-void Funct::printIntro(ostream &out) {
-  out << endl << " ------- PARKWAY2.0 -------" << endl << "|" << endl;
+void Funct::printIntro(std::ostream &out) {
+  out << std::endl << " ------- PARKWAY2.0 -------" << std::endl << "|" << std::endl;
 }
 
-void Funct::printEnd(ostream &out) {
-  out << " --------------------------" << endl << endl;
+void Funct::printEnd(std::ostream &out) {
+  out << " --------------------------" << std::endl << std::endl;
 }
 
 void Funct::printMemUse(int myRank, const char *info) {

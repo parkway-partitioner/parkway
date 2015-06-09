@@ -12,13 +12,12 @@
 // ###
 
 #include <fstream>
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 class Converter {
-
-protected:
+ protected:
   int locOfLengthParam;
   int dataLength;
   int numVerts;
@@ -26,7 +25,7 @@ protected:
   DynamicArray<int> hEdgeData;
   DynamicArray<int> vWeights;
 
-public:
+ public:
   Converter();
   virtual ~Converter();
 
@@ -41,7 +40,7 @@ public:
   void addLengthParameter();
 
   virtual void convert(const char *filename) = 0;
-  virtual void readPreamble(ifstream &in) = 0;
+  virtual void readPreamble(std::ifstream &in) = 0;
 };
 
 #endif

@@ -479,11 +479,11 @@ int NewHedgeIndexTable::getHedgeIndex(HashKey key, int &numSeen) {
 void NewHedgeIndexTable::print() {
   for (int i = 0; i < size; ++i) {
     if (table[i] != -1)
-      cout << "[" << i << "]: "
+      std::cout << "[" << i << "]: "
            << "key = " << keys[i] << " index = " << table[i]
-           << " next = " << nextSameKey[i] << endl;
+           << " next = " << nextSameKey[i] << std::endl;
     else
-      cout << "[empty]" << endl;
+      std::cout << "[empty]" << std::endl;
   }
 }
 

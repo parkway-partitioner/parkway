@@ -11,15 +11,14 @@
 //
 // ###
 
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
 typedef struct VertexNode {
   int vertexID;
   VertexNode *next;
-
 } VNode;
 
 typedef VNode *VNodePtr;
-typedef DynamicArray<VNodePtr> VNodePtrArray;
+typedef parkway::data_structures::DynamicArray<VNodePtr> VNodePtrArray;
 
 #endif

@@ -12,32 +12,18 @@
 //
 // ###
 
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 typedef struct MovementSet {
   int gain;
   int weight;
   int proc;
-
 } MOVE_SET;
 
 class MovementSetTable {
-
-protected:
-  int numParts;
-  int numProcs;
-  int maxPartWt;
-  int setArrayLen;
-
-  DynamicArray<int> partWeights;
-  DynamicArray<int> restoringMovesLens;
-
-  DynamicArray<DynamicArray<int> *> restoringMoves;
-  DynamicArray<DynamicArray<MOVE_SET> *> sets;
-
-public:
+ public:
   MovementSetTable(int nParts, int nProcs);
   ~MovementSetTable();
 
@@ -70,6 +56,18 @@ public:
   void initPartWeights(const int *partWts, int nParts);
   void completeProcSets(int proc, int dataLen, const int *data);
   void computeRestoringArray();
+
+ protected:
+  int numParts;
+  int numProcs;
+  int maxPartWt;
+  int setArrayLen;
+
+  DynamicArray<int> partWeights;
+  DynamicArray<int> restoringMovesLens;
+
+  DynamicArray<DynamicArray<int> *> restoringMoves;
+  DynamicArray<DynamicArray<MOVE_SET> *> sets;
 };
 
 #endif

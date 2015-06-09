@@ -1,4 +1,3 @@
-
 #ifndef _HASH_TABLES_HPP
 #define _HASH_TABLES_HPP
 
@@ -18,13 +17,14 @@
 
 #include "Macros.h"
 #include "Funct.hpp"
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 #include "data_structures/complete_binary_tree.hpp"
 
 #define PRIMARY_HASH(a, b) (Mod(a, b))
 #define SECONDARY_HASH(a, b) (1 + Mod(a, (b - 1)))
 
 using parkway::data_structures::CompleteBinaryTree;
+using parkway::data_structures::DynamicArray;
 
 class TableUtils {
  protected:

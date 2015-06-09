@@ -263,7 +263,7 @@ void Hypergraph::copyInPartition(const int *pVector, int nV, int pNo,
   partitionCuts[pNo] = cut;
 }
 
-void Hypergraph::printCharacteristics(ostream &o) {
+void Hypergraph::printCharacteristics(std::ostream &o) {
   int i;
   int j;
   int ij;
@@ -373,7 +373,7 @@ void Hypergraph::printCharacteristics(ostream &o) {
     }
 
     if (i == numVertices - 1) {
-      o << vWeight[vertices[i]] << endl;
+      o << vWeight[vertices[i]] << std::endl;
     }
   }
 }
@@ -566,7 +566,7 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
 
   char writeString[2064];
 
-  ofstream out_stream;
+  std::ofstream out_stream;
 
   DynamicArray<int> numVNeighs(numVertices);
   DynamicArray<int> vDegs(numVertices);
@@ -622,10 +622,10 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
   // now translate the adjacency list to file
   // ###
 
-  out_stream.open(fN, ofstream::out | ofstream::binary);
+  out_stream.open(fN, std::ofstream::out | std::ofstream::binary);
 
   if (!out_stream.is_open()) {
-    cout << "error opening " << fN << endl;
+    std::cout << "error opening " << fN << std::endl;
     return;
   }
 
@@ -652,13 +652,13 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
     DynaMem<DynamicArray<int> >::deletePtr(vNeighs[i]);
 }
 
-void Hypergraph::printPercentiles(ostream &o) {
+void Hypergraph::printPercentiles(std::ostream &o) {
   int i;
   int j;
   int ij;
 
   o << " #vertices: " << numVertices << " #hyperedges: " << numHedges
-    << " #pins: " << numPins << endl;
+    << " #pins: " << numPins << std::endl;
 
   double weighted_ave = 0;
   double percentile_95;
@@ -687,7 +687,7 @@ void Hypergraph::printPercentiles(ostream &o) {
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
   o << "hyperedge length percentiles: (weighted ave, 25, 50, 75, 95, "
-       "maxLength) " << endl;
+       "maxLength) " << std::endl;
   o << "\t" << weighted_ave / j << " ";
 
   Funct::qsortByAnotherArray(0, numHedges - 1, indices.getArray(),
@@ -721,7 +721,7 @@ void Hypergraph::printPercentiles(ostream &o) {
     }
 
     if (i == numHedges - 1) {
-      o << hEdgeLens[indices[i]] << endl;
+      o << hEdgeLens[indices[i]] << std::endl;
     }
   }
 
@@ -743,7 +743,7 @@ void Hypergraph::printPercentiles(ostream &o) {
   Funct::qsortByAnotherArray(0, numVertices - 1, indices.getArray(),
                              vWeight.getArray(), INC);
 
-  o << "vertex weight percentiles: (ave, 25, 50, 75, 95, maxWeight) " << endl;
+  o << "vertex weight percentiles: (ave, 25, 50, 75, 95, maxWeight) " << std::endl;
   o << "\t" << static_cast<double>(j) / numVertices << " ";
 
   j = 0;
@@ -774,7 +774,7 @@ void Hypergraph::printPercentiles(ostream &o) {
     }
 
     if (i == numVertices - 1) {
-      o << vWeight[indices[i]] << endl;
+      o << vWeight[indices[i]] << std::endl;
     }
   }
 }

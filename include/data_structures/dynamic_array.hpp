@@ -20,29 +20,10 @@
 #include "Macros.h"
 #include "DynaMem.hpp"
 
-using namespace std;
+namespace parkway {
+namespace data_structures {
 
 template <class T> class DynamicArray {
- protected:
-  int length;
-  T *array;
-
-  inline int expand(int index) {
-    int targetLength = 1;
-    while (index >= targetLength)
-      targetLength <<= 1;
-    if (!adjust(targetLength - length))
-      return 0;
-    return 1;
-  }
-
-  inline void delayT() const {
-    for (int i = 0; i < 0xFFFFFFA; i++) {
-      int *a = new int;
-      delete a;
-    }
-  }
-
  public:
   inline DynamicArray() {
     length = 0;
@@ -63,7 +44,7 @@ template <class T> class DynamicArray {
       sprintf(message,
               "DynamicArray: (%d): memory allocation (size %d) failed!\n",
               (int)this, size);
-      cout << message;
+      std::cout << message;
 #endif
       abort();
     }
@@ -77,7 +58,9 @@ template <class T> class DynamicArray {
     length = 0;
   }
 
-  inline int getLength() const { return length; }
+  inline int getLength() const {
+    return length;
+  }
 
   inline int setLength(int size) {
     if (size == length)
@@ -113,7 +96,7 @@ template <class T> class DynamicArray {
               "DynamicArray (%d): Array subscript [%d] out of range (Valid "
               "range is 0 to %d)",
               (int)this, index, length - 1);
-      cout << message;
+      std::cout << message;
       delayT();
 #endif
       abort();
@@ -131,7 +114,7 @@ template <class T> class DynamicArray {
               "DynamicArray: (%d) Array subscript [%d] out of range (Valid "
               "range is 0 to %d)",
               (int)this, index, length - 1);
-      cout << message;
+      std::cout << message;
       abort();
     }
 #endif
@@ -169,7 +152,7 @@ template <class T> class DynamicArray {
       sprintf(message,
               "DynamicArray: (%d): memory allocation (size %d) failed!\n",
               (int)this, size);
-      cout << message;
+      std::cout << message;
 #endif
       abort();
     }
@@ -191,6 +174,32 @@ template <class T> class DynamicArray {
 
     return 1;
   }
+
+ protected:
+  int length;
+  T *array;
+
+  inline int expand(int index) {
+    int targetLength = 1;
+    while (index >= targetLength)
+      targetLength <<= 1;
+    if (!adjust(targetLength - length))
+      return 0;
+    return 1;
+  }
+
+  inline void delayT() const {
+    for (int i = 0; i < 0xFFFFFFA; i++) {
+      int *a = new int;
+      delete a;
+    }
+  }
+
+
+
 };
+
+}  // namespace data_structures
+}  // namespace parkway
 
 #endif

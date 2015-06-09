@@ -18,7 +18,7 @@
 // ###
 
 #include <iostream>
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
 namespace parkway {
 namespace data_structures {

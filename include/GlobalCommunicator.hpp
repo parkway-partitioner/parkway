@@ -14,7 +14,9 @@
 
 #include "mpi.h"
 #include "Funct.hpp"
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
+
+using parkway::data_structures::DynamicArray;
 
 class GlobalCommunicator {
  protected:

@@ -164,7 +164,7 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
 ParaHypergraph::~ParaHypergraph() {}
 
 void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
-                                        ostream &out, MPI_Comm comm) {
+                                        std::ostream &out, MPI_Comm comm) {
   int buffer[3];
   int numHedgesInFile;
   int hEdgeDataLength;
@@ -330,14 +330,14 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
 }
 
 void ParaHypergraph::initPartitionFromFile(const char *filename, int numParts,
-                                           ostream &out, MPI_Comm comm) {
+                                           std::ostream &out, MPI_Comm comm) {
   int i;
   int myOffset;
   int numVPerProc = numTotalVertices / numProcs;
 
   char message[512];
 
-  ifstream in_stream;
+  std::ifstream in_stream;
 
   numPartitions = 1;
 
@@ -352,7 +352,7 @@ void ParaHypergraph::initPartitionFromFile(const char *filename, int numParts,
   for (i = 0; i < myRank; ++i)
     myOffset += numVPerProc;
 
-  in_stream.open(filename, ifstream::in | ifstream::binary);
+  in_stream.open(filename, std::ifstream::in | std::ifstream::binary);
 
   if (!in_stream.is_open()) {
     sprintf(message, "p[%d] could not open partition file %s\n", myRank,
@@ -361,7 +361,7 @@ void ParaHypergraph::initPartitionFromFile(const char *filename, int numParts,
     MPI_Abort(comm, 0);
   }
 
-  in_stream.seekg(myOffset * sizeof(int), ifstream::beg);
+  in_stream.seekg(myOffset * sizeof(int), std::ifstream::beg);
 
   i = numLocalVertices * sizeof(int);
 
@@ -439,7 +439,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
       if (!sentRequests(vertex)) {
-        p = min(vertex / vFinePerProc, numProcs - 1);
+        p = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[p]->assign(sendLens[p]++, vertex);
         sentRequests.set1(vertex);
       }
@@ -1295,7 +1295,7 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
             coarsePartitionVector[coarsePartitionOffsets[j] + locCoarseVindex];
       }
     } else {
-      proc = min(ij / vCoarsePerProc, numProcs - 1);
+      proc = std::min(ij / vCoarsePerProc, numProcs - 1);
 
       dataOutSets[proc]->assign(sendLens[proc]++, i);
       dataOutSets[proc]->assign(sendLens[proc]++, ij);
@@ -1537,7 +1537,7 @@ void ParaHypergraph::setNumberPartitions(int nP) {
 }
 
 void ParaHypergraph::computePartitionChars(int pNum, int numParts,
-                                           double constraint, ostream &out,
+                                           double constraint, std::ostream &out,
                                            MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions > 0);
@@ -1695,7 +1695,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
     vertex = vToOrigV[i];
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
-      j = min(vertex / vPerProc, numProcs - 1);
+      j = std::min(vertex / vPerProc, numProcs - 1);
 
       askingVertices[j]->assign(sendLens[j], i);
       dataOutSets[j]->assign(sendLens[j]++, vertex);
@@ -2150,7 +2150,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
       if (!sentRequests(vertex)) {
-        j = min(vertex / vFinePerProc, numProcs - 1);
+        j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
         sentRequests.set1(vertex);
       }
@@ -2477,7 +2477,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
       if (!sentRequests(vertex)) {
-        j = min(vertex / vFinePerProc, numProcs - 1);
+        j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
         sentRequests.set1(vertex);
       }
@@ -2825,7 +2825,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
       if (!sentRequests(vertex)) {
-        j = min(vertex / vFinePerProc, numProcs - 1);
+        j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
         sentRequests.set1(vertex);
       }
@@ -3174,7 +3174,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
       if (!sentRequests(vertex)) {
-        j = min(vertex / vFinePerProc, numProcs - 1);
+        j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
         sentRequests.set1(vertex);
       }
@@ -3186,7 +3186,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
       if (!sentRequests(vertex)) {
-        j = min(vertex / vFinePerProc, numProcs - 1);
+        j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
         sentRequests.set1(vertex);
       }
@@ -3542,8 +3542,8 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
         sendDispls[i] = sendDispls[i - 1] + sendLens[i - 1];
 
       sendLens[i] =
-          (max(numLocalVertices - (max(maxVertexIndex - maxNewIndex[i], 0) +
-                                   max(minNewIndex[i] - minVertexIndex, 0)),
+          (std::max(numLocalVertices - (std::max(maxVertexIndex - maxNewIndex[i], 0) +
+                                   std::max(minNewIndex[i] - minVertexIndex, 0)),
                0)) *
           3;
     }
@@ -3566,8 +3566,8 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
         sendDispls[i] = sendDispls[i - 1] + sendLens[i - 1];
 
       sendLens[i] = Shiftl(
-          max(numLocalVertices - (max(maxVertexIndex - maxNewIndex[i], 0) +
-                                  max(minNewIndex[i] - minVertexIndex, 0)),
+          std::max(numLocalVertices - (std::max(maxVertexIndex - maxNewIndex[i], 0) +
+                                  std::max(minNewIndex[i] - minVertexIndex, 0)),
               0),
           1);
     }
@@ -3663,7 +3663,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
 
     if (ij < minVertexIndex || ij >= maxLocalVertex) {
       if (!sentRequests(ij)) {
-        j = min(ij / vPerProc, numProcs - 1);
+        j = std::min(ij / vPerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, ij);
         sentRequests.set1(ij);
       }
@@ -3944,7 +3944,7 @@ void ParaHypergraph::checkPartitions(int numParts, int maxPartWt,
 }
 
 void ParaHypergraph::checkPartitions(int numParts, double constraint,
-                                     ostream &out, MPI_Comm comm) {
+                                     std::ostream &out, MPI_Comm comm) {
   int i;
   int j;
 
@@ -4012,7 +4012,7 @@ void ParaHypergraph::checkPartitions(int numParts, double constraint,
 }
 
 void ParaHypergraph::computeBalanceWarning(int numParts, double constraint,
-                                           ostream &out, MPI_Comm comm) {
+                                           std::ostream &out, MPI_Comm comm) {
   int i;
 
   int maxLocVertWt = 0;

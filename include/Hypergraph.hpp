@@ -13,19 +13,18 @@
 // ###
 
 #include <unistd.h>
-//#  include <fstream>
 #include <cstdio>
 #include <cassert>
+#include <iostream>
 
 #include "Macros.h"
 #include "Funct.hpp"
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 class Hypergraph {
-
-protected:
+ protected:
   int totWeight;
   int numVertices;
   int numHedges;
@@ -46,7 +45,7 @@ protected:
   DynamicArray<int> vToHedges;
   DynamicArray<int> vOffsets;
 
-public:
+ public:
   Hypergraph(int *vWts, int numV);
   Hypergraph(int *vWts, int *pVector, int numV, int cut);
   ~Hypergraph();
@@ -63,8 +62,8 @@ public:
   void setNumPartitions(int nPartitions);
   void copyOutPartition(int *pVector, int numV, int pNo) const;
   void copyInPartition(const int *pVector, int numV, int pNo, int cut);
-  void printCharacteristics(ostream &o);
-  void printPercentiles(ostream &o);
+  void printCharacteristics(std::ostream &o);
+  void printPercentiles(std::ostream &o);
 
   int keepBestPartition();
 

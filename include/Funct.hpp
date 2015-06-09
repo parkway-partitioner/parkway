@@ -20,14 +20,13 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
-//#  include <sstream>
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
 
 #include "Macros.h"
 #include "Log.h"
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
 #ifdef USE_SPRNG
 #define SIMPLE_SPRNG
@@ -48,7 +47,7 @@
   ((a) == (b) ? (a) : (static_cast<int>(drand48() * ((b) - (a))) + (a)))
 #endif
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 class Funct {
   static char *startHeap;
@@ -58,7 +57,7 @@ class Funct {
 
   static int tableSizes[16];
 
-public:
+ public:
   Funct();
   ~Funct();
 
@@ -137,8 +136,8 @@ public:
     return 1;
   }
 
-  static void printIntro(ostream &out);
-  static void printEnd(ostream &out);
+  static void printIntro(std::ostream &out);
+  static void printEnd(std::ostream &out);
   static void printMemUse(int myRank, const char *info);
 
   static void initStartMem();

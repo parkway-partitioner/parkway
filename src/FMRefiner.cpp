@@ -43,7 +43,7 @@ FMRefiner::~FMRefiner() {
   DynaMem<NodeArray>::deletePtr(bucketArrays[1]);
 }
 
-void FMRefiner::dispRefinerOptions(ostream &out) const {
+void FMRefiner::dispRefinerOptions(std::ostream &out) const {
   switch (dispOption) {
   case SILENT:
     break;
@@ -53,13 +53,13 @@ void FMRefiner::dispRefinerOptions(ostream &out) const {
     out << "|- FM:"
         << " qDis = ";
     printQdis(out);
-    out << " eeT = " << eeThreshold << " acc = " << acceptProp << endl
-        << "|" << endl;
+    out << " eeT = " << eeThreshold << " acc = " << acceptProp << std::endl
+        << "|" << std::endl;
     break;
   }
 }
 
-void FMRefiner::printQdis(ostream &out) const {
+void FMRefiner::printQdis(std::ostream &out) const {
   switch (insertMethod) {
   case FIFO:
     out << "FIFO";

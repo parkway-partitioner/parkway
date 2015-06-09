@@ -24,7 +24,7 @@ TextFileReader::TextFileReader() {
 
 TextFileReader::~TextFileReader() {}
 
-void TextFileReader::getLine(ifstream &input_stream) {
+void TextFileReader::getLine(std::ifstream &input_stream) {
   input_stream.getline(buffer.getArray(), maxLength);
   length = strlen(buffer.getArray());
 }

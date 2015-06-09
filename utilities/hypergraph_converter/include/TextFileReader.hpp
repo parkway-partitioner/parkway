@@ -15,25 +15,24 @@
 #include <fstream>
 #include <cstring>
 #include <cstdio>
-#include "data_structures/DynamicArray.h"
+#include "data_structures/dynamic_array.hpp"
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 class TextFileReader {
-
-private:
+ private:
   static int maxLength;
   static int maxPinsInChunk;
 
-protected:
+ protected:
   int length;
   DynamicArray<char> buffer;
 
-public:
+ public:
   TextFileReader();
   ~TextFileReader();
 
-  void getLine(ifstream &input_stream);
+  void getLine(std::ifstream &input_stream);
 
   static inline int getMaxLength() { return maxLength; }
   static inline int getMaxPinsInChunk() { return maxPinsInChunk; }
