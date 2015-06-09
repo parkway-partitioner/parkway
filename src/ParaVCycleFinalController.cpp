@@ -40,7 +40,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 
   double totStartTime;
 
-  Stack<int> hEdgePercentiles;
+  stack<int> hEdgePercentiles;
 
   ParaHypergraph *coarseGraph;
   ParaHypergraph *finerGraph;

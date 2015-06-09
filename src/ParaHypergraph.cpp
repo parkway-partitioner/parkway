@@ -864,7 +864,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  ds::CompleteBinaryTree<int> vFineToProc(procs.getArray(),
+  ds::complete_binary_tree <int> vFineToProc(procs.getArray(),
                                       minFineIdxOnProc.getArray(), numProcs);
 
   for (i = 0; i < numProcs; ++i)

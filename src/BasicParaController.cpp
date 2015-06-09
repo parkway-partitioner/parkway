@@ -64,7 +64,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
   int checkCutsize;
 #endif
 
-  Stack<int> hEdgePercentiles;
+  stack<int> hEdgePercentiles;
 
   numOrigLocVerts = hgraph->getNumLocalVertices();
 

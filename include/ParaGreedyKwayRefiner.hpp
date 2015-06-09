@@ -14,7 +14,7 @@
 
 #include <iostream>
 #include "data_structures/bit_field.hpp"
-#include "data_structures/MovementSets.hpp"
+#include "data_structures/movement_set_table.hpp"
 #include "ParaRefiner.hpp"
 
 namespace ds = parkway::data_structures;
@@ -55,7 +55,7 @@ protected:
   ds::dynamic_array<int> indexIntoMoveSetData;
   ds::dynamic_array<int> numVerticesMoved;
 
-  MovementSetTable *movementSets;
+  movement_set_table *movementSets;
 
 public:
   ParaGreedyKwayRefiner(int rank, int nProcs, int nParts, int numVperP,

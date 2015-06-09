@@ -16,16 +16,16 @@
 
 using parkway::data_structures::dynamic_array;
 
-typedef struct MovementSet {
+struct movement_set {
   int gain;
   int weight;
   int proc;
-} MOVE_SET;
+};
 
-class MovementSetTable {
+class movement_set_table {
  public:
-  MovementSetTable(int nParts, int nProcs);
-  ~MovementSetTable();
+  movement_set_table(int nParts, int nProcs);
+  ~movement_set_table();
 
   inline void setMaxWt(int max) { maxPartWt = max; }
 
@@ -67,7 +67,7 @@ class MovementSetTable {
   dynamic_array<int> restoringMovesLens;
 
   dynamic_array<dynamic_array<int> *> restoringMoves;
-  dynamic_array<dynamic_array<MOVE_SET> *> sets;
+  dynamic_array<dynamic_array<movement_set> *> sets;
 };
 
 #endif

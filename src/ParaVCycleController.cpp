@@ -211,7 +211,7 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  ds::CompleteBinaryTree<int> storedVtoProc(procs.getArray(),
+  ds::complete_binary_tree <int> storedVtoProc(procs.getArray(),
                                         minStoredIDs.getArray(), numProcs);
 
   for (i = 0; i < numProcs; ++i)

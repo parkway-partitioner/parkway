@@ -85,7 +85,7 @@ void FMRefiner::buildBuckets() {
   vInPart.setLength(Shiftl(numHedges, 1));
 
   for (i = 0; i < numVertices; ++i) {
-    buckets[i] = new BucketNode;
+    buckets[i] = new bucket_node;
     buckets[i]->vertexID = i;
     buckets[i]->prev = nullptr;
     buckets[i]->next = nullptr;
@@ -136,7 +136,7 @@ void FMRefiner::destroyBuckets() {
   int i;
 
   for (i = 0; i < numVertices; ++i)
-    DynaMem<BucketNode>::deletePtr(buckets[i]);
+    DynaMem<bucket_node>::deletePtr(buckets[i]);
 
   for (i = 0; i < 2; ++i)
     DynaMem<NodeArray>::deletePtr(bucketArrays[i]);
@@ -301,9 +301,9 @@ void FMRefiner::initGains0to1() {
 
 void FMRefiner::removeBucketsFrom1() {
   int i;
-  BucketNode *b;
+  bucket_node *b;
 
-  BucketNode *array = bucketArrays[1]->getArray();
+  bucket_node *array = bucketArrays[1]->getArray();
 
   int bucketArrayLen = Or(Shiftl(maxPossGain, 1), 0x1);
 
@@ -325,9 +325,9 @@ void FMRefiner::removeBucketsFrom1() {
 
 void FMRefiner::removeBucketsFrom0() {
   int i;
-  BucketNode *b;
+  bucket_node *b;
 
-  BucketNode *array = bucketArrays[0]->getArray();
+  bucket_node *array = bucketArrays[0]->getArray();
 
   int bucketArrayLen = Or(Shiftl(maxPossGain, 1), 0x1);
 
@@ -349,7 +349,7 @@ void FMRefiner::removeBucketsFrom0() {
 
 void FMRefiner::removeUnlockedFromBucketArrays() {
   int i;
-  BucketNode *b;
+  bucket_node *b;
 
   for (i = 0; i < numVertices; ++i) {
     if (!locked(i)) {
@@ -382,8 +382,8 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
 
   int arrayIndex = vGain + maxPossGain;
 
-  BucketNode *b = buckets[v];
-  BucketNode *bucket;
+  bucket_node *b = buckets[v];
+  bucket_node *bucket;
 
   // ###
   // first remove from bucket array
@@ -475,7 +475,7 @@ void FMRefiner::removeFromBucketArray(int v, int vPart, int vGain) {
   assert(v >= 0 && v < numVertices);
 #endif
 
-  BucketNode *b = buckets[v];
+  bucket_node *b = buckets[v];
 
 #ifdef DEBUG_FM_REFINER
   assert(b->prev);
@@ -1008,7 +1008,7 @@ int FMRefiner::chooseMaxGainVertex() {
   int index;
   int v;
 
-  Bucket *bucket;
+  bucket *bucket;
 
   if (numBucketsInArray[0] > 0) {
     index = maxGainEntries[0];
@@ -1097,7 +1097,7 @@ int FMRefiner::chooseLegalMove(int sP) {
   int v;
   int index;
 
-  Bucket *b;
+  bucket *b;
 
   if (And(sP, 0x1)) {
     index = maxGainEntries[1];

@@ -108,7 +108,7 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  ds::CompleteBinaryTree<int> vToProc(procs.getArray(), minLocIndices.getArray(),
+  ds::complete_binary_tree <int> vToProc(procs.getArray(), minLocIndices.getArray(),
                                   numProcs);
 
   numHedges = 0;

@@ -2,7 +2,7 @@
 #ifndef _COMPLETE_BINARY_TREE_HPP
 #define _COMPLETE_BINARY_TREE_HPP
 
-// ### CompleteBinaryTree.hpp ###
+// ### complete_binary_tree.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
@@ -18,7 +18,7 @@
 namespace parkway {
 namespace data_structures {
 
-template <typename T> class CompleteBinaryTree {
+template <typename T> class complete_binary_tree {
  protected:
   dynamic_array<int> tree;
   dynamic_array<T> roots;
@@ -26,16 +26,16 @@ template <typename T> class CompleteBinaryTree {
   int numRoots;
 
  public:
-  CompleteBinaryTree() : numRoots(0) {
+  complete_binary_tree() : numRoots(0) {
     tree.setLength(0);
     roots.setLength(0);
   }
 
-  CompleteBinaryTree(const T *rootVals, const int *cmprs, int nRoots) {
+  complete_binary_tree(const T *rootVals, const int *cmprs, int nRoots) {
     setupTree(rootVals, cmprs, nRoots);
   }
 
-  ~CompleteBinaryTree() {
+  ~complete_binary_tree() {
   }
 
   inline int getRootVal(int vID) const {

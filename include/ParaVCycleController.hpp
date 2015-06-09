@@ -27,9 +27,9 @@ protected:
 
   double limAsPercentOfCut;
 
-  Stack<int> numLocCurrVerts;
-  Stack<int> minLocCurrVertId;
-  Stack<IntArray *> bestVCyclePartition;
+  stack<int> numLocCurrVerts;
+  stack<int> minLocCurrVertId;
+  stack<IntArray *> bestVCyclePartition;
 
   dynamic_array<int> mapToInterVerts;
 

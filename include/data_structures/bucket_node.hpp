@@ -2,7 +2,7 @@
 #ifndef _BUCKET_HPP
 #define _BUCKET_HPP
 
-// ### BucketNode.hpp ###
+// ### bucket_node.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
@@ -17,14 +17,14 @@
 namespace parkway {
 namespace data_structures {
 
-typedef struct Bucket {
+typedef struct bucket {
   int vertexID;
-  Bucket *prev;
-  Bucket *next;
-} BucketNode;
+  bucket *prev;
+  bucket *next;
+} bucket_node;
 
-typedef BucketNode *BucketNodePtr;
-typedef dynamic_array<BucketNode> NodeArray;
+typedef bucket_node *BucketNodePtr;
+typedef dynamic_array<bucket_node> NodeArray;
 typedef dynamic_array<BucketNodePtr> NodePtrArray;
 
 }  // namespace data_structures

@@ -40,7 +40,7 @@ protected:
   Coarsener *coarsener;
   Refiner *refiner;
   InitBisector *initBisector;
-  Stack<Hypergraph *> hGraphs;
+  stack<Hypergraph *> hGraphs;
 
   dynamic_array<int> bestPartition;
 

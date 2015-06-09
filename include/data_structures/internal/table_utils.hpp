@@ -25,7 +25,7 @@ template<typename Type> Type chained(const int slot, Type a, Type b) {
 
 class table_utils {
  protected:
-  static CompleteBinaryTree<int> table_size_tree_;
+  static complete_binary_tree<int> table_size_tree_;
   static dynamic_array<int> scatter_array_;
   static int scatter_size_;
 

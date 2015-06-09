@@ -47,7 +47,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
   double othAccumulator;
   double totStartTime;
 
-  Stack<int> hEdgePercentiles;
+  stack<int> hEdgePercentiles;
 
   ParaHypergraph *coarseGraph;
   ParaHypergraph *interMedGraph;

@@ -12,7 +12,8 @@
 //
 // ###
 
-#include "data_structures/Stack.hpp"
+#include <iostream>
+#include "data_structures/stack.hpp"
 #include "ParaFCCoarsener.hpp"
 #include "Para2DModelCoarsener.hpp"
 #include "ParaApproxFCCoarsener.hpp"
@@ -20,12 +21,9 @@
 #include "ParaGreedyKwayRefiner.hpp"
 #include "SeqController.hpp"
 
-using namespace std;
-
 class ParaController : public GlobalCommunicator {
-
-protected:
-  ostream &out_stream;
+ protected:
+  std::ostream &out_stream;
 
   /* Parallel partitioning options */
 
@@ -78,12 +76,12 @@ protected:
   ParaCoarsener &coarsener;
   ParaRefiner &refiner;
   SeqController &seqController;
-  Stack<ParaHypergraph *> hgraphs;
+  parkway::data_structures::stack<ParaHypergraph *> hgraphs;
 
-public:
+ public:
   ParaController(ParaCoarsener &c, ParaRefiner &r, SeqController &ref, int rank,
                  int nP, int percentile, int inc, int approxRefine,
-                 ostream &out);
+                 std::ostream &out);
 
   virtual ~ParaController();
   virtual void dispParaControllerOptions() const = 0;

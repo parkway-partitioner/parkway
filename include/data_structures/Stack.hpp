@@ -1,7 +1,7 @@
 #ifndef _STACK_HPP
 #define _STACK_HPP
 
-// ### Stack.hpp ###
+// ### stack.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
@@ -16,12 +16,12 @@
 namespace parkway {
 namespace data_structures {
 
-template <class T> class Stack {
+template <class T> class stack {
  public:
-  inline Stack() : array(0), numElem(0) {
+  inline stack() : array(0), numElem(0) {
   }
 
-  inline ~Stack() {
+  inline ~stack() {
   }
 
   inline void push(const T elem) {

@@ -44,7 +44,7 @@ void VCycleAllBisectionController::computeBisection() {
   double accumulator;
   double othAccumulator;
 
-  Stack<int> hEdgePercentiles;
+  stack<int> hEdgePercentiles;
 
   numOrigVertices = origGraph->getNumVertices();
   bestPartition.setLength(numOrigVertices);

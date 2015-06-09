@@ -12,9 +12,9 @@
 //
 // ###
 
-#include "data_structures/MovementSets.hpp"
+#include "data_structures/movement_set_table.hpp"
 
-MovementSetTable::MovementSetTable(int nParts, int nProcs) {
+movement_set_table::movement_set_table(int nParts, int nProcs) {
   numParts = nParts;
   numProcs = nProcs;
   setArrayLen = numParts * numParts;
@@ -28,7 +28,7 @@ MovementSetTable::MovementSetTable(int nParts, int nProcs) {
 
   for (i = 0; i < setArrayLen; ++i) {
     if (Mod(i, numParts) != i / numParts) {
-      sets[i] = new dynamic_array<MOVE_SET>(numProcs);
+      sets[i] = new dynamic_array<movement_set>(numProcs);
 
       for (j = 0; j < numProcs; ++j)
         (*sets[i])[j].proc = j;
@@ -44,17 +44,17 @@ MovementSetTable::MovementSetTable(int nParts, int nProcs) {
     restoringMoves[i] = new dynamic_array<int>(256);
 }
 
-MovementSetTable::~MovementSetTable() {
+movement_set_table::~movement_set_table() {
   int i;
 
   for (i = 0; i < setArrayLen; ++i)
-    DynaMem<dynamic_array<MOVE_SET> >::deletePtr(sets[i]);
+    DynaMem<dynamic_array<movement_set> >::deletePtr(sets[i]);
 
   for (i = 0; i < numProcs; ++i)
     DynaMem<dynamic_array<int> >::deletePtr(restoringMoves[i]);
 }
 
-void MovementSetTable::initPartWeights(const int *partWts, int nParts) {
+void movement_set_table::initPartWeights(const int *partWts, int nParts) {
 #ifdef DEBUG_BASICS
   assert(nParts == numParts);
 #endif
@@ -75,7 +75,7 @@ void MovementSetTable::initPartWeights(const int *partWts, int nParts) {
   }
 }
 
-void MovementSetTable::completeProcSets(int proc, int dataLen,
+void movement_set_table::completeProcSets(int proc, int dataLen,
                                         const int *data) {
   int i = 0;
   int wt;
@@ -104,7 +104,7 @@ void MovementSetTable::completeProcSets(int proc, int dataLen,
   }
 }
 
-void MovementSetTable::computeRestoringArray() {
+void movement_set_table::computeRestoringArray() {
   int heaviest = findHeaviest();
 
 #ifdef DEBUG_BASICS
