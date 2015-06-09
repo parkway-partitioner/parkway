@@ -27,8 +27,6 @@
 #include "GlobalCommunicator.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-namespace ds = parkway::data_structures;
-
 class ParaHypergraph : public GlobalCommunicator {
  protected:
   int indexInSequence;
@@ -41,18 +39,18 @@ class ParaHypergraph : public GlobalCommunicator {
   int localVertexWt;
   int numPartitions;
 
-  ds::DynamicArray<int> vWeight;
-  ds::DynamicArray<int> matchVector;
+  parkway::data_structures::DynamicArray<int> vWeight;
+  parkway::data_structures::DynamicArray<int> matchVector;
 
-  ds::DynamicArray<int> partitionVector;
-  ds::DynamicArray<int> partitionOffsetsVector;
-  ds::DynamicArray<int> partitionCutsizesVector;
+  parkway::data_structures::DynamicArray<int> partitionVector;
+  parkway::data_structures::DynamicArray<int> partitionOffsetsVector;
+  parkway::data_structures::DynamicArray<int> partitionCutsizesVector;
 
-  ds::DynamicArray<int> localPins;
-  ds::DynamicArray<int> hEdgeOffsets;
-  ds::DynamicArray<int> hEdgeWeights;
+  parkway::data_structures::DynamicArray<int> localPins;
+  parkway::data_structures::DynamicArray<int> hEdgeOffsets;
+  parkway::data_structures::DynamicArray<int> hEdgeWeights;
 
-  ds::DynamicArray<int> vToOrigV;
+  parkway::data_structures::DynamicArray<int> vToOrigV;
 
 public:
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,

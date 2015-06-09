@@ -2,6 +2,7 @@
 #define _DATA_STRUCTURES_MAP_FROM_POS_INT_HPP
 
 #include "data_structures/dynamic_array.hpp"
+#include "data_structures/internal/table_utils.hpp"
 
 namespace parkway {
 namespace data_structures {
@@ -17,19 +18,87 @@ template<typename T> class map_from_pos_int {
   DynamicArray<int> keys;
 
  public:
-  map_from_pos_int();
-  map_from_pos_int(int _size);
-  ~map_from_pos_int() {}
+  map_from_pos_int() : map_from_pos_int(0) {
+  }
 
-  void createTable(int _size);
-  void destroyTable();
-  void recoverTable();
+  map_from_pos_int(int _size) {
+    createTable(_size);
+  }
 
-  int insertKey(int key, T val);
-  T &getVal(int key);
+  ~map_from_pos_int() {
+  }
 
-  inline int getNumEntries() { return numEntries; }
-  inline int getNumSlots() { return size; }
+  void createTable(int _size) {
+    numEntries = 0;
+    size = internal::table_utils::table_size(_size);
+
+    #ifdef DEBUG_TABLES
+    assert(size >= _size);
+    #endif
+
+    keys.setLength(size);
+    table.setLength(size);
+
+    for (std::size_t i = 0; i < size; ++i) {
+      keys[i] = -1;
+    }
+  }
+
+  void destroyTable() {
+    numEntries = 0;
+    table.setLength(0);
+    keys.setLength(0);
+  }
+
+  void recoverTable() {
+    table.setLength(size);
+    keys.setLength(size);
+    numEntries = 0;
+
+    for (std::size_t i = 0; i < size; ++i) {
+      keys[i] = -1;
+    }
+  }
+
+  int insertKey(int key, T val) {
+    int indepKey = internal::table_utils::scatter_key(key);
+    int slot = internal::hashes::primary(indepKey, size);
+
+    while (keys[slot] != -1 && keys[slot] != indepKey)
+      slot = (slot + internal::hashes::secondary(indepKey, size)) % size;
+
+    if (keys[slot] == -1) {
+      table[slot] = val;
+      keys[slot] = indepKey;
+      ++numEntries;
+      return 0;
+    } else {
+      table[slot] = val;
+      return 1;
+    }
+  }
+
+
+  T &getVal(int key) {
+    int indepKey = internal::table_utils::scatter_key(key);
+    int slot = internal::hashes::primary(indepKey, size);
+    while (keys[slot] != indepKey) {
+      slot = (slot + internal::hashes::secondary(indepKey, size)) % size;
+      #ifdef DEBUG_TABLES
+      assert(keys[slot] != -1);
+      #endif
+    }
+
+    return table[slot];
+  }
+
+  inline int getNumEntries() {
+    return numEntries;
+  }
+
+  inline int getNumSlots() {
+    return size;
+  }
 };
 
 }  // namespace data_structures
