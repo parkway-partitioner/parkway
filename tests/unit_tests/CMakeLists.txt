@@ -13,9 +13,6 @@ ExternalProject_Add(
   # Force separate output paths for debug and release builds to allow easy
   # identification of correct lib in subsequent TARGET_LINK_LIBRARIES
   # commands.
-  # CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
-  #            -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
-  #            -Dgtest_force_shared_crt=ON
   # Disable install step.
   INSTALL_COMMAND ""
   # Wrap download, configure and build steps in a script to log output.
@@ -46,6 +43,7 @@ target_link_libraries(${PROJECT_TEST_DRIVER} ${PROJECT_LIB}
   ${binary_dir}/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main.a
   ${binary_dir}/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest.a
   ${binary_dir}/gtest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main.a
+  ${CMAKE_THREAD_LIBS_INIT}
 )
 
 # Scan the test sources to find test name and add them to the CTest.
