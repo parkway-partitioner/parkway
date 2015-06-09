@@ -2,7 +2,7 @@
 #ifndef _BITFIELD_HPP
 #define _BITFIELD_HPP
 
-// ### BitField.hpp ###
+// ### bit_field.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 // Modified from code by William Knottenbelt
@@ -23,16 +23,16 @@
 namespace parkway {
 namespace data_structures {
 
-class BitField {
+class bit_field {
  public:
-  BitField() {
+  bit_field() {
   }
 
-  BitField(int bits) {
+  bit_field(int bits) {
     setLength(bits);
   }
 
-  ~BitField() {
+  ~bit_field() {
   }
 
   inline void check(int bit) {
@@ -105,7 +105,7 @@ class BitField {
  private:
   int bitLength;
   int length;
-  DynamicArray<unsigned int> data;
+  dynamic_array<unsigned int> data;
 };
 
 }  // namespace data_structures

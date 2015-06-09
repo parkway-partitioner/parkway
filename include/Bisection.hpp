@@ -25,7 +25,7 @@ protected:
 
   Hypergraph *hypergraph;
 
-  DynamicArray<int> mapToOrigVerts;
+  dynamic_array<int> mapToOrigVerts;
 
 public:
   Bisection(Hypergraph *h, int bAgain, int pID) {

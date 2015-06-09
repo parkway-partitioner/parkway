@@ -45,8 +45,8 @@ protected:
   BisectionController *bisector;
   GreedyKwayRefiner *kWayRefiner;
 
-  DynamicArray<int> locVertPartitionInfo;
-  DynamicArray<int> allPartitionInfo;
+  dynamic_array<int> locVertPartitionInfo;
+  dynamic_array<int> allPartitionInfo;
 
 public:
   RecurBisectController(BisectionController *b, GreedyKwayRefiner *k, int rank,

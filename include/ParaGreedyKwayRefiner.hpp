@@ -28,32 +28,32 @@ protected:
 
   // data structures from point of view of vertices
 
-  ds::DynamicArray<int> numNeighParts;
-  ds::DynamicArray<int> neighboursOfV;
-  ds::DynamicArray<int> neighboursOfVOffsets;
+  ds::dynamic_array<int> numNeighParts;
+  ds::dynamic_array<int> neighboursOfV;
+  ds::dynamic_array<int> neighboursOfVOffsets;
 
   // data structures from point of view of hyperedges
 
-  ds::DynamicArray<int> hEdgeVinPart;
-  ds::DynamicArray<int> hEdgeVinPartOffsets;
+  ds::dynamic_array<int> hEdgeVinPart;
+  ds::dynamic_array<int> hEdgeVinPartOffsets;
 
   // auxiliary structures
 
-  ds::DynamicArray<int> vertices;
-  ds::DynamicArray<int> movedVertices;
-  ds::DynamicArray<int> seenVertices;
-  ds::DynamicArray<int> numPartsSpanned;
-  ds::DynamicArray<int> spannedParts;
+  ds::dynamic_array<int> vertices;
+  ds::dynamic_array<int> movedVertices;
+  ds::dynamic_array<int> seenVertices;
+  ds::dynamic_array<int> numPartsSpanned;
+  ds::dynamic_array<int> spannedParts;
 
-  BitField locked;
-  BitField vertSeen;
+  bit_field locked;
+  bit_field vertSeen;
 
   // move set structures
 
-  ds::DynamicArray<ds::DynamicArray<int> *> moveSets;
-  ds::DynamicArray<int> moveSetData;
-  ds::DynamicArray<int> indexIntoMoveSetData;
-  ds::DynamicArray<int> numVerticesMoved;
+  ds::dynamic_array<ds::dynamic_array<int> *> moveSets;
+  ds::dynamic_array<int> moveSetData;
+  ds::dynamic_array<int> indexIntoMoveSetData;
+  ds::dynamic_array<int> numVerticesMoved;
 
   MovementSetTable *movementSets;
 

@@ -15,7 +15,7 @@
 #include "ParaHypergraphLoader.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class ParaCoarsener : public ParaHypergraphLoader {
 
@@ -33,7 +33,7 @@ protected:
   double reductionRatio;
   double balConstraint;
 
-  DynamicArray<int> clusterWeights;
+  dynamic_array<int> clusterWeights;
 
 public:
   ParaCoarsener(int _rank, int _numProcs, int _numParts, std::ostream &out);

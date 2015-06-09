@@ -62,7 +62,7 @@ void Hypergraph::buildVtoHedges() {
 
   int endOffset;
 
-  DynamicArray<int> vDegs(numVertices);
+  dynamic_array<int> vDegs(numVertices);
 
   vToHedges.setLength(numPins);
   vOffsets.setLength(numVertices + 1);
@@ -277,9 +277,9 @@ void Hypergraph::printCharacteristics(std::ostream &o) {
   double percentile_25;
   double percentile_95;
 
-  DynamicArray<int> hEdgeLens(numHedges);
-  DynamicArray<int> hEdges(numHedges);
-  DynamicArray<int> vertices(numVertices);
+  dynamic_array<int> hEdgeLens(numHedges);
+  dynamic_array<int> hEdges(numHedges);
+  dynamic_array<int> vertices(numVertices);
 
   j = 0;
   for (i = 0; i < numHedges; ++i) {
@@ -421,7 +421,7 @@ int Hypergraph::calcCutsize(int nP, int partitionNo) const {
   int j;
   int *pVector = &partitionVector[partitionVectorOffsets[partitionNo]];
 
-  DynamicArray<int> spanned(nP);
+  dynamic_array<int> spanned(nP);
 
   int k_1Cut = 0;
   int endOffset;
@@ -457,7 +457,7 @@ int Hypergraph::getSOED(int nP, int partitionNo) const {
   int j;
   int *pVector = &partitionVector[partitionVectorOffsets[partitionNo]];
 
-  DynamicArray<int> spanned(nP);
+  dynamic_array<int> spanned(nP);
 
   int soed = 0;
   int endOffset;
@@ -510,7 +510,7 @@ void Hypergraph::checkPartitions(int nP, int maxWt) const {
 
   int cut;
 
-  DynamicArray<int> partWts(nP);
+  dynamic_array<int> partWts(nP);
 
   for (i = 0; i < numPartitions; ++i) {
     cut = calcCutsize(nP, i);
@@ -536,7 +536,7 @@ void Hypergraph::checkPartition(int numPartition, int nP, int maxWt) const {
 
   int cut;
 
-  DynamicArray<int> partWts(nP);
+  dynamic_array<int> partWts(nP);
 
   cut = calcCutsize(nP, numPartition);
   assert(cut == partitionCuts[numPartition]);
@@ -568,14 +568,14 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
 
   std::ofstream out_stream;
 
-  DynamicArray<int> numVNeighs(numVertices);
-  DynamicArray<int> vDegs(numVertices);
+  dynamic_array<int> numVNeighs(numVertices);
+  dynamic_array<int> vDegs(numVertices);
 
-  DynamicArray<DynamicArray<int> *> vNeighs(numVertices);
+  dynamic_array<dynamic_array<int> *> vNeighs(numVertices);
 
   for (i = 0; i < numVertices; ++i) {
     numVNeighs[i] = 0;
-    vNeighs[i] = new DynamicArray<int>(32);
+    vNeighs[i] = new dynamic_array<int>(32);
   }
 
   // ###
@@ -649,7 +649,7 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
   out_stream.close();
 
   for (i = 0; i < numVertices; ++i)
-    DynaMem<DynamicArray<int> >::deletePtr(vNeighs[i]);
+    DynaMem<dynamic_array<int> >::deletePtr(vNeighs[i]);
 }
 
 void Hypergraph::printPercentiles(std::ostream &o) {
@@ -666,8 +666,8 @@ void Hypergraph::printPercentiles(std::ostream &o) {
   double percentile_50;
   double percentile_25;
 
-  DynamicArray<int> indices;
-  DynamicArray<int> hEdgeLens(numHedges);
+  dynamic_array<int> indices;
+  dynamic_array<int> hEdgeLens(numHedges);
 
   /* display hyperedge information */
 

@@ -38,7 +38,7 @@ public:
                                      double aveHedgeSize) = 0;
 
   void loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm);
-  void computeHedgesToLoad(BitField &toLoad, int numH, int *hEdgeWts,
+  void computeHedgesToLoad(bit_field &toLoad, int numH, int *hEdgeWts,
                            int *hEdgeOffsets, MPI_Comm comm);
 };
 

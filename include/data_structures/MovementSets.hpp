@@ -14,7 +14,7 @@
 
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 typedef struct MovementSet {
   int gain;
@@ -33,7 +33,7 @@ class MovementSetTable {
   inline int *getRestoringMovesLens() const {
     return restoringMovesLens.getArray();
   }
-  inline DynamicArray<int> **getRestoringMoves() const {
+  inline dynamic_array<int> **getRestoringMoves() const {
     return restoringMoves.getArray();
   }
 
@@ -63,11 +63,11 @@ class MovementSetTable {
   int maxPartWt;
   int setArrayLen;
 
-  DynamicArray<int> partWeights;
-  DynamicArray<int> restoringMovesLens;
+  dynamic_array<int> partWeights;
+  dynamic_array<int> restoringMovesLens;
 
-  DynamicArray<DynamicArray<int> *> restoringMoves;
-  DynamicArray<DynamicArray<MOVE_SET> *> sets;
+  dynamic_array<dynamic_array<int> *> restoringMoves;
+  dynamic_array<dynamic_array<MOVE_SET> *> sets;
 };
 
 #endif

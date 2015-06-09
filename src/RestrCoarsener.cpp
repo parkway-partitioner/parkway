@@ -49,18 +49,18 @@ Hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
   Hypergraph *newHypergraph = new Hypergraph(
       coarseWts, coarsePartVector, numCoarseVerts, partitionCutsizes[0]);
 
-  DynamicArray<int> *newHedgeOffsets = new DynamicArray<int>(1024);
-  DynamicArray<int> *newPinList = new DynamicArray<int>(1024);
-  DynamicArray<int> *newHedgeWt = new DynamicArray<int>(1024);
-  DynamicArray<int> *newVerOffsets =
-      new DynamicArray<int>(numCoarseVerts + 1);
-  DynamicArray<int> *newVtoHedges = new DynamicArray<int>(1024);
+  dynamic_array<int> *newHedgeOffsets = new dynamic_array<int>(1024);
+  dynamic_array<int> *newPinList = new dynamic_array<int>(1024);
+  dynamic_array<int> *newHedgeWt = new dynamic_array<int>(1024);
+  dynamic_array<int> *newVerOffsets =
+      new dynamic_array<int>(numCoarseVerts + 1);
+  dynamic_array<int> *newVtoHedges = new dynamic_array<int>(1024);
 
-  DynamicArray<int> tempPinList(numPins);
-  DynamicArray<int> vDegs(numCoarseVerts);
-  DynamicArray<int> duplDegs(numCoarseVerts);
-  DynamicArray<int> vHedgOffsets(numCoarseVerts + 1);
-  DynamicArray<int> vHedges;
+  dynamic_array<int> tempPinList(numPins);
+  dynamic_array<int> vDegs(numCoarseVerts);
+  dynamic_array<int> duplDegs(numCoarseVerts);
+  dynamic_array<int> vHedgOffsets(numCoarseVerts + 1);
+  dynamic_array<int> vHedges;
 
   for (i = 0; i < numCoarseVerts; ++i) {
     vDegs[i] = 0;

@@ -34,9 +34,9 @@ protected:
 
   Hypergraph *h;
 
-  DynamicArray<int> partitionVector;
-  DynamicArray<int> partitionCuts;
-  DynamicArray<int> partitionVectorOffsets;
+  dynamic_array<int> partitionVector;
+  dynamic_array<int> partitionCuts;
+  dynamic_array<int> partitionVectorOffsets;
 
 public:
   SeqController(int rank, int nProcs, int nParts, ostream &out);

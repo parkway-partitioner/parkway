@@ -107,8 +107,8 @@ void PaToHController::runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm) {
   int *hEdgeWts = h->getHedgeWeightsArray();
   int *pArray = h->getPartVectorArray();
 
-  DynamicArray<int> bestPartition(numVertices);
-  DynamicArray<int> pWeights(numParts);
+  dynamic_array<int> bestPartition(numVertices);
+  dynamic_array<int> pWeights(numParts);
 
   bisectConstraint = Funct::toRecurBal(kWayConstraint, numParts);
 #ifdef DEBUG_CONTROLLER

@@ -27,25 +27,25 @@ protected:
   // data structures from point of view of vertices
   // ###
 
-  DynamicArray<int> numNeighParts;
-  DynamicArray<int> neighboursOfV;
-  DynamicArray<int> neighboursOfVOffsets;
+  dynamic_array<int> numNeighParts;
+  dynamic_array<int> neighboursOfV;
+  dynamic_array<int> neighboursOfVOffsets;
 
   // ###
   // data structures from point of view of hyperedges
   // ###
 
-  DynamicArray<int> hEdgeVinPart;
-  DynamicArray<int> hEdgeVinPartOffsets;
+  dynamic_array<int> hEdgeVinPart;
+  dynamic_array<int> hEdgeVinPartOffsets;
 
   // ###
   // auxiliary structures
   // ###
 
-  DynamicArray<int> vertices;
-  DynamicArray<int> vertSeen;
-  DynamicArray<int> seenVertices;
-  DynamicArray<int> partsSpanned;
+  dynamic_array<int> vertices;
+  dynamic_array<int> vertSeen;
+  dynamic_array<int> seenVertices;
+  dynamic_array<int> partsSpanned;
 
 public:
   GreedyKwayRefiner(int max, int nparts, double ave, double limit, int dL);

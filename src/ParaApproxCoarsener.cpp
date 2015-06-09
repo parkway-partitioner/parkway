@@ -46,10 +46,10 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   int proc;
   int locVert;
 
-  DynamicArray<int> sentToProc;
-  DynamicArray<int> vDegs;
+  dynamic_array<int> sentToProc;
+  dynamic_array<int> vDegs;
 
-  BitField toLoad;
+  bit_field toLoad;
 
   numLocalPins = h.getNumLocalPins();
   numLocalHedges = h.getNumLocalHedges();
@@ -228,7 +228,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
 #endif
 }
 
-void ParaApproxCoarsener::computeHedgesToLoad(BitField &toLoad, int numH,
+void ParaApproxCoarsener::computeHedgesToLoad(bit_field &toLoad, int numH,
                                               int *hEdgeWts, int *hEdgeOffsets,
                                               MPI_Comm comm) {
   int i;
@@ -245,8 +245,8 @@ void ParaApproxCoarsener::computeHedgesToLoad(BitField &toLoad, int numH,
   int myPercentileLen;
   int percentileLen;
 
-  DynamicArray<int> hEdges(numH);
-  DynamicArray<int> hEdgeLens(numH);
+  dynamic_array<int> hEdges(numH);
+  dynamic_array<int> hEdgeLens(numH);
 
   /* compute the hyperedges that will not be communicated */
 

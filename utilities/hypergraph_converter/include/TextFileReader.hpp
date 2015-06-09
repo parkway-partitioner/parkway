@@ -17,7 +17,7 @@
 #include <cstdio>
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class TextFileReader {
  private:
@@ -26,7 +26,7 @@ class TextFileReader {
 
  protected:
   int length;
-  DynamicArray<char> buffer;
+  dynamic_array<char> buffer;
 
  public:
   TextFileReader();

@@ -41,7 +41,7 @@ ParaHypergraphLoader::ParaHypergraphLoader(int rank, int nProcs, int nParts,
 
 ParaHypergraphLoader::~ParaHypergraphLoader() {}
 
-void ParaHypergraphLoader::computeHedgesToLoad(BitField &toLoad, int numH,
+void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
                                                int numLocalPins, int *hEdgeWts,
                                                int *hEdgeOffsets,
                                                MPI_Comm comm) {
@@ -61,8 +61,8 @@ void ParaHypergraphLoader::computeHedgesToLoad(BitField &toLoad, int numH,
   int myData[2];
   int hGraphData[2];
 
-  DynamicArray<int> hEdges(numH);
-  DynamicArray<int> hEdgeLens(numH);
+  dynamic_array<int> hEdges(numH);
+  dynamic_array<int> hEdgeLens(numH);
 
   /* compute the hyperedges that will not be communicated */
 

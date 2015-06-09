@@ -47,7 +47,7 @@
   ((a) == (b) ? (a) : (static_cast<int>(drand48() * ((b) - (a))) + (a)))
 #endif
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class Funct {
   static char *startHeap;

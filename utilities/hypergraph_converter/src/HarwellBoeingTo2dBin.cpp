@@ -35,17 +35,17 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   int hEdgeLengthSlot;
   int maxIntsWritten = TextFileReader::getMaxPinsInChunk();
 
-  DynamicArray<int> hEdgeData;
-  DynamicArray<int> hEdgeOffsets;
-  DynamicArray<int> pinList;
-  DynamicArray<int> vWeights;
+  dynamic_array<int> hEdgeData;
+  dynamic_array<int> hEdgeOffsets;
+  dynamic_array<int> pinList;
+  dynamic_array<int> vWeights;
 
-  DynamicArray<int> rowWts;
-  DynamicArray<int> transposed_cols;
-  DynamicArray<int> transposed_col_offsets;
+  dynamic_array<int> rowWts;
+  dynamic_array<int> transposed_cols;
+  dynamic_array<int> transposed_col_offsets;
 
   int numZeroWeightVerts;
-  DynamicArray<int> zeroWeightVerts;
+  dynamic_array<int> zeroWeightVerts;
 
   int i;
   int j;
@@ -145,7 +145,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   int numZerosOnMainDiag = 0;
   int hasNonZeroOnDiag;
 
-  BitField addNonZero(numCols);
+  bit_field addNonZero(numCols);
   addNonZero.clear();
 
   rowWts.setLength(numCols);
@@ -192,14 +192,14 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   int vertIdx2D = 0;
   int pin;
 
-  BitField hasZeroWeight(num2Dvertices);
+  bit_field hasZeroWeight(num2Dvertices);
   hasZeroWeight.clear();
 
-  DynamicArray<int> convertedCols;
-  DynamicArray<int> convertedColOffsets(numCols + 1);
+  dynamic_array<int> convertedCols;
+  dynamic_array<int> convertedColOffsets(numCols + 1);
 
-  DynamicArray<int> vertSet;
-  DynamicArray<int> vertSetOffsets(numCols + 1);
+  dynamic_array<int> vertSet;
+  dynamic_array<int> vertSetOffsets(numCols + 1);
 
   convertedColOffsets[0] = 0;
   vertSetOffsets[0] = 0;
@@ -304,11 +304,11 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
 
   /* transpose the vertices to get the row hyperedges */
 
-  DynamicArray<DynamicArray<int> *> rows(numRows);
-  DynamicArray<int> rowLens(numRows);
+  dynamic_array<dynamic_array<int> *> rows(numRows);
+  dynamic_array<int> rowLens(numRows);
 
   for (i = 0; i < numRows; ++i) {
-    rows[i] = new DynamicArray<int>;
+    rows[i] = new dynamic_array<int>;
     rowLens[i] = 0;
   }
 

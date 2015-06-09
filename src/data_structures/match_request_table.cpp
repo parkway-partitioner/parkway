@@ -5,8 +5,8 @@ namespace data_structures {
 
 
 match_request_table::match_request_table(int _size)
-    : size(_size),
-      numEntries(0) {
+    : numEntries(0),
+      size(_size) {
 
   table.setLength(size);
   for (std::size_t i = 0; i < size; ++i) {

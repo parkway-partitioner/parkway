@@ -23,14 +23,14 @@
 namespace parkway {
 namespace data_structures {
 
-template <class T> class DynamicArray {
+template <class T> class dynamic_array {
  public:
-  inline DynamicArray() {
+  inline dynamic_array() {
     length = 0;
     array = nullptr;
   }
 
-  inline DynamicArray(int size) {
+  inline dynamic_array(int size) {
     if (size <= 0) {
       length = 0;
       array = nullptr;
@@ -42,7 +42,7 @@ template <class T> class DynamicArray {
 #ifdef DEBUG_BASICS
       char message[512];
       sprintf(message,
-              "DynamicArray: (%d): memory allocation (size %d) failed!\n",
+              "dynamic_array: (%d): memory allocation (size %d) failed!\n",
               (int)this, size);
       std::cout << message;
 #endif
@@ -53,7 +53,7 @@ template <class T> class DynamicArray {
     return;
   }
 
-  inline ~DynamicArray() {
+  inline ~dynamic_array() {
     DynaMem<T>::deleteArr(array);
     length = 0;
   }
@@ -93,7 +93,7 @@ template <class T> class DynamicArray {
 #ifdef DEBUG_BASICS
       char message[512];
       sprintf(message,
-              "DynamicArray (%d): Array subscript [%d] out of range (Valid "
+              "dynamic_array (%d): Array subscript [%d] out of range (Valid "
               "range is 0 to %d)",
               (int)this, index, length - 1);
       std::cout << message;
@@ -111,7 +111,7 @@ template <class T> class DynamicArray {
     if ((index >= length) || (index < 0)) {
       char message[512];
       sprintf(message,
-              "DynamicArray: (%d) Array subscript [%d] out of range (Valid "
+              "dynamic_array: (%d) Array subscript [%d] out of range (Valid "
               "range is 0 to %d)",
               (int)this, index, length - 1);
       std::cout << message;
@@ -150,7 +150,7 @@ template <class T> class DynamicArray {
 #ifdef DEBUG_BASICS
       char message[512];
       sprintf(message,
-              "DynamicArray: (%d): memory allocation (size %d) failed!\n",
+              "dynamic_array: (%d): memory allocation (size %d) failed!\n",
               (int)this, size);
       std::cout << message;
 #endif

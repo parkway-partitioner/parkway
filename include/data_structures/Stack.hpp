@@ -47,7 +47,7 @@ template <class T> class Stack {
   }
 
  protected:
-  DynamicArray<T> array;
+  dynamic_array<T> array;
   int numElem;
 };
 

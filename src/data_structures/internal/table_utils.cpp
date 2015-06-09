@@ -5,7 +5,7 @@ namespace data_structures {
 namespace internal {
 
 CompleteBinaryTree<int> table_utils::table_size_tree_;
-DynamicArray<int> table_utils::scatter_array_;
+dynamic_array<int> table_utils::scatter_array_;
 int table_utils::scatter_size_ = 0;
 
 table_utils::table_utils() {

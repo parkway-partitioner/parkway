@@ -57,13 +57,13 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
   int numPins;
   int totVertexWt;
 
-  DynamicArray<int> *vWeights;
-  DynamicArray<int> *hEdgeWeights;
-  DynamicArray<int> *hEdgeOffsets;
-  DynamicArray<int> *pinList;
-  DynamicArray<int> recvDispls(numProcs);
-  DynamicArray<int> recvLens(numProcs);
-  DynamicArray<int> recvArray;
+  dynamic_array<int> *vWeights;
+  dynamic_array<int> *hEdgeWeights;
+  dynamic_array<int> *hEdgeOffsets;
+  dynamic_array<int> *pinList;
+  dynamic_array<int> recvDispls(numProcs);
+  dynamic_array<int> recvLens(numProcs);
+  dynamic_array<int> recvArray;
 
   MPI_Allgather(&numLocalVertices, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
                 comm);
@@ -78,7 +78,7 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
   assert(numVertices == ij);
 #endif
 
-  vWeights = new DynamicArray<int>(numVertices);
+  vWeights = new dynamic_array<int>(numVertices);
 
   MPI_Allreduce(&localVertexWt, &totVertexWt, 1, MPI_INT, MPI_SUM, comm);
   MPI_Allgatherv(localVertWeight, numLocalVertices, MPI_INT,
@@ -94,7 +94,7 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
   }
 
   numHedges = ij;
-  hEdgeWeights = new DynamicArray<int>(numHedges);
+  hEdgeWeights = new dynamic_array<int>(numHedges);
 
   MPI_Allgatherv(localHedgeWeights, numLocalHedges, MPI_INT,
                  hEdgeWeights->getArray(), recvLens.getArray(),
@@ -112,7 +112,7 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
   MPI_Allgatherv(localHedgeOffsets, numLocalHedges + 1, MPI_INT,
                  recvArray.getArray(), recvLens.getArray(),
                  recvDispls.getArray(), MPI_INT, comm);
-  hEdgeOffsets = new DynamicArray<int>(numHedges + 1);
+  hEdgeOffsets = new dynamic_array<int>(numHedges + 1);
 
   j = 1;
   index = 0;
@@ -141,7 +141,7 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
   }
 
   numPins = ij;
-  pinList = new DynamicArray<int>(numPins);
+  pinList = new dynamic_array<int>(numPins);
   MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->getArray(),
                  recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
 
@@ -181,18 +181,18 @@ void SeqController::initSeqPartitions(ParaHypergraph &hgraph, MPI_Comm comm) {
   int *pVector = h->getPartVectorArray();
   int *pCuts = h->getPartCutArray();
 
-  DynamicArray<int> numVperProc(numProcs);
-  DynamicArray<int> procDispls(numProcs);
+  dynamic_array<int> numVperProc(numProcs);
+  dynamic_array<int> procDispls(numProcs);
 
-  DynamicArray<int> sendLens(numProcs);
-  DynamicArray<int> sendDispls(numProcs);
-  DynamicArray<int> recvLens(numProcs);
-  DynamicArray<int> recvDispls(numProcs);
-  DynamicArray<int> sendArray;
+  dynamic_array<int> sendLens(numProcs);
+  dynamic_array<int> sendDispls(numProcs);
+  dynamic_array<int> recvLens(numProcs);
+  dynamic_array<int> recvDispls(numProcs);
+  dynamic_array<int> sendArray;
 
-  DynamicArray<int> procCuts(numProcs);
-  DynamicArray<int> procs(numProcs);
-  DynamicArray<int> keepPartitions(numProcs);
+  dynamic_array<int> procCuts(numProcs);
+  dynamic_array<int> procs(numProcs);
+  dynamic_array<int> keepPartitions(numProcs);
 
   // ###
   // First root processor determines

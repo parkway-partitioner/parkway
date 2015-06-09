@@ -24,8 +24,8 @@ typedef struct Bucket {
 } BucketNode;
 
 typedef BucketNode *BucketNodePtr;
-typedef DynamicArray<BucketNode> NodeArray;
-typedef DynamicArray<BucketNodePtr> NodePtrArray;
+typedef dynamic_array<BucketNode> NodeArray;
+typedef dynamic_array<BucketNodePtr> NodePtrArray;
 
 }  // namespace data_structures
 }  // namespace parkway

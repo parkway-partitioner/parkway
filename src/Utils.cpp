@@ -420,7 +420,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
     // build the seq controller
     // ###
 
-    DynamicArray<int> seq_options(12);
+    dynamic_array<int> seq_options(12);
 
     seq_options[0] = USER_DEFINED;
     seq_options[2] = options[19];

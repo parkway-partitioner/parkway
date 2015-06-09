@@ -17,7 +17,7 @@
 #include "HypergraphLoader.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class Refiner : public HypergraphLoader {
  protected:
@@ -28,7 +28,7 @@ class Refiner : public HypergraphLoader {
   double acceptProp;
   double avePartWt;
 
-  DynamicArray<int> partWeights;
+  dynamic_array<int> partWeights;
 
  public:
   Refiner(int dispL);

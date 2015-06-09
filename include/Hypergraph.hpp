@@ -21,7 +21,7 @@
 #include "Funct.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class Hypergraph {
  protected:
@@ -31,19 +31,19 @@ class Hypergraph {
   int numPins;
   int numPartitions;
 
-  DynamicArray<int> vWeight;
-  DynamicArray<int> hEdgeWeight;
-  DynamicArray<int> matchVector;
+  dynamic_array<int> vWeight;
+  dynamic_array<int> hEdgeWeight;
+  dynamic_array<int> matchVector;
 
-  DynamicArray<int> partitionCuts;
-  DynamicArray<int> partitionVector;
-  DynamicArray<int> partitionVectorOffsets;
+  dynamic_array<int> partitionCuts;
+  dynamic_array<int> partitionVector;
+  dynamic_array<int> partitionVectorOffsets;
 
-  DynamicArray<int> pinList;
-  DynamicArray<int> hEdgeOffsets;
+  dynamic_array<int> pinList;
+  dynamic_array<int> hEdgeOffsets;
 
-  DynamicArray<int> vToHedges;
-  DynamicArray<int> vOffsets;
+  dynamic_array<int> vToHedges;
+  dynamic_array<int> vOffsets;
 
  public:
   Hypergraph(int *vWts, int numV);

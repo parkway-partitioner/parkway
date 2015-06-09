@@ -151,8 +151,8 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
   int myPartitionIdx = 0;
   int v;
 
-  DynamicArray<int> recvLens(numProcs);
-  DynamicArray<int> recvDispls(numProcs);
+  dynamic_array<int> recvLens(numProcs);
+  dynamic_array<int> recvDispls(numProcs);
 
   Bisection *b;
 
@@ -268,14 +268,14 @@ void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
   int *hPartOffsetsVector = h->getPartOffsetArray();
   int *hPartitionCutsArray = h->getPartCutArray();
 
-  DynamicArray<int> numVperProc(numProcs);
-  DynamicArray<int> procDispls(numProcs);
+  dynamic_array<int> numVperProc(numProcs);
+  dynamic_array<int> procDispls(numProcs);
 
-  DynamicArray<int> sendLens(numProcs);
-  DynamicArray<int> sendDispls(numProcs);
-  DynamicArray<int> recvLens(numProcs);
-  DynamicArray<int> recvDispls(numProcs);
-  DynamicArray<int> sendArray;
+  dynamic_array<int> sendLens(numProcs);
+  dynamic_array<int> sendDispls(numProcs);
+  dynamic_array<int> recvLens(numProcs);
+  dynamic_array<int> recvDispls(numProcs);
+  dynamic_array<int> sendArray;
 
   hgraph.setNumberPartitions(numSeqRuns);
 
@@ -530,11 +530,11 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
   int totWt = 0;
   int numPins = 0;
 
-  DynamicArray<int> *vertWt = new DynamicArray<int>(64);
-  DynamicArray<int> *mapOrig = new DynamicArray<int>(64);
-  DynamicArray<int> *hedgeWts = new DynamicArray<int>(64);
-  DynamicArray<int> *hedgeOffsets = new DynamicArray<int>(64);
-  DynamicArray<int> *pinList = new DynamicArray<int>(64);
+  dynamic_array<int> *vertWt = new dynamic_array<int>(64);
+  dynamic_array<int> *mapOrig = new dynamic_array<int>(64);
+  dynamic_array<int> *hedgeWts = new dynamic_array<int>(64);
+  dynamic_array<int> *hedgeOffsets = new dynamic_array<int>(64);
+  dynamic_array<int> *pinList = new dynamic_array<int>(64);
 
   // ###
   // auxiliary data
@@ -544,7 +544,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
   int hEdgeLen;
   int endOffset;
 
-  DynamicArray<int> mapFromHtoNewH(numHVertices);
+  dynamic_array<int> mapFromHtoNewH(numHVertices);
 
   if (And(rank, 0x1)) {
     // ###
@@ -734,11 +734,11 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   int totLeftWt = 0;
   int numLeftPins = 0;
 
-  DynamicArray<int> *leftVertWt = new DynamicArray<int>(64);
-  DynamicArray<int> *leftMapOrig = new DynamicArray<int>(64);
-  DynamicArray<int> *leftHedgeWts = new DynamicArray<int>(64);
-  DynamicArray<int> *leftHedgeOffsets = new DynamicArray<int>(64);
-  DynamicArray<int> *leftPinList = new DynamicArray<int>(64);
+  dynamic_array<int> *leftVertWt = new dynamic_array<int>(64);
+  dynamic_array<int> *leftMapOrig = new dynamic_array<int>(64);
+  dynamic_array<int> *leftHedgeWts = new dynamic_array<int>(64);
+  dynamic_array<int> *leftHedgeOffsets = new dynamic_array<int>(64);
+  dynamic_array<int> *leftPinList = new dynamic_array<int>(64);
 
   // ###
   // rightH data
@@ -749,11 +749,11 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   int totRightWt = 0;
   int numRightPins = 0;
 
-  DynamicArray<int> *rightVertWt = new DynamicArray<int>(64);
-  DynamicArray<int> *rightMapOrig = new DynamicArray<int>(64);
-  DynamicArray<int> *rightHedgeWts = new DynamicArray<int>(64);
-  DynamicArray<int> *rightHedgeOffsets = new DynamicArray<int>(64);
-  DynamicArray<int> *rightPinList = new DynamicArray<int>(64);
+  dynamic_array<int> *rightVertWt = new dynamic_array<int>(64);
+  dynamic_array<int> *rightMapOrig = new dynamic_array<int>(64);
+  dynamic_array<int> *rightHedgeWts = new dynamic_array<int>(64);
+  dynamic_array<int> *rightHedgeOffsets = new dynamic_array<int>(64);
+  dynamic_array<int> *rightPinList = new dynamic_array<int>(64);
 
   // ###
   // auxiliary data
@@ -764,7 +764,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   int leftHedgeLen;
   int rightHedgeLen;
 
-  DynamicArray<int> mapFromHtoNewH(numHVertices);
+  dynamic_array<int> mapFromHtoNewH(numHVertices);
 
   for (i = 0; i < numHVertices; ++i) {
 #ifdef DEBUG_CONTROLLER
@@ -883,8 +883,8 @@ int RecurBisectController::getBestPartitionProc(int cut, MPI_Comm comm) const {
   MPI_Comm_size(comm, &nProcs);
   MPI_Comm_rank(comm, &rank);
 
-  DynamicArray<int> allCuts(nProcs);
-  DynamicArray<int> procs(nProcs);
+  dynamic_array<int> allCuts(nProcs);
+  dynamic_array<int> procs(nProcs);
 
   MPI_Allgather(&cut, 1, MPI_INT, allCuts.getArray(), 1, MPI_INT, comm);
 

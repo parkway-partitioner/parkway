@@ -9,7 +9,7 @@
 //
 // 17/4/2004: Modified hyperedge storage:
 //            - removed hyperedges from hash table
-//            - instead, added ds::DynamicArray<int>
+//            - instead, added ds::dynamic_array<int>
 //              to represent them as a pin list
 //              can be indexed via hash table with key
 //              or directly via index in pin list
@@ -39,18 +39,18 @@ class ParaHypergraph : public GlobalCommunicator {
   int localVertexWt;
   int numPartitions;
 
-  parkway::data_structures::DynamicArray<int> vWeight;
-  parkway::data_structures::DynamicArray<int> matchVector;
+  parkway::data_structures::dynamic_array<int> vWeight;
+  parkway::data_structures::dynamic_array<int> matchVector;
 
-  parkway::data_structures::DynamicArray<int> partitionVector;
-  parkway::data_structures::DynamicArray<int> partitionOffsetsVector;
-  parkway::data_structures::DynamicArray<int> partitionCutsizesVector;
+  parkway::data_structures::dynamic_array<int> partitionVector;
+  parkway::data_structures::dynamic_array<int> partitionOffsetsVector;
+  parkway::data_structures::dynamic_array<int> partitionCutsizesVector;
 
-  parkway::data_structures::DynamicArray<int> localPins;
-  parkway::data_structures::DynamicArray<int> hEdgeOffsets;
-  parkway::data_structures::DynamicArray<int> hEdgeWeights;
+  parkway::data_structures::dynamic_array<int> localPins;
+  parkway::data_structures::dynamic_array<int> hEdgeOffsets;
+  parkway::data_structures::dynamic_array<int> hEdgeWeights;
 
-  parkway::data_structures::DynamicArray<int> vToOrigV;
+  parkway::data_structures::dynamic_array<int> vToOrigV;
 
 public:
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,

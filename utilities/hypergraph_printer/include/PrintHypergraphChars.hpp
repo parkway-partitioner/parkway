@@ -17,7 +17,7 @@
 #include "data_structures/dynamic_array.hpp"
 #include "StringUtils.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class HypergraphChars {
  protected:
@@ -29,9 +29,9 @@ class HypergraphChars {
 
   char *graphName;
 
-  DynamicArray<int> vWeights;
-  DynamicArray<int> hEdgeWeights;
-  DynamicArray<int> hEdgeLens;
+  dynamic_array<int> vWeights;
+  dynamic_array<int> hEdgeWeights;
+  dynamic_array<int> hEdgeLens;
 
  public:
   HypergraphChars(int remove, int nZ);

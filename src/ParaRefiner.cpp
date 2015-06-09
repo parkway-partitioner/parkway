@@ -44,8 +44,8 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   int proc;
   int locVert;
 
-  DynamicArray<int> sentToProc;
-  DynamicArray<int> vDegs;
+  dynamic_array<int> sentToProc;
+  dynamic_array<int> vDegs;
 
   numLocalPins = h.getNumLocalPins();
   numLocalHedges = h.getNumLocalHedges();
@@ -97,7 +97,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
     int numActiveProcs;
     int activeProc;
 
-    DynamicArray<int> activeProcs(numProcs);
+    dynamic_array<int> activeProcs(numProcs);
 
     for (i = 0; i < numLocalHedges; ++i) {
       startOffset = localHedgeOffsets[i];
@@ -164,7 +164,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
        make processors responsible for hyperedges during
        the cutsize calculations                            */
 
-    BitField toLoad(numLocalHedges);
+    bit_field toLoad(numLocalHedges);
 
     computeHedgesToLoad(toLoad, numLocalHedges, numLocalPins, localHedgeWeights,
                         localHedgeOffsets, comm);
@@ -492,7 +492,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   int j;
   int ij;
 
-  DynamicArray<int> copyOfSendArray;
+  dynamic_array<int> copyOfSendArray;
 
   MPI_Allreduce(&locVertWt, &totWt, 1, MPI_INT, MPI_SUM, comm);
 

@@ -19,6 +19,6 @@ typedef struct VertexNode {
 } VNode;
 
 typedef VNode *VNodePtr;
-typedef parkway::data_structures::DynamicArray<VNodePtr> VNodePtrArray;
+typedef parkway::data_structures::dynamic_array<VNodePtr> VNodePtrArray;
 
 #endif

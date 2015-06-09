@@ -23,8 +23,8 @@ protected:
   int numHyperedges;
   int numPins;
 
-  DynamicArray<int> hEdgeOffsets;
-  DynamicArray<int> pinList;
+  dynamic_array<int> hEdgeOffsets;
+  dynamic_array<int> pinList;
 
 public:
   MatrixMarketReader();

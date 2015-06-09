@@ -11,9 +11,9 @@ class new_hyperedge_index_table {
   unsigned int numEntries;
   unsigned int size;
 
-  DynamicArray<int> table;
-  DynamicArray<int> nextSameKey;
-  DynamicArray<HashKey> keys;
+  dynamic_array<int> table;
+  dynamic_array<int> nextSameKey;
+  dynamic_array<HashKey> keys;
 
  public:
   new_hyperedge_index_table(unsigned int _size);

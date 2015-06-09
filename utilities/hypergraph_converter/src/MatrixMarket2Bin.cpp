@@ -37,7 +37,7 @@ void MatrixMarket2Bin::writeMatrix(const char *filename) {
   int i;
   int j;
 
-  DynamicArray<int> writeData;
+  dynamic_array<int> writeData;
 
   out_stream.open(filename, ofstream::out | ofstream::app | ofstream::binary);
 

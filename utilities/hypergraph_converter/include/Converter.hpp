@@ -14,7 +14,7 @@
 #include <fstream>
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class Converter {
  protected:
@@ -22,8 +22,8 @@ class Converter {
   int dataLength;
   int numVerts;
 
-  DynamicArray<int> hEdgeData;
-  DynamicArray<int> vWeights;
+  dynamic_array<int> hEdgeData;
+  dynamic_array<int> vWeights;
 
  public:
   Converter();

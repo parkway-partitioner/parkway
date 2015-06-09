@@ -19,7 +19,7 @@ using namespace std;
 
 class VCycleBisectionController : public BisectionController {
 protected:
-  DynamicArray<int> vCyclePartition;
+  dynamic_array<int> vCyclePartition;
 
   RestrCoarsener *restrCoarsener;
 

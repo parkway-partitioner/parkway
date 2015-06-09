@@ -13,9 +13,9 @@ class map_to_pos_int {
   int size;
   int useHash;
 
-  DynamicArray<int> entries;
-  DynamicArray<int> table;
-  DynamicArray<int> keys;
+  dynamic_array<int> entries;
+  dynamic_array<int> table;
+  dynamic_array<int> keys;
 
  public:
   map_to_pos_int();

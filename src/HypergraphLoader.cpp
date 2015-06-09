@@ -36,15 +36,15 @@ HypergraphLoader::HypergraphLoader(int disp) {
 
 HypergraphLoader::~HypergraphLoader() {}
 
-void HypergraphLoader::computeHedgesToLoad(BitField &toLoad) {
+void HypergraphLoader::computeHedgesToLoad(bit_field &toLoad) {
   int i;
   int j = 0;
 
   int percentileLen;
   double percentileThreshold;
 
-  DynamicArray<int> hEdgeLens(numHedges);
-  DynamicArray<int> hEdges(numHedges);
+  dynamic_array<int> hEdgeLens(numHedges);
+  dynamic_array<int> hEdges(numHedges);
 
   for (i = 0; i < numHedges; ++i) {
     hEdges[i] = i;

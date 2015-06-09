@@ -38,8 +38,8 @@ class match_request_table {
   int numEntries;
   int size;
 
-  DynamicArray<entry *> table;
-  DynamicArray<entry *> entryPtrs;
+  dynamic_array<entry *> table;
+  dynamic_array<entry *> entryPtrs;
 };
 
 
@@ -51,7 +51,7 @@ class match_request_table::entry {
   int nonLocProc;
   int numLocals;
 
-  DynamicArray<int> locVertices;
+  dynamic_array<int> locVertices;
   entry *next;
 
  public:

@@ -18,8 +18,8 @@
 #include "data_structures/bit_field.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
-using parkway::data_structures::BitField;
+using parkway::data_structures::dynamic_array;
+using parkway::data_structures::bit_field;
 
 class ParaHypergraphLoader : public GlobalCommunicator {
  protected:
@@ -46,14 +46,14 @@ class ParaHypergraphLoader : public GlobalCommunicator {
   int *vWeight;
   int *matchVector;
 
-  DynamicArray<int> hEdgeWeight;
-  DynamicArray<int> hEdgeOffset;
-  DynamicArray<int> locPinList;
+  dynamic_array<int> hEdgeWeight;
+  dynamic_array<int> hEdgeOffset;
+  dynamic_array<int> locPinList;
 
-  DynamicArray<int> vToHedgesOffset;
-  DynamicArray<int> vToHedgesList;
+  dynamic_array<int> vToHedgesOffset;
+  dynamic_array<int> vToHedgesList;
 
-  DynamicArray<int> allocHedges;
+  dynamic_array<int> allocHedges;
 
  public:
   ParaHypergraphLoader(int rank, int nProcs, int nParts, std::ostream &o);
@@ -62,7 +62,7 @@ class ParaHypergraphLoader : public GlobalCommunicator {
   virtual void releaseMemory() = 0;
   virtual void loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) = 0;
 
-  void computeHedgesToLoad(BitField &toLoad, int numH, int numLocalPins,
+  void computeHedgesToLoad(bit_field &toLoad, int numH, int numLocalPins,
                            int *hEdgeWts, int *hEdgeOffsets, MPI_Comm comm);
 
   inline int getNumParts() const { return numParts; }

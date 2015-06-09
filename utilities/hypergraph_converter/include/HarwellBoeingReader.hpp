@@ -31,9 +31,9 @@ protected:
   int numNonZeros;
   int numElemMatEntries;
 
-  DynamicArray<char> title;
-  DynamicArray<char> id;
-  DynamicArray<char> mtxType;
+  dynamic_array<char> title;
+  dynamic_array<char> id;
+  dynamic_array<char> mtxType;
 
 public:
   HarwellBoeingReader();

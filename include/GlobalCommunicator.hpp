@@ -16,21 +16,21 @@
 #include "Funct.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::DynamicArray;
+using parkway::data_structures::dynamic_array;
 
 class GlobalCommunicator {
  protected:
   const int myRank;
   const int numProcs;
 
-  DynamicArray<DynamicArray<int> *> dataOutSets;
+  dynamic_array<dynamic_array<int> *> dataOutSets;
 
-  DynamicArray<int> sendLens;
-  DynamicArray<int> recvLens;
-  DynamicArray<int> sendDispls;
-  DynamicArray<int> recvDispls;
-  DynamicArray<int> sendArray;
-  DynamicArray<int> receiveArray;
+  dynamic_array<int> sendLens;
+  dynamic_array<int> recvLens;
+  dynamic_array<int> sendDispls;
+  dynamic_array<int> recvDispls;
+  dynamic_array<int> sendArray;
+  dynamic_array<int> receiveArray;
 
  public:
   GlobalCommunicator(int rank, int nProcs);

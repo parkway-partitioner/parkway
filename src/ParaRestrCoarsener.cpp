@@ -62,11 +62,11 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   int proc;
   int locVertex;
 
-  DynamicArray<int> procs(numProcs);
-  DynamicArray<int> vDegs;
-  DynamicArray<int> minLocIndices(numProcs);
-  DynamicArray<int> maxLocIndices(numProcs);
-  DynamicArray<int> vPerProc(numProcs);
+  dynamic_array<int> procs(numProcs);
+  dynamic_array<int> vDegs;
+  dynamic_array<int> minLocIndices(numProcs);
+  dynamic_array<int> maxLocIndices(numProcs);
+  dynamic_array<int> vPerProc(numProcs);
 
   numLocalPins = h.getNumLocalPins();
   numLocalHedges = h.getNumLocalHedges();
@@ -190,7 +190,7 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
     assert(currPercentile > 0 && currPercentile < 100);
 #endif
 
-    BitField toLoad(numLocalHedges);
+    bit_field toLoad(numLocalHedges);
 
     computeHedgesToLoad(toLoad, numLocalHedges, numLocalPins, localHedgeWeights,
                         localHedgeOffsets, comm);

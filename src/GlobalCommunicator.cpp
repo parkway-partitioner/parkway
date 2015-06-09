@@ -24,12 +24,12 @@ GlobalCommunicator::GlobalCommunicator(const int rank, const int nProcs)
   recvDispls.setLength(numProcs);
 
   for (int i = 0; i < numProcs; ++i)
-    dataOutSets[i] = new DynamicArray<int>(1024);
+    dataOutSets[i] = new dynamic_array<int>(1024);
 }
 
 GlobalCommunicator::~GlobalCommunicator() {
   for (int i = 0; i < numProcs; ++i) {
-    DynaMem<DynamicArray<int> >::deletePtr(dataOutSets[i]);
+    DynaMem<dynamic_array<int> >::deletePtr(dataOutSets[i]);
   }
 }
 

@@ -37,7 +37,7 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   numVerticesMoved.setLength(ij);
 
   for (i = 0; i < ij; ++i)
-    moveSets[i] = new DynamicArray<int>;
+    moveSets[i] = new dynamic_array<int>;
 
   for (i = 0; i < numParts; ++i) {
     ij = i * numParts;
@@ -81,7 +81,7 @@ ParaGreedyKwayRefiner::~ParaGreedyKwayRefiner() {
     ij = i * numParts;
 
     for (j = 0; j < numParts; ++j)
-      DynaMem<DynamicArray<int> >::deletePtr(moveSets[ij + j]);
+      DynaMem<dynamic_array<int> >::deletePtr(moveSets[ij + j]);
   }
 }
 
@@ -209,7 +209,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
   assert(hEdgeVinPartOffsets.getLength() > 0);
 #endif
 
-  DynamicArray<int> locPartWts(numParts);
+  dynamic_array<int> locPartWts(numParts);
 
   // ###
   // initialise current partition vector
@@ -674,7 +674,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
   int *movesLengths;
   int *array;
 
-  DynamicArray<int> **moves;
+  dynamic_array<int> **moves;
 
   numToSend = 0;
 
@@ -783,7 +783,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
   }
 
 #ifdef DEBUG_REFINER
-  DynamicArray<int> partWts(numParts);
+  dynamic_array<int> partWts(numParts);
 
   for (ij = 0; ij < numParts; ++ij)
     partWts[ij] = 0;

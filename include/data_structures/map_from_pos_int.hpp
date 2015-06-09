@@ -14,8 +14,8 @@ template<typename T> class map_from_pos_int {
   int numEntries;
   int size;
 
-  DynamicArray<T> table;
-  DynamicArray<int> keys;
+  dynamic_array<T> table;
+  dynamic_array<int> keys;
 
  public:
   map_from_pos_int() : map_from_pos_int(0) {

@@ -72,15 +72,15 @@ Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
   double maxMatchMetric;
   double metricVal;
 
-  DynamicArray<int> neighVerts;
-  DynamicArray<int> neighPairWts;
-  DynamicArray<int> vertices(numVertices);
-  DynamicArray<int> vertexAdjEntry(numVertices);
-  DynamicArray<int> *coarseWts = new DynamicArray<int>;
+  dynamic_array<int> neighVerts;
+  dynamic_array<int> neighPairWts;
+  dynamic_array<int> vertices(numVertices);
+  dynamic_array<int> vertexAdjEntry(numVertices);
+  dynamic_array<int> *coarseWts = new dynamic_array<int>;
 
-  DynamicArray<double> connectVals;
+  dynamic_array<double> connectVals;
 
-  BitField toLoad(numHedges);
+  bit_field toLoad(numHedges);
   toLoad.set1();
 
   for (i = 0; i < numVertices; ++i) {
@@ -227,7 +227,7 @@ Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
     // cannot sufficiently reduce hypergraph
     // back off
 
-    DynaMem<DynamicArray<int> >::deletePtr(coarseWts);
+    DynaMem<dynamic_array<int> >::deletePtr(coarseWts);
     return nullptr;
   }
 

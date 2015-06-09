@@ -28,7 +28,7 @@ MovementSetTable::MovementSetTable(int nParts, int nProcs) {
 
   for (i = 0; i < setArrayLen; ++i) {
     if (Mod(i, numParts) != i / numParts) {
-      sets[i] = new DynamicArray<MOVE_SET>(numProcs);
+      sets[i] = new dynamic_array<MOVE_SET>(numProcs);
 
       for (j = 0; j < numProcs; ++j)
         (*sets[i])[j].proc = j;
@@ -41,17 +41,17 @@ MovementSetTable::MovementSetTable(int nParts, int nProcs) {
   restoringMovesLens.setLength(numProcs);
 
   for (i = 0; i < numProcs; ++i)
-    restoringMoves[i] = new DynamicArray<int>(256);
+    restoringMoves[i] = new dynamic_array<int>(256);
 }
 
 MovementSetTable::~MovementSetTable() {
   int i;
 
   for (i = 0; i < setArrayLen; ++i)
-    DynaMem<DynamicArray<MOVE_SET> >::deletePtr(sets[i]);
+    DynaMem<dynamic_array<MOVE_SET> >::deletePtr(sets[i]);
 
   for (i = 0; i < numProcs; ++i)
-    DynaMem<DynamicArray<int> >::deletePtr(restoringMoves[i]);
+    DynaMem<dynamic_array<int> >::deletePtr(restoringMoves[i]);
 }
 
 void MovementSetTable::initPartWeights(const int *partWts, int nParts) {

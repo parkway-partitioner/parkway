@@ -67,7 +67,7 @@ void MatrixMarketReader::readMatrix(ifstream &in_stream) {
   int vertex;
   int pointInFile;
 
-  DynamicArray<int> hEdgeLens(numHyperedges);
+  dynamic_array<int> hEdgeLens(numHyperedges);
 
   pinList.setLength(numPins);
   hEdgeOffsets.setLength(numHyperedges + 1);

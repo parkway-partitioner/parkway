@@ -30,7 +30,7 @@ void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
 
   ifstream in_stream;
 
-  DynamicArray<int> data;
+  dynamic_array<int> data;
 
   sprintf(my_file, "%s-%d", filename, myRank);
 

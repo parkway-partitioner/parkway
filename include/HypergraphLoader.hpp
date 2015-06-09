@@ -56,7 +56,7 @@ public:
   HypergraphLoader(int disp);
   ~HypergraphLoader();
 
-  void computeHedgesToLoad(BitField &toLoad);
+  void computeHedgesToLoad(bit_field &toLoad);
 
   inline void loadHypergraphForCoarsening(const Hypergraph &h) {
     loadGraph(h);

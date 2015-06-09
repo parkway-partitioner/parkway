@@ -20,8 +20,8 @@ namespace data_structures {
 
 template <typename T> class CompleteBinaryTree {
  protected:
-  DynamicArray<int> tree;
-  DynamicArray<T> roots;
+  dynamic_array<int> tree;
+  dynamic_array<T> roots;
 
   int numRoots;
 
@@ -75,7 +75,7 @@ template <typename T> class CompleteBinaryTree {
     int jk;
     int half = 0;
 
-    DynamicArray<int> search_list(search_len);
+    dynamic_array<int> search_list(search_len);
 
     search_list[j++] = numRoots >> 1;
 

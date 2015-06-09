@@ -33,7 +33,7 @@ protected:
   double balConstraint;
   double avePartWt;
 
-  ds::DynamicArray<int> partWeights;
+  ds::dynamic_array<int> partWeights;
 
   /* newly added structures */
 
@@ -41,12 +41,12 @@ protected:
   int numNonLocVertsHedges;
   int *currNonLocPVector;
 
-  ds::DynamicArray<int> nonLocVerts;
-  ds::DynamicArray<int> partIndices;
-  ds::DynamicArray<int> indexIntoPartIndices;
+  ds::dynamic_array<int> nonLocVerts;
+  ds::dynamic_array<int> partIndices;
+  ds::dynamic_array<int> indexIntoPartIndices;
 
-  ds::DynamicArray<int> nonLocVToHedges;
-  ds::DynamicArray<int> nonLocOffsets;
+  ds::dynamic_array<int> nonLocVToHedges;
+  ds::dynamic_array<int> nonLocOffsets;
 
   ds::map_to_pos_int toNonLocVerts;
 

@@ -133,10 +133,10 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
   else
     matchInfoLoc.createTable(totalVertices, 0);
 
-  DynamicArray<int> neighVerts;
-  DynamicArray<int> neighCluWts;
-  DynamicArray<double> connectVals;
-  DynamicArray<int> vertices(numLocalVertices);
+  dynamic_array<int> neighVerts;
+  dynamic_array<int> neighCluWts;
+  dynamic_array<double> connectVals;
+  dynamic_array<int> vertices(numLocalVertices);
 
   permuteVerticesArray(vertices.getArray(), numLocalVertices);
 
@@ -451,7 +451,7 @@ void ParaFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
   int i;
   int l;
 
-  DynamicArray<int> visitOrder;
+  dynamic_array<int> visitOrder;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -645,8 +645,8 @@ void ParaFCCoarsener::permuteVerticesArray(int *verts, int nLocVerts) {
 }
 
 void ParaFCCoarsener::setClusterIndices(MPI_Comm comm) {
-  DynamicArray<int> numClusters(numProcs);
-  DynamicArray<int> startIndex(numProcs);
+  dynamic_array<int> numClusters(numProcs);
+  dynamic_array<int> startIndex(numProcs);
 
   MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.getArray(), 1, MPI_INT,
                 comm);

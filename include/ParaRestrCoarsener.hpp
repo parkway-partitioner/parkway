@@ -40,8 +40,8 @@ class ParaRestrCoarsener : public ParaHypergraphLoader {
   int *partitionVectorOffsets;
   int *partitionCuts;
 
-  ds::DynamicArray<int> *clusterWeights;
-  ds::DynamicArray<int> *pVector;
+  ds::dynamic_array<int> *clusterWeights;
+  ds::dynamic_array<int> *pVector;
 
  public:
   ParaRestrCoarsener(int _rank, int _numProcs, int _numParts, std::ostream &out);

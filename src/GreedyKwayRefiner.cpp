@@ -466,7 +466,7 @@ int GreedyKwayRefiner::runRebalancingPass() {
   int part;
   int numOverWeight = 0;
 
-  DynamicArray<int> overWeight(numParts);
+  dynamic_array<int> overWeight(numParts);
 
   for (i = 0; i < numParts; ++i) {
     if (partWeights[i] <= maxPartWt)

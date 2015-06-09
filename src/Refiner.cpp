@@ -34,7 +34,7 @@ int Refiner::calcCutsize() const {
   int i;
   int j;
 
-  DynamicArray<int> spanned(numParts);
+  dynamic_array<int> spanned(numParts);
 
   int k_1Cut = 0;
   int endOffset;

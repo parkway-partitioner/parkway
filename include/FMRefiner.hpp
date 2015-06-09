@@ -45,16 +45,16 @@ protected:
   // ###
 
   NodePtrArray buckets;
-  DynamicArray<NodeArray *> bucketArrays;
+  dynamic_array<NodeArray *> bucketArrays;
 
-  DynamicArray<int> maxGains;
-  DynamicArray<int> maxGainEntries;
-  DynamicArray<int> numBucketsInArray;
-  DynamicArray<int> vInPart;
-  DynamicArray<int> vertexGains;
-  DynamicArray<int> moveList;
+  dynamic_array<int> maxGains;
+  dynamic_array<int> maxGainEntries;
+  dynamic_array<int> numBucketsInArray;
+  dynamic_array<int> vInPart;
+  dynamic_array<int> vertexGains;
+  dynamic_array<int> moveList;
 
-  BitField locked;
+  bit_field locked;
 
 public:
   FMRefiner(int max, int insMethod, int ee, int dL);
