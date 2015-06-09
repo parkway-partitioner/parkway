@@ -3,7 +3,7 @@ file(GLOB_RECURSE DRIVER_HEADERS include/*.h include/*.hpp)
 set(PROJECT_LIBRARIES ${MPI_LIBRARIES} ${PROJECT_LIB})
 include_directories("include")
 
-set(DRIVER_BIN ${PROJECT_NAME}-driver)
+set(DRIVER_BIN ${PROJECT_NAME}_driver)
 # Include headers here so that generated IDE projects include them.
 add_executable(${DRIVER_BIN} ${DRIVER_SRCS} ${DRIVER_HEADERS})
 

@@ -6,7 +6,7 @@ list(APPEND PRINTER_SRCS "../shared/src/StringUtils.cpp")
 include_directories("include")
 include_directories("../shared/include")
 
-set(PRINTER_BIN ${PROJECT_NAME}-hypergraph-printer)
+set(PRINTER_BIN ${PROJECT_NAME}_hypergraph_printer)
 # Include headers here so that generated IDE projects include them.
 add_executable(${PRINTER_BIN} ${PRINTER_SRCS} ${PRINTER_HEADERS})
 

@@ -6,7 +6,7 @@ list(APPEND CONVERTER_SRCS "../shared/src/StringUtils.cpp")
 include_directories("include")
 include_directories("../shared/include")
 
-set(CONVERTER_BIN ${PROJECT_NAME}-hypergraph-converter)
+set(CONVERTER_BIN ${PROJECT_NAME}_hypergraph_converter)
 # Include headers here so that generated IDE projects include them.
 add_executable(${CONVERTER_BIN} ${CONVERTER_SRCS} ${CONVERTER_HEADERS})
 
