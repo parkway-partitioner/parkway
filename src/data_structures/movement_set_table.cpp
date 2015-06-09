@@ -15,46 +15,46 @@
 #include "data_structures/movement_set_table.hpp"
 
 movement_set_table::movement_set_table(int nParts, int nProcs) {
-  numParts = nParts;
-  numProcs = nProcs;
-  setArrayLen = numParts * numParts;
-  maxPartWt = 0;
+  number_of_parts_ = nParts;
+  number_of_processors_ = nProcs;
+  setArrayLen = number_of_parts_ * number_of_parts_;
+  max_part_weight_ = 0;
 
-  partWeights.reserve(numParts);
-  sets.reserve(setArrayLen);
+  part_weights_.reserve(number_of_parts_);
+  sets_.reserve(setArrayLen);
 
   int i;
   int j;
 
   for (i = 0; i < setArrayLen; ++i) {
-    if (Mod(i, numParts) != i / numParts) {
-      sets[i] = new dynamic_array<movement_set>(numProcs);
+    if (Mod(i, number_of_parts_) != i / number_of_parts_) {
+      sets_[i] = new dynamic_array<movement_set>(number_of_processors_);
 
-      for (j = 0; j < numProcs; ++j)
-        (*sets[i])[j].proc = j;
+      for (j = 0; j < number_of_processors_; ++j)
+        (*sets_[i])[j].proc = j;
     } else {
-      sets[i] = nullptr;
+      sets_[i] = nullptr;
     }
   }
 
-  restoringMoves.reserve(numProcs);
-  restoringMovesLens.reserve(numProcs);
+  restoring_moves_.reserve(number_of_processors_);
+  restoring_move_lens_.reserve(number_of_processors_);
 
-  for (i = 0; i < numProcs; ++i)
-    restoringMoves[i] = new dynamic_array<int>(256);
+  for (i = 0; i < number_of_processors_; ++i)
+    restoring_moves_[i] = new dynamic_array<int>(256);
 }
 
 movement_set_table::~movement_set_table() {
   int i;
 
   for (i = 0; i < setArrayLen; ++i)
-    DynaMem<dynamic_array<movement_set> >::deletePtr(sets[i]);
+    DynaMem<dynamic_array<movement_set> >::deletePtr(sets_[i]);
 
-  for (i = 0; i < numProcs; ++i)
-    DynaMem<dynamic_array<int> >::deletePtr(restoringMoves[i]);
+  for (i = 0; i < number_of_processors_; ++i)
+    DynaMem<dynamic_array<int> >::deletePtr(restoring_moves_[i]);
 }
 
-void movement_set_table::initPartWeights(const int *partWts, int nParts) {
+void movement_set_table::initialize_part_weights(const int *partWts, int nParts) {
 #ifdef DEBUG_BASICS
   assert(nParts == numParts);
 #endif
@@ -62,21 +62,21 @@ void movement_set_table::initPartWeights(const int *partWts, int nParts) {
   int i;
   int j;
 
-  for (i = 0; i < numParts; ++i)
-    partWeights[i] = partWts[i];
+  for (i = 0; i < number_of_parts_; ++i)
+    part_weights_[i] = partWts[i];
 
   for (j = 0; j < setArrayLen; ++j) {
-    if (Mod(j, numParts) != j / numParts) {
-      for (i = 0; i < numProcs; ++i) {
-        (*sets[j])[i].gain = -1;
-        (*sets[j])[i].weight = 0;
+    if (Mod(j, number_of_parts_) != j / number_of_parts_) {
+      for (i = 0; i < number_of_processors_; ++i) {
+        (*sets_[j])[i].gain = -1;
+        (*sets_[j])[i].weight = 0;
       }
     }
   }
 }
 
-void movement_set_table::completeProcSets(int proc, int dataLen,
-                                        const int *data) {
+void movement_set_table::complete_processor_sets(int proc, int dataLen,
+                                                 const int *data) {
   int i = 0;
   int wt;
 
@@ -87,25 +87,25 @@ void movement_set_table::completeProcSets(int proc, int dataLen,
   while (i < dataLen) {
     fromPart = data[i];
     toPart = data[i + 1];
-    setArray = fromPart * numParts + toPart;
+    setArray = fromPart * number_of_parts_ + toPart;
     wt = data[i + 3];
 
 #ifdef DEBUG_BASICS
     assert((*sets[setArray])[proc].proc == proc);
 #endif
 
-    (*sets[setArray])[proc].gain = data[i + 2];
-    (*sets[setArray])[proc].weight = wt;
+    (*sets_[setArray])[proc].gain = data[i + 2];
+    (*sets_[setArray])[proc].weight = wt;
 
-    partWeights[fromPart] -= wt;
-    partWeights[toPart] += wt;
+    part_weights_[fromPart] -= wt;
+    part_weights_[toPart] += wt;
 
     i += 4;
   }
 }
 
-void movement_set_table::computeRestoringArray() {
-  int heaviest = findHeaviest();
+void movement_set_table::compute_restoring_array() {
+  int heaviest = find_heaviest_part_index();
 
 #ifdef DEBUG_BASICS
   assert(heaviest >= -1);
@@ -121,20 +121,20 @@ void movement_set_table::computeRestoringArray() {
   int minGain;
   int prod;
 
-  for (i = 0; i < numProcs; ++i)
-    restoringMovesLens[i] = 0;
+  for (i = 0; i < number_of_processors_; ++i)
+    restoring_move_lens_[i] = 0;
 
   while (heaviest > -1) {
     minIndex = -1;
     minProc = -1;
     minGain = LARGE_CONSTANT;
 
-    for (j = 0; j < numParts; ++j) {
+    for (j = 0; j < number_of_parts_; ++j) {
       if (j != heaviest) {
-        prod = j * numParts;
+        prod = j * number_of_parts_;
 
-        for (i = 0; i < numProcs; ++i) {
-          gain = (*sets[prod + heaviest])[i].gain;
+        for (i = 0; i < number_of_processors_; ++i) {
+          gain = (*sets_[prod + heaviest])[i].gain;
 
           if (gain >= 0 && gain < minGain) {
             minGain = gain;
@@ -151,23 +151,23 @@ void movement_set_table::computeRestoringArray() {
     assert(minIndex != -1);
 #endif
 
-    prod = minIndex * numParts;
-    weight = (*sets[prod + heaviest])[minProc].weight;
+    prod = minIndex * number_of_parts_;
+    weight = (*sets_[prod + heaviest])[minProc].weight;
 
 #ifdef DEBUG_BASICS
     assert(weight > 0);
 #endif
 
-    restoringMoves[minProc]->assign(restoringMovesLens[minProc]++, minIndex);
-    restoringMoves[minProc]->assign(restoringMovesLens[minProc]++, heaviest);
+    restoring_moves_[minProc]->assign(restoring_move_lens_[minProc]++, minIndex);
+    restoring_moves_[minProc]->assign(restoring_move_lens_[minProc]++, heaviest);
 
-    partWeights[minIndex] += weight;
-    partWeights[heaviest] -= weight;
+    part_weights_[minIndex] += weight;
+    part_weights_[heaviest] -= weight;
 
-    (*sets[prod + heaviest])[minProc].weight = 0;
-    (*sets[prod + heaviest])[minProc].gain = -1;
+    (*sets_[prod + heaviest])[minProc].weight = 0;
+    (*sets_[prod + heaviest])[minProc].gain = -1;
 
-    heaviest = findHeaviest();
+    heaviest = find_heaviest_part_index();
   }
 }
 

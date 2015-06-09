@@ -88,7 +88,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
     startTime = MPI_Wtime();
 
     do {
-      hEdgePercentile = hEdgePercentiles.getTopElem();
+      hEdgePercentile = hEdgePercentiles.top();
       coarsener.setPercentile(hEdgePercentile);
       coarseGraph = coarsener.coarsen(*finerGraph, comm);
 
@@ -123,7 +123,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
     // uncoarsen the initial partition
     // ###
 
-    while (hgraphs.getNumElem() > 0) {
+    while (hgraphs.size() > 0) {
       coarseGraph->removeBadPartitions(keepPartitionsWithin * accumulator);
       accumulator *= reductionInKeepThreshold;
       hEdgePercentile = hEdgePercentiles.pop();
@@ -167,7 +167,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
         firstCutSize = finerGraph->keepBestPartition();
         recordVCyclePartition(*finerGraph, vCycleIteration++);
 
-        numInStack = hgraphs.getNumElem();
+        numInStack = hgraphs.size();
         interMedGraph = finerGraph;
 
         if (dispOption > 1 && myRank == 0) {
@@ -191,7 +191,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
           startTime = MPI_Wtime();
 
           do {
-            hEdgePercentile = hEdgePercentiles.getTopElem();
+            hEdgePercentile = hEdgePercentiles.top();
             restrCoarsener.setPercentile(hEdgePercentile);
             coarseGraph = restrCoarsener.coarsen(*finerGraph, comm);
 
@@ -231,7 +231,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
           MPI_Barrier(comm);
           startTime = MPI_Wtime();
 
-          while (hgraphs.getNumElem() > numInStack) {
+          while (hgraphs.size() > numInStack) {
             coarseGraph->removeBadPartitions(keepPartitionsWithin *
                                              othAccumulator);
             othAccumulator *= reductionInKeepThreshold;
@@ -256,7 +256,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
                 finerGraph->randomVertexShuffle(mapToInterVerts.data(),
                                                 comm);
               else
-                finerGraph->randomVertexShuffle(*(hgraphs.getTopElem()), comm);
+                finerGraph->randomVertexShuffle(*(hgraphs.top()), comm);
             }
 
             if (approxRefine)

@@ -140,7 +140,7 @@ void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
 
   initPartitionStructs(h, comm);
 
-  movementSets->setMaxWt(maxPartWt);
+  movementSets->set_max_part_weight(maxPartWt);
 
   // ###
   // init data_ structures used in refinement
@@ -396,7 +396,7 @@ int ParaGreedyKwayRefiner::runGreedyKwayRefinement(ParaHypergraph &h, int pNo,
       // init movement sets
       // ###
 
-      movementSets->initPartWeights(partWeights.data(), numParts);
+      movementSets->initialize_part_weights(partWeights.data(), numParts);
     }
 
     doGreedyPass(i, comm);
@@ -728,15 +728,16 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
       ij = recvDispls[i];
 
       if (recvLens[i] > 0) {
-        movementSets->completeProcSets(i, recvLens[i], &(receiveArray[ij]));
+        movementSets->complete_processor_sets(i, recvLens[i],
+                                              &(receiveArray[ij]));
       }
     }
 
-    movementSets->computeRestoringArray();
+    movementSets->compute_restoring_array();
   }
 
-  moves = movementSets->getRestoringMoves();
-  movesLengths = movementSets->getRestoringMovesLens();
+  moves = movementSets->restoring_moves();
+  movesLengths = movementSets->restoring_move_lens();
 
   MPI_Scatter(movesLengths, 1, MPI_INT, &totToRecv, 1, MPI_INT, ROOT_PROC,
               comm);
@@ -800,7 +801,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
 #endif
 
   if (myRank == ROOT_PROC) {
-    array = movementSets->getPartWeightsArray();
+    array = movementSets->part_weights_array();
 
     for (ij = 0; ij < numParts; ++ij) {
       partWeights[ij] = array[ij];

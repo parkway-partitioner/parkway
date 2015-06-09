@@ -100,7 +100,7 @@ void BisectionController::buildRefiner(int queueD) {
 }
 
 void BisectionController::computeBisection() {
-  Hypergraph *origGraph = hGraphs.getTopElem();
+  Hypergraph *origGraph = hGraphs.top();
 
   int i;
   int cut;
@@ -120,7 +120,7 @@ void BisectionController::computeBisection() {
     hEdgePercentiles.push(startPercentile);
 
     do {
-      hEdgePercentile = hEdgePercentiles.getTopElem();
+      hEdgePercentile = hEdgePercentiles.top();
       coarsener->setPercentile(hEdgePercentile);
       coarseGraph = coarsener->coarsen(*finerGraph);
 

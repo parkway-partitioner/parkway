@@ -27,7 +27,7 @@ void VCycleAllBisectionController::printVCycleType() const {
 }
 
 void VCycleAllBisectionController::computeBisection() {
-  Hypergraph *origGraph = hGraphs.getTopElem();
+  Hypergraph *origGraph = hGraphs.top();
   Hypergraph *coarseGraph;
   Hypergraph *finerGraph;
   Hypergraph *interMedGraph;
@@ -61,7 +61,7 @@ void VCycleAllBisectionController::computeBisection() {
     // ###
 
     do {
-      hEdgePercentile = hEdgePercentiles.getTopElem();
+      hEdgePercentile = hEdgePercentiles.top();
       coarsener->setPercentile(hEdgePercentile);
       coarseGraph = coarsener->coarsen(*finerGraph);
 
@@ -102,7 +102,7 @@ void VCycleAllBisectionController::computeBisection() {
       recordVCyclePartition(finerGraph->getPartVectorArray(),
                             finerGraph->getNumVertices());
 
-      numInStack = hGraphs.getNumElem();
+      numInStack = hGraphs.size();
       interMedGraph = finerGraph;
 
       do {
@@ -116,7 +116,7 @@ void VCycleAllBisectionController::computeBisection() {
         // ###
 
         do {
-          hEdgePercentile = hEdgePercentiles.getTopElem();
+          hEdgePercentile = hEdgePercentiles.top();
           restrCoarsener->setPercentile(hEdgePercentile);
           coarseGraph = restrCoarsener->coarsen(*finerGraph);
 

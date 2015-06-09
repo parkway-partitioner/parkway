@@ -112,7 +112,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
     startTime = MPI_Wtime();
 
     do {
-      hEdgePercentile = hEdgePercentiles.getTopElem();
+      hEdgePercentile = hEdgePercentiles.top();
       coarsener.setPercentile(hEdgePercentile);
 
       coarseGraph = coarsener.coarsen(*finerGraph, comm);
@@ -166,7 +166,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
     MPI_Barrier(comm);
     startTime = MPI_Wtime();
 
-    while (hgraphs.getNumElem() > 0) {
+    while (hgraphs.size() > 0) {
       coarseGraph->removeBadPartitions(keepPartitionsWithin * accumulator);
       accumulator *= reductionInKeepThreshold;
 
@@ -179,10 +179,10 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
       if (randShuffBefRef) {
-        if (hgraphs.getNumElem() == 0)
+        if (hgraphs.size() == 0)
           finerGraph->randomVertexShuffle(mapToOrigVerts.data(), comm);
         else
-          finerGraph->randomVertexShuffle(*(hgraphs.getTopElem()), comm);
+          finerGraph->randomVertexShuffle(*(hgraphs.top()), comm);
       }
 
       if (approxRefine)

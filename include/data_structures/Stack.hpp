@@ -18,37 +18,37 @@ namespace data_structures {
 
 template <class T> class stack {
  public:
-  inline stack() : array(0), numElem(0) {
+  inline stack() : data_(0), size_(0) {
   }
 
   inline ~stack() {
   }
 
   inline void push(const T elem) {
-    array.assign(numElem++, elem);
+    data_.assign(size_++, elem);
   }
 
-  inline int getNumElem() const {
-    return numElem;
+  inline int size() const {
+    return size_;
   }
 
   inline T pop() {
 #ifdef DEBUG_BASICS
     assert(numElem > 0);
 #endif
-    return array[--numElem];
+    return data_[--size_];
   }
 
-  inline T getTopElem() const {
+  inline T top() const {
 #ifdef DEBUG_BASICS
     assert(numElem > 0);
 #endif
-    return array[numElem - 1];
+    return data_[size_ - 1];
   }
 
  protected:
-  dynamic_array<T> array;
-  int numElem;
+  dynamic_array<T> data_;
+  int size_;
 };
 
 }  // namespace data_structures

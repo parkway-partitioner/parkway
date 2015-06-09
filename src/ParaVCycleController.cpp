@@ -128,7 +128,7 @@ void ParaVCycleController::recordVCyclePartition(const ParaHypergraph &h,
     numLocCurrVerts.push(numLocalVertices);
     bestVCyclePartition.push(bestPartVector);
   } else {
-    bestPartVector = bestVCyclePartition.getTopElem();
+    bestPartVector = bestVCyclePartition.top();
 
 #ifdef DEBUG_CONTROLLER
     assert(bestPartVector);

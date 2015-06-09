@@ -84,7 +84,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
     startTime = MPI_Wtime();
 
     do {
-      hEdgePercentile = hEdgePercentiles.getTopElem();
+      hEdgePercentile = hEdgePercentiles.top();
       coarsener.setPercentile(hEdgePercentile);
       coarseGraph = coarsener.coarsen(*finerGraph, comm);
 
@@ -122,7 +122,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
     MPI_Barrier(comm);
     startTime = MPI_Wtime();
 
-    while (hgraphs.getNumElem() > 0) {
+    while (hgraphs.size() > 0) {
       coarseGraph->removeBadPartitions(keepPartitionsWithin * accumulator);
       accumulator *= reductionInKeepThreshold;
 
@@ -197,7 +197,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
       startTime = MPI_Wtime();
 
       do {
-        hEdgePercentile = hEdgePercentiles.getTopElem();
+        hEdgePercentile = hEdgePercentiles.top();
         restrCoarsener.setPercentile(hEdgePercentile);
         coarseGraph = restrCoarsener.coarsen(*finerGraph, comm);
 
@@ -240,7 +240,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
       startTime = MPI_Wtime();
       accumulator = 1.0;
 
-      while (hgraphs.getNumElem() > 0) {
+      while (hgraphs.size() > 0) {
         coarseGraph->removeBadPartitions(keepPartitionsWithin * accumulator);
         accumulator *= reductionInKeepThreshold;
 
@@ -258,10 +258,10 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
         finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
         if (randShuffBefRef) {
-          if (hgraphs.getNumElem() == 0)
+          if (hgraphs.size() == 0)
             finerGraph->randomVertexShuffle(mapToInterVerts.data(), comm);
           else
-            finerGraph->randomVertexShuffle(*(hgraphs.getTopElem()), comm);
+            finerGraph->randomVertexShuffle(*(hgraphs.top()), comm);
         }
 
         if (approxRefine)

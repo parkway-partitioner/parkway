@@ -1,4 +1,3 @@
-
 #ifndef _MOVEMENT_SETS_HPP
 #define _MOVEMENT_SETS_HPP
 
@@ -27,24 +26,31 @@ class movement_set_table {
   movement_set_table(int nParts, int nProcs);
   ~movement_set_table();
 
-  inline void setMaxWt(int max) { maxPartWt = max; }
-
-  inline int *getPartWeightsArray() const { return partWeights.data(); }
-  inline int *getRestoringMovesLens() const {
-    return restoringMovesLens.data();
-  }
-  inline dynamic_array<int> **getRestoringMoves() const {
-    return restoringMoves.data();
+  inline void set_max_part_weight(int weight) {
+    max_part_weight_ = weight;
   }
 
-  inline int findHeaviest() const {
-    int i = 0;
+  inline int *part_weights_array() const {
+    return part_weights_.data();
+  }
+
+  inline int *restoring_move_lens() const {
+    return restoring_move_lens_.data();
+  }
+
+  inline dynamic_array<int> **restoring_moves() const {
+    return restoring_moves_.data();
+  }
+
+  inline int find_heaviest_part_index() const {
     int j = -1;
-
-    for (; i < numParts; ++i)
-      if (partWeights[i] > maxPartWt)
-        if (j == -1 || (j >= 0 && partWeights[i] > partWeights[j]))
+    for (int i = 0; i < number_of_parts_; ++i) {
+      if (part_weights_[i] > max_part_weight_) {
+        if (j == -1 || (j >= 0 && part_weights_[i] > part_weights_[j])) {
           j = i;
+        }
+      }
+    }
 
 #ifdef DEBUG_BASICS
     assert(j >= -1 && j < numParts);
@@ -53,21 +59,22 @@ class movement_set_table {
     return j;
   }
 
-  void initPartWeights(const int *partWts, int nParts);
-  void completeProcSets(int proc, int dataLen, const int *data);
-  void computeRestoringArray();
+  void initialize_part_weights(const int *partWts, int nParts);
+  void complete_processor_sets(int proc, int dataLen, const int *data);
+  void compute_restoring_array();
 
  protected:
-  int numParts;
-  int numProcs;
-  int maxPartWt;
+  int number_of_parts_;
+  // TODO(gb610): processors or processes?
+  int number_of_processors_;
+  int max_part_weight_;
   int setArrayLen;
 
-  dynamic_array<int> partWeights;
-  dynamic_array<int> restoringMovesLens;
+  dynamic_array<int> part_weights_;
+  dynamic_array<int> restoring_move_lens_;
 
-  dynamic_array<dynamic_array<int> *> restoringMoves;
-  dynamic_array<dynamic_array<movement_set> *> sets;
+  dynamic_array<dynamic_array<int> *> restoring_moves_;
+  dynamic_array<dynamic_array<movement_set> *> sets_;
 };
 
 #endif
