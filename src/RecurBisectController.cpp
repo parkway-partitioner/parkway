@@ -31,8 +31,8 @@ RecurBisectController::RecurBisectController(BisectionController *b,
   avePartWt = 0;
   aveInitBisectionWt = 0;
 
-  locVertPartitionInfo.setLength(0);
-  allPartitionInfo.setLength(0);
+  locVertPartitionInfo.reserve(0);
+  allPartitionInfo.reserve(0);
 
 #ifdef DEBUG_CONTROLLER
   assert(bisector);
@@ -119,8 +119,8 @@ void RecurBisectController::convToBisectionConstraints() {
       numMyPartitions = j;
   }
 
-  partitionCuts.setLength(numMyPartitions);
-  partitionVectorOffsets.setLength(numMyPartitions + 1);
+  partitionCuts.reserve(numMyPartitions);
+  partitionVectorOffsets.reserve(numMyPartitions + 1);
   partitionVectorOffsets[0] = 0;
 
   j = h->getNumVertices();
@@ -129,7 +129,7 @@ void RecurBisectController::convToBisectionConstraints() {
     partitionVectorOffsets[i] = partitionVectorOffsets[i - 1] + j;
   }
 
-  partitionVector.setLength(partitionVectorOffsets[numMyPartitions]);
+  partitionVector.reserve(partitionVectorOffsets[numMyPartitions]);
 }
 
 void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
@@ -156,7 +156,7 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
 
   Bisection *b;
 
-  allPartitionInfo.setLength(Shiftl(numVertices, 1));
+  allPartitionInfo.reserve(Shiftl(numVertices, 1));
 
   for (i = 0; i < numSeqRuns; ++i) {
     destProcessor = Mod(i, numProcs);
@@ -181,7 +181,7 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
     // ###
 
     MPI_Reduce(&sumOfCuts, &ij, 1, MPI_INT, MPI_SUM, destProcessor, comm);
-    MPI_Gather(&locVertPartInfoLen, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+    MPI_Gather(&locVertPartInfoLen, 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                destProcessor, comm);
 
     if (myRank == destProcessor) {
@@ -197,9 +197,9 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
 #endif
     }
 
-    MPI_Gatherv(locVertPartitionInfo.getArray(), locVertPartInfoLen, MPI_INT,
-                allPartitionInfo.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, destProcessor, comm);
+    MPI_Gatherv(locVertPartitionInfo.data(), locVertPartInfoLen, MPI_INT,
+                allPartitionInfo.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, destProcessor, comm);
 
     if (myRank == destProcessor) {
       ij = Shiftl(numVertices, 1);
@@ -306,7 +306,7 @@ void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
     ij += numVperProc[i];
   }
 
-  sendArray.setLength(j);
+  sendArray.reserve(j);
   totToSend = j;
 
   ij = 0;
@@ -325,7 +325,7 @@ void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
   assert(ij == totToSend);
 #endif
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
@@ -339,15 +339,15 @@ void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
   assert(ij == hGraphPartVectorOffsets[numSeqRuns]);
 #endif
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, hGraphPartitionVector,
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, hGraphPartitionVector,
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // communicate partition cuts
   // ###
 
-  MPI_Allgather(&numMyPartitions, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Allgather(&numMyPartitions, 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                 comm);
 
   ij = 0;
@@ -358,7 +358,7 @@ void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
   }
 
   MPI_Allgatherv(hPartitionCutsArray, numMyPartitions, MPI_INT, hGraphPartCuts,
-                 recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+                 recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   if (dispOption > 1 && myRank == 0) {
     for (i = 0; i < numSeqRuns; ++i)
@@ -565,10 +565,10 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
       }
     }
 
-    vertWt->setLength(numVerts);
-    mapOrig->setLength(numVerts);
+    vertWt->reserve(numVerts);
+    mapOrig->reserve(numVerts);
 
-    newH = new Hypergraph(vertWt->getArray(), numVerts);
+    newH = new Hypergraph(vertWt->data(), numVerts);
 
     // ###
     // initialise pin list
@@ -598,9 +598,9 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
       }
     }
 
-    hedgeWts->setLength(numHedges);
-    hedgeOffsets->setLength(numHedges + 1);
-    pinList->setLength(numPins);
+    hedgeWts->reserve(numHedges);
+    hedgeOffsets->reserve(numHedges + 1);
+    pinList->reserve(numPins);
 
     // ###
     // now init the hypergraphs
@@ -609,9 +609,9 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
     newH->setNumHedges(numHedges);
     newH->setNumPins(numPins);
     newH->setTotWeight(totWt);
-    newH->setHedgeWtArray(hedgeWts->getArray(), numHedges);
-    newH->setPinListArray(pinList->getArray(), numPins);
-    newH->setHedgeOffsetArray(hedgeOffsets->getArray(), numHedges + 1);
+    newH->setHedgeWtArray(hedgeWts->data(), numHedges);
+    newH->setPinListArray(pinList->data(), numPins);
+    newH->setHedgeOffsetArray(hedgeOffsets->data(), numHedges + 1);
 
     newH->buildVtoHedges();
 
@@ -621,7 +621,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
 
     newB = new Bisection(newH, bisectAgain - 1,
                          Or(bPartID, Shiftl(1, (logK - bisectAgain))));
-    newB->setMap(mapOrig->getArray(), numVerts);
+    newB->setMap(mapOrig->data(), numVerts);
   } else {
     // ###
     // in the even processor case
@@ -641,10 +641,10 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
       }
     }
 
-    vertWt->setLength(numVerts);
-    mapOrig->setLength(numVerts);
+    vertWt->reserve(numVerts);
+    mapOrig->reserve(numVerts);
 
-    newH = new Hypergraph(vertWt->getArray(), numVerts);
+    newH = new Hypergraph(vertWt->data(), numVerts);
 
     // ###
     // initialise pin list
@@ -674,9 +674,9 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
       }
     }
 
-    hedgeWts->setLength(numHedges);
-    hedgeOffsets->setLength(numHedges + 1);
-    pinList->setLength(numPins);
+    hedgeWts->reserve(numHedges);
+    hedgeOffsets->reserve(numHedges + 1);
+    pinList->reserve(numPins);
 
     // ###
     // now init the hypergraph
@@ -685,9 +685,9 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
     newH->setNumHedges(numHedges);
     newH->setNumPins(numPins);
     newH->setTotWeight(totWt);
-    newH->setHedgeWtArray(hedgeWts->getArray(), numHedges);
-    newH->setPinListArray(pinList->getArray(), numPins);
-    newH->setHedgeOffsetArray(hedgeOffsets->getArray(), numHedges + 1);
+    newH->setHedgeWtArray(hedgeWts->data(), numHedges);
+    newH->setPinListArray(pinList->data(), numPins);
+    newH->setHedgeOffsetArray(hedgeOffsets->data(), numHedges + 1);
 
     newH->buildVtoHedges();
 
@@ -696,7 +696,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
     // ###
 
     newB = new Bisection(newH, bisectAgain - 1, bPartID);
-    newB->setMap(mapOrig->getArray(), numVerts);
+    newB->setMap(mapOrig->data(), numVerts);
   }
 }
 
@@ -783,14 +783,14 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
     }
   }
 
-  leftVertWt->setLength(numLeftVerts);
-  leftMapOrig->setLength(numLeftVerts);
+  leftVertWt->reserve(numLeftVerts);
+  leftMapOrig->reserve(numLeftVerts);
 
-  rightVertWt->setLength(numRightVerts);
-  rightMapOrig->setLength(numRightVerts);
+  rightVertWt->reserve(numRightVerts);
+  rightMapOrig->reserve(numRightVerts);
 
-  leftH = new Hypergraph(leftVertWt->getArray(), numLeftVerts);
-  rightH = new Hypergraph(rightVertWt->getArray(), numRightVerts);
+  leftH = new Hypergraph(leftVertWt->data(), numLeftVerts);
+  rightH = new Hypergraph(rightVertWt->data(), numRightVerts);
 
   // ###
   // initialise pin list
@@ -829,13 +829,13 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
     }
   }
 
-  leftHedgeWts->setLength(numLeftHedges);
-  leftHedgeOffsets->setLength(numLeftHedges + 1);
-  leftPinList->setLength(numLeftPins);
+  leftHedgeWts->reserve(numLeftHedges);
+  leftHedgeOffsets->reserve(numLeftHedges + 1);
+  leftPinList->reserve(numLeftPins);
 
-  rightHedgeWts->setLength(numRightHedges);
-  rightHedgeOffsets->setLength(numRightHedges + 1);
-  rightPinList->setLength(numRightPins);
+  rightHedgeWts->reserve(numRightHedges);
+  rightHedgeOffsets->reserve(numRightHedges + 1);
+  rightPinList->reserve(numRightPins);
 
   // ###
   // now init the hypergraphs
@@ -844,18 +844,18 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   leftH->setNumHedges(numLeftHedges);
   leftH->setNumPins(numLeftPins);
   leftH->setTotWeight(totLeftWt);
-  leftH->setHedgeWtArray(leftHedgeWts->getArray(), numLeftHedges);
-  leftH->setPinListArray(leftPinList->getArray(), numLeftPins);
-  leftH->setHedgeOffsetArray(leftHedgeOffsets->getArray(), numLeftHedges + 1);
+  leftH->setHedgeWtArray(leftHedgeWts->data(), numLeftHedges);
+  leftH->setPinListArray(leftPinList->data(), numLeftPins);
+  leftH->setHedgeOffsetArray(leftHedgeOffsets->data(), numLeftHedges + 1);
 
   leftH->buildVtoHedges();
 
   rightH->setNumHedges(numRightHedges);
   rightH->setNumPins(numRightPins);
   rightH->setTotWeight(totRightWt);
-  rightH->setHedgeWtArray(rightHedgeWts->getArray(), numRightHedges);
-  rightH->setPinListArray(rightPinList->getArray(), numRightPins);
-  rightH->setHedgeOffsetArray(rightHedgeOffsets->getArray(),
+  rightH->setHedgeWtArray(rightHedgeWts->data(), numRightHedges);
+  rightH->setPinListArray(rightPinList->data(), numRightPins);
+  rightH->setHedgeOffsetArray(rightHedgeOffsets->data(),
                               numRightHedges + 1);
 
   rightH->buildVtoHedges();
@@ -868,8 +868,8 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   r = new Bisection(rightH, bisectAgain - 1,
                     Or(bPartID, Shiftl(1, (logK - bisectAgain))));
 
-  l->setMap(leftMapOrig->getArray(), numLeftVerts);
-  r->setMap(rightMapOrig->getArray(), numRightVerts);
+  l->setMap(leftMapOrig->data(), numLeftVerts);
+  r->setMap(rightMapOrig->data(), numRightVerts);
 }
 
 int RecurBisectController::getBestPartitionProc(int cut, MPI_Comm comm) const {
@@ -886,7 +886,7 @@ int RecurBisectController::getBestPartitionProc(int cut, MPI_Comm comm) const {
   dynamic_array<int> allCuts(nProcs);
   dynamic_array<int> procs(nProcs);
 
-  MPI_Allgather(&cut, 1, MPI_INT, allCuts.getArray(), 1, MPI_INT, comm);
+  MPI_Allgather(&cut, 1, MPI_INT, allCuts.data(), 1, MPI_INT, comm);
 
   bestCut = allCuts[0];
   procs[0] = 0;
@@ -898,7 +898,7 @@ int RecurBisectController::getBestPartitionProc(int cut, MPI_Comm comm) const {
       bestCut = allCuts[i];
   }
 
-  Funct::randomPermutation(procs.getArray(), nProcs);
+  Funct::randomPermutation(procs.data(), nProcs);
 
   if (rank == 0) {
     for (i = 0; i < nProcs; ++i) {

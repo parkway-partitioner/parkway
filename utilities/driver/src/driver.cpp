@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     from the Utilities directory or otherwise (see
     manual for correct input file format).
 
-    User is required to modify the options array, some
+    User is required to modify the options data_, some
     guidance can be found below - otherwise refer to the
     manual.
   */
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
   // vertex to processor allocation: 0 -> as read in, 1 -> random 2 -> as
   // prescribed in partition file
   options[5] = 0;
-  // hyperedge length percentile for approx para coarsening and refinement
+  // hyperedge capacity_ percentile for approx para coarsening and refinement
   options[6] = 100;
   // increment in percentile options[6]
   options[7] = 1;
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
   // vertex visit order: 3 -> random, 1/2 inc/dec by vertex id, 4/5 inc/dec by
   // vertex wt
   options[11] = 3;
-  // divide connectivity by cluster weight/hyperedge length: 0-neither, 1-only
+  // divide connectivity by cluster weight/hyperedge capacity_: 0-neither, 1-only
   // cluster, 2-only hedge len, 3-both
   options[12] = 3;
   // matching request resolution order: 3 -> random, 2 -> as they arrive

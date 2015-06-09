@@ -44,8 +44,8 @@ void VCycleFinalBisectionController::computeBisection() {
   stack<int> hEdgePercentiles;
 
   numOrigVertices = origGraph->getNumVertices();
-  bestPartition.setLength(numOrigVertices);
-  vCyclePartition.setLength(numOrigVertices);
+  bestPartition.reserve(numOrigVertices);
+  vCyclePartition.reserve(numOrigVertices);
 
   restrCoarsener->setMaxVertexWt(coarsener->getMaxVertexWt());
 
@@ -188,7 +188,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
     if (firstCutsize < bestCut) {
       bestCut = firstCutsize;
-      storeBestPartition(vCyclePartition.getArray(), numOrigVertices);
+      storeBestPartition(vCyclePartition.data(), numOrigVertices);
     }
 
     // ###
@@ -200,7 +200,7 @@ void VCycleFinalBisectionController::computeBisection() {
   }
 
   origGraph->setNumPartitions(1);
-  origGraph->copyInPartition(bestPartition.getArray(), numOrigVertices, 0,
+  origGraph->copyInPartition(bestPartition.data(), numOrigVertices, 0,
                              bestCut);
 }
 

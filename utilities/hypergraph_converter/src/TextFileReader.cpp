@@ -18,15 +18,15 @@ int TextFileReader::maxLength = 10000000;
 int TextFileReader::maxPinsInChunk = 10000000;
 
 TextFileReader::TextFileReader() {
-  buffer.setLength(maxLength);
+  buffer.reserve(maxLength);
   length = 0;
 }
 
 TextFileReader::~TextFileReader() {}
 
 void TextFileReader::getLine(std::ifstream &input_stream) {
-  input_stream.getline(buffer.getArray(), maxLength);
-  length = strlen(buffer.getArray());
+  input_stream.getline(buffer.data(), maxLength);
+  length = strlen(buffer.data());
 }
 
 #endif

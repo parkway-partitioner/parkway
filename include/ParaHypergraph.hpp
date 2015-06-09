@@ -140,20 +140,20 @@ public:
   inline int getIndexInSeq() const { return indexInSequence; }
   inline int dontCoarsen() const { return doNotCoarsen; }
 
-  inline int *getWeightArray() const { return vWeight.getArray(); }
-  inline int *getMatchVectorArray() const { return matchVector.getArray(); }
-  inline int *getPartVectorArray() const { return partitionVector.getArray(); }
-  inline int *getLocalPinsArray() const { return localPins.getArray(); }
-  inline int *getHedgeOffsetsArray() const { return hEdgeOffsets.getArray(); }
-  inline int *getHedgeWeightsArray() const { return hEdgeWeights.getArray(); }
-  inline int *getPartitionArray() const { return partitionVector.getArray(); }
+  inline int *getWeightArray() const { return vWeight.data(); }
+  inline int *getMatchVectorArray() const { return matchVector.data(); }
+  inline int *getPartVectorArray() const { return partitionVector.data(); }
+  inline int *getLocalPinsArray() const { return localPins.data(); }
+  inline int *getHedgeOffsetsArray() const { return hEdgeOffsets.data(); }
+  inline int *getHedgeWeightsArray() const { return hEdgeWeights.data(); }
+  inline int *getPartitionArray() const { return partitionVector.data(); }
   inline int *getPartitionOffsetsArray() const {
-    return partitionOffsetsVector.getArray();
+    return partitionOffsetsVector.data();
   }
   inline int *getCutsizesArray() const {
-    return partitionCutsizesVector.getArray();
+    return partitionCutsizesVector.data();
   }
-  inline int *getToOrigVArray() const { return vToOrigV.getArray(); }
+  inline int *getToOrigVArray() const { return vToOrigV.data(); }
 
 
   inline void setIndexInSeq(int index) { indexInSequence = index; }
@@ -165,22 +165,22 @@ public:
   inline void setLocalVertexWt(int w) { localVertexWt = w; }
 
   inline void setWeightArray(int *a, int l) {
-    vWeight.setArray(a, l);
+    vWeight.set_data(a, l);
   }
   inline void setMatchVectorArray(int *a, int l) {
-    matchVector.setArray(a, l);
+    matchVector.set_data(a, l);
   }
   inline void setPartVectorArray(int *a, int l) {
-    partitionVector.setArray(a, l);
+    partitionVector.set_data(a, l);
   }
   inline void setLocalPinsArray(int *a, int l) {
-    localPins.setArray(a, l);
+    localPins.set_data(a, l);
   }
   inline void setHedgeOffsetsArray(int *a, int l) {
-    hEdgeOffsets.setArray(a, l);
+    hEdgeOffsets.set_data(a, l);
   }
   inline void setHedgeWeightsArray(int *a, int l) {
-    hEdgeWeights.setArray(a, l);
+    hEdgeWeights.set_data(a, l);
   }
 
   inline void setCut(int pNo, int cut) {

@@ -64,11 +64,11 @@ void HMeTiS2Bin::convert(const char *filename) {
     }
 
     getLine(in_stream);
-    numHedgesRead += processHedgeLine(buffer.getArray(), numPinsRead);
+    numHedgesRead += processHedgeLine(buffer.data(), numPinsRead);
 
     if (numPinsRead > maxPinsRead || numHedgesRead == numHedges) {
       setLengthParameter();
-      out_stream.write((char *)(hEdgeData.getArray()),
+      out_stream.write((char *)(hEdgeData.data()),
                        sizeof(int) * dataLength);
       numPinsRead = 0;
     }
@@ -82,7 +82,7 @@ void HMeTiS2Bin::convert(const char *filename) {
 
     while (!in_stream.eof() && numVerts < numVertices) {
       getLine(in_stream);
-      processVertLine(buffer.getArray());
+      processVertLine(buffer.data());
     }
 
     if (numVerts < numVertices) {
@@ -92,14 +92,14 @@ void HMeTiS2Bin::convert(const char *filename) {
       exit(1);
     }
   } else {
-    vWeights.setLength(numVertices);
+    vWeights.reserve(numVertices);
     numVerts = numVertices;
 
     for (int i = 0; i < numVertices; ++i)
       vWeights[i] = 1;
   }
 
-  out_stream.write((char *)(vWeights.getArray()), sizeof(int) * numVertices);
+  out_stream.write((char *)(vWeights.data()), sizeof(int) * numVertices);
 
   in_stream.close();
   out_stream.close();
@@ -110,12 +110,12 @@ void HMeTiS2Bin::readPreamble(ifstream &in) {
   int options = 0;
 
   getLine(in);
-  line = buffer.getArray();
+  line = buffer.data();
   StringUtils::skipNonDigits(line, '%');
 
   while (*line == '\0' && !in.eof()) {
     getLine(in);
-    line = buffer.getArray();
+    line = buffer.data();
     StringUtils::skipNonDigits(line, '%');
   }
 
@@ -240,7 +240,7 @@ int HMeTiS2Bin::computeNumPins(ifstream &in_stream) {
 
   while (!in_stream.eof() && numHedgesRead < numHedges) {
     getLine(in_stream);
-    numHedgesRead += countPinsInLine(buffer.getArray(), numPins);
+    numHedgesRead += countPinsInLine(buffer.data(), numPins);
   }
 
   in_stream.seekg(loc, ios::beg);

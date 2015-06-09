@@ -112,7 +112,7 @@ void BisectionController::computeBisection() {
   stack<int> hEdgePercentiles;
 
   numOrigVertices = origGraph->getNumVertices();
-  bestPartition.setLength(numOrigVertices);
+  bestPartition.reserve(numOrigVertices);
 
   for (i = 0; i < numSeqRuns; ++i) {
     Hypergraph *coarseGraph;
@@ -157,7 +157,7 @@ void BisectionController::computeBisection() {
 
     if (cut < bestCut) {
       bestCut = cut;
-      coarseGraph->copyOutPartition(bestPartition.getArray(), numOrigVertices,
+      coarseGraph->copyOutPartition(bestPartition.data(), numOrigVertices,
                                     0);
     }
 
@@ -167,7 +167,7 @@ void BisectionController::computeBisection() {
   }
 
   origGraph->setNumPartitions(1);
-  origGraph->copyInPartition(bestPartition.getArray(), numOrigVertices, 0,
+  origGraph->copyInPartition(bestPartition.data(), numOrigVertices, 0,
                              bestCut);
 }
 

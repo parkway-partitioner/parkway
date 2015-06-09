@@ -74,9 +74,9 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   numLocPins = 0;
   vertsPerProc = totalVertices / numProcs;
 
-  vToHedgesOffset.setLength(numLocalVertices + 1);
-  sentToProc.setLength(numProcs);
-  vDegs.setLength(numLocalVertices);
+  vToHedgesOffset.reserve(numLocalVertices + 1);
+  sentToProc.reserve(numProcs);
+  vDegs.reserve(numLocalVertices);
   toLoad.setLength(numLocalHedges);
 
   for (i = 0; i < numLocalVertices; ++i) {
@@ -88,7 +88,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
     computeHedgesToLoad(toLoad, numLocalHedges, localHedgeWeights,
                         localHedgeOffsets, comm);
   else
-    toLoad.set1();
+    toLoad.set();
 
   // ###
   // use the request sets to send local hyperedges to other
@@ -185,9 +185,9 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   hEdgeOffset.assign(numHedges, numLocPins);
 
 #ifdef MEM_OPT
-  hEdgeOffset.setLength(numHedges + 1);
-  hEdgeWeight.setLength(numHedges);
-  locPinList.setLength(numHedges);
+  hEdgeOffset.reserve(numHedges + 1);
+  hEdgeWeight.reserve(numHedges);
+  locPinList.reserve(numHedges);
 #endif
 
   // ###
@@ -208,7 +208,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   }
 
   vToHedgesOffset[j] = l;
-  vToHedgesList.setLength(l);
+  vToHedgesList.reserve(l);
 
   for (j = 0; j < numHedges; ++j) {
     endOffset = hEdgeOffset[j + 1];
@@ -271,9 +271,9 @@ void ParaApproxCoarsener::computeHedgesToLoad(bit_field &toLoad, int numH,
   }
 
   percentileThreshold = (static_cast<double>(j) * currPercentile) / 100;
-  Funct::qsortByAnotherArray(0, numH - 1, hEdges.getArray(),
-                             hEdgeLens.getArray(), INC);
-  toLoad.set1();
+  Funct::qsortByAnotherArray(0, numH - 1, hEdges.data(),
+                             hEdgeLens.data(), INC);
+  toLoad.set();
 
   j = 0;
   i = 0;
@@ -299,7 +299,7 @@ void ParaApproxCoarsener::computeHedgesToLoad(bit_field &toLoad, int numH,
 
   for (; i < numH; ++i)
     if (hEdgeLens[hEdges[i]] > percentileLen)
-      toLoad.set0(hEdges[i]);
+      toLoad.unset(hEdges[i]);
 
   /* increment the percentile for subsequent coarsening */
 

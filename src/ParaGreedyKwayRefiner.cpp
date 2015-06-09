@@ -31,10 +31,10 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   numTotVerticesMoved = 0;
   ij = numParts * numParts;
 
-  moveSets.setLength(ij);
-  moveSetData.setLength(Shiftl(ij, 1));
-  indexIntoMoveSetData.setLength(ij);
-  numVerticesMoved.setLength(ij);
+  moveSets.reserve(ij);
+  moveSetData.reserve(Shiftl(ij, 1));
+  indexIntoMoveSetData.reserve(ij);
+  numVerticesMoved.reserve(ij);
 
   for (i = 0; i < ij; ++i)
     moveSets[i] = new dynamic_array<int>;
@@ -57,15 +57,15 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
 
   movementSets = new movement_set_table(numParts, numProcs);
 
-  numNeighParts.setLength(0);
-  neighboursOfV.setLength(0);
-  neighboursOfVOffsets.setLength(0);
-  hEdgeVinPart.setLength(0);
-  hEdgeVinPartOffsets.setLength(0);
-  vertices.setLength(0);
-  movedVertices.setLength(0);
-  numPartsSpanned.setLength(0);
-  spannedParts.setLength(0);
+  numNeighParts.reserve(0);
+  neighboursOfV.reserve(0);
+  neighboursOfVOffsets.reserve(0);
+  hEdgeVinPart.reserve(0);
+  hEdgeVinPartOffsets.reserve(0);
+  vertices.reserve(0);
+  movedVertices.reserve(0);
+  numPartsSpanned.reserve(0);
+  spannedParts.reserve(0);
   locked.setLength(0);
   vertSeen.setLength(0);
 }
@@ -102,30 +102,30 @@ void ParaGreedyKwayRefiner::dispRefinementOptions() const {
 }
 
 void ParaGreedyKwayRefiner::releaseMemory() {
-  hEdgeWeight.setLength(0);
-  hEdgeOffset.setLength(0);
-  locPinList.setLength(0);
+  hEdgeWeight.reserve(0);
+  hEdgeOffset.reserve(0);
+  locPinList.reserve(0);
 
-  vToHedgesOffset.setLength(0);
-  vToHedgesList.setLength(0);
-  allocHedges.setLength(0);
+  vToHedgesOffset.reserve(0);
+  vToHedgesList.reserve(0);
+  allocHedges.reserve(0);
 
-  numNeighParts.setLength(0);
-  neighboursOfV.setLength(0);
-  neighboursOfVOffsets.setLength(0);
-  hEdgeVinPart.setLength(0);
-  hEdgeVinPartOffsets.setLength(0);
-  vertices.setLength(0);
-  movedVertices.setLength(0);
-  seenVertices.setLength(0);
-  numPartsSpanned.setLength(0);
-  spannedParts.setLength(0);
+  numNeighParts.reserve(0);
+  neighboursOfV.reserve(0);
+  neighboursOfVOffsets.reserve(0);
+  hEdgeVinPart.reserve(0);
+  hEdgeVinPartOffsets.reserve(0);
+  vertices.reserve(0);
+  movedVertices.reserve(0);
+  seenVertices.reserve(0);
+  numPartsSpanned.reserve(0);
+  spannedParts.reserve(0);
 
-  nonLocVerts.setLength(0);
-  partIndices.setLength(0);
-  indexIntoPartIndices.setLength(0);
-  nonLocVToHedges.setLength(0);
-  nonLocOffsets.setLength(0);
+  nonLocVerts.reserve(0);
+  partIndices.reserve(0);
+  indexIntoPartIndices.reserve(0);
+  nonLocVToHedges.reserve(0);
+  nonLocOffsets.reserve(0);
 
   toNonLocVerts.destroyTable();
 
@@ -147,19 +147,19 @@ void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
   // ###
 
   vertSeen.setLength(numLocalVertices);
-  vertSeen.clear();
+  vertSeen.unset();
 
   locked.setLength(numLocalVertices);
-  vertices.setLength(numLocalVertices);
-  seenVertices.setLength(numLocalVertices);
-  spannedParts.setLength(numParts);
-  numPartsSpanned.setLength(numHedges);
-  numNeighParts.setLength(numLocalVertices);
-  neighboursOfV.setLength(numLocalVertices * numParts);
-  neighboursOfVOffsets.setLength(numLocalVertices + 1);
+  vertices.reserve(numLocalVertices);
+  seenVertices.reserve(numLocalVertices);
+  spannedParts.reserve(numParts);
+  numPartsSpanned.reserve(numHedges);
+  numNeighParts.reserve(numLocalVertices);
+  neighboursOfV.reserve(numLocalVertices * numParts);
+  neighboursOfVOffsets.reserve(numLocalVertices + 1);
 
-  hEdgeVinPart.setLength(numHedges * numParts);
-  hEdgeVinPartOffsets.setLength(numHedges + 1);
+  hEdgeVinPart.reserve(numHedges * numParts);
+  hEdgeVinPartOffsets.reserve(numHedges + 1);
 
   j = 0;
   ij = numParts;
@@ -252,7 +252,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
   for (i = 0; i < j; ++i)
     hEdgeVinPart[i] = 0;
 
-  MPI_Allreduce(locPartWts.getArray(), partWeights.getArray(), numParts,
+  MPI_Allreduce(locPartWts.data(), partWeights.data(), numParts,
                 MPI_INT, MPI_SUM, comm);
 
 #ifdef DEBUG_REFINER
@@ -388,7 +388,7 @@ int ParaGreedyKwayRefiner::runGreedyKwayRefinement(ParaHypergraph &h, int pNo,
   int i;
 
   numTotVerticesMoved = 0;
-  locked.clear();
+  locked.unset();
 
   for (i = 0; i < 2; ++i) {
     if (myRank == ROOT_PROC) {
@@ -396,7 +396,7 @@ int ParaGreedyKwayRefiner::runGreedyKwayRefinement(ParaHypergraph &h, int pNo,
       // init movement sets
       // ###
 
-      movementSets->initPartWeights(partWeights.getArray(), numParts);
+      movementSets->initPartWeights(partWeights.data(), numParts);
     }
 
     doGreedyPass(i, comm);
@@ -585,7 +585,7 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
           // update other structs
           // ###
 
-          locked.set1(v);
+          locked.set(v);
           currPVector[v] = bestMove;
           partWeights[sP] -= vertexWt;
           partWeights[bestMove] += vertexWt;
@@ -704,7 +704,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
     }
   }
 
-  MPI_Gather(&numToSend, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT, ROOT_PROC,
+  MPI_Gather(&numToSend, 1, MPI_INT, recvLens.data(), 1, MPI_INT, ROOT_PROC,
              comm);
 
   if (myRank == ROOT_PROC) {
@@ -715,12 +715,12 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
       ij += recvLens[i];
     }
 
-    receiveArray.setLength(ij);
+    receiveArray.reserve(ij);
     totToRecv = ij;
   }
 
-  MPI_Gatherv(sendArray.getArray(), numToSend, MPI_INT, receiveArray.getArray(),
-              recvLens.getArray(), recvDispls.getArray(), MPI_INT, ROOT_PROC,
+  MPI_Gatherv(sendArray.data(), numToSend, MPI_INT, receiveArray.data(),
+              recvLens.data(), recvDispls.data(), MPI_INT, ROOT_PROC,
               comm);
 
   if (myRank == ROOT_PROC) {
@@ -747,17 +747,17 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
     for (i = 0; i < numProcs; ++i) {
       arrayLen = movesLengths[i];
       sendDispls[i] = ij;
-      array = moves[i]->getArray();
+      array = moves[i]->data();
 
       for (j = 0; j < arrayLen; ++j)
         sendArray.assign(ij++, array[j]);
     }
   }
 
-  receiveArray.setLength(totToRecv);
+  receiveArray.reserve(totToRecv);
 
-  MPI_Scatterv(sendArray.getArray(), movesLengths, sendDispls.getArray(),
-               MPI_INT, receiveArray.getArray(), totToRecv, MPI_INT, ROOT_PROC,
+  MPI_Scatterv(sendArray.data(), movesLengths, sendDispls.data(),
+               MPI_INT, receiveArray.data(), totToRecv, MPI_INT, ROOT_PROC,
                comm);
 
   // ###
@@ -765,7 +765,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
   // take back in order to maintain balance condition
   // take back local moves as directed by root processor
 
-  // note that can decrease the size of the take-back array
+  // note that can decrease the size of the take-back data_
   // since we are not making use of the weight of the set
   // to be taken back
   // ###
@@ -807,7 +807,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
     }
   }
 
-  MPI_Bcast(partWeights.getArray(), numParts, MPI_INT, ROOT_PROC, comm);
+  MPI_Bcast(partWeights.data(), numParts, MPI_INT, ROOT_PROC, comm);
 
 #ifdef DEBUG_REFINER
   for (i = 0; i < numParts; ++i)
@@ -876,7 +876,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
       if (i != j) {
         index = prod + j;
         endOffset = numVerticesMoved[index];
-        array = moveSets[index]->getArray();
+        array = moveSets[index]->data();
 
         for (ij = 0; ij < endOffset; ++ij) {
           v = array[ij];
@@ -894,7 +894,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
     }
   }
 
-  MPI_Allgather(&totToSend, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT, comm);
+  MPI_Allgather(&totToSend, 1, MPI_INT, recvLens.data(), 1, MPI_INT, comm);
 
   ij = 0;
   for (i = 0; i < numProcs; ++i) {
@@ -902,12 +902,12 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
     ij += recvLens[i];
   }
 
-  receiveArray.setLength(ij);
+  receiveArray.reserve(ij);
   totToRecv = ij;
 
-  MPI_Allgatherv(sendArray.getArray(), totToSend, MPI_INT,
-                 receiveArray.getArray(), recvLens.getArray(),
-                 recvDispls.getArray(), MPI_INT, comm);
+  MPI_Allgatherv(sendArray.data(), totToSend, MPI_INT,
+                 receiveArray.data(), recvLens.data(),
+                 recvDispls.data(), MPI_INT, comm);
 
   // ###
   // now go through the moved vertices and update local structures
@@ -1036,7 +1036,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
                 }
               }
 
-              vertSeen.set1(locVertIndex);
+              vertSeen.set(locVertIndex);
               seenVertices[numVerticesSeen++] = locVertIndex;
             }
           }
@@ -1055,7 +1055,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
       // ###
 
       for (j = 0; j < numVerticesSeen; ++j) {
-        vertSeen.set0(seenVertices[j]);
+        vertSeen.unset(seenVertices[j]);
       }
 
       // ###
@@ -1182,7 +1182,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
                 }
               }
 
-              vertSeen.set1(locVertIndex);
+              vertSeen.set(locVertIndex);
               seenVertices[numVerticesSeen++] = locVertIndex;
             }
           }
@@ -1201,7 +1201,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
       // ###
 
       for (j = 0; j < numVerticesSeen; ++j)
-        vertSeen.set0(seenVertices[j]);
+        vertSeen.unset(seenVertices[j]);
 
       // ###
       // end updating structures after remote vertex move
@@ -1281,7 +1281,7 @@ void ParaGreedyKwayRefiner::updateAdjVertStatus(int v, int sP, int bestMove) {
             }
           }
 
-          vertSeen.set1(locVertIndex);
+          vertSeen.set(locVertIndex);
           seenVertices[numVerticesSeen++] = locVertIndex;
         }
       }
@@ -1298,7 +1298,7 @@ void ParaGreedyKwayRefiner::updateAdjVertStatus(int v, int sP, int bestMove) {
   // ###
 
   for (i = 0; i < numVerticesSeen; ++i)
-    vertSeen.set0(seenVertices[i]);
+    vertSeen.unset(seenVertices[i]);
 }
 
 void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
@@ -1317,7 +1317,7 @@ void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
   int hEdge;
 
   int numVmoved = numVerticesMoved[indexIntoMoveSets];
-  int *movedArray = moveSets[indexIntoMoveSets]->getArray();
+  int *movedArray = moveSets[indexIntoMoveSets]->data();
 
   for (i = 0; i < numVmoved; ++i) {
     v = movedArray[i] - minVertexIndex;
@@ -1394,7 +1394,7 @@ void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
     // update other structs
     // ###
 
-    locked.set0(v);
+    locked.unset(v);
     currPVector[v] = from;
   }
 
@@ -1419,9 +1419,9 @@ void ParaGreedyKwayRefiner::nonLocVertCheck() const {
     endOffset = nonLocOffsets[i + 1];
 
     for (j = nonLocOffsets[i]; j < endOffset; ++j) {
-      assert(j < nonLocVToHedges.getLength());
+      assert(j < nonLocVToHedges.capacity());
       h = nonLocVToHedges[j];
-      assert(h < hEdgeVinPartOffsets.getLength());
+      assert(h < hEdgeVinPartOffsets.capacity());
       ij = hEdgeVinPartOffsets[h];
       assert(hEdgeVinPart[ij + vertPart] > 0);
     }

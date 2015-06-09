@@ -68,10 +68,10 @@ void HarwellBoeingToBin::convert(const char *filename) {
 
   readPreamble(in_stream);
 
-  pinList.setLength(numNonZeros);
-  hEdgeOffsets.setLength(numCols + 1);
-  hEdgeWeights.setLength(numCols);
-  vWeights.setLength(numRows);
+  pinList.reserve(numNonZeros);
+  hEdgeOffsets.reserve(numCols + 1);
+  hEdgeWeights.reserve(numCols);
+  vWeights.reserve(numRows);
 
   for (i = 0; i < numCols; ++i)
     hEdgeWeights[i] = 1;
@@ -81,7 +81,7 @@ void HarwellBoeingToBin::convert(const char *filename) {
   j = 0;
   for (i = 0; i < totColPtrLines; ++i) {
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 
     while (*data != '\0') {
       StringUtils::skipNonDigits(data);
@@ -103,7 +103,7 @@ void HarwellBoeingToBin::convert(const char *filename) {
   j = 0;
   for (i = 0; i < totRowIdxLines; ++i) {
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 
     while (*data != '\0') {
       StringUtils::skipNonDigits(data);
@@ -126,7 +126,7 @@ void HarwellBoeingToBin::convert(const char *filename) {
   int hasNonZeroOnDiag;
 
   bit_field addNonZero(numCols);
-  addNonZero.clear();
+  addNonZero.unset();
 
   for (i = 0; i < numCols; ++i) {
     hasNonZeroOnDiag = 0;
@@ -137,7 +137,7 @@ void HarwellBoeingToBin::convert(const char *filename) {
 
     if (hasNonZeroOnDiag == 0) {
       ++numZerosOnMainDiag;
-      addNonZero.set1(i);
+      addNonZero.set(i);
     }
   }
 
@@ -209,12 +209,12 @@ void HarwellBoeingToBin::convert(const char *filename) {
 
     if (ij > maxIntsWritten || i == numCols - 1) {
       hEdgeData[0] = ij - 1;
-      out_stream.write((char *)(hEdgeData.getArray()), sizeof(int) * ij);
+      out_stream.write((char *)(hEdgeData.data()), sizeof(int) * ij);
       ij = 0;
     }
   }
 
-  out_stream.write((char *)(vWeights.getArray()), sizeof(int) * numRows);
+  out_stream.write((char *)(vWeights.data()), sizeof(int) * numRows);
 
   in_stream.close();
   out_stream.close();

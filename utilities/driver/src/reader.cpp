@@ -56,7 +56,7 @@ void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
   vWeights = new int[numLocalVertices];
   if (!vWeights)
     return (error(myRank, numLocalVertices, "[loc vertices]"));
-  data.setLength(hEdgeDataLen);
+  data.reserve(hEdgeDataLen);
 
   i = sizeof(int) * numLocalVertices;
   in_stream.read((char *)(vWeights), i);
@@ -68,7 +68,7 @@ void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
   }
 
   i = sizeof(int) * hEdgeDataLen;
-  in_stream.read((char *)(data.getArray()), i);
+  in_stream.read((char *)(data.data()), i);
   if (in_stream.gcount() != i) {
     sprintf(message, "p[%d] cannot read %d of hyperedge data\n", myRank,
             hEdgeDataLen);

@@ -18,21 +18,21 @@ FMRefiner::FMRefiner(int max, int insMethod, int ee, int dL) : Refiner(dL) {
   bucketArraysLen = 0;
   maxPossGain = 0;
   maxNonPosMoves = 0;
-  buckets.setLength(0);
-  moveList.setLength(0);
-  vertexGains.setLength(0);
-  vInPart.setLength(0);
+  buckets.reserve(0);
+  moveList.reserve(0);
+  vertexGains.reserve(0);
+  vInPart.reserve(0);
   locked.setLength(0);
 
   eeThreshold = ee;
   insertMethod = insMethod;
   maxPartWt = max;
   numParts = 2;
-  partWeights.setLength(2);
-  bucketArrays.setLength(2);
-  numBucketsInArray.setLength(2);
-  maxGainEntries.setLength(2);
-  maxGains.setLength(2);
+  partWeights.reserve(2);
+  bucketArrays.reserve(2);
+  numBucketsInArray.reserve(2);
+  maxGainEntries.reserve(2);
+  maxGains.reserve(2);
 
   bucketArrays[0] = nullptr;
   bucketArrays[1] = nullptr;
@@ -78,11 +78,11 @@ void FMRefiner::buildBuckets() {
   int maxVertDeg = 0;
   int maxHedgeWt = 0;
 
-  buckets.setLength(numVertices);
-  vertexGains.setLength(numVertices);
+  buckets.reserve(numVertices);
+  vertexGains.reserve(numVertices);
   locked.setLength(numVertices);
-  moveList.setLength(numVertices);
-  vInPart.setLength(Shiftl(numHedges, 1));
+  moveList.reserve(numVertices);
+  vInPart.reserve(Shiftl(numHedges, 1));
 
   for (i = 0; i < numVertices; ++i) {
     buckets[i] = new bucket_node;
@@ -303,7 +303,7 @@ void FMRefiner::removeBucketsFrom1() {
   int i;
   bucket_node *b;
 
-  bucket_node *array = bucketArrays[1]->getArray();
+  bucket_node *array = bucketArrays[1]->data();
 
   int bucketArrayLen = Or(Shiftl(maxPossGain, 1), 0x1);
 
@@ -327,7 +327,7 @@ void FMRefiner::removeBucketsFrom0() {
   int i;
   bucket_node *b;
 
-  bucket_node *array = bucketArrays[0]->getArray();
+  bucket_node *array = bucketArrays[0]->data();
 
   int bucketArrayLen = Or(Shiftl(maxPossGain, 1), 0x1);
 
@@ -386,7 +386,7 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
   bucket_node *bucket;
 
   // ###
-  // first remove from bucket array
+  // first remove from bucket data_
   // ###
 
   if (b->prev) {
@@ -891,7 +891,7 @@ void FMRefiner::refine(Hypergraph &h) {
 
 int FMRefiner::doFidMatPass() {
   prepVertexGains();
-  locked.clear();
+  locked.unset();
 
   int vGain;
   int numMoves = 0;
@@ -924,7 +924,7 @@ int FMRefiner::doFidMatPass() {
 #endif
       removeFromBucketArray(bestVertex, bestVertexDP, vGain);
       updateGains(bestVertex);
-      locked.set1(bestVertex);
+      locked.set(bestVertex);
       moveList[numMoves++] = bestVertex;
 
       if (gainSum > gainBest) {

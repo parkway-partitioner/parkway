@@ -31,12 +31,12 @@ ParaHypergraphLoader::ParaHypergraphLoader(int rank, int nProcs, int nParts,
 
   currPercentile = 100;
 
-  hEdgeWeight.setLength(0);
-  hEdgeOffset.setLength(0);
-  locPinList.setLength(0);
-  vToHedgesOffset.setLength(0);
-  vToHedgesList.setLength(0);
-  allocHedges.setLength(0);
+  hEdgeWeight.reserve(0);
+  hEdgeOffset.reserve(0);
+  locPinList.reserve(0);
+  vToHedgesOffset.reserve(0);
+  vToHedgesList.reserve(0);
+  allocHedges.reserve(0);
 }
 
 ParaHypergraphLoader::~ParaHypergraphLoader() {}
@@ -87,9 +87,9 @@ void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
     j += hEdgeWts[i];
 
   percentileThreshold = (static_cast<double>(j) * currPercentile) / 100;
-  Funct::qsortByAnotherArray(0, numH - 1, hEdges.getArray(),
-                             hEdgeLens.getArray(), INC);
-  toLoad.set1();
+  Funct::qsortByAnotherArray(0, numH - 1, hEdges.data(),
+                             hEdgeLens.data(), INC);
+  toLoad.set();
 
   j = 0;
   i = 0;
@@ -108,7 +108,7 @@ void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
 
   for (; i < numH; ++i)
     if (hEdgeLens[hEdges[i]] > percentileLen)
-      toLoad.set0(hEdges[i]);
+      toLoad.unset(hEdges[i]);
 }
 
 #endif

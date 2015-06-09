@@ -15,14 +15,14 @@ map_to_pos_int::map_to_pos_int(int _size, int use_hash) {
 void map_to_pos_int::createTable(int _size, int use_hash) {
   useHash = use_hash;
   numEntries = 0;
-  entries.setLength(2048);
+  entries.reserve(2048);
 
   int i;
 
   if (useHash == 0) {
     size = _size;
-    keys.setLength(0);
-    table.setLength(size);
+    keys.reserve(0);
+    table.reserve(size);
 
     for (i = 0; i < size; ++i)
       table[i] = -1;
@@ -32,8 +32,8 @@ void map_to_pos_int::createTable(int _size, int use_hash) {
     assert(size >= _size);
 #endif
 
-    keys.setLength(size);
-    table.setLength(size);
+    keys.reserve(size);
+    table.reserve(size);
 
     for (i = 0; i < size; ++i) {
       keys[i] = -1;
@@ -44,28 +44,28 @@ void map_to_pos_int::createTable(int _size, int use_hash) {
 
 void map_to_pos_int::destroyTable() {
   numEntries = 0;
-  entries.setLength(0);
-  table.setLength(0);
-  keys.setLength(0);
+  entries.reserve(0);
+  table.reserve(0);
+  keys.reserve(0);
 }
 
 void map_to_pos_int::recoverTable() {
   int i;
 
   numEntries = 0;
-  entries.setLength(2048);
+  entries.reserve(2048);
 
   if (useHash) {
-    table.setLength(size);
-    keys.setLength(size);
+    table.reserve(size);
+    keys.reserve(size);
 
     for (i = 0; i < size; ++i) {
       keys[i] = -1;
       table[i] = -1;
     }
   } else {
-    table.setLength(size);
-    keys.setLength(0);
+    table.reserve(size);
+    keys.reserve(0);
 
     for (i = 0; i < size; ++i)
       table[i] = -1;

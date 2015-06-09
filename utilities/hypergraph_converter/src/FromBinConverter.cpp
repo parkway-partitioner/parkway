@@ -30,7 +30,7 @@ void FromBinConverter::readPreamble(ifstream &in_stream) {
   numHedges = inPreamble[1];
   numPins = inPreamble[2];
 
-  vWeights.setLength(numVerts);
+  vWeights.reserve(numVerts);
 }
 
 void FromBinConverter::readInVertexWts(ifstream &in_stream) {
@@ -44,14 +44,14 @@ void FromBinConverter::readInVertexWts(ifstream &in_stream) {
   offset = length - vertChunk;
 
   in_stream.seekg(offset, ifstream::beg);
-  in_stream.read((char *)(vWeights.getArray()), numVerts * sizeof(int));
+  in_stream.read((char *)(vWeights.data()), numVerts * sizeof(int));
   in_stream.seekg(3 * sizeof(int), ifstream::beg);
 }
 
 void FromBinConverter::readInHedgeData(ifstream &in_stream, int &inStream) {
   in_stream.read((char *)(&dataLength), sizeof(int));
-  hEdgeData.setLength(dataLength);
-  in_stream.read((char *)(hEdgeData.getArray()), sizeof(int) * dataLength);
+  hEdgeData.reserve(dataLength);
+  in_stream.read((char *)(hEdgeData.data()), sizeof(int) * dataLength);
   inStream = in_stream.tellg();
 }
 

@@ -47,8 +47,8 @@ void VCycleAllBisectionController::computeBisection() {
   stack<int> hEdgePercentiles;
 
   numOrigVertices = origGraph->getNumVertices();
-  bestPartition.setLength(numOrigVertices);
-  vCyclePartition.setLength(numOrigVertices);
+  bestPartition.reserve(numOrigVertices);
+  vCyclePartition.reserve(numOrigVertices);
 
   restrCoarsener->setMaxVertexWt(coarsener->getMaxVertexWt());
 
@@ -166,7 +166,7 @@ void VCycleAllBisectionController::computeBisection() {
       // ###
       // end v-cycle
 
-      coarseGraph->copyInPartition(vCyclePartition.getArray(),
+      coarseGraph->copyInPartition(vCyclePartition.data(),
                                    coarseGraph->getNumVertices(), 0,
                                    firstCutSize);
     }
@@ -185,14 +185,14 @@ void VCycleAllBisectionController::computeBisection() {
     // reset hypergraph
     // ###
 
-    origGraph->copyInPartition(bestPartition.getArray(), numOrigVertices, 0,
+    origGraph->copyInPartition(bestPartition.data(), numOrigVertices, 0,
                                bestCut);
     origGraph->resetVertexMaps();
     hGraphs.push(coarseGraph);
   }
 
   origGraph->setNumPartitions(1);
-  origGraph->copyInPartition(bestPartition.getArray(), numOrigVertices, 0,
+  origGraph->copyInPartition(bestPartition.data(), numOrigVertices, 0,
                              bestCut);
 }
 

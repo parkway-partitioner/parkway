@@ -53,8 +53,8 @@ void HypergraphLoader::computeHedgesToLoad(bit_field &toLoad) {
   }
 
   percentileThreshold = (static_cast<double>(j) * currPercentile) / 100;
-  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.getArray(),
-                             hEdgeLens.getArray(), INC);
+  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.data(),
+                             hEdgeLens.data(), INC);
 
   j = 0;
   i = 0;
@@ -66,7 +66,7 @@ void HypergraphLoader::computeHedgesToLoad(bit_field &toLoad) {
 
   for (; i < numHedges; ++i)
     if (hEdgeLens[hEdges[i]] > percentileLen)
-      toLoad.set0(hEdges[i]);
+      toLoad.unset(hEdges[i]);
 }
 
 #endif

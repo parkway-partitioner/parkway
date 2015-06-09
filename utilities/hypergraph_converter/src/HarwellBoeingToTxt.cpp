@@ -60,14 +60,14 @@ void HarwellBoeingToTxt::convert(const char *filename) {
 
   out_stream << numCols << " " << numRows << " " << numNonZeros << endl;
 
-  hEdgeOffsets.setLength(numCols + 1);
-  pinList.setLength(numNonZeros);
+  hEdgeOffsets.reserve(numCols + 1);
+  pinList.reserve(numNonZeros);
 
   j = 0;
   for (i = 0; i < totColPtrLines; ++i) {
 
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 #ifdef PRINT_GRAPH
     cout << data << endl;
 #endif
@@ -92,7 +92,7 @@ void HarwellBoeingToTxt::convert(const char *filename) {
   j = 0;
   for (i = 0; i < totRowIdxLines; ++i) {
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 
     while (*data != '\0') {
       StringUtils::skipNonDigits(data);

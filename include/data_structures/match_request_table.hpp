@@ -23,7 +23,7 @@ class match_request_table {
     return entryPtrs[i];
   }
   inline entry **getEntriesArray() const {
-    return entryPtrs.getArray();
+    return entryPtrs.data();
   }
 
   entry *getEntryPtr(int _vertex) const;
@@ -74,7 +74,7 @@ class match_request_table::entry {
   inline int getCluIndex() const { return clusterIndex; }
   inline int getNonLocProc() const { return nonLocProc; }
   inline int getNumLocals() const { return numLocals; }
-  inline int *getLocalsArray() const { return locVertices.getArray(); }
+  inline int *getLocalsArray() const { return locVertices.data(); }
   inline entry *getNextEntry() const { return next; }
 
   inline void setNextEntry(entry *newNext) {

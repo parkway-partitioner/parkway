@@ -19,8 +19,8 @@ MatrixMarketReader::MatrixMarketReader() : TextFileReader() {
   numHyperedges = 0;
   numPins = 0;
 
-  hEdgeOffsets.setLength(0);
-  pinList.setLength(0);
+  hEdgeOffsets.reserve(0);
+  pinList.reserve(0);
 }
 
 MatrixMarketReader::~MatrixMarketReader() {}
@@ -46,7 +46,7 @@ void MatrixMarketReader::readPreamble(ifstream &in_stream) {
 
   skipComments(in_stream);
 
-  char *data = buffer.getArray();
+  char *data = buffer.data();
 
   StringUtils::skipNonDigits(data);
   numVertices = StringUtils::stringToDigit(data);
@@ -69,8 +69,8 @@ void MatrixMarketReader::readMatrix(ifstream &in_stream) {
 
   dynamic_array<int> hEdgeLens(numHyperedges);
 
-  pinList.setLength(numPins);
-  hEdgeOffsets.setLength(numHyperedges + 1);
+  pinList.reserve(numPins);
+  hEdgeOffsets.reserve(numHyperedges + 1);
 
   pointInFile = in_stream.tellg();
 
@@ -79,7 +79,7 @@ void MatrixMarketReader::readMatrix(ifstream &in_stream) {
 
   for (i = 0; i < numPins; ++i) {
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 
     StringUtils::skipNonDigits(data);
     vertex = StringUtils::stringToDigit(data) - 1;
@@ -121,7 +121,7 @@ void MatrixMarketReader::readMatrix(ifstream &in_stream) {
 
   for (i = 0; i < numPins; ++i) {
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 
     StringUtils::skipNonDigits(data);
     vertex = StringUtils::stringToDigit(data) - 1;
@@ -139,7 +139,7 @@ void MatrixMarketReader::skipComments(ifstream &in_stream) {
 
   do {
     getLine(in_stream);
-    c = StringUtils::getFirstChar(buffer.getArray());
+    c = StringUtils::getFirstChar(buffer.data());
   } while (c == '%');
 }
 

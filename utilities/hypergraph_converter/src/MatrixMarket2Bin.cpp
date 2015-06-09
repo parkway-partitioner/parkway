@@ -70,13 +70,13 @@ void MatrixMarket2Bin::writeMatrix(const char *filename) {
   }
 
   writeData[0] = dataLength - 1;
-  out_stream.write((char *)(writeData.getArray()), sizeof(int) * dataLength);
+  out_stream.write((char *)(writeData.data()), sizeof(int) * dataLength);
 
-  writeData.setLength(numVertices);
+  writeData.reserve(numVertices);
   for (i = 0; i < numVertices; ++i)
     writeData[i] = 1;
 
-  out_stream.write((char *)(writeData.getArray()), sizeof(int) * numVertices);
+  out_stream.write((char *)(writeData.data()), sizeof(int) * numVertices);
   out_stream.close();
 }
 

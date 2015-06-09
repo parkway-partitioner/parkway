@@ -82,14 +82,14 @@ void ParaApproxFCCoarsener::buildAuxiliaryStructs(int numTotPins,
 }
 
 void ParaApproxFCCoarsener::releaseMemory() {
-  hEdgeWeight.setLength(0);
-  hEdgeOffset.setLength(0);
-  locPinList.setLength(0);
+  hEdgeWeight.reserve(0);
+  hEdgeOffset.reserve(0);
+  locPinList.reserve(0);
 
-  vToHedgesOffset.setLength(0);
-  vToHedgesList.setLength(0);
-  allocHedges.setLength(0);
-  clusterWeights.setLength(0);
+  vToHedgesOffset.reserve(0);
+  vToHedgesList.reserve(0);
+  allocHedges.reserve(0);
+  clusterWeights.reserve(0);
 
   freeMemory();
 }
@@ -147,7 +147,7 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
   dynamic_array<double> connectVals;
   dynamic_array<int> vertices(numLocalVertices);
 
-  permuteVerticesArray(vertices.getArray(), numLocalVertices);
+  permuteVerticesArray(vertices.data(), numLocalVertices);
 
   if (dispOption > 1) {
     for (i = 0; i < numLocalVertices; ++i) {
@@ -508,7 +508,7 @@ void ParaApproxFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
 
     if (matchRequestVisitOrder == RANDOM_ORDER) {
       visitOrderLen = Shiftr(recvLens[i], 1);
-      visitOrder.setLength(visitOrderLen);
+      visitOrder.reserve(visitOrderLen);
 
       for (j = 0; j < visitOrderLen; ++j)
         visitOrder[j] = j;
@@ -517,7 +517,7 @@ void ParaApproxFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
       // processing match requests in random order
       // ###
 
-      Funct::randomPermutation(visitOrder.getArray(), visitOrderLen);
+      Funct::randomPermutation(visitOrder.data(), visitOrderLen);
 
       for (l = 0; l < visitOrderLen; ++l) {
 
@@ -687,7 +687,7 @@ void ParaApproxFCCoarsener::setClusterIndices(MPI_Comm comm) {
   dynamic_array<int> numClusters(numProcs);
   dynamic_array<int> startIndex(numProcs);
 
-  MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.getArray(), 1, MPI_INT,
+  MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.data(), 1, MPI_INT,
                 comm);
 
   int index = 0;

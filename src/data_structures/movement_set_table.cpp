@@ -20,8 +20,8 @@ movement_set_table::movement_set_table(int nParts, int nProcs) {
   setArrayLen = numParts * numParts;
   maxPartWt = 0;
 
-  partWeights.setLength(numParts);
-  sets.setLength(setArrayLen);
+  partWeights.reserve(numParts);
+  sets.reserve(setArrayLen);
 
   int i;
   int j;
@@ -37,8 +37,8 @@ movement_set_table::movement_set_table(int nParts, int nProcs) {
     }
   }
 
-  restoringMoves.setLength(numProcs);
-  restoringMovesLens.setLength(numProcs);
+  restoringMoves.reserve(numProcs);
+  restoringMovesLens.reserve(numProcs);
 
   for (i = 0; i < numProcs; ++i)
     restoringMoves[i] = new dynamic_array<int>(256);

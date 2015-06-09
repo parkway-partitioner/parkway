@@ -36,12 +36,12 @@ class bit_field {
   }
 
   inline void check(int bit) {
-    int old = data.getLength();
+    int old = data.capacity();
     int bits = bit + 1;
     int target = (bits >> 5) + ((bits & 31) ? 1 : 0);
 
     data.check(target);
-    length = data.getLength();
+    length = data.capacity();
 
     if (length > old) {
       for (int n = old; n < length; ++n)
@@ -59,7 +59,7 @@ class bit_field {
   }
 
   inline unsigned int *getData() const {
-    return data.getArray();
+    return data.data();
   }
 
   inline unsigned int getChunk(int i) const {
@@ -69,36 +69,38 @@ class bit_field {
   inline void setLength(int bits) {
     bitLength = bits;
     length = (bits >> 5) + ((bits & 31) ? 1 : 0);
-    data.setLength(length);
+    data.reserve(length);
   }
 
-  inline void clear() {
-    for (int l = 0; l < length; ++l)
+  inline void unset() {
+    for (int l = 0; l < length; ++l) {
       data[l] = 0;
+    }
   }
 
-  inline void set1() {
-    for (int l = 0; l < length; ++l)
+  inline void set() {
+    for (int l = 0; l < length; ++l) {
       data[l] = 0xFFFFFFFF;
+    }
   }
 
-  inline int allSet() {
-    int allset = 1;
+  inline bool test_all() {
+    bool all_set = true;
     for (int i = 0; i < length; ++i)
       if (data[i] != 0xFFFFFFFF)
-        return 0;
-    return allset;
+        return false;
+    return all_set;
   }
 
   inline int operator()(int index) const {
     return (data(index >> 5) & (1 << (index & 31))) ? 1 : 0;
   }
 
-  inline void set1(int index) {
+  inline void set(int index) {
     data[index >> 5] |= (1 << (index & 31));
   }
 
-  inline void set0(int index) {
+  inline void unset(int index) {
     data[index >> 5] &= (~(1 << (index & 31)));
   }
 

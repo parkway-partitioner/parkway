@@ -64,11 +64,11 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 
   for (i = 0; i < numParaRuns; ++i) {
     if (shuffled == 1)
-      hgraph->randomVertexShuffle(mapToOrigVerts.getArray(), comm);
+      hgraph->randomVertexShuffle(mapToOrigVerts.data(), comm);
 
     if (shuffled == 2)
-      hgraph->prescribedVertexShuffle(mapToOrigVerts.getArray(),
-                                      shufflePartition.getArray(), comm);
+      hgraph->prescribedVertexShuffle(mapToOrigVerts.data(),
+                                      shufflePartition.data(), comm);
 
     hgraphs.push(hgraph);
     hEdgePercentiles.push(startPercentile);
@@ -259,7 +259,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 #endif
         if (randShuffBefRef) {
           if (hgraphs.getNumElem() == 0)
-            finerGraph->randomVertexShuffle(mapToInterVerts.getArray(), comm);
+            finerGraph->randomVertexShuffle(mapToInterVerts.data(), comm);
           else
             finerGraph->randomVertexShuffle(*(hgraphs.getTopElem()), comm);
         }

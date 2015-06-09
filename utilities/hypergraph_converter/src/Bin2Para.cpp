@@ -141,7 +141,7 @@ void Bin2Para::buildParaFile(ifstream &in_stream, ofstream &out_stream,
   out_stream.write((char *)(&outLen), sizeof(int));
   out_stream.write((char *)(&vWeights[minVertIdx]),
                    sizeof(int) * numLocVertices);
-  out_stream.write((char *)(outHedgeData.getArray()), sizeof(int) * outLen);
+  out_stream.write((char *)(outHedgeData.data()), sizeof(int) * outLen);
 
   out_stream.close();
 }

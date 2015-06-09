@@ -17,11 +17,11 @@
 GlobalCommunicator::GlobalCommunicator(const int rank, const int nProcs)
     : myRank(rank), numProcs(nProcs) {
 
-  dataOutSets.setLength(numProcs);
-  sendLens.setLength(numProcs);
-  recvLens.setLength(numProcs);
-  sendDispls.setLength(numProcs);
-  recvDispls.setLength(numProcs);
+  dataOutSets.reserve(numProcs);
+  sendLens.reserve(numProcs);
+  recvLens.reserve(numProcs);
+  sendDispls.reserve(numProcs);
+  recvDispls.reserve(numProcs);
 
   for (int i = 0; i < numProcs; ++i)
     dataOutSets[i] = new dynamic_array<int>(1024);
@@ -35,11 +35,11 @@ GlobalCommunicator::~GlobalCommunicator() {
 
 void GlobalCommunicator::freeMemory() {
   for (int i = 0; i < numProcs; ++i) {
-    dataOutSets[i]->setLength(0);
+    dataOutSets[i]->reserve(0);
   }
 
-  sendArray.setLength(0);
-  receiveArray.setLength(0);
+  sendArray.reserve(0);
+  receiveArray.reserve(0);
 }
 
 void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
@@ -52,18 +52,18 @@ void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
+  sendArray.reserve(j);
 
   int ij = 0;
   int *array;
   for (int i = 0; i < numProcs; ++i) {
-    array = dataOutSets[i]->getArray();
+    array = dataOutSets[i]->data();
     for (j = 0; j < sendLens[i]; ++j) {
       sendArray[ij++] = array[j];
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   j = 0;
@@ -72,11 +72,11 @@ void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 }
 
 #endif

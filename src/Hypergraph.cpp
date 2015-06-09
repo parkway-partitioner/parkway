@@ -16,8 +16,8 @@
 Hypergraph::Hypergraph(int *vWts, int numVerts) {
   numVertices = numVerts;
 
-  matchVector.setLength(numVertices);
-  vWeight.setArray(vWts, numVertices);
+  matchVector.reserve(numVertices);
+  vWeight.set_data(vWts, numVertices);
 
   int i;
 
@@ -28,12 +28,12 @@ Hypergraph::Hypergraph(int *vWts, int numVerts) {
 Hypergraph::Hypergraph(int *vWts, int *pVector, int numVerts, int cut) {
   numVertices = numVerts;
 
-  matchVector.setLength(numVertices);
-  vWeight.setArray(vWts, numVertices);
-  partitionVector.setArray(pVector, numVertices);
+  matchVector.reserve(numVertices);
+  vWeight.set_data(vWts, numVertices);
+  partitionVector.set_data(pVector, numVertices);
 
-  partitionCuts.setLength(1);
-  partitionVectorOffsets.setLength(2);
+  partitionCuts.reserve(1);
+  partitionVectorOffsets.reserve(2);
 
   partitionVectorOffsets[0] = 0;
   partitionVectorOffsets[1] = numVertices;
@@ -64,8 +64,8 @@ void Hypergraph::buildVtoHedges() {
 
   dynamic_array<int> vDegs(numVertices);
 
-  vToHedges.setLength(numPins);
-  vOffsets.setLength(numVertices + 1);
+  vToHedges.reserve(numPins);
+  vOffsets.reserve(numVertices + 1);
 
   for (i = 0; i < numVertices; ++i)
     vDegs[i] = 0;
@@ -103,9 +103,9 @@ void Hypergraph::resetMatchVector() {
 }
 
 void Hypergraph::resetPartitionVectors() {
-  partitionVector.setLength(0);
-  partitionCuts.setLength(0);
-  partitionVectorOffsets.setLength(0);
+  partitionVector.reserve(0);
+  partitionCuts.reserve(0);
+  partitionVectorOffsets.reserve(0);
 
   numPartitions = 0;
 }
@@ -131,9 +131,9 @@ void Hypergraph::projectPartitions(const Hypergraph &coarseGraph) {
 
   numPartitions = numP;
 
-  partitionCuts.setLength(numPartitions);
-  partitionVectorOffsets.setLength(numPartitions + 1);
-  partitionVector.setLength(numPartitions * numVertices);
+  partitionCuts.reserve(numPartitions);
+  partitionVectorOffsets.reserve(numPartitions + 1);
+  partitionVector.reserve(numPartitions * numVertices);
 
   j = 0;
   for (i = 0; i <= numPartitions; ++i) {
@@ -221,9 +221,9 @@ void Hypergraph::setNumPartitions(int nPartitions) {
 
   numPartitions = nPartitions;
 
-  partitionCuts.setLength(numPartitions);
-  partitionVector.setLength(numPartitions * numVertices);
-  partitionVectorOffsets.setLength(numPartitions + 1);
+  partitionCuts.reserve(numPartitions);
+  partitionVector.reserve(numPartitions * numVertices);
+  partitionVectorOffsets.reserve(numPartitions + 1);
 
   j = 0;
 
@@ -296,8 +296,8 @@ void Hypergraph::printCharacteristics(std::ostream &o) {
 
   o << weighted_ave / j << " ";
 
-  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.getArray(),
-                             hEdgeLens.getArray(), INC);
+  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.data(),
+                             hEdgeLens.data(), INC);
 
   j = 0;
   i = 0;
@@ -342,8 +342,8 @@ void Hypergraph::printCharacteristics(std::ostream &o) {
   percentile_95 = (static_cast<double>(j) * 95) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  Funct::qsortByAnotherArray(0, numVertices - 1, vertices.getArray(),
-                             vWeight.getArray(), INC);
+  Funct::qsortByAnotherArray(0, numVertices - 1, vertices.data(),
+                             vWeight.data(), INC);
 
   j = 0;
   i = 0;
@@ -587,7 +587,7 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
     startOffset = hEdgeOffsets[i];
     endOffset = hEdgeOffsets[i + 1] - 1;
 
-    Funct::qsort(startOffset, endOffset, pinList.getArray());
+    Funct::qsort(startOffset, endOffset, pinList.data());
 
     for (j = startOffset; j < endOffset; ++j) {
       v1 = pinList[j];
@@ -595,7 +595,7 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
       for (ij = j + 1; ij < endOffset; ++ij) {
         v2 = pinList[ij];
 
-        if (Funct::search(vNeighs[v1]->getArray(), numVNeighs[v1], v2) == -1) {
+        if (Funct::search(vNeighs[v1]->data(), numVNeighs[v1], v2) == -1) {
           vNeighs[v1]->assign(numVNeighs[v1]++, v2);
           ++numEdges;
         }
@@ -672,7 +672,7 @@ void Hypergraph::printPercentiles(std::ostream &o) {
   /* display hyperedge information */
 
   j = 0;
-  indices.setLength(numHedges);
+  indices.reserve(numHedges);
 
   for (i = 0; i < numHedges; ++i) {
     indices[i] = i;
@@ -686,12 +686,12 @@ void Hypergraph::printPercentiles(std::ostream &o) {
   percentile_50 = (static_cast<double>(j) * 50) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  o << "hyperedge length percentiles: (weighted ave, 25, 50, 75, 95, "
+  o << "hyperedge capacity_ percentiles: (weighted ave, 25, 50, 75, 95, "
        "maxLength) " << std::endl;
   o << "\t" << weighted_ave / j << " ";
 
-  Funct::qsortByAnotherArray(0, numHedges - 1, indices.getArray(),
-                             hEdgeLens.getArray(), INC);
+  Funct::qsortByAnotherArray(0, numHedges - 1, indices.data(),
+                             hEdgeLens.data(), INC);
 
   j = 0;
   i = 0;
@@ -728,7 +728,7 @@ void Hypergraph::printPercentiles(std::ostream &o) {
   /* display vertex information */
 
   j = 0;
-  indices.setLength(numVertices);
+  indices.reserve(numVertices);
 
   for (i = 0; i < numVertices; ++i) {
     indices[i] = i;
@@ -740,8 +740,8 @@ void Hypergraph::printPercentiles(std::ostream &o) {
   percentile_50 = (static_cast<double>(j) * 50) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  Funct::qsortByAnotherArray(0, numVertices - 1, indices.getArray(),
-                             vWeight.getArray(), INC);
+  Funct::qsortByAnotherArray(0, numVertices - 1, indices.data(),
+                             vWeight.data(), INC);
 
   o << "vertex weight percentiles: (ave, 25, 50, 75, 95, maxWeight) " << std::endl;
   o << "\t" << static_cast<double>(j) / numVertices << " ";

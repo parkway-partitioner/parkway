@@ -47,7 +47,7 @@ ParaController::ParaController(ParaCoarsener &c, ParaRefiner &r,
 
   hgraph = nullptr;
 
-  bestPartition.setLength(0);
+  bestPartition.reserve(0);
 }
 
 ParaController::~ParaController() {}
@@ -55,8 +55,8 @@ ParaController::~ParaController() {}
 /*
 void ParaController::setShuffleFile(const char *filename)
 {
-  shuffleFile.setLength(strlen(filename)+1);
-  strcpy(shuffleFile.getArray(),filename);
+  shuffleFile.reserve(strlen(filename)+1);
+  strcpy(shuffleFile.data(),filename);
 }
 */
 
@@ -64,7 +64,7 @@ void ParaController::initMapToOrigVerts() {
   int i;
   int j = hgraph->getMinVertexIndex();
 
-  mapToOrigVerts.setLength(numOrigLocVerts);
+  mapToOrigVerts.reserve(numOrigLocVerts);
 
   for (i = 0; i < numOrigLocVerts; ++i)
     mapToOrigVerts[i] = j + i;
@@ -105,11 +105,11 @@ void ParaController::setPrescribedPartition(const char *filename,
       MPI_Abort(comm, 0);
     }
 
-    shufflePartition.setLength(numOrigLocVerts);
+    shufflePartition.reserve(numOrigLocVerts);
 
     in_stream.seekg(myOffset * sizeof(int), ifstream::beg);
     len = numOrigLocVerts * sizeof(int);
-    in_stream.read((char *)(shufflePartition.getArray()), len);
+    in_stream.read((char *)(shufflePartition.data()), len);
 
     if (in_stream.gcount() != len) {
       sprintf(message, "p[%d] could not read in %d elements\n", myRank,
@@ -149,13 +149,13 @@ void ParaController::storeBestPartition(int numV, const int *array,
     assert(numLocalVertices == vertPerProc);
 #endif
 
-  int *mapToHgraphVerts = mapToOrigVerts.getArray();
+  int *mapToHgraphVerts = mapToOrigVerts.data();
   int *auxArray;
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
 
-  bestPartition.setLength(numV);
+  bestPartition.reserve(numV);
 
   for (i = 0; i < numV; ++i) {
     vertex = mapToHgraphVerts[i];
@@ -183,14 +183,14 @@ void ParaController::storeBestPartition(int numV, const int *array,
     ij += sendLens[i];
   }
 
-  sendArray.setLength(ij);
+  sendArray.reserve(ij);
   totToSend = ij;
   ij = 0;
 
   for (i = 0; i < numProcs; ++i) {
     j = 0;
     sendLength = sendLens[i];
-    auxArray = dataOutSets[i]->getArray();
+    auxArray = dataOutSets[i]->data();
 
     while (j < sendLength) {
       sendArray[ij++] = auxArray[j++];
@@ -206,7 +206,7 @@ void ParaController::storeBestPartition(int numV, const int *array,
   // out the communication
   // ###
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
@@ -215,15 +215,15 @@ void ParaController::storeBestPartition(int numV, const int *array,
     ij += recvLens[i];
   }
 
-  receiveArray.setLength(ij);
+  receiveArray.reserve(ij);
   totToRecv = ij;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
-  // now initialise the bestPartition array
+  // now initialise the bestPartition data_
   // using the data in receiveArray
   // ###
 
@@ -265,7 +265,7 @@ void ParaController::partitionToFile(const char *filename,
         sprintf(message, "p[%d] cannot open %s\n", myRank, filename);
         out_stream << message;
       } else
-        out.write((char *)(bestPartition.getArray()),
+        out.write((char *)(bestPartition.data()),
                   sizeof(int) * numOrigLocVerts);
 
       out.close();

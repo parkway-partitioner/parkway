@@ -75,13 +75,13 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
        << "h = " << numCols << endl
        << "nz = " << numNonZeros << endl;
 
-  pinList.setLength(numNonZeros);
-  hEdgeOffsets.setLength(numCols + 1);
+  pinList.reserve(numNonZeros);
+  hEdgeOffsets.reserve(numCols + 1);
 
   j = 0;
   for (i = 0; i < totColPtrLines; ++i) {
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 #ifdef PRINT_GRAPH
     cout << data << endl;
 #endif
@@ -113,7 +113,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   j = 0;
   for (i = 0; i < totRowIdxLines; ++i) {
     getLine(in_stream);
-    data = buffer.getArray();
+    data = buffer.data();
 
     while (*data != '\0') {
       StringUtils::skipNonDigits(data);
@@ -146,9 +146,9 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   int hasNonZeroOnDiag;
 
   bit_field addNonZero(numCols);
-  addNonZero.clear();
+  addNonZero.unset();
 
-  rowWts.setLength(numCols);
+  rowWts.reserve(numCols);
   for (i = 0; i < numCols; ++i)
     rowWts[i] = 0;
 
@@ -163,7 +163,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
 
     if (hasNonZeroOnDiag == 0) {
       ++numZerosOnMainDiag;
-      addNonZero.set1(i);
+      addNonZero.set(i);
     }
   }
 
@@ -179,10 +179,10 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   }
 
   o_stream.write((char *)(&numCols), sizeof(int));
-  o_stream.write((char *)(rowWts.getArray()), sizeof(int) * numCols);
+  o_stream.write((char *)(rowWts.data()), sizeof(int) * numCols);
   o_stream.close();
 
-  rowWts.setLength(0);
+  rowWts.reserve(0);
 
   cout << "num zeros on main diagonal = " << numZerosOnMainDiag << endl;
 
@@ -193,7 +193,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   int pin;
 
   bit_field hasZeroWeight(num2Dvertices);
-  hasZeroWeight.clear();
+  hasZeroWeight.unset();
 
   dynamic_array<int> convertedCols;
   dynamic_array<int> convertedColOffsets(numCols + 1);
@@ -205,13 +205,13 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   vertSetOffsets[0] = 0;
 
   numZeroWeightVerts = 0;
-  zeroWeightVerts.setLength(numZerosOnMainDiag);
+  zeroWeightVerts.reserve(numZerosOnMainDiag);
 
   for (i = 0; i < numCols; ++i) {
     int startIdx = hEdgeOffsets[i];
     int endIdx = hEdgeOffsets[i + 1];
 
-    qsort(pinList.getArray(), startIdx, endIdx - 1);
+    qsort(pinList.data(), startIdx, endIdx - 1);
     convertedColOffsets[i + 1] = convertedColOffsets[i];
     vertSetOffsets[i + 1] = vertSetOffsets[i];
 
@@ -228,9 +228,9 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
         convertedCols.assign(convertedColOffsets[i + 1]++, vertIdx2D);
         vertSet.assign(vertSetOffsets[i + 1]++, i);
         vertSet.assign(vertSetOffsets[i + 1]++, vertIdx2D);
-        addNonZero.set0(i);
+        addNonZero.unset(i);
         zeroWeightVerts[numZeroWeightVerts++] = vertIdx2D;
-        hasZeroWeight.set1(vertIdx2D++);
+        hasZeroWeight.set(vertIdx2D++);
       }
 #ifdef PRINT_GRAPH
       cout << vertIdx2D << " ";
@@ -250,8 +250,8 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
       vertSet.assign(vertSetOffsets[i + 1]++, i);
       vertSet.assign(vertSetOffsets[i + 1]++, vertIdx2D);
       zeroWeightVerts[numZeroWeightVerts++] = vertIdx2D;
-      hasZeroWeight.set1(vertIdx2D++);
-      addNonZero.set0(i);
+      hasZeroWeight.set(vertIdx2D++);
+      addNonZero.unset(i);
     }
 #ifdef PRINT_GRAPH
     cout << endl;
@@ -292,15 +292,15 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
 
     if (ij > maxIntsWritten || i == numCols - 1) {
       hEdgeData[0] = ij - 1;
-      out_stream.write((char *)(hEdgeData.getArray()), sizeof(int) * ij);
+      out_stream.write((char *)(hEdgeData.data()), sizeof(int) * ij);
       ij = 0;
     }
   }
 
-  convertedColOffsets.setLength(0);
-  convertedCols.setLength(0);
-  hEdgeOffsets.setLength(0);
-  pinList.setLength(0);
+  convertedColOffsets.reserve(0);
+  convertedCols.reserve(0);
+  hEdgeOffsets.reserve(0);
+  pinList.reserve(0);
 
   /* transpose the vertices to get the row hyperedges */
 
@@ -355,7 +355,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
 
     if (ij > maxIntsWritten || i == numCols - 1) {
       hEdgeData[0] = ij - 1;
-      out_stream.write((char *)(hEdgeData.getArray()), sizeof(int) * ij);
+      out_stream.write((char *)(hEdgeData.data()), sizeof(int) * ij);
       ij = 0;
     }
   }
@@ -364,7 +364,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
     if (rows[i])
       delete rows[i];
 
-  vWeights.setLength(num2Dvertices);
+  vWeights.reserve(num2Dvertices);
 
   for (i = 0; i < num2Dvertices; ++i) {
     if (hasZeroWeight(i) == 1)
@@ -376,7 +376,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
 #endif
   }
 
-  out_stream.write((char *)(vWeights.getArray()), sizeof(int) * num2Dvertices);
+  out_stream.write((char *)(vWeights.data()), sizeof(int) * num2Dvertices);
 
   in_stream.close();
   out_stream.close();
@@ -394,7 +394,7 @@ void HarwellBoeingTo2dBin::convert(const char *filename) {
   }
 
   out_stream.write((char *)(&numZeroWeightVerts), sizeof(int));
-  out_stream.write((char *)(zeroWeightVerts.getArray()),
+  out_stream.write((char *)(zeroWeightVerts.data()),
                    sizeof(int) * numZeroWeightVerts);
 
   out_stream.close();

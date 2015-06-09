@@ -81,7 +81,7 @@ Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
   dynamic_array<double> connectVals;
 
   bit_field toLoad(numHedges);
-  toLoad.set1();
+  toLoad.set();
 
   for (i = 0; i < numVertices; ++i) {
     vertices[i] = i;
@@ -95,7 +95,7 @@ Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
   if (currPercentile < 100)
     computeHedgesToLoad(toLoad);
 
-  Funct::randomPermutation(vertices.getArray(), numVertices);
+  Funct::randomPermutation(vertices.data(), numVertices);
 
   metricVal = static_cast<double>(numVertices) / reductionRatio;
   limitOnIndex = numVertices - static_cast<int>(floor(metricVal - 1.0));
@@ -247,9 +247,9 @@ Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
     assert(matchVector[j] >= 0 && matchVector[j] < coarseIndex);
 #endif
 
-  coarseWts->setLength(coarseIndex);
+  coarseWts->reserve(coarseIndex);
 
-  return (buildCoarseHypergraph(coarseWts->getArray(), coarseIndex,
+  return (buildCoarseHypergraph(coarseWts->data(), coarseIndex,
                                 h.getTotWeight()));
 }
 

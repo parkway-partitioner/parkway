@@ -29,12 +29,12 @@ class movement_set_table {
 
   inline void setMaxWt(int max) { maxPartWt = max; }
 
-  inline int *getPartWeightsArray() const { return partWeights.getArray(); }
+  inline int *getPartWeightsArray() const { return partWeights.data(); }
   inline int *getRestoringMovesLens() const {
-    return restoringMovesLens.getArray();
+    return restoringMovesLens.data();
   }
   inline dynamic_array<int> **getRestoringMoves() const {
-    return restoringMoves.getArray();
+    return restoringMoves.data();
   }
 
   inline int findHeaviest() const {

@@ -74,19 +74,19 @@ class Hypergraph {
   inline int getNumPartitions() const { return numPartitions; }
   inline int getCut(int pNo) const { return partitionCuts[pNo]; }
 
-  inline int *getVerWeightsArray() const { return vWeight.getArray(); }
-  inline int *getHedgeWeightsArray() const { return hEdgeWeight.getArray(); }
-  inline int *getMatchVectorArray() const { return matchVector.getArray(); }
-  inline int *getPinListArray() const { return pinList.getArray(); }
-  inline int *getHedgeOffsetArray() const { return hEdgeOffsets.getArray(); }
-  inline int *getVtoHedgesArray() const { return vToHedges.getArray(); }
-  inline int *getVerOffsetsArray() const { return vOffsets.getArray(); }
+  inline int *getVerWeightsArray() const { return vWeight.data(); }
+  inline int *getHedgeWeightsArray() const { return hEdgeWeight.data(); }
+  inline int *getMatchVectorArray() const { return matchVector.data(); }
+  inline int *getPinListArray() const { return pinList.data(); }
+  inline int *getHedgeOffsetArray() const { return hEdgeOffsets.data(); }
+  inline int *getVtoHedgesArray() const { return vToHedges.data(); }
+  inline int *getVerOffsetsArray() const { return vOffsets.data(); }
 
-  inline int *getPartVectorArray() const { return partitionVector.getArray(); }
+  inline int *getPartVectorArray() const { return partitionVector.data(); }
   inline int *getPartOffsetArray() const {
-    return partitionVectorOffsets.getArray();
+    return partitionVectorOffsets.data();
   }
-  inline int *getPartCutArray() const { return partitionCuts.getArray(); }
+  inline int *getPartCutArray() const { return partitionCuts.data(); }
   inline int *getPartitionVector(int pNo) const {
     return (&partitionVector[partitionVectorOffsets[pNo]]);
   }
@@ -96,29 +96,29 @@ class Hypergraph {
   inline void setNumVertices(int newNum) { numVertices = newNum; }
   inline void setTotWeight(int newWt) { totWeight = newWt; }
   inline void setWtsArray(int *array, int len) {
-    vWeight.setArray(array, len);
+   vWeight.set_data(array, len);
   }
   inline void setHedgeWtArray(int *array, int len) {
-    hEdgeWeight.setArray(array, len);
+   hEdgeWeight.set_data(array, len);
   }
   inline void setPinListArray(int *array, int len) {
-    pinList.setArray(array, len);
+   pinList.set_data(array, len);
   }
   inline void setHedgeOffsetArray(int *array, int len) {
-    hEdgeOffsets.setArray(array, len);
+   hEdgeOffsets.set_data(array, len);
   }
   inline void setVtoHedgesArray(int *array, int len) {
-    vToHedges.setArray(array, len);
+   vToHedges.set_data(array, len);
   }
   inline void setVoffsetsArray(int *array, int len) {
-    vOffsets.setArray(array, len);
+   vOffsets.set_data(array, len);
   }
 
   inline void setPartitionCutsArray(int *a, int len) {
-    partitionCuts.setArray(a, len);
+   partitionCuts.set_data(a, len);
   }
   inline void setPartitionVectorArray(int *a, int len) {
-    partitionVector.setArray(a, len);
+   partitionVector.set_data(a, len);
   }
 
   int getExposedHedgeWt() const;

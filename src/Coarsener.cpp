@@ -79,7 +79,7 @@ Hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
     for (j = startHedgeOffset; j < endHedgeOffset; ++j)
       tempPinList[j] = matchVector[pinList[j]];
 
-    Funct::qsort(startHedgeOffset, endHedgeOffset - 1, tempPinList.getArray());
+    Funct::qsort(startHedgeOffset, endHedgeOffset - 1, tempPinList.data());
 
     ++vDegs[tempPinList[startHedgeOffset]];
   }
@@ -89,7 +89,7 @@ Hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
   for (i = 1; i <= numCoarseVerts; ++i)
     vHedgOffsets[i] = vHedgOffsets[i - 1] + vDegs[i - 1];
 
-  vHedges.setLength(vHedgOffsets[numCoarseVerts]);
+  vHedges.reserve(vHedgOffsets[numCoarseVerts]);
 
   for (i = 0; i < numCoarseVerts; ++i)
     vDegs[i] = 0;
@@ -177,7 +177,7 @@ Hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
   assert((*newVerOffsets)[numCoarseVerts] == numNewPins);
 #endif
 
-  newVtoHedges->setLength(numNewPins);
+  newVtoHedges->reserve(numNewPins);
 
   for (i = 0; i < numNewHedges; ++i) {
     endHedgeOffset = (*newHedgeOffsets)[i + 1];
@@ -192,19 +192,19 @@ Hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
   // init new hypergraph
   // ###
 
-  newHedgeWt->setLength(numNewHedges);
-  newPinList->setLength(numNewPins);
-  newHedgeOffsets->setLength(numNewHedges + 1);
+  newHedgeWt->reserve(numNewHedges);
+  newPinList->reserve(numNewPins);
+  newHedgeOffsets->reserve(numNewHedges + 1);
 
   newHypergraph->setNumHedges(numNewHedges);
   newHypergraph->setNumPins(numNewPins);
   newHypergraph->setTotWeight(totWt);
-  newHypergraph->setHedgeWtArray(newHedgeWt->getArray(), numNewHedges);
-  newHypergraph->setPinListArray(newPinList->getArray(), numNewPins);
-  newHypergraph->setHedgeOffsetArray(newHedgeOffsets->getArray(),
+  newHypergraph->setHedgeWtArray(newHedgeWt->data(), numNewHedges);
+  newHypergraph->setPinListArray(newPinList->data(), numNewPins);
+  newHypergraph->setHedgeOffsetArray(newHedgeOffsets->data(),
                                      numNewHedges + 1);
-  newHypergraph->setVtoHedgesArray(newVtoHedges->getArray(), numNewPins);
-  newHypergraph->setVoffsetsArray(newVerOffsets->getArray(),
+  newHypergraph->setVtoHedgesArray(newVtoHedges->data(), numNewPins);
+  newHypergraph->setVoffsetsArray(newVerOffsets->data(),
                                   numCoarseVerts + 1);
 
   return newHypergraph;

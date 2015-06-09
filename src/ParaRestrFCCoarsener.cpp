@@ -50,13 +50,13 @@ void ParaRestrFCCoarsener::buildAuxiliaryStructs(int numPins, double aveVertDeg,
                                                  double aveHedgeSize) {}
 
 void ParaRestrFCCoarsener::releaseMemory() {
-  hEdgeWeight.setLength(0);
-  hEdgeOffset.setLength(0);
-  locPinList.setLength(0);
+  hEdgeWeight.reserve(0);
+  hEdgeOffset.reserve(0);
+  locPinList.reserve(0);
 
-  vToHedgesOffset.setLength(0);
-  vToHedgesList.setLength(0);
-  allocHedges.setLength(0);
+  vToHedgesOffset.reserve(0);
+  vToHedgesList.reserve(0);
+  allocHedges.reserve(0);
 
   freeMemory();
 }
@@ -102,7 +102,7 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
   dynamic_array<int> vertexAdjEntry(numLocalVertices);
   dynamic_array<int> vertices(numLocalVertices);
 
-  permuteVerticesArray(vertices.getArray(), numLocalVertices);
+  permuteVerticesArray(vertices.data(), numLocalVertices);
 
   for (i = 0; i < numLocalVertices; ++i)
     vertexAdjEntry[i] = -1;

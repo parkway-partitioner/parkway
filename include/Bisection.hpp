@@ -39,20 +39,20 @@ public:
   inline void initMap() {
     int i;
 
-    mapToOrigVerts.setLength(numVertices);
+    mapToOrigVerts.reserve(numVertices);
 
     for (i = 0; i < numVertices; ++i)
       mapToOrigVerts[i] = i;
   }
 
   inline void setMap(int *vMap, int nV) {
-    mapToOrigVerts.setArray(vMap, nV);
+    mapToOrigVerts.set_data(vMap, nV);
   }
 
   inline int getPartID() const { return partID; }
   inline int getBisectAgain() const { return bisectAgain; }
   inline int getNumVertices() const { return numVertices; }
-  inline int *getMapArray() const { return mapToOrigVerts.getArray(); }
+  inline int *getMapArray() const { return mapToOrigVerts.data(); }
 
   inline Hypergraph *getHypergraph() const { return hypergraph; }
 };

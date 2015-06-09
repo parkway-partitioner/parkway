@@ -16,9 +16,9 @@ void new_hyperedge_index_table::createTable(unsigned int _size) {
   assert(size >= _size);
 #endif
 
-  keys.setLength(size);
-  table.setLength(size);
-  nextSameKey.setLength(size);
+  keys.reserve(size);
+  table.reserve(size);
+  nextSameKey.reserve(size);
 
   int i;
 
@@ -30,15 +30,15 @@ void new_hyperedge_index_table::createTable(unsigned int _size) {
 
 void new_hyperedge_index_table::destroyTable() {
   numEntries = 0;
-  table.setLength(0);
-  keys.setLength(0);
-  nextSameKey.setLength(0);
+  table.reserve(0);
+  keys.reserve(0);
+  nextSameKey.reserve(0);
 }
 
 void new_hyperedge_index_table::recoverTable() {
-  table.setLength(size);
-  keys.setLength(size);
-  nextSameKey.setLength(size);
+  table.reserve(size);
+  keys.reserve(size);
+  nextSameKey.reserve(size);
   numEntries = 0;
 
   int i;

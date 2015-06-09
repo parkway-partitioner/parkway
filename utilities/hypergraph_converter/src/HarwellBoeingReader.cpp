@@ -15,9 +15,9 @@
 #include "HarwellBoeingReader.hpp"
 
 HarwellBoeingReader::HarwellBoeingReader() : TextFileReader() {
-  title.setLength(73);
-  id.setLength(9);
-  mtxType.setLength(4);
+  title.reserve(73);
+  id.reserve(9);
+  mtxType.reserve(4);
 
   totDataLines = 0;
   totColPtrLines = 0;
@@ -41,7 +41,7 @@ void HarwellBoeingReader::readPreamble(ifstream &in) {
   /* read in 1st line */
 
   getLine(in);
-  // assert(length >= 80);
+  // assert(capacity_ >= 80);
 
   i = 0;
   for (; buffer[i] == ' '; ++i)
@@ -59,7 +59,7 @@ void HarwellBoeingReader::readPreamble(ifstream &in) {
   /* read in 2nd line */
 
   getLine(in);
-  data = buffer.getArray();
+  data = buffer.data();
 
   /* read in num tot data lines */
 

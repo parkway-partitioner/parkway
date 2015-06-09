@@ -43,9 +43,9 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int _numLocVerts,
       localVertexWt(0),
       numPartitions(0) {
 
-  vWeight.setArray(wtArray, numLocalVertices);
-  matchVector.setLength(numLocalVertices);
-  vToOrigV.setLength(0);
+  vWeight.set_data(wtArray, numLocalVertices);
+  matchVector.reserve(numLocalVertices);
+  vToOrigV.reserve(0);
 
   for (int i = 0; i < numLocalVertices; ++i) {
     matchVector[i] = -1;
@@ -64,12 +64,12 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int _numLocVerts,
       localVertexWt(0),
       numPartitions(1) {
 
-  vToOrigV.setLength(0);
-  vWeight.setArray(wtArray, numLocalVertices);
-  partitionVector.setArray(partArray, numLocalVertices);
-  matchVector.setLength(numLocalVertices);
-  partitionOffsetsVector.setLength(numPartitions + 1);
-  partitionCutsizesVector.setLength(numPartitions);
+  vToOrigV.reserve(0);
+  vWeight.set_data(wtArray, numLocalVertices);
+  partitionVector.set_data(partArray, numLocalVertices);
+  matchVector.reserve(numLocalVertices);
+  partitionOffsetsVector.reserve(numPartitions + 1);
+  partitionCutsizesVector.reserve(numPartitions);
 
   partitionCutsizesVector[0] = cut;
   partitionOffsetsVector[0] = 0;
@@ -101,9 +101,9 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
   minVertexIndex -= numLocalVertices;
   localVertexWt = 0;
 
-  vWeight.setLength(numLocalVertices);
-  vToOrigV.setLength(0);
-  matchVector.setLength(numLocalVertices);
+  vWeight.reserve(numLocalVertices);
+  vToOrigV.reserve(0);
+  matchVector.reserve(numLocalVertices);
 
   for (int i = 0; i < numLocalVertices; ++i) {
     vWeight[i] = vWeights[i];
@@ -161,9 +161,9 @@ ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int numLocVerts,
   }
 
 #ifdef MEM_OPT
-  hEdgeOffsets.setLength(numLocalHedges + 1);
-  hEdgeWeights.setLength(numLocalHedges);
-  localPins.setLength(numLocalPins);
+  hEdgeOffsets.reserve(numLocalHedges + 1);
+  hEdgeWeights.reserve(numLocalHedges);
+  localPins.reserve(numLocalPins);
 #endif
 }
 
@@ -216,13 +216,13 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
 
   minVertexIndex = (numTotalVertices / numProcs) * myRank;
 
-  vToOrigV.setLength(0);
-  vWeight.setLength(numLocalVertices);
-  matchVector.setLength(numLocalVertices);
-  hEdgeData.setLength(hEdgeDataLength);
+  vToOrigV.reserve(0);
+  vWeight.reserve(numLocalVertices);
+  matchVector.reserve(numLocalVertices);
+  hEdgeData.reserve(hEdgeDataLength);
 
   i = sizeof(int) * numLocalVertices;
-  in_stream.read((char *)(vWeight.getArray()), i);
+  in_stream.read((char *)(vWeight.data()), i);
   if (in_stream.gcount() != i) {
     sprintf(message, "p[%d] could not read in %d vertex elements\n", myRank,
             numLocalVertices);
@@ -234,7 +234,7 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
   // write_log(myRank, "read in vertex weights");
 
   i = sizeof(int) * hEdgeDataLength;
-  in_stream.read((char *)(hEdgeData.getArray()), i);
+  in_stream.read((char *)(hEdgeData.data()), i);
   if (in_stream.gcount() != i) {
     sprintf(message, "p[%d] could not read in %d hyperedge data elements\n",
             myRank, hEdgeDataLength);
@@ -274,9 +274,9 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
   }
 
   // ### hyperedges stored on file in blocks:
-  // [0]  =  block length
+  // [0]  =  block capacity_
   // [1]  =  hyperedge weight
-  // [2]-[block length-1] = hyperedge vertices
+  // [2]-[block capacity_-1] = hyperedge vertices
   // ###
 
   i = 0;
@@ -329,9 +329,9 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
   }
 
 #ifdef MEM_OPT
-  hEdgeOffsets.setLength(numLocalHedges + 1);
-  hEdgeWeights.setLength(numLocalHedges);
-  localPins.setLength(numLocalPins);
+  hEdgeOffsets.reserve(numLocalHedges + 1);
+  hEdgeWeights.reserve(numLocalHedges);
+  localPins.reserve(numLocalPins);
 #endif
 }
 
@@ -347,9 +347,9 @@ void ParaHypergraph::initPartitionFromFile(const char *filename, int numParts,
 
   numPartitions = 1;
 
-  partitionVector.setLength(numLocalVertices);
-  partitionOffsetsVector.setLength(2);
-  partitionCutsizesVector.setLength(1);
+  partitionVector.reserve(numLocalVertices);
+  partitionOffsetsVector.reserve(2);
+  partitionCutsizesVector.reserve(1);
 
   partitionOffsetsVector[0] = 0;
   partitionOffsetsVector[1] = numLocalVertices;
@@ -371,7 +371,7 @@ void ParaHypergraph::initPartitionFromFile(const char *filename, int numParts,
 
   i = numLocalVertices * sizeof(int);
 
-  in_stream.read((char *)(partitionVector.getArray()), i);
+  in_stream.read((char *)(partitionVector.data()), i);
   if (in_stream.gcount() != i) {
     sprintf(message, "p[%d] could not read in %d elements\n", myRank,
             numLocalVertices);
@@ -390,9 +390,9 @@ void ParaHypergraph::allocHedgeMem(int numHedges, int numLocPins) {
   assert(numLocalPins == numLocPins);
 #endif
 
-  hEdgeOffsets.setLength(numHedges + 1);
-  hEdgeWeights.setLength(numHedges);
-  localPins.setLength(numLocPins);
+  hEdgeOffsets.reserve(numHedges + 1);
+  hEdgeWeights.reserve(numHedges);
+  localPins.reserve(numLocPins);
 }
 
 void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
@@ -434,7 +434,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     sendLens[i] = 0;
 
   ds::bit_field sentRequests(numTotalVertices);
-  sentRequests.clear();
+  sentRequests.unset();
 
   // ###
   // compute all the requests for remote vertex matches
@@ -447,7 +447,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
       if (!sentRequests(vertex)) {
         p = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[p]->assign(sendLens[p]++, vertex);
-        sentRequests.set1(vertex);
+        sentRequests.set(vertex);
       }
 
       origContractedPinList[i] = -1;
@@ -466,13 +466,13 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
-  copyOfReq.setLength(j);
+  sendArray.reserve(j);
+  copyOfReq.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (p = 0; p < numProcs; ++p) {
-    array = dataOutSets[p]->getArray();
+    array = dataOutSets[p]->data();
     arrayLen = sendLens[p];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -482,7 +482,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   // ###
@@ -495,19 +495,19 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // now have received all requests and sent out our requests
   // the reply communication will have the dual dimensions
   // ###
 
-  sendArray.setLength(totalToRecv);
+  sendArray.reserve(totalToRecv);
 
   for (i = 0; i < totalToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -517,14 +517,14 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     sendArray[i] = matchVector[receiveArray[i] - minVertexIndex];
   }
 
-  receiveArray.setLength(totalToSend);
+  receiveArray.reserve(totalToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   // ###
-  // now the requested vertices are in the copyOfReq array
+  // now the requested vertices are in the copyOfReq data_
   // while their corresponding matchVector values are in
   // the corresponding location in the receiveArray
   // ###
@@ -636,12 +636,12 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
+  sendArray.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (p = 0; p < numProcs; ++p) {
-    array = dataOutSets[p]->getArray();
+    array = dataOutSets[p]->data();
     arrayLen = sendLens[p];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -649,7 +649,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   // ###
@@ -662,12 +662,12 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // now should have received all hyperedges destined for processor
@@ -691,7 +691,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
   ds::new_hyperedge_index_table table((int)(ceil((double)numLocalHedges * 1.5)));
 
   // ###
-  // run through the recv array
+  // run through the recv data_
   // for each encountered hyperedge:
   // - compute hash-key
   // - check for duplicates in the hash table
@@ -738,7 +738,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
         endOffset = coarseHedgeOffsets[tryHedge + 1];
         length = endOffset - startOffset;
 #ifdef DEBUG_HYPERGRAPH
-        assert(length > 0 && length < 0xFFFFFFF);
+        assert(capacity_ > 0 && capacity_ < 0xFFFFFFF);
 #endif
         if (length == coarseHedgeLen) {
           for (j = 0; j < length; ++j) {
@@ -797,9 +797,9 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
 // write_log(myRank, "entered hyperedges into table");
 
 #ifdef MEM_OPT
-  coarseHedgeOffsets.setLength(numCoarseHedges + 1);
-  coarseLocalPins.setLength(numCoarsePins);
-  coarseHedgeWts.setLength(numCoarseHedges);
+  coarseHedgeOffsets.reserve(numCoarseHedges + 1);
+  coarseLocalPins.reserve(numCoarsePins);
+  coarseHedgeWts.reserve(numCoarseHedges);
 #endif
 
   /* now set the coarse hypergraph */
@@ -858,20 +858,20 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
   dynamic_array<int> origContractedPinList(numLocalPins);
   dynamic_array<int> copyOfReq;
 
-  MPI_Allgather(&minVertexIndex, 1, MPI_INT, minFineIdxOnProc.getArray(), 1,
+  MPI_Allgather(&minVertexIndex, 1, MPI_INT, minFineIdxOnProc.data(), 1,
                 MPI_INT, comm);
 
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  ds::complete_binary_tree <int> vFineToProc(procs.getArray(),
-                                      minFineIdxOnProc.getArray(), numProcs);
+  ds::complete_binary_tree <int> vFineToProc(procs.data(),
+                                             minFineIdxOnProc.data(), numProcs);
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
 
   ds::bit_field sentRequests(numTotalVertices);
-  sentRequests.clear();
+  sentRequests.unset();
 
   // ###
   // compute all the requests for remote vertex matches
@@ -884,7 +884,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
       if (!sentRequests(vertex)) {
         p = vFineToProc.getRootVal(vertex);
         dataOutSets[p]->assign(sendLens[p]++, vertex);
-        sentRequests.set1(vertex);
+        sentRequests.set(vertex);
       }
 
       origContractedPinList[i] = -1;
@@ -903,13 +903,13 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
-  copyOfReq.setLength(j);
+  sendArray.reserve(j);
+  copyOfReq.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (p = 0; p < numProcs; ++p) {
-    array = dataOutSets[p]->getArray();
+    array = dataOutSets[p]->data();
     arrayLen = sendLens[p];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -919,7 +919,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   // ###
@@ -932,19 +932,19 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // now have received all requests and sent out our requests
   // the reply communication will have the dual dimensions
   // ###
 
-  sendArray.setLength(totalToRecv);
+  sendArray.reserve(totalToRecv);
 
   for (i = 0; i < totalToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -954,14 +954,14 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     sendArray[i] = matchVector[receiveArray[i] - minVertexIndex];
   }
 
-  receiveArray.setLength(totalToSend);
+  receiveArray.reserve(totalToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   // ###
-  // now the requested vertices are in the copyOfReq array
+  // now the requested vertices are in the copyOfReq data_
   // while their corresponding matchVector values are in
   // the corresponding location in the recvArray
   // ###
@@ -1070,12 +1070,12 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
+  sendArray.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (p = 0; p < numProcs; ++p) {
-    array = dataOutSets[p]->getArray();
+    array = dataOutSets[p]->data();
     arrayLen = sendLens[p];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -1083,7 +1083,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   // ###
@@ -1096,12 +1096,12 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // now should have received all hyperedges destined for processor
@@ -1125,7 +1125,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
   ds::new_hyperedge_index_table table((int)(ceil((double)numLocalHedges * 1.1)));
 
   // ###
-  // run through the recv array
+  // run through the recv data_
   // for each encountered hyperedge:
   // - compute hash-key
   // - check for duplicates in the hash table
@@ -1199,9 +1199,9 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
   }
 
 #ifdef MEM_OPT
-  coarseHedgeOffsets.setLength(numCoarseHedges + 1);
-  coarseLocalPins.setLength(numCoarsePins);
-  coarseHedgeWts.setLength(numCoarseHedges);
+  coarseHedgeOffsets.reserve(numCoarseHedges + 1);
+  coarseLocalPins.reserve(numCoarsePins);
+  coarseHedgeWts.reserve(numCoarseHedges);
 #endif
 
   // ###
@@ -1263,9 +1263,9 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
 
   numPartitions = numCoarsePartitions;
 
-  partitionCutsizesVector.setLength(numPartitions);
-  partitionOffsetsVector.setLength(numPartitions + 1);
-  partitionVector.setLength(numPartitions * numLocalVertices);
+  partitionCutsizesVector.reserve(numPartitions);
+  partitionOffsetsVector.reserve(numPartitions + 1);
+  partitionVector.reserve(numPartitions * numLocalVertices);
 
   for (i = 0; i < numPartitions; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -1319,8 +1319,8 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
     ij += (Shiftr(sendLens[i], 1));
   }
 
-  sendArray.setLength(ij);
-  requestingLocalVerts.setLength(ij);
+  sendArray.reserve(ij);
+  requestingLocalVerts.reserve(ij);
 
   numRequestingLocalVerts = ij;
 
@@ -1333,7 +1333,7 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
   for (i = 0; i < numProcs; ++i) {
     j = 0;
     sendLength = sendLens[i];
-    array = dataOutSets[i]->getArray();
+    array = dataOutSets[i]->data();
 
     while (j < sendLength) {
       requestingLocalVerts[ij] = array[j++];
@@ -1352,7 +1352,7 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
   // out the communication
   // ###
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
@@ -1361,12 +1361,12 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
     ij += recvLens[i];
   }
 
-  receiveArray.setLength(ij);
+  receiveArray.reserve(ij);
   totToRecv = ij;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // process the requests for
@@ -1376,7 +1376,7 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
   // ###
 
   totToSend = totToRecv * numPartitions;
-  sendArray.setLength(totToSend);
+  sendArray.reserve(totToSend);
 
   ij = 0;
 
@@ -1411,7 +1411,7 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
 
 #ifdef DEBUG_HYPERGRAPH
   assert(sendArray.getLength() == ij);
@@ -1419,9 +1419,9 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
   assert(requestingLocalVerts.getLength() * numPartitions == j);
 #endif
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // finish off initialising the
@@ -1452,10 +1452,10 @@ void ParaHypergraph::resetVectors() {
 
   numPartitions = 0;
 
-  vToOrigV.setLength(0);
-  partitionVector.setLength(0);
-  partitionOffsetsVector.setLength(0);
-  partitionCutsizesVector.setLength(0);
+  vToOrigV.reserve(0);
+  partitionVector.reserve(0);
+  partitionOffsetsVector.reserve(0);
+  partitionCutsizesVector.reserve(0);
 
   freeMemory();
 }
@@ -1531,15 +1531,15 @@ void ParaHypergraph::setNumberPartitions(int nP) {
 
   numPartitions = nP;
 
-  partitionCutsizesVector.setLength(nP);
-  partitionOffsetsVector.setLength(nP + 1);
+  partitionCutsizesVector.reserve(nP);
+  partitionOffsetsVector.reserve(nP + 1);
 
   for (i = 0; i <= numPartitions; ++i) {
     partitionOffsetsVector[i] = j;
     j += numLocalVertices;
   }
 
-  partitionVector.setLength(partitionOffsetsVector[numPartitions]);
+  partitionVector.reserve(partitionOffsetsVector[numPartitions]);
 }
 
 void ParaHypergraph::computePartitionChars(int pNum, int numParts,
@@ -1575,7 +1575,7 @@ void ParaHypergraph::computePartitionChars(int pNum, int numParts,
 
   MPI_Reduce(&localVertexWt, &totHypergraphWeight, 1, MPI_INT, MPI_SUM, 0,
              comm);
-  MPI_Reduce(locPartWeights.getArray(), partWeights.getArray(), numParts,
+  MPI_Reduce(locPartWeights.data(), partWeights.data(), numParts,
              MPI_INT, MPI_SUM, 0, comm);
 
   if (myRank == 0) {
@@ -1718,14 +1718,14 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
-  askingVertex.setLength(j);
+  sendArray.reserve(j);
+  askingVertex.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (ij = 0; ij < numProcs; ++ij) {
-    array1 = dataOutSets[ij]->getArray();
-    array2 = askingVertices[ij]->getArray();
+    array1 = dataOutSets[ij]->data();
+    array2 = askingVertices[ij]->data();
 
     arrayLen = sendLens[ij];
 
@@ -1739,7 +1739,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
   assert(j == totalToSend);
 #endif
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   /* compute number of elements to receive from other procs */
@@ -1750,19 +1750,19 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /*
     now have received all requests and sent out our requests
     the reply communication will have the dual dimensions
   */
 
-  sendArray.setLength(totalToRecv);
+  sendArray.reserve(totalToRecv);
 
   for (i = 0; i < totalToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -1775,14 +1775,14 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
 #endif
   }
 
-  receiveArray.setLength(totalToSend);
+  receiveArray.reserve(totalToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   /*
-     now the requested vertices are in the copyOfReq array
+     now the requested vertices are in the copyOfReq data_
      while their corresponding matchVector values are in
      the corresponding location in the receiveArray
   */
@@ -1818,7 +1818,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *prescribedAssignment,
     ++localVPerProc[prescribedAssignment[i]];
   }
 
-  shuffleVertices(prescribedAssignment, localVPerProc.getArray(), comm);
+  shuffleVertices(prescribedAssignment, localVPerProc.data(), comm);
 }
 
 void ParaHypergraph::shuffleVerticesByPartition(int nParts, MPI_Comm comm) {
@@ -1844,7 +1844,7 @@ void ParaHypergraph::shuffleVerticesByPartition(int nParts, MPI_Comm comm) {
     ++localVPerProc[j];
   }
 
-  shuffleVertices(vToProc.getArray(), localVPerProc.getArray(), comm);
+  shuffleVertices(vToProc.data(), localVPerProc.data(), comm);
 }
 
 void ParaHypergraph::randomVertexShuffle(MPI_Comm comm) {
@@ -1869,12 +1869,12 @@ void ParaHypergraph::randomVertexShuffle(MPI_Comm comm) {
   for (i = 0; i < numLocalVertices; ++i)
     vertices[i] = i;
 
-  Funct::randomPermutation(vertices.getArray(), numLocalVertices);
+  Funct::randomPermutation(vertices.data(), numLocalVertices);
 
   numSpareVertices = numLocalVertices % numProcs;
   numVerticesEvenlyAllocated = numLocalVertices - numSpareVertices;
 
-  MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.getArray(), 1,
+  MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.data(), 1,
                 MPI_INT, comm);
 
   totSpareVertices = 0;
@@ -1885,7 +1885,7 @@ void ParaHypergraph::randomVertexShuffle(MPI_Comm comm) {
     indexIntoSpares[i] = j;
   }
 
-  vSpareToProc.setLength(totSpareVertices);
+  vSpareToProc.reserve(totSpareVertices);
 
   j = totSpareVertices / numProcs;
   ij = Mod(totSpareVertices, numProcs);
@@ -1917,7 +1917,7 @@ void ParaHypergraph::randomVertexShuffle(MPI_Comm comm) {
     ++localVPerProc[toProc];
   }
 
-  shuffleVertices(vToProc.getArray(), localVPerProc.getArray(), comm);
+  shuffleVertices(vToProc.data(), localVPerProc.data(), comm);
 }
 
 void ParaHypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
@@ -1941,12 +1941,12 @@ void ParaHypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
   for (i = 0; i < numLocalVertices; ++i)
     vertices[i] = i;
 
-  Funct::randomPermutation(vertices.getArray(), numLocalVertices);
+  Funct::randomPermutation(vertices.data(), numLocalVertices);
 
   numSpareVertices = Mod(numLocalVertices, numProcs);
   numVerticesEvenlyAllocated = numLocalVertices - numSpareVertices;
 
-  MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.getArray(), 1,
+  MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.data(), 1,
                 MPI_INT, comm);
 
   totSpareVertices = 0;
@@ -1957,7 +1957,7 @@ void ParaHypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
     indexIntoSpares[i] = j;
   }
 
-  vSpareToProc.setLength(totSpareVertices);
+  vSpareToProc.reserve(totSpareVertices);
 
   j = totSpareVertices / numProcs;
   ij = Mod(totSpareVertices, numProcs);
@@ -1994,7 +1994,7 @@ void ParaHypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
 
   /* map V->proc is now computed */
 
-  shuffleVerticesAftRandom(vToProc.getArray(), localVPerProc.getArray(),
+  shuffleVerticesAftRandom(vToProc.data(), localVPerProc.data(),
                            mapToOrigV, comm);
 }
 
@@ -2019,12 +2019,12 @@ void ParaHypergraph::randomVertexShuffle(ParaHypergraph &fG, MPI_Comm comm) {
   for (i = 0; i < numLocalVertices; ++i)
     vertices[i] = i;
 
-  Funct::randomPermutation(vertices.getArray(), numLocalVertices);
+  Funct::randomPermutation(vertices.data(), numLocalVertices);
 
   numSpareVertices = Mod(numLocalVertices, numProcs);
   numVerticesEvenlyAllocated = numLocalVertices - numSpareVertices;
 
-  MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.getArray(), 1,
+  MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.data(), 1,
                 MPI_INT, comm);
 
   totSpareVertices = 0;
@@ -2035,7 +2035,7 @@ void ParaHypergraph::randomVertexShuffle(ParaHypergraph &fG, MPI_Comm comm) {
     indexIntoSpares[i] = j;
   }
 
-  vSpareToProc.setLength(totSpareVertices);
+  vSpareToProc.reserve(totSpareVertices);
 
   j = totSpareVertices / numProcs;
   ij = Mod(totSpareVertices, numProcs);
@@ -2072,7 +2072,7 @@ void ParaHypergraph::randomVertexShuffle(ParaHypergraph &fG, MPI_Comm comm) {
 
   /* map V->proc is now computed */
 
-  shuffleVerticesAftRandom(vToProc.getArray(), localVPerProc.getArray(), fG,
+  shuffleVerticesAftRandom(vToProc.data(), localVPerProc.data(), fG,
                            comm);
 }
 
@@ -2112,9 +2112,9 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
     newIndex[v] = newVertIndex[vToProc[v]] + minIndexOnProc[vToProc[v]]
   */
 
-  MPI_Allreduce(localVPerProc, totVperProc.getArray(), numProcs, MPI_INT,
+  MPI_Allreduce(localVPerProc, totVperProc.data(), numProcs, MPI_INT,
                 MPI_SUM, comm);
-  MPI_Scan(localVPerProc, newMinVertIndex.getArray(), numProcs, MPI_INT,
+  MPI_Scan(localVPerProc, newMinVertIndex.data(), numProcs, MPI_INT,
            MPI_SUM, comm);
 
   for (i = 0; i < numProcs; ++i)
@@ -2147,7 +2147,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
   }
 
   ds::bit_field sentRequests(numTotalVertices);
-  sentRequests.clear();
+  sentRequests.unset();
 
   /* compute vertices required to transform pinlist */
 
@@ -2158,7 +2158,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
       if (!sentRequests(vertex)) {
         j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
-        sentRequests.set1(vertex);
+        sentRequests.set(vertex);
       }
     }
   }
@@ -2171,13 +2171,13 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
-  copyOfReq.setLength(j);
+  sendArray.reserve(j);
+  copyOfReq.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (ij = 0; ij < numProcs; ++ij) {
-    array = dataOutSets[ij]->getArray();
+    array = dataOutSets[ij]->data();
     arrayLen = sendLens[ij];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -2191,7 +2191,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
   assert(j == totalToSend);
 #endif
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   /* compute number of elements to receive from other procs */
@@ -2202,19 +2202,19 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /*
     now have received all requests and sent out our requests
     the reply communication will have the dual dimensions
   */
 
-  sendArray.setLength(totalToRecv);
+  sendArray.reserve(totalToRecv);
 
   for (i = 0; i < totalToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2227,14 +2227,14 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receiveArray.setLength(totalToSend);
+  receiveArray.reserve(totalToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   /*
-   now the requested vertices are in the copyOfReq array
+   now the requested vertices are in the copyOfReq data_
    while their corresponding matchVector values are in
    the corresponding location in the receiveArray
   */
@@ -2325,9 +2325,9 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
     }
   }
 
-  sendArray.setLength(totalToSend);
+  sendArray.reserve(totalToSend);
 
-  /* compute the send array */
+  /* compute the send data_ */
 
   if (numPartitions == 0) {
     for (i = 0; i < numLocalVertices; ++i) {
@@ -2353,7 +2353,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
     and carry out communication
   */
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   j = 0;
@@ -2369,12 +2369,12 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
     assert(j == totVperProc[myRank] * 3);
 #endif
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /* change the local vertex information */
 
@@ -2384,15 +2384,15 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
   for (i = 0; i < myRank; ++i)
     minVertexIndex += totVperProc[i];
 
-  vToOrigV.setLength(numLocalVertices);
-  vWeight.setLength(numLocalVertices);
-  matchVector.setLength(numLocalVertices);
+  vToOrigV.reserve(numLocalVertices);
+  vWeight.reserve(numLocalVertices);
+  matchVector.reserve(numLocalVertices);
 
   for (i = 0; i < numLocalVertices; ++i)
     matchVector[i] = -1;
 
   if (numPartitions > 0) {
-    partitionVector.setLength(numLocalVertices);
+    partitionVector.reserve(numLocalVertices);
     partitionOffsetsVector[1] = numLocalVertices;
   }
 
@@ -2426,7 +2426,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   int maxLocalVertex = minVertexIndex + numLocalVertices;
   int vFinePerProc = numTotalVertices / numProcs;
-  int vToOrigVexist = vToOrigV.getLength();
+  int vToOrigVexist = vToOrigV.capacity();
   int totalToSend;
   int totalToRecv;
   int vertex;
@@ -2449,7 +2449,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     newIndex[v] = newVertIndex[vToProc[v]] + minIndexOnProc[vToProc[v]]
   */
 
-  MPI_Scan(localVPerProc, minIndexOfMyVerts.getArray(), numProcs, MPI_INT,
+  MPI_Scan(localVPerProc, minIndexOfMyVerts.data(), numProcs, MPI_INT,
            MPI_SUM, comm);
 
   for (i = 0; i < numProcs; ++i)
@@ -2474,7 +2474,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
   ds::bit_field sentRequests(numTotalVertices);
-  sentRequests.clear();
+  sentRequests.unset();
 
   /* compute all the requests for new indices of remote vertices */
 
@@ -2485,7 +2485,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (!sentRequests(vertex)) {
         j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
-        sentRequests.set1(vertex);
+        sentRequests.set(vertex);
       }
     }
   }
@@ -2498,13 +2498,13 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
-  copyOfReq.setLength(j);
+  sendArray.reserve(j);
+  copyOfReq.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (ij = 0; ij < numProcs; ++ij) {
-    array = dataOutSets[ij]->getArray();
+    array = dataOutSets[ij]->data();
     arrayLen = sendLens[ij];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -2518,7 +2518,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   assert(j == totalToSend);
 #endif
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   /* compute number of elements to receive from other procs */
@@ -2529,19 +2529,19 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /*
     now have received all requests and sent out our requests
     the reply communication will have the dual dimensions
   */
 
-  sendArray.setLength(totalToRecv);
+  sendArray.reserve(totalToRecv);
 
   for (i = 0; i < totalToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2554,14 +2554,14 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receiveArray.setLength(totalToSend);
+  receiveArray.reserve(totalToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   /*
-     now the requested vertices are in the copyOfReq array
+     now the requested vertices are in the copyOfReq data_
      while their corresponding matchVector values are in
      the corresponding location in the receiveArray
   */
@@ -2666,9 +2666,9 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   assert(totalToSend >= 0);
 #endif
 
-  sendArray.setLength(totalToSend);
+  sendArray.reserve(totalToSend);
 
-  /* compute the send array */
+  /* compute the send data_ */
 
   if (!vToOrigVexist) {
     for (i = 0; i < numLocalVertices; ++i) {
@@ -2704,7 +2704,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     and carry out communication
   */
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   j = 0;
@@ -2720,12 +2720,12 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     assert(j == numLocalVertices * (numPartitions + 3));
 #endif
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /* change the local vertex information */
 
@@ -2745,7 +2745,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       ++j;
     }
   } else {
-    vToOrigV.setLength(numLocalVertices);
+    vToOrigV.reserve(numLocalVertices);
 
     while (i < totalToRecv) {
       vToOrigV[j] = receiveArray[i++];
@@ -2772,7 +2772,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   int maxLocalVertex = minVertexIndex + numLocalVertices;
   int vFinePerProc = numTotalVertices / numProcs;
-  int vToOrigVexist = vToOrigV.getLength();
+  int vToOrigVexist = vToOrigV.capacity();
   int totalToSend;
   int totalToRecv;
   int vertex;
@@ -2795,7 +2795,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     newIndex[v] = newVertIndex[vToProc[v]] + minIndexOnProc[vToProc[v]]
   */
 
-  MPI_Scan(localVPerProc, minIndexOfMyVerts.getArray(), numProcs, MPI_INT,
+  MPI_Scan(localVPerProc, minIndexOfMyVerts.data(), numProcs, MPI_INT,
            MPI_SUM, comm);
 
   for (i = 0; i < numProcs; ++i)
@@ -2822,7 +2822,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   /* now need to convert the pinlist and the hyperedge hash keys */
 
   ds::bit_field sentRequests(numTotalVertices);
-  sentRequests.clear();
+  sentRequests.unset();
 
   /* compute all the requests for new indices of remote vertices  */
 
@@ -2833,7 +2833,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (!sentRequests(vertex)) {
         j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
-        sentRequests.set1(vertex);
+        sentRequests.set(vertex);
       }
     }
   }
@@ -2846,13 +2846,13 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
-  copyOfReq.setLength(j);
+  sendArray.reserve(j);
+  copyOfReq.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (ij = 0; ij < numProcs; ++ij) {
-    array = dataOutSets[ij]->getArray();
+    array = dataOutSets[ij]->data();
     arrayLen = sendLens[ij];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -2866,7 +2866,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   assert(j == totalToSend);
 #endif
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   /* compute number of elements to receive from other procs */
@@ -2877,19 +2877,19 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /*
     now have received all requests and sent out our requests
     the reply communication will have the dual dimensions
   */
 
-  sendArray.setLength(totalToRecv);
+  sendArray.reserve(totalToRecv);
 
   for (i = 0; i < totalToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2902,14 +2902,14 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receiveArray.setLength(totalToSend);
+  receiveArray.reserve(totalToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   /*
-  now the requested vertices are in the copyOfReq array
+  now the requested vertices are in the copyOfReq data_
    while their corresponding matchVector values are in
    the corresponding location in the receiveArray
   */
@@ -3005,9 +3005,9 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     }
   }
 
-  sendArray.setLength(totalToSend);
+  sendArray.reserve(totalToSend);
 
-  /* compute the send array */
+  /* compute the send data_ */
 
   if (!vToOrigVexist) {
     for (i = 0; i < numLocalVertices; ++i) {
@@ -3045,7 +3045,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
      and carry out communication
   */
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   j = 0;
@@ -3061,12 +3061,12 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     assert(j == numLocalVertices * (4 + numPartitions));
 #endif
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /* change the local vertex information */
 
@@ -3087,7 +3087,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       ++j;
     }
   } else {
-    vToOrigV.setLength(numLocalVertices);
+    vToOrigV.reserve(numLocalVertices);
 
     while (i < totalToRecv) {
       vToOrigV[j] = receiveArray[i++];
@@ -3122,7 +3122,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   int vertex;
   int startOffset;
   int arrayLen;
-  int vToOrigVexist = vToOrigV.getLength();
+  int vToOrigVexist = vToOrigV.capacity();
   int *array;
 
   dynamic_array<int> oldIndexToNew(numLocalVertices);
@@ -3139,7 +3139,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
 
-  MPI_Scan(localVPerProc, minIndexOfMyVerts.getArray(), numProcs, MPI_INT,
+  MPI_Scan(localVPerProc, minIndexOfMyVerts.data(), numProcs, MPI_INT,
            MPI_SUM, comm);
 
   for (i = 0; i < numProcs; ++i)
@@ -3166,7 +3166,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   /* now need to convert the pinlist and the hyperedge hash keys */
 
   ds::bit_field sentRequests(numTotalVertices);
-  sentRequests.clear();
+  sentRequests.unset();
 
   /*
      compute all the requests for new indices of remote vertices
@@ -3182,7 +3182,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (!sentRequests(vertex)) {
         j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
-        sentRequests.set1(vertex);
+        sentRequests.set(vertex);
       }
     }
   }
@@ -3194,7 +3194,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (!sentRequests(vertex)) {
         j = std::min(vertex / vFinePerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, vertex);
-        sentRequests.set1(vertex);
+        sentRequests.set(vertex);
       }
     }
   }
@@ -3207,13 +3207,13 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     j += sendLens[i];
   }
 
-  sendArray.setLength(j);
-  copyOfReq.setLength(j);
+  sendArray.reserve(j);
+  copyOfReq.reserve(j);
   totalToSend = j;
 
   j = 0;
   for (ij = 0; ij < numProcs; ++ij) {
-    array = dataOutSets[ij]->getArray();
+    array = dataOutSets[ij]->data();
     arrayLen = sendLens[ij];
 
     for (i = 0; i < arrayLen; ++i) {
@@ -3227,7 +3227,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   assert(j == totalToSend);
 #endif
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   /* compute number of elements to receive from other procs */
@@ -3238,19 +3238,19 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     j += recvLens[i];
   }
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /*
     now have received all requests and sent out our requests
     the reply communication will have the dual dimensions
   */
 
-  sendArray.setLength(totalToRecv);
+  sendArray.reserve(totalToRecv);
 
   for (i = 0; i < totalToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -3263,14 +3263,14 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receiveArray.setLength(totalToSend);
+  receiveArray.reserve(totalToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   /*
-    now the requested vertices are in the copyOfReq array
+    now the requested vertices are in the copyOfReq data_
     while their corresponding matchVector values are in
   */
 
@@ -3399,9 +3399,9 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   assert(j == totalToSend);
 #endif
 
-  sendArray.setLength(totalToSend);
+  sendArray.reserve(totalToSend);
 
-  /* compute the send array */
+  /* compute the send data_ */
 
   if (vToOrigVexist > 0) {
     for (i = 0; i < numLocalVertices; ++i) {
@@ -3437,7 +3437,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
      and carry out communication
   */
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   j = 0;
@@ -3453,12 +3453,12 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     assert(j == numLocalVertices * (numPartitions + 1));
 #endif
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
   totalToRecv = j;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   /* change the local vertex information */
 
@@ -3524,13 +3524,13 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
   }
 
   /*
-    here distinguish cases where VtoOrigV array needs
+    here distinguish cases where VtoOrigV data_ needs
     to be maintained
   */
 
-  if (vToOrigV.getLength() > 0) {
+  if (vToOrigV.capacity() > 0) {
     j = 0;
-    sendArray.setLength(numLocalVertices * 3);
+    sendArray.reserve(numLocalVertices * 3);
 
     for (i = 0; i < numLocalVertices; ++i) {
       sendArray[j++] = vWeight[i];
@@ -3555,7 +3555,7 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
     }
   } else {
     j = 0;
-    sendArray.setLength(Shiftl(numLocalVertices, 1));
+    sendArray.reserve(Shiftl(numLocalVertices, 1));
 
     for (i = 0; i < numLocalVertices; ++i) {
       sendArray[j++] = vWeight[i];
@@ -3579,7 +3579,7 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   j = 0;
@@ -3595,20 +3595,20 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
     assert(j == Shiftl(numMyVertices, 1));
 #endif
 
-  receiveArray.setLength(j);
+  receiveArray.reserve(j);
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   numLocalVertices = numMyVertices;
   minVertexIndex = minNewIndex[myRank];
 
-  vWeight.setLength(numLocalVertices);
-  matchVector.setLength(numLocalVertices);
+  vWeight.reserve(numLocalVertices);
+  matchVector.reserve(numLocalVertices);
 
-  if (vToOrigV.getLength() > 0) {
-    vToOrigV.setLength(numLocalVertices);
+  if (vToOrigV.capacity() > 0) {
+    vToOrigV.reserve(numLocalVertices);
 
     j = 0;
     for (i = 0; i < numLocalVertices; ++i) {
@@ -3657,7 +3657,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
     sendLens[i] = 0;
 
   ds::bit_field sentRequests(numTotalVertices);
-  sentRequests.clear();
+  sentRequests.unset();
 
   // ###
   // compute all the requests for partition
@@ -3671,7 +3671,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
       if (!sentRequests(ij)) {
         j = std::min(ij / vPerProc, numProcs - 1);
         dataOutSets[j]->assign(sendLens[j]++, ij);
-        sentRequests.set1(ij);
+        sentRequests.set(ij);
       }
     }
   }
@@ -3686,14 +3686,14 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
     ij += sendLens[i];
   }
 
-  sendArray.setLength(ij);
-  copyOfReq.setLength(ij);
+  sendArray.reserve(ij);
+  copyOfReq.reserve(ij);
 
   totToSend = ij;
 
   ij = 0;
   for (i = 0; i < numProcs; ++i) {
-    array = dataOutSets[i]->getArray();
+    array = dataOutSets[i]->data();
     arrayLen = sendLens[i];
 
     for (j = 0; j < arrayLen; ++j) {
@@ -3703,7 +3703,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   // ###
@@ -3716,19 +3716,19 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
     ij += recvLens[i];
   }
 
-  receiveArray.setLength(ij);
+  receiveArray.reserve(ij);
   totToRecv = ij;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // now have received all requests and sent out our requests
   // the reply communication will have the dual dimensions
   // ###
 
-  sendArray.setLength(totToRecv);
+  sendArray.reserve(totToRecv);
 
   for (i = 0; i < totToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -3743,14 +3743,14 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
 #endif
   }
 
-  receiveArray.setLength(totToSend);
+  receiveArray.reserve(totToSend);
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-                recvDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                sendLens.getArray(), sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), recvLens.data(),
+                recvDispls.data(), MPI_INT, receiveArray.data(),
+                sendLens.data(), sendDispls.data(), MPI_INT, comm);
 
   // ###
-  // now the requested vertices are in the copyOfReq array
+  // now the requested vertices are in the copyOfReq data_
   // while their corresponding matchVector values are in
   // the corresponding location in the receiveArray
   // ###
@@ -3885,7 +3885,7 @@ int ParaHypergraph::checkBalance(int numParts, double balConstraint,
   for (i = 0; i < numLocalVertices; ++i)
     locPWeights[pOffset[i]] += vWeight[i];
 
-  MPI_Allreduce(locPWeights.getArray(), pWeights.getArray(), numParts, MPI_INT,
+  MPI_Allreduce(locPWeights.data(), pWeights.data(), numParts, MPI_INT,
                 MPI_SUM, comm);
   MPI_Allreduce(&localVertexWt, &totWt, 1, MPI_INT, MPI_SUM, comm);
 
@@ -3939,7 +3939,7 @@ void ParaHypergraph::checkPartitions(int numParts, int maxPartWt,
       locPWts[partitionVector[pOffset + j]] += vWeight[j];
     }
 
-    MPI_Allreduce(locPWts.getArray(), pWts.getArray(), numParts, MPI_INT,
+    MPI_Allreduce(locPWts.data(), pWts.data(), numParts, MPI_INT,
                   MPI_SUM, comm);
 
     for (j = 0; j < numParts; ++j)
@@ -3989,7 +3989,7 @@ void ParaHypergraph::checkPartitions(int numParts, double constraint,
       locPWts[partitionVector[pOffset + j]] += vWeight[j];
     }
 
-    MPI_Allreduce(locPWts.getArray(), pWts.getArray(), numParts, MPI_INT,
+    MPI_Allreduce(locPWts.data(), pWts.data(), numParts, MPI_INT,
                   MPI_SUM, comm);
 
     if (myRank == 0) {
@@ -4094,7 +4094,7 @@ double ParaHypergraph::getAveHedgeSize(MPI_Comm comm) {
 
 int ParaHypergraph::computeNonConnectedVerts(MPI_Comm comm) {
   ds::bit_field connected(numTotalVertices);
-  connected.clear();
+  connected.unset();
 
   int numTotPins = 0;
 
@@ -4102,7 +4102,7 @@ int ParaHypergraph::computeNonConnectedVerts(MPI_Comm comm) {
   dynamic_array<int> recvDispls(numProcs);
   dynamic_array<int> allPins;
 
-  MPI_Gather(&numLocalPins, 1, MPI_INT, pinsAtProc.getArray(), 1, MPI_INT, 0,
+  MPI_Gather(&numLocalPins, 1, MPI_INT, pinsAtProc.data(), 1, MPI_INT, 0,
              comm);
 
   if (myRank == 0) {
@@ -4111,21 +4111,21 @@ int ParaHypergraph::computeNonConnectedVerts(MPI_Comm comm) {
       numTotPins += pinsAtProc[i];
     }
 
-    allPins.setLength(numTotPins);
+    allPins.reserve(numTotPins);
   }
 
-  assert(localPins.getArray() != nullptr);
+  assert(localPins.data() != nullptr);
   if (myRank == 0)
-    assert(allPins.getArray() != nullptr);
-  assert(pinsAtProc.getArray() != nullptr);
-  assert(recvDispls.getArray() != nullptr);
+    assert(allPins.data() != nullptr);
+  assert(pinsAtProc.data() != nullptr);
+  assert(recvDispls.data() != nullptr);
 
-  MPI_Gatherv(localPins.getArray(), numLocalPins, MPI_INT, allPins.getArray(),
-              pinsAtProc.getArray(), recvDispls.getArray(), MPI_INT, 0, comm);
+  MPI_Gatherv(localPins.data(), numLocalPins, MPI_INT, allPins.data(),
+              pinsAtProc.data(), recvDispls.data(), MPI_INT, 0, comm);
 
   if (myRank == 0) {
     for (int i = 0; i < numTotPins; ++i)
-      connected.set1(allPins[i]);
+      connected.set(allPins[i]);
 
     int numNotConnected = 0;
 

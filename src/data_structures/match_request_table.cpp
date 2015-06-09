@@ -8,7 +8,7 @@ match_request_table::match_request_table(int _size)
     : numEntries(0),
       size(_size) {
 
-  table.setLength(size);
+  table.reserve(size);
   for (std::size_t i = 0; i < size; ++i) {
     table[i] = nullptr;
   }
@@ -65,7 +65,7 @@ void match_request_table::clearTable() {
     DynaMem<entry>::deletePtr(table[i]);
 
   numEntries = 0;
-  entryPtrs.setLength(0);
+  entryPtrs.reserve(0);
 }
 
 void match_request_table::addLocal(int _vertex, int _local, int locWt,

@@ -75,7 +75,7 @@ vertices.
   dynamic_array<int> recvLens(numProcs);
   dynamic_array<int> recvArray;
 
-  MPI_Allgather(&numLocalVertices, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Allgather(&numLocalVertices, 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                 comm);
 
   ij = 0;
@@ -92,9 +92,9 @@ vertices.
 
   MPI_Allreduce(&localVertexWt, &totVertexWt, 1, MPI_INT, MPI_SUM, comm);
   MPI_Allgatherv(localVertWeight, numLocalVertices, MPI_INT,
-                 vWeights->getArray(), recvLens.getArray(),
-                 recvDispls.getArray(), MPI_INT, comm);
-  MPI_Allgather(&numLocalHedges, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+                 vWeights->data(), recvLens.data(),
+                 recvDispls.data(), MPI_INT, comm);
+  MPI_Allgather(&numLocalHedges, 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                 comm);
 
   ij = 0;
@@ -107,8 +107,8 @@ vertices.
   hEdgeWeights = new dynamic_array<int>(numHedges);
 
   MPI_Allgatherv(localHedgeWeights, numLocalHedges, MPI_INT,
-                 hEdgeWeights->getArray(), recvLens.getArray(),
-                 recvDispls.getArray(), MPI_INT, comm);
+                 hEdgeWeights->data(), recvLens.data(),
+                 recvDispls.data(), MPI_INT, comm);
 
   ij = 0;
   for (i = 0; i < numProcs; ++i) {
@@ -118,10 +118,10 @@ vertices.
   }
 
   recvArrayLen = ij;
-  recvArray.setLength(recvArrayLen);
+  recvArray.reserve(recvArrayLen);
   MPI_Allgatherv(localHedgeOffsets, numLocalHedges + 1, MPI_INT,
-                 recvArray.getArray(), recvLens.getArray(),
-                 recvDispls.getArray(), MPI_INT, comm);
+                 recvArray.data(), recvLens.data(),
+                 recvDispls.data(), MPI_INT, comm);
   hEdgeOffsets = new dynamic_array<int>(numHedges + 1);
 
   j = 1;
@@ -152,17 +152,17 @@ vertices.
 
   numPins = ij;
   pinList = new dynamic_array<int>(numPins);
-  MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->getArray(),
-                 recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->data(),
+                 recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  h = new Hypergraph(vWeights->getArray(), numVertices);
+  h = new Hypergraph(vWeights->data(), numVertices);
 
   h->setNumHedges(numHedges);
   h->setNumPins(numPins);
   h->setTotWeight(totVertexWt);
-  h->setHedgeWtArray(hEdgeWeights->getArray(), hEdgeWeights->getLength());
-  h->setHedgeOffsetArray(hEdgeOffsets->getArray(), hEdgeOffsets->getLength());
-  h->setPinListArray(pinList->getArray(), pinList->getLength());
+  h->setHedgeWtArray(hEdgeWeights->data(), hEdgeWeights->capacity());
+  h->setHedgeOffsetArray(hEdgeOffsets->data(), hEdgeOffsets->capacity());
+  h->setPinListArray(pinList->data(), pinList->capacity());
   h->buildVtoHedges();
 
   if (dispOption > 0 && myRank == 0)
@@ -210,7 +210,7 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
   // which partitions to keep
   // ###
 
-  MPI_Gather(&myBestCut, 1, MPI_INT, procCuts.getArray(), 1, MPI_INT, ROOT_PROC,
+  MPI_Gather(&myBestCut, 1, MPI_INT, procCuts.data(), 1, MPI_INT, ROOT_PROC,
              comm);
 
   if (myRank == ROOT_PROC) {
@@ -219,7 +219,7 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
     for (i = 0; i < numProcs; ++i)
       procs[i] = i;
 
-    Funct::randomPermutation(procs.getArray(), numProcs);
+    Funct::randomPermutation(procs.data(), numProcs);
 
     for (i = 0; i < numProcs; ++i) {
       proc = procs[i];
@@ -240,7 +240,7 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
     }
   }
 
-  MPI_Scatter(keepPartitions.getArray(), 1, MPI_INT, &keepMyPartition, 1,
+  MPI_Scatter(keepPartitions.data(), 1, MPI_INT, &keepMyPartition, 1,
               MPI_INT, ROOT_PROC, comm);
   MPI_Bcast(&numKept, 1, MPI_INT, ROOT_PROC, comm);
 
@@ -273,7 +273,7 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
     ij += numVperProc[i];
   }
 
-  sendArray.setLength(j);
+  sendArray.reserve(j);
   totToSend = j;
 
   ij = 0;
@@ -292,7 +292,7 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
   assert(ij == totToSend);
 #endif
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
@@ -306,15 +306,15 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
   assert(ij == hPartVectorOffsets[numKept]);
 #endif
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, hPartitionVector,
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, hPartitionVector,
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // communicate partition cuts
   // ###
 
-  MPI_Allgather(&keepMyPartition, 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Allgather(&keepMyPartition, 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                 comm);
 
   ij = 0;
@@ -325,7 +325,7 @@ void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
   }
 
   MPI_Allgatherv(pCuts, keepMyPartition, MPI_INT, hPartCuts,
-                 recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+                 recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   if (dispOption > 1 && myRank == 0) {
     for (i = 0; i < numKept; ++i)

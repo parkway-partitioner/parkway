@@ -27,8 +27,8 @@ template <typename T> class complete_binary_tree {
 
  public:
   complete_binary_tree() : numRoots(0) {
-    tree.setLength(0);
-    roots.setLength(0);
+    tree.reserve(0);
+    roots.reserve(0);
   }
 
   complete_binary_tree(const T *rootVals, const int *cmprs, int nRoots) {
@@ -52,8 +52,8 @@ template <typename T> class complete_binary_tree {
 
   void setupTree(const T *rootVals, const int *cmprs, int num_roots) {
     numRoots = num_roots;
-    tree.setLength(numRoots);
-    roots.setLength(numRoots);
+    tree.reserve(numRoots);
+    roots.reserve(numRoots);
 
     for (int i = 0; i < numRoots; ++i) {
       roots[i] = rootVals[i];

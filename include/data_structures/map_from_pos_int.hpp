@@ -36,8 +36,8 @@ template<typename T> class map_from_pos_int {
     assert(size >= _size);
     #endif
 
-    keys.setLength(size);
-    table.setLength(size);
+    keys.reserve(size);
+    table.reserve(size);
 
     for (std::size_t i = 0; i < size; ++i) {
       keys[i] = -1;
@@ -46,13 +46,13 @@ template<typename T> class map_from_pos_int {
 
   void destroyTable() {
     numEntries = 0;
-    table.setLength(0);
-    keys.setLength(0);
+    table.reserve(0);
+    keys.reserve(0);
   }
 
   void recoverTable() {
-    table.setLength(size);
-    keys.setLength(size);
+    table.reserve(size);
+    keys.reserve(size);
     numEntries = 0;
 
     for (std::size_t i = 0; i < size; ++i) {

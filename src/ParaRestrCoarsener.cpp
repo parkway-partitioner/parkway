@@ -100,22 +100,22 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   // Prepare data structures
   // ###
 
-  MPI_Allgather(&minVertexIndex, 1, MPI_INT, minLocIndices.getArray(), 1,
+  MPI_Allgather(&minVertexIndex, 1, MPI_INT, minLocIndices.data(), 1,
                 MPI_INT, comm);
-  MPI_Allgather(&maxVertexIndex, 1, MPI_INT, maxLocIndices.getArray(), 1,
+  MPI_Allgather(&maxVertexIndex, 1, MPI_INT, maxLocIndices.data(), 1,
                 MPI_INT, comm);
 
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  ds::complete_binary_tree <int> vToProc(procs.getArray(), minLocIndices.getArray(),
+  ds::complete_binary_tree <int> vToProc(procs.data(), minLocIndices.data(),
                                   numProcs);
 
   numHedges = 0;
   numLocPins = 0;
 
-  vToHedgesOffset.setLength(numLocalVertices + 1);
-  vDegs.setLength(numLocalVertices);
+  vToHedgesOffset.reserve(numLocalVertices + 1);
+  vDegs.reserve(numLocalVertices);
 
   for (i = 0; i < numLocalVertices; ++i) {
     vToHedgesOffset[i] = 0;
@@ -288,9 +288,9 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   hEdgeOffset.assign(numHedges, numLocPins);
 
 #ifdef MEM_OPT
-  hEdgeOffset.setLength(numHedges + 1);
-  hEdgeWeight.setLength(numHedges);
-  locPinList.setLength(numLocPins);
+  hEdgeOffset.reserve(numHedges + 1);
+  hEdgeWeight.reserve(numHedges);
+  locPinList.reserve(numLocPins);
 #endif
 
   // ###
@@ -311,7 +311,7 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   }
 
   vToHedgesOffset[j] = l;
-  vToHedgesList.setLength(l);
+  vToHedgesList.reserve(l);
 
   for (j = 0; j < numHedges; ++j) {
     endOffset = hEdgeOffset[j + 1];
@@ -333,7 +333,7 @@ ParaHypergraph *ParaRestrCoarsener::contractHyperedges(ParaHypergraph &h,
   ParaHypergraph *coarseGraph =
       new ParaHypergraph(myRank, numProcs, clusterIndex, totalClusters,
                          myMinCluIndex, stopCoarsening, partitionCuts[0],
-                         clusterWeights->getArray(), pVector->getArray());
+                         clusterWeights->data(), pVector->data());
 
   clusterWeights = nullptr;
   pVector = nullptr;

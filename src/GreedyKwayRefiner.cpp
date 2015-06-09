@@ -22,17 +22,17 @@ GreedyKwayRefiner::GreedyKwayRefiner(int max, int nparts, double ave,
   avePartWt = ave;
   limit = lim;
   numNonPosMoves = 0;
-  partWeights.setLength(numParts);
+  partWeights.reserve(numParts);
 
-  numNeighParts.setLength(0);
-  neighboursOfV.setLength(0);
-  neighboursOfVOffsets.setLength(0);
-  hEdgeVinPart.setLength(0);
-  hEdgeVinPartOffsets.setLength(0);
-  vertices.setLength(0);
-  vertSeen.setLength(0);
-  seenVertices.setLength(0);
-  partsSpanned.setLength(0);
+  numNeighParts.reserve(0);
+  neighboursOfV.reserve(0);
+  neighboursOfVOffsets.reserve(0);
+  hEdgeVinPart.reserve(0);
+  hEdgeVinPartOffsets.reserve(0);
+  vertices.reserve(0);
+  vertSeen.reserve(0);
+  seenVertices.reserve(0);
+  partsSpanned.reserve(0);
 
 #ifdef DEBUG_REFINER
   assert(limit >= 0 && limit <= 1.0);
@@ -58,16 +58,16 @@ void GreedyKwayRefiner::dispRefinerOptions(ostream &out) const {
 void GreedyKwayRefiner::buildDataStructs() {
   int i;
 
-  partsSpanned.setLength(numParts);
-  vertices.setLength(numVertices);
-  vertSeen.setLength(numVertices);
-  seenVertices.setLength(numVertices);
-  numNeighParts.setLength(numVertices);
-  neighboursOfVOffsets.setLength(numVertices + 1);
-  neighboursOfV.setLength(numVertices * numParts);
+  partsSpanned.reserve(numParts);
+  vertices.reserve(numVertices);
+  vertSeen.reserve(numVertices);
+  seenVertices.reserve(numVertices);
+  numNeighParts.reserve(numVertices);
+  neighboursOfVOffsets.reserve(numVertices + 1);
+  neighboursOfV.reserve(numVertices * numParts);
 
-  hEdgeVinPartOffsets.setLength(numHedges + 1);
-  hEdgeVinPart.setLength(numHedges * numParts);
+  hEdgeVinPartOffsets.reserve(numHedges + 1);
+  hEdgeVinPart.reserve(numHedges * numParts);
 
   neighboursOfVOffsets[0] = 0;
   hEdgeVinPartOffsets[0] = 0;
@@ -80,16 +80,16 @@ void GreedyKwayRefiner::buildDataStructs() {
 }
 
 void GreedyKwayRefiner::destroyDataStructs() {
-  partsSpanned.setLength(0);
-  vertices.setLength(0);
-  vertSeen.setLength(0);
-  seenVertices.setLength(0);
-  numNeighParts.setLength(0);
-  neighboursOfVOffsets.setLength(0);
-  neighboursOfV.setLength(0);
+  partsSpanned.reserve(0);
+  vertices.reserve(0);
+  vertSeen.reserve(0);
+  seenVertices.reserve(0);
+  numNeighParts.reserve(0);
+  neighboursOfVOffsets.reserve(0);
+  neighboursOfV.reserve(0);
 
-  hEdgeVinPartOffsets.setLength(0);
-  hEdgeVinPart.setLength(0);
+  hEdgeVinPartOffsets.reserve(0);
+  hEdgeVinPart.reserve(0);
 }
 
 int GreedyKwayRefiner::initDataStructs() {
@@ -192,7 +192,7 @@ void GreedyKwayRefiner::updateAdjVertStat(int v, int sP, int bestDP) {
   vertOffset = vOffsets[v + 1];
   numVerticesSeen = 0;
 
-  partsSpanned.setLength(numParts);
+  partsSpanned.reserve(numParts);
 
   for (j = vOffsets[v]; j < vertOffset; ++j) {
 
@@ -503,7 +503,7 @@ int GreedyKwayRefiner::runRebalancingPass() {
   for (i = 0; i < numParts; ++i)
     verticesInParts[i] = nullptr;
 
-  Funct::randomPermutation(vertices.getArray(), numVertices);
+  Funct::randomPermutation(vertices.data(), numVertices);
 
   for (i = 0; i < numVertices; ++i) {
     vertex = vertices[i];

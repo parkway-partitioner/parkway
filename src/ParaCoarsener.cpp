@@ -33,7 +33,7 @@ ParaCoarsener::ParaCoarsener(int rank, int nProcs, int nParts, std::ostream &out
   reductionRatio = 0;
   balConstraint = 0;
 
-  clusterWeights.setLength(0);
+  clusterWeights.reserve(0);
 }
 
 ParaCoarsener::~ParaCoarsener() {}
@@ -83,9 +83,9 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   numLocPins = 0;
   vertsPerProc = totalVertices / numProcs;
 
-  vToHedgesOffset.setLength(numLocalVertices + 1);
-  sentToProc.setLength(numProcs);
-  vDegs.setLength(numLocalVertices);
+  vToHedgesOffset.reserve(numLocalVertices + 1);
+  sentToProc.reserve(numProcs);
+  vDegs.reserve(numLocalVertices);
 
   for (i = 0; i < numLocalVertices; ++i) {
     vToHedgesOffset[i] = 0;
@@ -303,9 +303,9 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   hEdgeOffset.assign(numHedges, numLocPins);
 
 #ifdef MEM_OPT
-  hEdgeOffset.setLength(numHedges + 1);
-  hEdgeWeight.setLength(numHedges);
-  locPinList.setLength(numLocPins);
+  hEdgeOffset.reserve(numHedges + 1);
+  hEdgeWeight.reserve(numHedges);
+  locPinList.reserve(numLocPins);
 #endif
 
   // ###
@@ -326,7 +326,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   }
 
   vToHedgesOffset[j] = l;
-  vToHedgesList.setLength(l);
+  vToHedgesList.reserve(l);
 
   for (j = 0; j < numHedges; ++j) {
     endOffset = hEdgeOffset[j + 1];
@@ -389,7 +389,7 @@ ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
             0);
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   for (i = 0; i < numProcs; ++i) {
@@ -401,15 +401,15 @@ ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
   assert(totalToRecv == numMyClusters);
 #endif
 
-  MPI_Alltoallv(clusterWeights.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, clusterWts->getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(clusterWeights.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, clusterWts->data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   myMinCluIndex = minClusterIndex[myRank];
 
   ParaHypergraph *coarseGraph =
       new ParaHypergraph(myRank, numProcs, numMyClusters, totalClusters,
-                         myMinCluIndex, stopCoarsening, clusterWts->getArray());
+                         myMinCluIndex, stopCoarsening, clusterWts->data());
 
   h.contractHyperedges(*coarseGraph, comm);
 

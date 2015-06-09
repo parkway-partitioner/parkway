@@ -21,7 +21,7 @@ VCycleBisectionController::VCycleBisectionController(
                           out) {
   restrCoarsener = nullptr;
 
-  vCyclePartition.setLength(0);
+  vCyclePartition.reserve(0);
 }
 
 VCycleBisectionController::~VCycleBisectionController() {

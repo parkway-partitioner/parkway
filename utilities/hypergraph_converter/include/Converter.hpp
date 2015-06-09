@@ -31,8 +31,8 @@ class Converter {
 
   inline int getDataLength() { return dataLength; }
   inline int getNumVerts() { return numVerts; }
-  inline int *getDataArray() { return hEdgeData.getArray(); }
-  inline int *getVertWtsArray() { return vWeights.getArray(); }
+  inline int *getDataArray() { return hEdgeData.data(); }
+  inline int *getVertWtsArray() { return vWeights.data(); }
   inline void setNumVertices(int n) { numVerts = n; }
 
   void setLengthParameter();

@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
          << "\t    - integer specifying how statistics are calculated:" << endl
          << "\t      0 -> calculate the statistics on the hypergraph as on file"
          << endl
-         << "\t      1 -> ignore hyperedges of length one" << endl
+         << "\t      1 -> ignore hyperedges of capacity_ one" << endl
          << endl
          << "\t -otype <type_format>" << endl
          << "\t    - string specifying the output file. If not specified then"
@@ -115,20 +115,20 @@ void HypergraphChars::initStructs(const char *filename) {
 
   strcpy(graphName, filename);
 
-  vWeights.setLength(numVertices);
+  vWeights.reserve(numVertices);
   numZerosOnMainDiag = 0;
 
   if (removeSingletons) {
     numHedges = 0;
     numPins = 0;
 
-    hEdgeWeights.setLength(0);
-    hEdgeLens.setLength(0);
+    hEdgeWeights.reserve(0);
+    hEdgeLens.reserve(0);
 
     for (i = 0; i < preamble[1];) {
       in_stream.read((char *)(&hEdgeDataLength), sizeof(int));
-      hEdgeData.setLength(hEdgeDataLength);
-      in_stream.read((char *)(hEdgeData.getArray()),
+      hEdgeData.reserve(hEdgeDataLength);
+      in_stream.read((char *)(hEdgeData.data()),
                      sizeof(int) * hEdgeDataLength);
 
       for (j = 0; j < hEdgeDataLength;) {
@@ -155,13 +155,13 @@ void HypergraphChars::initStructs(const char *filename) {
   } else {
     numHedges = preamble[1];
 
-    hEdgeWeights.setLength(numHedges);
-    hEdgeLens.setLength(numHedges);
+    hEdgeWeights.reserve(numHedges);
+    hEdgeLens.reserve(numHedges);
 
     for (i = 0; i < numHedges;) {
       in_stream.read((char *)(&hEdgeDataLength), sizeof(int));
-      hEdgeData.setLength(hEdgeDataLength);
-      in_stream.read((char *)(hEdgeData.getArray()),
+      hEdgeData.reserve(hEdgeDataLength);
+      in_stream.read((char *)(hEdgeData.data()),
                      sizeof(int) * hEdgeDataLength);
 
       for (j = 0; j < hEdgeDataLength;) {
@@ -191,7 +191,7 @@ void HypergraphChars::initStructs(const char *filename) {
   ij = i - (numVertices * sizeof(int));
 
   in_stream.seekg(ij, ifstream::beg);
-  in_stream.read((char *)(vWeights.getArray()), numVertices * sizeof(int));
+  in_stream.read((char *)(vWeights.data()), numVertices * sizeof(int));
 
   in_stream.close();
 }
@@ -220,7 +220,7 @@ void HypergraphChars::outputChars(ostream &out) {
   /* display hyperedge information */
 
   j = 0;
-  indices.setLength(numHedges);
+  indices.reserve(numHedges);
 
   for (i = 0; i < numHedges; ++i) {
     indices[i] = i;
@@ -228,7 +228,7 @@ void HypergraphChars::outputChars(ostream &out) {
     weighted_ave += (hEdgeWeights[i] * hEdgeLens[i]);
   }
 
-  out << "hyperedge length percentiles: (weighted ave, 25, 50, 75, 95, "
+  out << "hyperedge capacity_ percentiles: (weighted ave, 25, 50, 75, 95, "
          "maxLength) " << endl;
   out << "\t" << weighted_ave / j << " ";
 
@@ -238,7 +238,7 @@ void HypergraphChars::outputChars(ostream &out) {
   percentile_50 = (static_cast<double>(j) * 50) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  qsort(0, numHedges - 1, indices.getArray(), hEdgeLens.getArray());
+  qsort(0, numHedges - 1, indices.data(), hEdgeLens.data());
 
   j = 0;
   i = 0;
@@ -280,7 +280,7 @@ void HypergraphChars::outputChars(ostream &out) {
   /* display vertex information */
 
   j = 0;
-  indices.setLength(numVertices);
+  indices.reserve(numVertices);
 
   for (i = 0; i < numVertices; ++i) {
     indices[i] = i;
@@ -292,7 +292,7 @@ void HypergraphChars::outputChars(ostream &out) {
   percentile_50 = (static_cast<double>(j) * 50) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  qsort(0, numVertices - 1, indices.getArray(), vWeights.getArray());
+  qsort(0, numVertices - 1, indices.data(), vWeights.data());
 
   out << "vertex weight percentiles: (ave, 25, 50, 75, 95, maxWeight) " << endl;
   out << "\t" << static_cast<double>(j) / numVertices << " ";

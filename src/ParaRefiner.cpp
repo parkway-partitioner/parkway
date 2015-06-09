@@ -17,7 +17,7 @@
 
 ParaRefiner::ParaRefiner(int rank, int nProcs, int nParts, std::ostream &out)
     : ParaHypergraphLoader(rank, nProcs, nParts, out) {
-  partWeights.setLength(nParts);
+  partWeights.reserve(nParts);
 }
 
 ParaRefiner::~ParaRefiner() {}
@@ -71,9 +71,9 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   numLocPins = 0;
   vertsPerProc = totalVertices / numProcs;
 
-  vToHedgesOffset.setLength(numLocalVertices + 1);
-  sentToProc.setLength(numProcs);
-  vDegs.setLength(numLocalVertices);
+  vToHedgesOffset.reserve(numLocalVertices + 1);
+  sentToProc.reserve(numProcs);
+  vDegs.reserve(numLocalVertices);
 
   for (i = 0; i < numLocalVertices; ++i) {
     vToHedgesOffset[i] = 0;
@@ -328,10 +328,10 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   hEdgeOffset.assign(numHedges, numLocPins);
 
 #ifdef MEM_OPT
-  hEdgeOffset.setLength(numHedges + 1);
-  hEdgeWeight.setLength(numHedges);
-  allocHedges.setLength(numHedges);
-  locPinList.setLength(numLocPins);
+  hEdgeOffset.reserve(numHedges + 1);
+  hEdgeWeight.reserve(numHedges);
+  allocHedges.reserve(numHedges);
+  locPinList.reserve(numLocPins);
 #endif
 
   // ###
@@ -352,7 +352,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   }
 
   vToHedgesOffset[j] = l;
-  vToHedgesList.setLength(l);
+  vToHedgesList.reserve(l);
 
   for (j = 0; j < numHedges; ++j) {
     endOffset = hEdgeOffset[j + 1];
@@ -412,9 +412,9 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
     numNonLocVertsHedges += vDegs[i];
   }
 
-  nonLocVerts.setLength(numNonLocVerts);
-  nonLocOffsets.setLength(numNonLocVerts + 1);
-  nonLocVToHedges.setLength(numNonLocVertsHedges);
+  nonLocVerts.reserve(numNonLocVerts);
+  nonLocOffsets.reserve(numNonLocVerts + 1);
+  nonLocVToHedges.reserve(numNonLocVertsHedges);
 
 #ifdef DEBUG_REFINER
   for (i = 0; i < numNonLocVertsHedges; ++i)
@@ -511,8 +511,8 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
     assert(partitionVector[i] >= 0 && partitionVector[i] < numParts);
 #endif
 
-  partIndices.setLength(numNonLocVerts * numPartitions);
-  indexIntoPartIndices.setLength(numPartitions + 1);
+  partIndices.reserve(numNonLocVerts * numPartitions);
+  indexIntoPartIndices.reserve(numPartitions + 1);
 
   j = 0;
   for (i = 0; i < numPartitions; ++i) {
@@ -551,25 +551,25 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   assert(sendLens[myRank] == 0);
 #endif
 
-  sendArray.setLength(ij);
-  copyOfSendArray.setLength(ij);
+  sendArray.reserve(ij);
+  copyOfSendArray.reserve(ij);
   arraySize = ij;
 
   ij = 0;
   for (i = 0; i < numProcs; ++i) {
     endOffset = sendLens[i];
-    array = dataOutSets[i]->getArray();
+    array = dataOutSets[i]->data();
 
     for (j = 0; j < endOffset; ++j) {
 #ifdef DEBUG_REFINER
-      assert(array[j] < minVertexIndex || array[j] >= maxVertexIndex);
+      assert(data_[j] < minVertexIndex || data_[j] >= maxVertexIndex);
 #endif
       sendArray[ij] = array[j];
       copyOfSendArray[ij++] = array[j];
     }
   }
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
@@ -579,11 +579,11 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   }
 
   totalToRecv = ij;
-  receiveArray.setLength(ij);
+  receiveArray.reserve(ij);
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
   // now communicate the partition vector
@@ -591,7 +591,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   // ###
 
   totalToSend = totalToRecv * numPartitions;
-  sendArray.setLength(totalToSend);
+  sendArray.reserve(totalToSend);
 
   for (i = 0; i < numProcs; ++i) {
     ij = sendLens[i];
@@ -642,11 +642,11 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
 #endif
 
   totalToRecv = numNonLocVerts * numPartitions;
-  receiveArray.setLength(totalToRecv);
+  receiveArray.reserve(totalToRecv);
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-                sendDispls.getArray(), MPI_INT, receiveArray.getArray(),
-                recvLens.getArray(), recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(sendArray.data(), sendLens.data(),
+                sendDispls.data(), MPI_INT, receiveArray.data(),
+                recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   ij = 0;
   for (i = 0; i < arraySize; ++i) {

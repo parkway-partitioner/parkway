@@ -70,14 +70,14 @@ void Para2DModelCoarsener::buildAuxiliaryStructs(int numTotPins,
 }
 
 void Para2DModelCoarsener::releaseMemory() {
-  hEdgeWeight.setLength(0);
-  hEdgeOffset.setLength(0);
-  locPinList.setLength(0);
+  hEdgeWeight.reserve(0);
+  hEdgeOffset.reserve(0);
+  locPinList.reserve(0);
 
-  vToHedgesOffset.setLength(0);
-  vToHedgesList.setLength(0);
-  allocHedges.setLength(0);
-  clusterWeights.setLength(0);
+  vToHedgesOffset.reserve(0);
+  vToHedgesList.reserve(0);
+  allocHedges.reserve(0);
+  clusterWeights.reserve(0);
 
   freeMemory();
 }
@@ -153,7 +153,7 @@ ParaHypergraph *Para2DModelCoarsener::ParaFCCoarsen(ParaHypergraph &h,
   dynamic_array<double> connectVals;
   dynamic_array<int> vertices(numLocalVertices);
 
-  permuteVerticesArray(vertices.getArray(), numLocalVertices);
+  permuteVerticesArray(vertices.data(), numLocalVertices);
 
   if (dispOption > 1) {
     for (i = 0; i < numLocalVertices; ++i) {
@@ -471,7 +471,7 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
   }
 
   bit_field matchedVertices(totalVertices);
-  matchedVertices.clear();
+  matchedVertices.unset();
 
   dynamic_array<int> hEdges(numHedges);
   dynamic_array<int> hEdgeLens(numHedges);
@@ -483,15 +483,15 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
     hEdgeLens[i] = hEdgeOffset[i + 1] - hEdgeOffset[i];
   }
 
-  /* sort hedges in increasing order of length */
+  /* sort hedges in increasing order of capacity_ */
 
-  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.getArray(),
-                             hEdgeLens.getArray(), INC);
+  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.data(),
+                             hEdgeLens.data(), INC);
 
   /*
   */
 
-  /* now sort the hyperedges of same length in
+  /* now sort the hyperedges of same capacity_ in
      decreasing order of weight */
 
   int leftBound = 0;
@@ -511,8 +511,8 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
            << ", rightBound = " << rightBound << std::endl;
     }
     */
-    Funct::qsortByAnotherArray(leftBound, rightBound - 1, hEdges.getArray(),
-                               hEdgeWeight.getArray(), DEC);
+    Funct::qsortByAnotherArray(leftBound, rightBound - 1, hEdges.data(),
+                               hEdgeWeight.data(), DEC);
     leftBound = rightBound;
   }
 
@@ -612,7 +612,7 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
           }
 
           // for (i=0;i<numUnmatchedNonLocals;++i) {
-          matchedVertices.set1(nonLocalVert);
+          matchedVertices.set(nonLocalVert);
           //}
 
           numNotMatched -= numUnmatchedLocals;
@@ -733,7 +733,7 @@ void Para2DModelCoarsener::setReplyArrays(int highToLow, int maxVWt) {
 
     if (matchRequestVisitOrder == RANDOM_ORDER) {
       visitOrderLen = Shiftr(recvLens[i], 1);
-      visitOrder.setLength(visitOrderLen);
+      visitOrder.reserve(visitOrderLen);
 
       for (j = 0; j < visitOrderLen; ++j)
         visitOrder[j] = j;
@@ -742,7 +742,7 @@ void Para2DModelCoarsener::setReplyArrays(int highToLow, int maxVWt) {
       // processing match requests in random order
       // ###
 
-      Funct::randomPermutation(visitOrder.getArray(), visitOrderLen);
+      Funct::randomPermutation(visitOrder.data(), visitOrderLen);
 
       for (l = 0; l < visitOrderLen; ++l) {
 
@@ -866,7 +866,7 @@ void Para2DModelCoarsener::setClusterIndices(MPI_Comm comm) {
   dynamic_array<int> numClusters(numProcs);
   dynamic_array<int> startIndex(numProcs);
 
-  MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.getArray(), 1, MPI_INT,
+  MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.data(), 1, MPI_INT,
                 comm);
 
   int index = 0;
