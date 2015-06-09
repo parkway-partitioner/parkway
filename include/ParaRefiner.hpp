@@ -13,8 +13,10 @@
 // ###
 
 #include "ParaHypergraphLoader.hpp"
+#include "data_structures/dynamic_array.hpp"
+#include "data_structures/map_to_pos_int.hpp"
 
-using namespace std;
+namespace ds = parkway::data_structures;
 
 class ParaRefiner : public ParaHypergraphLoader {
 protected:
@@ -31,7 +33,7 @@ protected:
   double balConstraint;
   double avePartWt;
 
-  DynamicArray<int> partWeights;
+  ds::DynamicArray<int> partWeights;
 
   /* newly added structures */
 
@@ -39,17 +41,17 @@ protected:
   int numNonLocVertsHedges;
   int *currNonLocPVector;
 
-  DynamicArray<int> nonLocVerts;
-  DynamicArray<int> partIndices;
-  DynamicArray<int> indexIntoPartIndices;
+  ds::DynamicArray<int> nonLocVerts;
+  ds::DynamicArray<int> partIndices;
+  ds::DynamicArray<int> indexIntoPartIndices;
 
-  DynamicArray<int> nonLocVToHedges;
-  DynamicArray<int> nonLocOffsets;
+  ds::DynamicArray<int> nonLocVToHedges;
+  ds::DynamicArray<int> nonLocOffsets;
 
-  MapToPosInt toNonLocVerts;
+  ds::map_to_pos_int toNonLocVerts;
 
 public:
-  ParaRefiner(int rank, int nProcs, int nParts, ostream &out);
+  ParaRefiner(int rank, int nProcs, int nParts, std::ostream &out);
 
   virtual ~ParaRefiner();
   virtual void dispRefinementOptions() const = 0;

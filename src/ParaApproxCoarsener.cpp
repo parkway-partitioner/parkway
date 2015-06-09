@@ -13,10 +13,11 @@
 // ###
 
 #include "ParaApproxCoarsener.hpp"
+#include <iostream>
 
 ParaApproxCoarsener::ParaApproxCoarsener(int _rank, int _numProcs,
                                          int _numParts, int percentile, int inc,
-                                         ostream &out)
+                                         std::ostream &out)
     : ParaCoarsener(_rank, _numProcs, _numParts, out) {
   startPercentile = percentile;
   currPercentile = percentile;
@@ -109,7 +110,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
 #ifdef DEBUG_COARSENER
         assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-        proc = min(localPins[j] / vertsPerProc, numProcs - 1);
+        proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
 
         if (!sentToProc[proc]) {
           if (proc == myRank) {
@@ -283,17 +284,17 @@ void ParaApproxCoarsener::computeHedgesToLoad(BitField &toLoad, int numH,
   myPercentileLen = hEdgeLens[hEdges[i]];
 
   MPI_Barrier(comm);
-  cout << "myPercentileLen = " << myPercentileLen << endl;
+  std::cout << "myPercentileLen = " << myPercentileLen << std::endl;
   MPI_Barrier(comm);
 
   MPI_Allreduce(&myPercentileLen, &percentileLen, 1, MPI_INT, MPI_MAX, comm);
 
   MPI_Barrier(comm);
   if (myRank == 0) {
-    cout << "percentileLen = " << percentileLen << endl;
-    cout << "maxHedgeLen = " << maxLen << endl;
-    cout << "aveLen = " << aveLen << endl;
-    cout << "currPercentile = " << currPercentile << endl;
+    std::cout << "percentileLen = " << percentileLen << std::endl;
+    std::cout << "maxHedgeLen = " << maxLen << std::endl;
+    std::cout << "aveLen = " << aveLen << std::endl;
+    std::cout << "currPercentile = " << currPercentile << std::endl;
   }
 
   for (; i < numH; ++i)
@@ -302,7 +303,7 @@ void ParaApproxCoarsener::computeHedgesToLoad(BitField &toLoad, int numH,
 
   /* increment the percentile for subsequent coarsening */
 
-  currPercentile = min(currPercentile + increment, 100);
+  currPercentile = std::min(currPercentile + increment, 100);
 }
 
 #endif

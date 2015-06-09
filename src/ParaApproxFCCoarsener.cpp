@@ -1,4 +1,3 @@
-
 #ifndef _PARA_APPROX_FCCOARSENER_CPP
 #define _PARA_APPROX_FCCOARSENER_CPP
 
@@ -13,12 +12,17 @@
 // ###
 
 #include "ParaApproxFCCoarsener.hpp"
+#include "data_structures/map_to_pos_int.hpp"
+#include "data_structures/internal/table_utils.hpp"
+#include <iostream>
+
+namespace ds = parkway::data_structures;
 
 ParaApproxFCCoarsener::ParaApproxFCCoarsener(int rank, int nProcs, int nParts,
                                              int percentile, int inc,
                                              int vertVisOrder,
                                              int matchReqOrder, int divByWt,
-                                             int divByLen, ostream &out)
+                                             int divByLen, std::ostream &out)
     : ParaApproxCoarsener(rank, nProcs, nParts, percentile, inc, out) {
   vertexVisitOrder = vertVisOrder;
   matchRequestVisitOrder = matchReqOrder;
@@ -27,12 +31,10 @@ ParaApproxFCCoarsener::ParaApproxFCCoarsener(int rank, int nProcs, int nParts,
   limitOnIndexDuringCoarsening = 0;
 
   table = nullptr;
-  // connTable = nullptr;
 }
 
 ParaApproxFCCoarsener::~ParaApproxFCCoarsener() {
-  DynaMem<MatchRequestTable>::deletePtr(table);
-  // DynaMem<ConnVertTable>::deletePtr(connTable);
+  DynaMem<ds::match_request_table>::deletePtr(table);
 }
 
 void ParaApproxFCCoarsener::dispCoarseningOptions() const {
@@ -43,7 +45,7 @@ void ParaApproxFCCoarsener::dispCoarseningOptions() const {
 
   default:
 
-    out_stream << "|--- PARA_C:" << endl
+    out_stream << "|--- PARA_C:" << std::endl
                << "|- ApproxPFC:"
                << " r = " << reductionRatio << " min = " << minNodes
                << " vvo = ";
@@ -52,8 +54,8 @@ void ParaApproxFCCoarsener::dispCoarseningOptions() const {
     printVisitOrder(matchRequestVisitOrder);
     out_stream << " divWt = " << divByCluWt << " divLen = " << divByHedgeLen
                << " %ile = " << startPercentile << " inc = " << increment
-               << endl
-               << "|" << endl;
+               << std::endl
+               << "|" << std::endl;
     break;
   }
 }
@@ -62,14 +64,14 @@ void ParaApproxFCCoarsener::buildAuxiliaryStructs(int numTotPins,
                                                   double aveVertDeg,
                                                   double aveHedgeSize) {
   // ###
-  // build the MatchRequestTable
+  // build the ds::match_request_table
   // ###
 
   int i =
       static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
 
-  // table = new MatchRequestTable(Funct::setTableSize(i/numProcs));
-  table = new MatchRequestTable(TableUtils::getTableSize(i / numProcs));
+  // table = new ds::match_request_table(Funct::setTableSize(i/numProcs));
+  table = new ds::match_request_table(ds::internal::table_utils::table_size(i / numProcs));
   // i = Shiftl(static_cast<int>(ceil(aveVertDeg*aveHedgeSize)),4);
 
   // ###
@@ -131,7 +133,7 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
   double maxMatchMetric;
   double reducedBy;
 
-  MapToPosInt matchInfoLoc;
+  ds::map_to_pos_int matchInfoLoc;
 
   if (numLocPins < totalVertices / 2)
     matchInfoLoc.createTable(numLocPins, 1);
@@ -267,66 +269,6 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
                 connectVals.assign(numVisited++,
                                    static_cast<double>(hEdgeWeight[hEdge]));
             }
-            /*
-               if(vData)
-               {
-               if(divByHedgeLen)
-               vData->incConNetWt(static_cast<double>(hEdgeWeight[hEdge])/(hEdgeLen-1));
-               else
-               vData->incConNetWt(static_cast<double>(hEdgeWeight[hEdge]));
-               }
-               */
-            /*
-               else
-               {
-            // ###
-            // here compute the cluster weight
-            // ###
-
-            if(candidatV>=minVertexIndex && candidatV<maxVertexIndex)
-            {
-            // ###
-            // candidatV is a local vertex
-            // ###
-
-            if(matchVector[candidatV-minVertexIndex] == -1)
-            cluWeight = vWeight[vertex] + vWeight[candidatV-minVertexIndex];
-            else
-            if(matchVector[candidatV-minVertexIndex] >= NON_LOCAL_MATCH)
-            {
-            nonLocV = matchVector[candidatV-minVertexIndex] - NON_LOCAL_MATCH;
-            cluWeight = vWeight[vertex] + table->lookupClusterWt(nonLocV) +
-            aveVertexWt;
-            }
-            else
-            cluWeight = vWeight[vertex] +
-            clusterWeights[matchVector[candidatV-minVertexIndex]];
-            }
-            else
-            {
-            // ###
-            // candidatV is not a local vertex or it is a local
-            // vertex matched with a non-local one
-            // ###
-
-            candVwt = table -> lookupClusterWt(candidatV);
-
-            if(candVwt != -1) cluWeight = vWeight[vertex] + candVwt +
-            aveVertexWt;
-            else cluWeight = vWeight[vertex] + aveVertexWt;
-            }
-
-            if(divByHedgeLen)
-            vData = new
-            ConnVertData(candidatV,static_cast<double>(hEdgeWeight[hEdge])/(hEdgeLen-1),cluWeight,nullptr);
-            else
-            vData = new
-            ConnVertData(candidatV,static_cast<double>(hEdgeWeight[hEdge]),cluWeight,nullptr);
-
-            connTable->addDataStruct(vData,candidatV);
-            }
-
-*/
           }
         }
       }
@@ -425,9 +367,9 @@ assert(bestMatch >= 0);
               nonLocV =
                   matchVector[bestMatch - minVertexIndex] - NON_LOCAL_MATCH;
               table->addLocal(nonLocV, vertex + minVertexIndex, vWeight[vertex],
-                              min(nonLocV / vPerProc, numProcs - 1));
+                              std::min(nonLocV / vPerProc, numProcs - 1));
 #ifdef DEBUG_COARSENER
-              assert(min(nonLocV / vPerProc, numProcs - 1) != myRank);
+              assert(std::min(nonLocV / vPerProc, numProcs - 1) != myRank);
 #endif
               matchVector[vertex] = NON_LOCAL_MATCH + nonLocV;
               --numNotMatched;
@@ -444,9 +386,9 @@ assert(bestMatch >= 0);
           // ###
 
           table->addLocal(bestMatch, vertex + minVertexIndex, vWeight[vertex],
-                          min(bestMatch / vPerProc, numProcs - 1));
+                          std::min(bestMatch / vPerProc, numProcs - 1));
 #ifdef DEBUG_COARSENER
-          assert(min(bestMatch / vPerProc, numProcs - 1) != myRank);
+          assert(std::min(bestMatch / vPerProc, numProcs - 1) != myRank);
 #endif
           matchVector[vertex] = NON_LOCAL_MATCH + bestMatch;
           --numNotMatched;
@@ -514,8 +456,8 @@ void ParaApproxFCCoarsener::setRequestArrays(int highToLow) {
   int i;
   int procRank;
 
-  MatchRequestEntry *entry;
-  MatchRequestEntry **entryArray = table->getEntriesArray();
+  ds::match_request_table::entry *entry;
+  ds::match_request_table::entry **entryArray = table->getEntriesArray();
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
@@ -652,7 +594,7 @@ void ParaApproxFCCoarsener::processReqReplies() {
   int numLocals;
   int *locals;
 
-  MatchRequestEntry *entry;
+  ds::match_request_table::entry *entry;
 
   for (i = 0; i < numProcs; ++i) {
     j = 0;
@@ -751,8 +693,8 @@ void ParaApproxFCCoarsener::setClusterIndices(MPI_Comm comm) {
   int index = 0;
   int i;
 
-  MatchRequestEntry *entry;
-  MatchRequestEntry **entryArray;
+  ds::match_request_table::entry *entry;
+  ds::match_request_table::entry **entryArray;
 
   int numLocals;
   int cluIndex;

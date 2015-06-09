@@ -13,6 +13,9 @@
 // ###
 
 #include "ParaVCycleController.hpp"
+#include "data_structures/complete_binary_tree.hpp"
+
+namespace ds = parkway::data_structures;
 
 ParaVCycleController::ParaVCycleController(ParaRestrCoarsener &rc,
                                            ParaCoarsener &c, ParaRefiner &r,
@@ -208,7 +211,7 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  CompleteBinaryTree<int> storedVtoProc(procs.getArray(),
+  ds::CompleteBinaryTree<int> storedVtoProc(procs.getArray(),
                                         minStoredIDs.getArray(), numProcs);
 
   for (i = 0; i < numProcs; ++i)

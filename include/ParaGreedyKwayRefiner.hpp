@@ -12,11 +12,12 @@
 //
 // ###
 
+#include <iostream>
 #include "data_structures/bit_field.hpp"
 #include "data_structures/MovementSets.hpp"
 #include "ParaRefiner.hpp"
 
-using namespace parkway::data_structures;
+namespace ds = parkway::data_structures;
 
 class ParaGreedyKwayRefiner : public ParaRefiner {
 protected:
@@ -27,38 +28,38 @@ protected:
 
   // data structures from point of view of vertices
 
-  DynamicArray<int> numNeighParts;
-  DynamicArray<int> neighboursOfV;
-  DynamicArray<int> neighboursOfVOffsets;
+  ds::DynamicArray<int> numNeighParts;
+  ds::DynamicArray<int> neighboursOfV;
+  ds::DynamicArray<int> neighboursOfVOffsets;
 
   // data structures from point of view of hyperedges
 
-  DynamicArray<int> hEdgeVinPart;
-  DynamicArray<int> hEdgeVinPartOffsets;
+  ds::DynamicArray<int> hEdgeVinPart;
+  ds::DynamicArray<int> hEdgeVinPartOffsets;
 
   // auxiliary structures
 
-  DynamicArray<int> vertices;
-  DynamicArray<int> movedVertices;
-  DynamicArray<int> seenVertices;
-  DynamicArray<int> numPartsSpanned;
-  DynamicArray<int> spannedParts;
+  ds::DynamicArray<int> vertices;
+  ds::DynamicArray<int> movedVertices;
+  ds::DynamicArray<int> seenVertices;
+  ds::DynamicArray<int> numPartsSpanned;
+  ds::DynamicArray<int> spannedParts;
 
   BitField locked;
   BitField vertSeen;
 
   // move set structures
 
-  DynamicArray<DynamicArray<int> *> moveSets;
-  DynamicArray<int> moveSetData;
-  DynamicArray<int> indexIntoMoveSetData;
-  DynamicArray<int> numVerticesMoved;
+  ds::DynamicArray<ds::DynamicArray<int> *> moveSets;
+  ds::DynamicArray<int> moveSetData;
+  ds::DynamicArray<int> indexIntoMoveSetData;
+  ds::DynamicArray<int> numVerticesMoved;
 
   MovementSetTable *movementSets;
 
 public:
   ParaGreedyKwayRefiner(int rank, int nProcs, int nParts, int numVperP,
-                        int eExit, double lim, ostream &out);
+                        int eExit, double lim, std::ostream &out);
   ~ParaGreedyKwayRefiner();
 
   void dispRefinementOptions() const;

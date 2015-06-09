@@ -13,10 +13,14 @@
 // ###
 
 #include "ParaFCCoarsener.hpp"
+#include <iostream>
+#include "data_structures/internal/table_utils.hpp"
+#include "data_structures/match_request_table.hpp"
+#include "data_structures/map_to_pos_int.hpp"
 
 ParaFCCoarsener::ParaFCCoarsener(int rank, int nProcs, int nParts,
                                  int vertVisOrder, int matchReqOrder,
-                                 int divByWt, int divByLen, ostream &out)
+                                 int divByWt, int divByLen, std::ostream &out)
     : ParaCoarsener(rank, nProcs, nParts, out) {
   vertexVisitOrder = vertVisOrder;
   matchRequestVisitOrder = matchReqOrder;
@@ -28,7 +32,7 @@ ParaFCCoarsener::ParaFCCoarsener(int rank, int nProcs, int nParts,
 }
 
 ParaFCCoarsener::~ParaFCCoarsener() {
-  DynaMem<MatchRequestTable>::deletePtr(table);
+  DynaMem<ds::match_request_table>::deletePtr(table);
 }
 
 void ParaFCCoarsener::dispCoarseningOptions() const {
@@ -39,7 +43,7 @@ void ParaFCCoarsener::dispCoarseningOptions() const {
 
   default:
 
-    out_stream << "|--- PARA_C:" << endl
+    out_stream << "|--- PARA_C:" << std::endl
                << "|- PFC:"
                << " r = " << reductionRatio << " min = " << minNodes
                << " vvo = ";
@@ -47,8 +51,8 @@ void ParaFCCoarsener::dispCoarseningOptions() const {
     out_stream << " mvo = ";
     printVisitOrder(matchRequestVisitOrder);
     out_stream << " divWt = " << divByCluWt << " divLen = " << divByHedgeLen
-               << endl
-               << "|" << endl;
+               << std::endl
+               << "|" << std::endl;
     break;
   }
 }
@@ -56,13 +60,13 @@ void ParaFCCoarsener::dispCoarseningOptions() const {
 void ParaFCCoarsener::buildAuxiliaryStructs(int numTotPins, double aveVertDeg,
                                             double aveHedgeSize) {
   // ###
-  // build the MatchRequestTable
+  // build the ds::match_request_table
   // ###
 
   int i =
       static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
 
-  table = new MatchRequestTable(TableUtils::getTableSize(i / numProcs));
+  table = new ds::match_request_table(ds::internal::table_utils::table_size(i / numProcs));
 }
 
 void ParaFCCoarsener::releaseMemory() {
@@ -122,7 +126,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
   double maxMatchMetric;
   double reducedBy;
 
-  MapToPosInt matchInfoLoc;
+  ds::map_to_pos_int matchInfoLoc;
 
   if (numLocPins < totalVertices / 2)
     matchInfoLoc.createTable(numLocPins, 1);
@@ -316,9 +320,9 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
               nonLocV =
                   matchVector[bestMatch - minVertexIndex] - NON_LOCAL_MATCH;
               table->addLocal(nonLocV, vertex + minVertexIndex, vWeight[vertex],
-                              min(nonLocV / vPerProc, numProcs - 1));
+                              std::min(nonLocV / vPerProc, numProcs - 1));
 #ifdef DEBUG_COARSENER
-              assert(min(nonLocV / vPerProc, numProcs - 1) != myRank);
+              assert(std::min(nonLocV / vPerProc, numProcs - 1) != myRank);
 #endif
               matchVector[vertex] = NON_LOCAL_MATCH + nonLocV;
               --numNotMatched;
@@ -335,9 +339,9 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
           // ###
 
           table->addLocal(bestMatch, vertex + minVertexIndex, vWeight[vertex],
-                          min(bestMatch / vPerProc, numProcs - 1));
+                          std::min(bestMatch / vPerProc, numProcs - 1));
 #ifdef DEBUG_COARSENER
-          assert(min(bestMatch / vPerProc, numProcs - 1) != myRank);
+          assert(std::min(bestMatch / vPerProc, numProcs - 1) != myRank);
 #endif
           matchVector[vertex] = NON_LOCAL_MATCH + bestMatch;
           --numNotMatched;
@@ -398,7 +402,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
 
   /*
   if(myRank == 0) {
-    cout << "about to contract hyperedges" << endl;
+    std::cout << "about to contract hyperedges" << std::endl;
   }
   MPI_Barrier(comm);
   */
@@ -413,22 +417,22 @@ void ParaFCCoarsener::setRequestArrays(int highToLow) {
   int i;
   int procRank;
 
-  MatchRequestEntry *entry;
-  MatchRequestEntry **entryArray = table->getEntriesArray();
+  ds::match_request_table::entry *entry_;
+  ds::match_request_table::entry **entryArray = table->getEntriesArray();
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
 
   for (i = 0; i < numRequests; ++i) {
-    entry = entryArray[i];
+    entry_ = entryArray[i];
 
 #ifdef DEBUG_COARSENER
-    assert(entry);
+    assert(entry_);
 #endif
 
-    nonLocVertex = entry->getNonLocal();
-    cluWt = entry->getClusterWt();
-    procRank = entry->getNonLocProc();
+    nonLocVertex = entry_->getNonLocal();
+    cluWt = entry_->getClusterWt();
+    procRank = entry_->getNonLocProc();
 
 #ifdef DEBUG_COARSENER
     assert(procRank < numProcs);
@@ -551,7 +555,7 @@ void ParaFCCoarsener::processReqReplies() {
   int numLocals;
   int *locals;
 
-  MatchRequestEntry *entry;
+  ds::match_request_table::entry *entry_;
 
   for (i = 0; i < numProcs; ++i) {
     j = 0;
@@ -565,29 +569,29 @@ void ParaFCCoarsener::processReqReplies() {
         // ###
 
         cluWt = receiveArray[startOffset + (j++)];
-        entry = table->getEntryPtr(vNonLocReq);
+        entry_ = table->getEntryPtr(vNonLocReq);
 
 #ifdef DEBUG_COARSENER
-        assert(entry);
+        assert(entry_);
 #endif
 
-        entry->setCluIndex(matchIndex);
-        entry->setCluWeight(cluWt);
+        entry_->setCluIndex(matchIndex);
+        entry_->setCluWeight(cluWt);
       } else {
         // ###
         // match not successful - match requesting
         // vertices into a cluster
         // ###
 
-        entry = table->getEntryPtr(vNonLocReq);
-        locals = entry->getLocalsArray();
-        numLocals = entry->getNumLocals();
-        entry->setCluIndex(MATCHED_LOCALLY);
+        entry_ = table->getEntryPtr(vNonLocReq);
+        locals = entry_->getLocalsArray();
+        numLocals = entry_->getNumLocals();
+        entry_->setCluIndex(MATCHED_LOCALLY);
 
         for (index = 0; index < numLocals; ++index)
           matchVector[locals[index] - minVertexIndex] = clusterIndex;
 
-        clusterWeights.assign(clusterIndex++, entry->getClusterWt());
+        clusterWeights.assign(clusterIndex++, entry_->getClusterWt());
       }
     }
     startOffset += recvLens[i];
@@ -650,8 +654,8 @@ void ParaFCCoarsener::setClusterIndices(MPI_Comm comm) {
   int index = 0;
   int i;
 
-  MatchRequestEntry *entry;
-  MatchRequestEntry **entryArray;
+  ds::match_request_table::entry *entry_;
+  ds::match_request_table::entry **entryArray;
 
   int numLocals;
   int cluIndex;
@@ -683,26 +687,26 @@ void ParaFCCoarsener::setClusterIndices(MPI_Comm comm) {
   entryArray = table->getEntriesArray();
 
   for (index = 0; index < numEntries; ++index) {
-    entry = entryArray[index];
+    entry_ = entryArray[index];
 
 #ifdef DEBUG_COARSENER
-    assert(entry);
+    assert(entry_);
 #endif
 
-    cluIndex = entry->getCluIndex();
+    cluIndex = entry_->getCluIndex();
 
 #ifdef DEBUG_COARSENER
     assert(cluIndex >= 0);
 #endif
 
     if (cluIndex != MATCHED_LOCALLY) {
-      numLocals = entry->getNumLocals();
-      locals = entry->getLocalsArray();
+      numLocals = entry_->getNumLocals();
+      locals = entry_->getLocalsArray();
 
 #ifdef DEBUG_COARSENER
       assert(locals);
 #endif
-      cluIndex += startIndex[entry->getNonLocProc()];
+      cluIndex += startIndex[entry_->getNonLocProc()];
 
       // indicate - there is no reason now why a vertex may not
       // match non-locally with a vertex that was matched non-locally
@@ -718,7 +722,7 @@ void ParaFCCoarsener::setClusterIndices(MPI_Comm comm) {
 #ifdef DEBUG_COARSENER
   for (index = 0; index < numLocalVertices; ++index)
     if (matchVector[index] < 0 || matchVector[index] >= totalVertices) {
-      cout << "matchVector[" << index << "]  = " << matchVector[index] << endl;
+      std::cout << "matchVector[" << index << "]  = " << matchVector[index] << std::endl;
       assert(0);
     }
 #endif

@@ -13,8 +13,9 @@
 // ###
 
 #include "ParaRefiner.hpp"
+#include <iostream>
 
-ParaRefiner::ParaRefiner(int rank, int nProcs, int nParts, ostream &out)
+ParaRefiner::ParaRefiner(int rank, int nProcs, int nParts, std::ostream &out)
     : ParaHypergraphLoader(rank, nProcs, nParts, out) {
   partWeights.setLength(nParts);
 }
@@ -108,7 +109,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
         assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-        proc = min(localPins[j] / vertsPerProc, numProcs - 1);
+        proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
 
         if (!sentToProc[proc]) {
           if (proc == myRank) {
@@ -178,7 +179,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
           assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-          proc = min(localPins[j] / vertsPerProc, numProcs - 1);
+          proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
 
           if (!sentToProc[proc]) {
             if (proc == myRank) {
@@ -238,7 +239,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
           assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-          proc = min(localPins[j] / vertsPerProc, numProcs - 1);
+          proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
 
           if (!sentToProc[proc]) {
             if (proc == myRank) {
@@ -465,7 +466,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 
     if (myRank == 0) {
       out_stream << " " << totalVertices << " " << numTotHedgesInGraph << " "
-                 << numTotPinsInGraph << endl;
+                 << numTotPinsInGraph << std::endl;
     }
   }
 }
@@ -532,7 +533,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
     assert(j < minVertexIndex || j >= maxVertexIndex);
 #endif
-    ij = min(j / vPerProc, numProcs - 1);
+    ij = std::min(j / vPerProc, numProcs - 1);
 #ifdef DEBUG_REFINER
     assert(ij != myRank);
 #endif

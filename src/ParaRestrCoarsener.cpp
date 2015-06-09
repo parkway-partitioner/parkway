@@ -13,9 +13,13 @@
 // ###
 
 #include "ParaRestrCoarsener.hpp"
+#include "data_structures/complete_binary_tree.hpp"
+#include <iostream>
+
+namespace ds = parkway::data_structures;
 
 ParaRestrCoarsener::ParaRestrCoarsener(int rank, int nProcs, int nParts,
-                                       ostream &out)
+                                       std::ostream &out)
     : ParaHypergraphLoader(rank, nProcs, nParts, out) {
   totalHypergraphWt = 0;
   maxVertexWt = 0;
@@ -104,7 +108,7 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  CompleteBinaryTree<int> vToProc(procs.getArray(), minLocIndices.getArray(),
+  ds::CompleteBinaryTree<int> vToProc(procs.getArray(), minLocIndices.getArray(),
                                   numProcs);
 
   numHedges = 0;
@@ -349,7 +353,7 @@ ParaHypergraph *ParaRestrCoarsener::contractHyperedges(ParaHypergraph &h,
 
     if (myRank == 0) {
       out_stream << numTotCoarseVerts << " " << numTotHedges << " "
-                 << numTotPins << " " << endl;
+                 << numTotPins << " " << std::endl;
     }
   }
 

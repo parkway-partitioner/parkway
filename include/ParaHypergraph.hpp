@@ -9,7 +9,7 @@
 //
 // 17/4/2004: Modified hyperedge storage:
 //            - removed hyperedges from hash table
-//            - instead, added DynamicArray<int>
+//            - instead, added ds::DynamicArray<int>
 //              to represent them as a pin list
 //              can be indexed via hash table with key
 //              or directly via index in pin list
@@ -25,14 +25,12 @@
 #include <cassert>
 
 #include "GlobalCommunicator.hpp"
-#include "data_structures/complete_binary_tree.hpp"
-#include "data_structures/HashTables.hpp"
-#include "data_structures/bit_field.hpp"
+#include "data_structures/dynamic_array.hpp"
 
-using namespace parkway::data_structures;
+namespace ds = parkway::data_structures;
 
 class ParaHypergraph : public GlobalCommunicator {
-protected:
+ protected:
   int indexInSequence;
   int doNotCoarsen;
   int numTotalVertices;
@@ -43,18 +41,18 @@ protected:
   int localVertexWt;
   int numPartitions;
 
-  DynamicArray<int> vWeight;
-  DynamicArray<int> matchVector;
+  ds::DynamicArray<int> vWeight;
+  ds::DynamicArray<int> matchVector;
 
-  DynamicArray<int> partitionVector;
-  DynamicArray<int> partitionOffsetsVector;
-  DynamicArray<int> partitionCutsizesVector;
+  ds::DynamicArray<int> partitionVector;
+  ds::DynamicArray<int> partitionOffsetsVector;
+  ds::DynamicArray<int> partitionCutsizesVector;
 
-  DynamicArray<int> localPins;
-  DynamicArray<int> hEdgeOffsets;
-  DynamicArray<int> hEdgeWeights;
+  ds::DynamicArray<int> localPins;
+  ds::DynamicArray<int> hEdgeOffsets;
+  ds::DynamicArray<int> hEdgeWeights;
 
-  DynamicArray<int> vToOrigV;
+  ds::DynamicArray<int> vToOrigV;
 
 public:
   ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
@@ -159,8 +157,6 @@ public:
   }
   inline int *getToOrigVArray() const { return vToOrigV.getArray(); }
 
-  // inline HashKey *getHashKeysArray() const { return hashKeys.getArray(); }
-  // inline HedgeIndexTable *getHedgeIndexTable() const { return table; }
 
   inline void setIndexInSeq(int index) { indexInSequence = index; }
   inline void setNumTotalVertices(int v) { numTotalVertices = v; }
@@ -188,9 +184,6 @@ public:
   inline void setHedgeWeightsArray(int *a, int l) {
     hEdgeWeights.setArray(a, l);
   }
-  // inline void setHedgeIndexTable(HedgeIndexTable *t) { table = t; }
-  // inline void setHashKeysArray(HashKey *a, int l) {
-  // hashKeys.setArray(a,l); }
 
   inline void setCut(int pNo, int cut) {
 #ifdef DEBUG_HYPERGRAPH

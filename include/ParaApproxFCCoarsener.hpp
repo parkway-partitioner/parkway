@@ -13,25 +13,23 @@
 // ###
 
 #include "ParaApproxCoarsener.hpp"
-
-using namespace std;
+#include <iostream>
+#include "data_structures/match_request_table.hpp"
 
 class ParaApproxFCCoarsener : public ParaApproxCoarsener {
-
-protected:
+ protected:
   int vertexVisitOrder;
   int matchRequestVisitOrder;
   int divByCluWt;
   int divByHedgeLen;
   int limitOnIndexDuringCoarsening;
 
-  MatchRequestTable *table;
-  // ConnVertTable *connTable;
+  parkway::data_structures::match_request_table *table;
 
-public:
+ public:
   ParaApproxFCCoarsener(int rank, int nProcs, int nParts, int percentile,
                         int inc, int vertVisOrder, int matchReqOrder,
-                        int divByWt, int divByLen, ostream &out);
+                        int divByWt, int divByLen, std::ostream &out);
   ~ParaApproxFCCoarsener();
 
   void dispCoarseningOptions() const;

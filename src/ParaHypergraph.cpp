@@ -24,7 +24,13 @@
 // ###
 
 #include "ParaHypergraph.hpp"
+#include "data_structures/bit_field.hpp"
+#include "data_structures/complete_binary_tree.hpp"
+#include "data_structures/map_from_pos_int.hpp"
+#include "data_structures/new_hyperedge_index_table.hpp"
 #include "Log.h"
+
+namespace ds = parkway::data_structures;
 
 ParaHypergraph::ParaHypergraph(int myRank, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
@@ -427,7 +433,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
 
-  BitField sentRequests(numTotalVertices);
+  ds::BitField sentRequests(numTotalVertices);
   sentRequests.clear();
 
   // ###
@@ -527,7 +533,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
      storing non-local vertices */
 
   if (numLocalPins < numTotalVertices / 2) {
-    MapFromPosInt<int> storedRequests(numLocalPins);
+    ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i)
       storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
@@ -682,7 +688,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
 
   HashKey hashKey;
 
-  NewHedgeIndexTable table((int)(ceil((double)numLocalHedges * 1.5)));
+  ds::new_hyperedge_index_table table((int)(ceil((double)numLocalHedges * 1.5)));
 
   // ###
   // run through the recv array
@@ -858,13 +864,13 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
   for (i = 0; i < numProcs; ++i)
     procs[i] = i;
 
-  CompleteBinaryTree<int> vFineToProc(procs.getArray(),
+  ds::CompleteBinaryTree<int> vFineToProc(procs.getArray(),
                                       minFineIdxOnProc.getArray(), numProcs);
 
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
 
-  BitField sentRequests(numTotalVertices);
+  ds::BitField sentRequests(numTotalVertices);
   sentRequests.clear();
 
   // ###
@@ -961,7 +967,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
   // ###
 
   if (numLocalPins < numTotalVertices / 2) {
-    MapFromPosInt<int> storedRequests(numLocalPins);
+    ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i)
       storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
@@ -1116,7 +1122,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
 
   HashKey hashKey;
 
-  NewHedgeIndexTable table((int)(ceil((double)numLocalHedges * 1.1)));
+  ds::new_hyperedge_index_table table((int)(ceil((double)numLocalHedges * 1.1)));
 
   // ###
   // run through the recv array
@@ -2140,7 +2146,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  BitField sentRequests(numTotalVertices);
+  ds::BitField sentRequests(numTotalVertices);
   sentRequests.clear();
 
   /* compute vertices required to transform pinlist */
@@ -2234,7 +2240,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
   */
 
   if (numLocalPins < numTotalVertices / 2) {
-    MapFromPosInt<int> storedRequests(numLocalPins);
+    ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2467,7 +2473,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  BitField sentRequests(numTotalVertices);
+  ds::BitField sentRequests(numTotalVertices);
   sentRequests.clear();
 
   /* compute all the requests for new indices of remote vertices */
@@ -2561,7 +2567,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   */
 
   if (numLocalPins < numTotalVertices / 2) {
-    MapFromPosInt<int> storedRequests(numLocalPins);
+    ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2815,7 +2821,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   /* now need to convert the pinlist and the hyperedge hash keys */
 
-  BitField sentRequests(numTotalVertices);
+  ds::BitField sentRequests(numTotalVertices);
   sentRequests.clear();
 
   /* compute all the requests for new indices of remote vertices  */
@@ -2909,7 +2915,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   */
 
   if (numLocalPins < numTotalVertices / 2) {
-    MapFromPosInt<int> storedRequests(numLocalPins);
+    ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -3159,7 +3165,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   /* now need to convert the pinlist and the hyperedge hash keys */
 
-  BitField sentRequests(numTotalVertices);
+  ds::BitField sentRequests(numTotalVertices);
   sentRequests.clear();
 
   /*
@@ -3269,7 +3275,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   */
 
   if (numLocalPins < numTotalVertices / 2) {
-    MapFromPosInt<int> storedRequests(numLocalPins);
+    ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -3650,7 +3656,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
   for (i = 0; i < numProcs; ++i)
     sendLens[i] = 0;
 
-  BitField sentRequests(numTotalVertices);
+  ds::BitField sentRequests(numTotalVertices);
   sentRequests.clear();
 
   // ###
@@ -3750,7 +3756,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
   // ###
 
   if (numLocalPins < numTotalVertices / 2) {
-    MapFromPosInt<int> storedRequests(numLocalPins);
+    ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -4087,7 +4093,7 @@ double ParaHypergraph::getAveHedgeSize(MPI_Comm comm) {
 }
 
 int ParaHypergraph::computeNonConnectedVerts(MPI_Comm comm) {
-  BitField connected(numTotalVertices);
+  ds::BitField connected(numTotalVertices);
   connected.clear();
 
   int numTotPins = 0;

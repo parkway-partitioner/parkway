@@ -13,9 +13,9 @@
 // ###
 
 #include "ParaHypergraphLoader.hpp"
-#include "data_structures/HashTables.hpp"
+#include "data_structures/dynamic_array.hpp"
 
-using namespace std;
+using parkway::data_structures::DynamicArray;
 
 class ParaCoarsener : public ParaHypergraphLoader {
 
@@ -36,7 +36,7 @@ protected:
   DynamicArray<int> clusterWeights;
 
 public:
-  ParaCoarsener(int _rank, int _numProcs, int _numParts, ostream &out);
+  ParaCoarsener(int _rank, int _numProcs, int _numParts, std::ostream &out);
 
   virtual ~ParaCoarsener();
   virtual ParaHypergraph *coarsen(ParaHypergraph &h, MPI_Comm comm) = 0;

@@ -1,4 +1,3 @@
-
 #ifndef _PARA_GREEDYKWAY_REFINER_CPP
 #define _PARA_GREEDYKWAY_REFINER_CPP
 
@@ -13,10 +12,11 @@
 // ###
 
 #include "ParaGreedyKwayRefiner.hpp"
+#include <iostream>
 
 ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
                                              int numVperP, int eExit,
-                                             double lim, ostream &out)
+                                             double lim, std::ostream &out)
     : ParaRefiner(rank, nProcs, nParts, out) {
   int i;
   int j;
@@ -93,10 +93,10 @@ void ParaGreedyKwayRefiner::dispRefinementOptions() const {
 
   default:
 
-    out_stream << "|--- PARA_REF: " << endl
+    out_stream << "|--- PARA_REF: " << std::endl
                << "|- PKWAY:"
-               << " eeL = " << limit << " eExit = " << earlyExit << endl
-               << "|" << endl;
+               << " eeL = " << limit << " eExit = " << earlyExit << std::endl
+               << "|" << std::endl;
     break;
   }
 }
@@ -376,7 +376,7 @@ void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
 
     if (dispOption > 1 && myRank == 0) {
       out_stream << "| " << numPasses << " " << totalGain << " "
-                 << partitionCuts[i] << endl;
+                 << partitionCuts[i] << std::endl;
     }
   }
 
@@ -697,7 +697,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
 #ifdef DEBUG_REFINER
           if (numVerticesMoved[prod + j] > 0)
             out_stream << "p[" << myRank << "] moved vertices with weight zero"
-                       << endl;
+                       << std::endl;
 #endif
         }
       }

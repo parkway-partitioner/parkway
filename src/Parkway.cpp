@@ -15,6 +15,9 @@
 #include "Parkway.h"
 #include <fstream>
 #include <iostream>
+#include "data_structures/internal/table_utils.hpp"
+
+namespace ds = parkway::data_structures;
 
 void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
                   double constraint, int &k_1cut, const int *options,
@@ -46,7 +49,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   SeqController *seqController = nullptr;
   ParaController *controller = nullptr;
 
-  TableUtils tableUtils;
+  ds::internal::table_utils tableUtils;
 
   MPI_Comm_size(comm, &num_procs);
   MPI_Comm_rank(comm, &my_rank);
@@ -114,7 +117,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
     MPI_Abort(comm, 0);
   }
 
-  TableUtils::setScatterArray(hgraph->getNumTotalVertices());
+  ds::internal::table_utils::set_scatter_array(hgraph->getNumTotalVertices());
 
   coarsener =
       Utils::buildParaCoarsener(my_rank, num_procs, num_parts, constraint,
@@ -220,7 +223,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   SeqController *seqController = nullptr;
   ParaController *controller = nullptr;
 
-  TableUtils tableUtils;
+  ds::internal::table_utils tableUtils;
 
   MPI_Comm_size(comm, &num_procs);
   MPI_Comm_rank(comm, &my_rank);
@@ -290,7 +293,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
     MPI_Abort(comm, 0);
   }
 
-  TableUtils::setScatterArray(hgraph->getNumTotalVertices());
+  ds::internal::table_utils::set_scatter_array(hgraph->getNumTotalVertices());
 
   coarsener =
       Utils::buildParaCoarsener(my_rank, num_procs, numParts, constraint,

@@ -17,25 +17,25 @@
 // ###
 
 #include "ParaCoarsener.hpp"
+#include "data_structures/match_request_table.hpp"
+#include <iostream>
 
-using namespace std;
+namespace ds = parkway::data_structures;
 
 class Para2DModelCoarsener : public ParaCoarsener {
-
-protected:
+ protected:
   int vertexVisitOrder;
   int matchRequestVisitOrder;
   int divByCluWt;
   int divByHedgeLen;
   int limitOnIndexDuringCoarsening;
 
-  MatchRequestTable *table;
-  // ConnVertTable *connTable;
+  ds::match_request_table *table;
 
-public:
+ public:
   Para2DModelCoarsener(int rank, int nProcs, int nParts, int vertVisOrder,
                        int matchReqOrder, int divByWt, int divByLen,
-                       ostream &out);
+                       std::ostream &out);
   ~Para2DModelCoarsener();
 
   void dispCoarseningOptions() const;

@@ -18,8 +18,9 @@
 // ###
 
 #include "ParaCoarsener.hpp"
+#include <iostream>
 
-ParaCoarsener::ParaCoarsener(int rank, int nProcs, int nParts, ostream &out)
+ParaCoarsener::ParaCoarsener(int rank, int nProcs, int nParts, std::ostream &out)
     : ParaHypergraphLoader(rank, nProcs, nParts, out) {
   totalHypergraphWt = 0;
   maxVertexWt = 0;
@@ -114,7 +115,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_COARSENER
         assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-        proc = min(localPins[j] / vertsPerProc, numProcs - 1);
+        proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
 
         if (!sentToProc[proc]) {
           if (proc == myRank) {
@@ -166,7 +167,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_COARSENER
           assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-          proc = min(localPins[j] / vertsPerProc, numProcs - 1);
+          proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
 
           if (!sentToProc[proc]) {
             if (proc == myRank) {
@@ -226,7 +227,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_COARSENER
           assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-          proc = min(localPins[j] / vertsPerProc, numProcs - 1);
+          proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
 
           if (!sentToProc[proc]) {
             if (proc == myRank) {
@@ -382,9 +383,9 @@ ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
       sendDispls[i] = sendDispls[i - 1] + sendLens[i - 1];
 
     sendLens[i] =
-        max(clusterIndex -
-                (max(clusterIndex + myMinCluIndex - maxClusterIndex[i], 0) +
-                 max(minClusterIndex[i] - myMinCluIndex, 0)),
+        std::max(clusterIndex -
+                (std::max(clusterIndex + myMinCluIndex - maxClusterIndex[i], 0) +
+                 std::max(minClusterIndex[i] - myMinCluIndex, 0)),
             0);
   }
 
@@ -425,7 +426,7 @@ ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
 
     if (myRank == 0) {
       out_stream << numTotCoarseVerts << " " << numTotCoarseHedges << " "
-                 << numTotCoarsePins << " " << endl;
+                 << numTotCoarsePins << " " << std::endl;
     }
   }
 
