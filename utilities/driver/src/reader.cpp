@@ -70,7 +70,7 @@ void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
   i = sizeof(int) * hEdgeDataLen;
   in_stream.read((char *)(data.data()), i);
   if (in_stream.gcount() != i) {
-    sprintf(message, "p[%d] cannot read %d of hyperedge data\n", myRank,
+    sprintf(message, "p[%d] cannot read %d of hyperedge data_\n", myRank,
             hEdgeDataLen);
     cout << message;
     MPI_Abort(MPI_COMM_WORLD, 0);

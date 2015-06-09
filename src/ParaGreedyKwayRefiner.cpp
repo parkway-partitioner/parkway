@@ -66,8 +66,8 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   movedVertices.reserve(0);
   numPartsSpanned.reserve(0);
   spannedParts.reserve(0);
-  locked.setLength(0);
-  vertSeen.setLength(0);
+  locked.reserve(0);
+  vertSeen.reserve(0);
 }
 
 ParaGreedyKwayRefiner::~ParaGreedyKwayRefiner() {
@@ -127,7 +127,7 @@ void ParaGreedyKwayRefiner::releaseMemory() {
   nonLocVToHedges.reserve(0);
   nonLocOffsets.reserve(0);
 
-  toNonLocVerts.destroyTable();
+  toNonLocVerts.destroy();
 
   freeMemory();
 }
@@ -143,13 +143,13 @@ void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
   movementSets->setMaxWt(maxPartWt);
 
   // ###
-  // init data structures used in refinement
+  // init data_ structures used in refinement
   // ###
 
-  vertSeen.setLength(numLocalVertices);
+  vertSeen.reserve(numLocalVertices);
   vertSeen.unset();
 
-  locked.setLength(numLocalVertices);
+  locked.reserve(numLocalVertices);
   vertices.reserve(numLocalVertices);
   seenVertices.reserve(numLocalVertices);
   spannedParts.reserve(numParts);
@@ -178,7 +178,7 @@ void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
 }
 
 void ParaGreedyKwayRefiner::resetDataStructs() {
-  toNonLocVerts.destroyTable();
+  toNonLocVerts.destroy();
   freeMemory();
 }
 
@@ -226,7 +226,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
     locPartWts[i] = 0;
 
   // ###
-  // initialise other data structures
+  // initialise other data_ structures
   // first reset to zeros...
   // ###
 
@@ -271,7 +271,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
       if (ij >= minVertexIndex && ij < maxVertexIndex) {
         vPart = currPVector[ij - minVertexIndex];
       } else {
-        nonLocIndex = toNonLocVerts.getVal(ij);
+        nonLocIndex = toNonLocVerts.get(ij);
 #ifdef DEBUG_REFINER
         assert(nonLocIndex >= 0 && nonLocIndex < numNonLocVerts);
 #endif
@@ -927,7 +927,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
 #ifdef DEBUG_REFINER
     assert(v < minVertexIndex || v >= maxVertexIndex);
 #endif
-    nonLocIdx = toNonLocVerts.getCareful(v);
+    nonLocIdx = toNonLocVerts.get_careful(v);
 
     if (nonLocIdx >= 0) {
 #ifdef DEBUG_REFINER
@@ -979,7 +979,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
       }
 
       // ###
-      // update the data for local adjacent vertices
+      // update the data_ for local adjacent vertices
       // ###
 
       numVerticesSeen = 0;
@@ -1075,7 +1075,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
     assert(v < minVertexIndex || v >= maxVertexIndex);
 #endif
 
-    nonLocIdx = toNonLocVerts.getCareful(v);
+    nonLocIdx = toNonLocVerts.get_careful(v);
 
     if (nonLocIdx >= 0) {
 #ifdef DEBUG_REFINER
@@ -1125,7 +1125,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
       }
 
       // ###
-      // update the data for local adjacent vertices
+      // update the data_ for local adjacent vertices
       // ###
 
       numVerticesSeen = 0;

@@ -61,7 +61,7 @@ void HarwellBoeingReader::readPreamble(ifstream &in) {
   getLine(in);
   data = buffer.data();
 
-  /* read in num tot data lines */
+  /* read in num tot data_ lines */
 
   StringUtils::skipNonDigits(data);
   totDataLines = StringUtils::stringToDigit(data);

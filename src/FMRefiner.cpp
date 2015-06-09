@@ -22,7 +22,7 @@ FMRefiner::FMRefiner(int max, int insMethod, int ee, int dL) : Refiner(dL) {
   moveList.reserve(0);
   vertexGains.reserve(0);
   vInPart.reserve(0);
-  locked.setLength(0);
+  locked.reserve(0);
 
   eeThreshold = ee;
   insertMethod = insMethod;
@@ -80,14 +80,14 @@ void FMRefiner::buildBuckets() {
 
   buckets.reserve(numVertices);
   vertexGains.reserve(numVertices);
-  locked.setLength(numVertices);
+  locked.reserve(numVertices);
   moveList.reserve(numVertices);
   vInPart.reserve(Shiftl(numHedges, 1));
 
   for (i = 0; i < numVertices; ++i) {
     buckets[i] = new bucket_node;
-    buckets[i]->vertexID = i;
-    buckets[i]->prev = nullptr;
+    buckets[i]->vertex_id = i;
+    buckets[i]->previous = nullptr;
     buckets[i]->next = nullptr;
 
     j = vOffsets[i + 1] - vOffsets[i];
@@ -110,9 +110,9 @@ void FMRefiner::buildBuckets() {
 
   for (i = 0; i < bucketArraysLen; ++i) {
     (*bucketArrays[0])[i].next = nullptr;
-    (*bucketArrays[0])[i].vertexID = -1;
+    (*bucketArrays[0])[i].vertex_id = -1;
     (*bucketArrays[1])[i].next = nullptr;
-    (*bucketArrays[1])[i].vertexID = -1;
+    (*bucketArrays[1])[i].vertex_id = -1;
   }
 }
 
@@ -121,13 +121,13 @@ void FMRefiner::restoreBuckets() {
 
   for (i = 0; i < bucketArraysLen; ++i) {
     (*bucketArrays[0])[i].next = nullptr;
-    (*bucketArrays[0])[i].vertexID = -1;
+    (*bucketArrays[0])[i].vertex_id = -1;
     (*bucketArrays[1])[i].next = nullptr;
-    (*bucketArrays[1])[i].vertexID = -1;
+    (*bucketArrays[1])[i].vertex_id = -1;
   }
 
   for (i = 0; i < numVertices; ++i) {
-    buckets[i]->prev = nullptr;
+    buckets[i]->previous = nullptr;
     buckets[i]->next = nullptr;
   }
 }
@@ -315,7 +315,7 @@ void FMRefiner::removeBucketsFrom1() {
 #endif
       array[i].next = b->next;
 
-      b->prev = nullptr;
+      b->previous = nullptr;
       b->next = nullptr;
     }
   }
@@ -339,7 +339,7 @@ void FMRefiner::removeBucketsFrom0() {
 #endif
       array[i].next = b->next;
 
-      b->prev = nullptr;
+      b->previous = nullptr;
       b->next = nullptr;
     }
   }
@@ -360,12 +360,12 @@ void FMRefiner::removeUnlockedFromBucketArrays() {
       assert(b->prev != nullptr);
 #endif
 
-      b->prev->next = b->next;
+      b->previous->next = b->next;
 
       if (b->next)
-        b->next->prev = b->prev;
+        b->next->previous = b->previous;
 
-      b->prev = nullptr;
+      b->previous = nullptr;
       b->next = nullptr;
     }
   }
@@ -389,11 +389,11 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
   // first remove from bucket data_
   // ###
 
-  if (b->prev) {
-    b->prev->next = b->next;
+  if (b->previous) {
+    b->previous->next = b->next;
 
     if (b->next) {
-      b->next->prev = b->prev;
+      b->next->previous = b->previous;
     }
   }
 
@@ -414,18 +414,18 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
       bucket = bucket->next;
 
     bucket->next = b;
-    b->prev = bucket;
+    b->previous = bucket;
     b->next = nullptr;
 
     break;
   }
   case LIFO: {
     b->next = bucket->next;
-    b->prev = bucket;
+    b->previous = bucket;
     bucket->next = b;
 
     if (b->next)
-      b->next->prev = b;
+      b->next->previous = b;
 
     break;
   }
@@ -435,14 +435,14 @@ void FMRefiner::moveToBucketArray(int vPart, int vGain, int v) {
     // ###
     {
       b->next = bucket->next;
-      b->prev = bucket;
+      b->previous = bucket;
       bucket->next = b;
 
       if (b->next)
-        b->next->prev = b;
+        b->next->previous = b;
 
 #ifdef DEBUG_FM_REFINER
-      assert(bucket->vertexID == -1);
+      assert(bucket->vertex_id == -1);
       assert(bucket->next);
 #endif
       break;
@@ -481,12 +481,12 @@ void FMRefiner::removeFromBucketArray(int v, int vPart, int vGain) {
   assert(b->prev);
 #endif
 
-  b->prev->next = b->next;
+  b->previous->next = b->next;
 
   if (b->next)
-    b->next->prev = b->prev;
+    b->next->previous = b->previous;
 
-  b->prev = nullptr;
+  b->previous = nullptr;
   b->next = nullptr;
 
   --numBucketsInArray[vPart];
@@ -1018,7 +1018,7 @@ int FMRefiner::chooseMaxGainVertex() {
 #endif
 
     bucket = (*bucketArrays[0])[index].next;
-    v = bucket->vertexID;
+    v = bucket->vertex_id;
 
     while (partWeights[1] + vWeight[v] > maxPartWt) {
       bucket = bucket->next;
@@ -1026,7 +1026,7 @@ int FMRefiner::chooseMaxGainVertex() {
       if (!bucket)
         break;
       else
-        v = bucket->vertexID;
+        v = bucket->vertex_id;
     }
 
     if (bucket) {
@@ -1046,7 +1046,7 @@ int FMRefiner::chooseMaxGainVertex() {
 #endif
 
     bucket = (*bucketArrays[1])[index].next;
-    v = bucket->vertexID;
+    v = bucket->vertex_id;
 
     while (partWeights[0] + vWeight[v] > maxPartWt) {
       bucket = bucket->next;
@@ -1054,7 +1054,7 @@ int FMRefiner::chooseMaxGainVertex() {
       if (!bucket)
         break;
       else
-        v = bucket->vertexID;
+        v = bucket->vertex_id;
     }
 
     if (bucket) {
@@ -1107,7 +1107,7 @@ int FMRefiner::chooseLegalMove(int sP) {
 #endif
 
     b = (*bucketArrays[1])[index].next;
-    v = b->vertexID;
+    v = b->vertex_id;
 
 #ifdef DEBUG_FM_REFINER
     assert(v >= 0 && v < numVertices);
@@ -1127,7 +1127,7 @@ int FMRefiner::chooseLegalMove(int sP) {
       if (!b)
         return -1;
 
-      v = b->vertexID;
+      v = b->vertex_id;
 
 #ifdef DEBUG_FM_REFINER
       assert(v >= 0 && v < numVertices);
@@ -1141,7 +1141,7 @@ int FMRefiner::chooseLegalMove(int sP) {
 #endif
 
     b = (*bucketArrays[0])[index].next;
-    v = b->vertexID;
+    v = b->vertex_id;
 
 #ifdef DEBUG_FM_REFINER
     assert(v >= 0 && v < numVertices);
@@ -1161,7 +1161,7 @@ int FMRefiner::chooseLegalMove(int sP) {
       if (!b)
         return -1;
 
-      v = b->vertexID;
+      v = b->vertex_id;
 
 #ifdef DEBUG_FM_REFINER
       assert(v >= 0 && v < numVertices);

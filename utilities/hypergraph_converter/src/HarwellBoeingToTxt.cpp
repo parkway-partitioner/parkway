@@ -69,7 +69,7 @@ void HarwellBoeingToTxt::convert(const char *filename) {
     getLine(in_stream);
     data = buffer.data();
 #ifdef PRINT_GRAPH
-    cout << data << endl;
+    cout << data_ << endl;
 #endif
     while (*data != '\0') {
       StringUtils::skipNonDigits(data);

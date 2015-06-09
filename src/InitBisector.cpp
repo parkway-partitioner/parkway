@@ -104,7 +104,7 @@ int InitBisector::chooseBestVertex1to0() {
   assert((*bucketArrays[1])[maxGainEntries[1]].next);
 #endif
 
-  return ((*bucketArrays[1])[maxGainEntries[1]].next->vertexID);
+  return ((*bucketArrays[1])[maxGainEntries[1]].next->vertex_id);
 }
 
 int InitBisector::doGreedyPass() {

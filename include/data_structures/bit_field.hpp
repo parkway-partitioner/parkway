@@ -1,4 +1,3 @@
-
 #ifndef _BITFIELD_HPP
 #define _BITFIELD_HPP
 
@@ -17,6 +16,8 @@
 //
 // ###
 
+// TODO(gb610): remove reliance on assumption
+
 #include <iostream>
 #include "data_structures/dynamic_array.hpp"
 
@@ -29,85 +30,85 @@ class bit_field {
   }
 
   bit_field(int bits) {
-    setLength(bits);
+    reserve(bits);
   }
 
   ~bit_field() {
   }
 
   inline void check(int bit) {
-    int old = data.capacity();
+    int old = data_.capacity();
     int bits = bit + 1;
     int target = (bits >> 5) + ((bits & 31) ? 1 : 0);
 
-    data.check(target);
-    length = data.capacity();
+    data_.check(target);
+    capacity_ = data_.capacity();
 
-    if (length > old) {
-      for (int n = old; n < length; ++n)
-        data[n] = 0;
+    if (capacity_ > old) {
+      for (int n = old; n < capacity_; ++n)
+        data_[n] = 0;
     }
-    bitLength = (length << 5);
+    bit_length_ = (capacity_ << 5);
   }
 
-  inline int getNumBits() const {
-    return bitLength;
+  inline int number_of_bits() const {
+    return bit_length_;
   }
 
-  inline int getLength() const {
-    return length;
+  inline int capacity() const {
+    return capacity_;
   }
 
-  inline unsigned int *getData() const {
-    return data.data();
+  inline unsigned int *data() const {
+    return data_.data();
   }
 
-  inline unsigned int getChunk(int i) const {
-    return data[i];
+  inline unsigned int chunk(int i) const {
+    return data_[i];
   }
 
-  inline void setLength(int bits) {
-    bitLength = bits;
-    length = (bits >> 5) + ((bits & 31) ? 1 : 0);
-    data.reserve(length);
+  inline void reserve(int bits) {
+    bit_length_ = bits;
+    capacity_ = (bits >> 5) + ((bits & 31) ? 1 : 0);
+    data_.reserve(capacity_);
   }
 
   inline void unset() {
-    for (int l = 0; l < length; ++l) {
-      data[l] = 0;
+    for (int l = 0; l < capacity_; ++l) {
+      data_[l] = 0;
     }
   }
 
   inline void set() {
-    for (int l = 0; l < length; ++l) {
-      data[l] = 0xFFFFFFFF;
+    for (int l = 0; l < capacity_; ++l) {
+      data_[l] = 0xFFFFFFFF;
     }
   }
 
   inline bool test_all() {
     bool all_set = true;
-    for (int i = 0; i < length; ++i)
-      if (data[i] != 0xFFFFFFFF)
+    for (int i = 0; i < capacity_; ++i)
+      if (data_[i] != 0xFFFFFFFF)
         return false;
     return all_set;
   }
 
   inline int operator()(int index) const {
-    return (data(index >> 5) & (1 << (index & 31))) ? 1 : 0;
+    return (data_(index >> 5) & (1 << (index & 31))) ? 1 : 0;
   }
 
   inline void set(int index) {
-    data[index >> 5] |= (1 << (index & 31));
+    data_[index >> 5] |= (1 << (index & 31));
   }
 
   inline void unset(int index) {
-    data[index >> 5] &= (~(1 << (index & 31)));
+    data_[index >> 5] &= (~(1 << (index & 31)));
   }
 
  private:
-  int bitLength;
-  int length;
-  dynamic_array<unsigned int> data;
+  int bit_length_;
+  int capacity_;
+  dynamic_array<unsigned int> data_;
 };
 
 }  // namespace data_structures

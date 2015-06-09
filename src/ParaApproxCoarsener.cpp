@@ -67,7 +67,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   maxVertexIndex = minVertexIndex + numLocalVertices;
 
   // ###
-  // Prepare data structures
+  // Prepare data_ structures
   // ###
 
   numHedges = 0;
@@ -77,7 +77,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   vToHedgesOffset.reserve(numLocalVertices + 1);
   sentToProc.reserve(numProcs);
   vDegs.reserve(numLocalVertices);
-  toLoad.setLength(numLocalHedges);
+  toLoad.reserve(numLocalHedges);
 
   for (i = 0; i < numLocalVertices; ++i) {
     vToHedgesOffset[i] = 0;

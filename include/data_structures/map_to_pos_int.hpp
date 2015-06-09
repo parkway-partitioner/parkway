@@ -9,8 +9,8 @@ namespace data_structures {
 /* requires positive int keys */
 class map_to_pos_int {
  protected:
-  int numEntries;
-  int size;
+  int size_;
+  int capacity_;
   int useHash;
 
   dynamic_array<int> entries;
@@ -22,27 +22,27 @@ class map_to_pos_int {
   map_to_pos_int(int _size, int use_hash);
   ~map_to_pos_int() {}
 
-  void createTable(int _size, int use_hash);
-  void destroyTable();
-  void recoverTable();
+  void create(int _size, int use_hash);
+  void destroy();
+  void recover();
 
-  int insertKey(int key, int val);
-  void resetSlots();
-  int insertIfEmpty(int key, int val);
+  int insert(int key, int val);
+  void clear();
+  int insert_if_empty(int key, int val);
 
-  int getCareful(int key);
-  int getVal(int key);
+  int get_careful(int key);
+  int get(int key);
 
-  inline int usingHashTable() {
+  inline int use_hash() {
     return useHash;
   }
 
-  inline int getNumEntries() {
-    return numEntries;
+  inline int size() {
+    return size_;
   }
 
-  inline int getNumSlots() {
-    return size;
+  inline int capacity() {
+    return capacity_;
   }
 };
 

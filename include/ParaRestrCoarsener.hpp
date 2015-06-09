@@ -33,7 +33,7 @@ class ParaRestrCoarsener : public ParaHypergraphLoader {
   double reductionRatio;
   double balConstraint;
 
-  /* partition data structures */
+  /* partition data_ structures */
 
   int numPartitions;
   int *partitionVector;

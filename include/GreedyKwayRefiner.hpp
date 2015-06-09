@@ -24,7 +24,7 @@ protected:
   double limit;
 
   // ###
-  // data structures from point of view of vertices
+  // data_ structures from point of view of vertices
   // ###
 
   dynamic_array<int> numNeighParts;
@@ -32,7 +32,7 @@ protected:
   dynamic_array<int> neighboursOfVOffsets;
 
   // ###
-  // data structures from point of view of hyperedges
+  // data_ structures from point of view of hyperedges
   // ###
 
   dynamic_array<int> hEdgeVinPart;

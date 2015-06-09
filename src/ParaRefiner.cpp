@@ -63,7 +63,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   maxVertexIndex = minVertexIndex + numLocalVertices;
 
   // ###
-  // Prepare data structures
+  // Prepare data_ structures
   // ###
 
   numAllocHedges = 0;
@@ -376,9 +376,9 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   numNonLocVerts = 0;
 
   if (numLocalPins < totalVertices / 2)
-    toNonLocVerts.createTable(numLocalPins, 1);
+    toNonLocVerts.create(numLocalPins, 1);
   else
-    toNonLocVerts.createTable(totalVertices, 0);
+    toNonLocVerts.create(totalVertices, 0);
 
   for (i = 0; i < numHedges; ++i) {
     endOffset = hEdgeOffset[i + 1];
@@ -389,7 +389,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
       assert(ij >= 0 && ij < totalVertices);
 #endif
       if (ij < minVertexIndex || ij >= maxVertexIndex) {
-        nonLocIndex = toNonLocVerts.insertIfEmpty(ij, numNonLocVerts);
+        nonLocIndex = toNonLocVerts.insert_if_empty(ij, numNonLocVerts);
 
         if (nonLocIndex == -1) {
           vDegs.assign(numNonLocVerts, 1);
@@ -440,7 +440,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
       assert(ij >= 0 && ij < totalVertices);
 #endif
       if (ij < minVertexIndex || ij >= maxVertexIndex) {
-        nonLocIndex = toNonLocVerts.getVal(ij);
+        nonLocIndex = toNonLocVerts.get(ij);
 #ifdef DEBUG_REFINER
         assert(nonLocIndex >= 0 && nonLocIndex < numNonLocVerts);
 #endif
@@ -650,7 +650,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
 
   ij = 0;
   for (i = 0; i < arraySize; ++i) {
-    vertex = toNonLocVerts.getVal(copyOfSendArray[i]);
+    vertex = toNonLocVerts.get(copyOfSendArray[i]);
 #ifdef DEBUG_REFINER
     assert(vertex >= 0 && vertex < numNonLocVerts);
 #endif

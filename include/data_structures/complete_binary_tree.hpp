@@ -20,55 +20,55 @@ namespace data_structures {
 
 template <typename T> class complete_binary_tree {
  protected:
-  dynamic_array<int> tree;
-  dynamic_array<T> roots;
+  dynamic_array<int> tree_;
+  dynamic_array<T> roots_;
 
-  int numRoots;
+  int number_of_roots_;
 
  public:
-  complete_binary_tree() : numRoots(0) {
-    tree.reserve(0);
-    roots.reserve(0);
+  complete_binary_tree() : number_of_roots_(0) {
+    tree_.reserve(0);
+    roots_.reserve(0);
   }
 
   complete_binary_tree(const T *rootVals, const int *cmprs, int nRoots) {
-    setupTree(rootVals, cmprs, nRoots);
+    setup(rootVals, cmprs, nRoots);
   }
 
   ~complete_binary_tree() {
   }
 
-  inline int getRootVal(int vID) const {
+  inline int root_value(int vID) const {
     int i = 1;
-    while (i < numRoots) {
-      if (vID < tree[i]) {
+    while (i < number_of_roots_) {
+      if (vID < tree_[i]) {
         i = i << 1;
       } else {
         i = (i << 1) | 0x1;
       }
     }
-    return roots[i - numRoots];
+    return roots_[i - number_of_roots_];
   }
 
-  void setupTree(const T *rootVals, const int *cmprs, int num_roots) {
-    numRoots = num_roots;
-    tree.reserve(numRoots);
-    roots.reserve(numRoots);
+  void setup(const T *rootVals, const int *cmprs, int num_roots) {
+    number_of_roots_ = num_roots;
+    tree_.reserve(number_of_roots_);
+    roots_.reserve(number_of_roots_);
 
-    for (int i = 0; i < numRoots; ++i) {
-      roots[i] = rootVals[i];
+    for (int i = 0; i < number_of_roots_; ++i) {
+      roots_[i] = rootVals[i];
     }
 
-    tree[0] = 0;
-    tree[1] = cmprs[numRoots >> 1];
+    tree_[0] = 0;
+    tree_[1] = cmprs[number_of_roots_ >> 1];
 
-    if (Funct::log2(numRoots) > 1) {
+    if (Funct::log2(number_of_roots_) > 1) {
       fill(cmprs);
     }
   }
 
   void fill(const int *cmprs) {
-    int search_len = numRoots - 1;
+    int search_len = number_of_roots_ - 1;
     int current_num;
     int j = 0;
     int ij;
@@ -77,9 +77,9 @@ template <typename T> class complete_binary_tree {
 
     dynamic_array<int> search_list(search_len);
 
-    search_list[j++] = numRoots >> 1;
+    search_list[j++] = number_of_roots_ >> 1;
 
-    for (int i = 0; i < (numRoots >> 1) - 1;) {
+    for (int i = 0; i < (number_of_roots_ >> 1) - 1;) {
       current_num = search_list[i++];
 
       if (Funct::isPowerOf2(current_num)) {
@@ -97,7 +97,7 @@ template <typename T> class complete_binary_tree {
 
     j = 1;
     for (int i = 0; i < search_len; ++i) {
-      tree[j++] = cmprs[search_list[i]];
+      tree_[j++] = cmprs[search_list[i]];
     }
   }
 

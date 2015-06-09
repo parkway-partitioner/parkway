@@ -76,7 +76,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   maxVertexIndex = minVertexIndex + numLocalVertices;
 
   // ###
-  // Prepare data structures
+  // Prepare data_ structures
   // ###
 
   numHedges = 0;

@@ -129,9 +129,9 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
   ds::map_to_pos_int matchInfoLoc;
 
   if (numLocPins < totalVertices / 2)
-    matchInfoLoc.createTable(numLocPins, 1);
+    matchInfoLoc.create(numLocPins, 1);
   else
-    matchInfoLoc.createTable(totalVertices, 0);
+    matchInfoLoc.create(totalVertices, 0);
 
   dynamic_array<int> neighVerts;
   dynamic_array<int> neighCluWts;
@@ -187,7 +187,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
           if (candidatV != globalVertexIndex) {
             /* now try not to check the weight before checking the vertex */
 
-            neighbourLoc = matchInfoLoc.getCareful(candidatV);
+            neighbourLoc = matchInfoLoc.get_careful(candidatV);
 
             if (neighbourLoc >= 0) {
               if (divByHedgeLen)
@@ -236,12 +236,12 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_COARSENER
               assert(numVisited >= 0);
 #endif
-              if (matchInfoLoc.insertKey(candidatV, numVisited)) {
+              if (matchInfoLoc.insert(candidatV, numVisited)) {
                 write_log(myRank, "numEntries %d",
-                          matchInfoLoc.getNumEntries());
+                          matchInfoLoc.size());
                 write_log(myRank, "using hash %d",
-                          matchInfoLoc.usingHashTable());
-                write_log(myRank, "numSlots %d", matchInfoLoc.getNumSlots());
+                          matchInfoLoc.use_hash());
+                write_log(myRank, "numSlots %d", matchInfoLoc.capacity());
                 write_log(myRank, "candidatV %d", candidatV);
                 write_log(myRank, "neighbourLoc %d", neighbourLoc);
                 assert(0);
@@ -289,7 +289,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
         }
       }
 
-      matchInfoLoc.resetSlots();
+      matchInfoLoc.clear();
       numVisited = 0;
 
       if (bestMatch == -1) {
@@ -360,7 +360,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
     }
   }
 
-  matchInfoLoc.destroyTable();
+  matchInfoLoc.destroy();
 
   // ###
   // now carry over all the unmatched vertices as singletons

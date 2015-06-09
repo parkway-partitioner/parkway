@@ -46,7 +46,7 @@ table_utils::table_utils() {
   mins[14] = 4000000;
   mins[15] = 12500000;
 
-  table_size_tree_.setupTree(sizes, mins, 16);
+  table_size_tree_.setup(sizes, mins, 16);
 }
 
 void table_utils::set_scatter_array(int size) {

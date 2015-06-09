@@ -56,7 +56,7 @@ ParaController::~ParaController() {}
 void ParaController::setShuffleFile(const char *filename)
 {
   shuffleFile.reserve(strlen(filename)+1);
-  strcpy(shuffleFile.data(),filename);
+  strcpy(shuffleFile.data_(),filename);
 }
 */
 
@@ -224,7 +224,7 @@ void ParaController::storeBestPartition(int numV, const int *array,
 
   // ###
   // now initialise the bestPartition data_
-  // using the data in receiveArray
+  // using the data_ in receiveArray
   // ###
 
   for (i = 0; i < totToRecv;) {

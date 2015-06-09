@@ -226,7 +226,7 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
     if (origV >= minStoredVertexIndex && origV < maxStoredVertexIndex) {
       myPartVector[i] = array[origV - minStoredVertexIndex];
     } else {
-      j = storedVtoProc.getRootVal(origV);
+      j = storedVtoProc.root_value(origV);
 
       dataOutSets[j]->assign(sendLens[j]++, origV);
       dataOutSets[j]->assign(sendLens[j]++, i);
@@ -910,7 +910,7 @@ maxLocVertexIndex);
   // ###
 
   MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-recvDispls.getArray(), MPI_INT, receiveArray.data(), sendLens.getArray(),
+recvDispls.getArray(), MPI_INT, receiveArray.data_(), sendLens.getArray(),
 sendDispls.getArray(), MPI_INT, comm);
 
   // ###
@@ -1122,7 +1122,7 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
 
   // ###
   // now initialise the bestPartition data_
-  // using the data in receiveArray
+  // using the data_ in receiveArray
   // ###
 
   sendArray.reserve(totToRecv);

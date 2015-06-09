@@ -11,93 +11,95 @@ namespace data_structures {
 /* requires positive int keys */
 template<typename T> class map_from_pos_int {
  protected:
-  int numEntries;
-  int size;
+  int size_;
+  int capacity_;
 
-  dynamic_array<T> table;
-  dynamic_array<int> keys;
+  dynamic_array<T> table_;
+  dynamic_array<int> keys_;
 
  public:
   map_from_pos_int() : map_from_pos_int(0) {
   }
 
   map_from_pos_int(int _size) {
-    createTable(_size);
+    create(_size);
   }
 
   ~map_from_pos_int() {
   }
 
-  void createTable(int _size) {
-    numEntries = 0;
-    size = internal::table_utils::table_size(_size);
+  void create(int size) {
+    size_ = 0;
+    capacity_ = internal::table_utils::table_size(size);
 
     #ifdef DEBUG_TABLES
     assert(size >= _size);
     #endif
 
-    keys.reserve(size);
-    table.reserve(size);
+    keys_.reserve(capacity_);
+    table_.reserve(capacity_);
 
-    for (std::size_t i = 0; i < size; ++i) {
-      keys[i] = -1;
+    for (std::size_t i = 0; i < capacity_; ++i) {
+      keys_[i] = -1;
     }
   }
 
-  void destroyTable() {
-    numEntries = 0;
-    table.reserve(0);
-    keys.reserve(0);
+  void destroy() {
+    size_ = 0;
+    table_.reserve(0);
+    keys_.reserve(0);
   }
 
-  void recoverTable() {
-    table.reserve(size);
-    keys.reserve(size);
-    numEntries = 0;
+  void recover() {
+    table_.reserve(capacity_);
+    keys_.reserve(capacity_);
+    size_ = 0;
 
-    for (std::size_t i = 0; i < size; ++i) {
-      keys[i] = -1;
+    for (std::size_t i = 0; i < capacity_; ++i) {
+      keys_[i] = -1;
     }
   }
 
-  int insertKey(int key, T val) {
+  bool insert(int key, T value) {
     int indepKey = internal::table_utils::scatter_key(key);
-    int slot = internal::hashes::primary(indepKey, size);
+    int slot = internal::hashes::primary(indepKey, capacity_);
 
-    while (keys[slot] != -1 && keys[slot] != indepKey)
-      slot = (slot + internal::hashes::secondary(indepKey, size)) % size;
+    while (keys_[slot] != -1 && keys_[slot] != indepKey)
+      slot = (slot + internal::hashes::secondary(indepKey, capacity_)) %
+             capacity_;
 
-    if (keys[slot] == -1) {
-      table[slot] = val;
-      keys[slot] = indepKey;
-      ++numEntries;
-      return 0;
+    if (keys_[slot] == -1) {
+      table_[slot] = value;
+      keys_[slot] = indepKey;
+      ++size_;
+      return false;
     } else {
-      table[slot] = val;
-      return 1;
+      table_[slot] = value;
+      return true;
     }
   }
 
 
-  T &getVal(int key) {
+  T &get(int key) {
     int indepKey = internal::table_utils::scatter_key(key);
-    int slot = internal::hashes::primary(indepKey, size);
-    while (keys[slot] != indepKey) {
-      slot = (slot + internal::hashes::secondary(indepKey, size)) % size;
+    int slot = internal::hashes::primary(indepKey, capacity_);
+    while (keys_[slot] != indepKey) {
+      slot = (slot + internal::hashes::secondary(indepKey, capacity_)) %
+             capacity_;
       #ifdef DEBUG_TABLES
       assert(keys[slot] != -1);
       #endif
     }
 
-    return table[slot];
+    return table_[slot];
   }
 
-  inline int getNumEntries() {
-    return numEntries;
+  inline int size() {
+    return size_;
   }
 
-  inline int getNumSlots() {
-    return size;
+  inline int capacity() {
+    return capacity_;
   }
 };
 

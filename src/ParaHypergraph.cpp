@@ -13,7 +13,7 @@
 //            where decision is made on which processor
 //            to keep hyperedge.
 //
-// 17/4/2004: complete reconstruction of data structures
+// 17/4/2004: complete reconstruction of data_ structures
 //            removed HedgeTable and replaced with a
 //            local pinlist and arrays for other
 //            hyperedge attributes. Access to hyperedges
@@ -236,7 +236,7 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
   i = sizeof(int) * hEdgeDataLength;
   in_stream.read((char *)(hEdgeData.data()), i);
   if (in_stream.gcount() != i) {
-    sprintf(message, "p[%d] could not read in %d hyperedge data elements\n",
+    sprintf(message, "p[%d] could not read in %d hyperedge data_ elements\n",
             myRank, hEdgeDataLength);
     out << message;
     in_stream.close();
@@ -536,13 +536,13 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i)
-      storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
+      storedRequests.insert(copyOfReq[i], receiveArray[i]);
 
     /* contract remaining local pins */
 
     for (i = 0; i < numLocalPins; ++i)
       if (origContractedPinList[i] == -1)
-        origContractedPinList[i] = storedRequests.getVal(localPins[i]);
+        origContractedPinList[i] = storedRequests.get(localPins[i]);
   } else {
     dynamic_array<int> nonLocalMatches(numTotalVertices);
 
@@ -882,7 +882,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
 
     if (vertex < minVertexIndex || vertex >= maxLocalVertex) {
       if (!sentRequests(vertex)) {
-        p = vFineToProc.getRootVal(vertex);
+        p = vFineToProc.root_value(vertex);
         dataOutSets[p]->assign(sendLens[p]++, vertex);
         sentRequests.set(vertex);
       }
@@ -970,13 +970,13 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     ds::map_from_pos_int<int> storedRequests(numLocalPins);
 
     for (i = 0; i < totalToSend; ++i)
-      storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
+      storedRequests.insert(copyOfReq[i], receiveArray[i]);
 
     /* contract remaining local pins */
 
     for (i = 0; i < numLocalPins; ++i)
       if (origContractedPinList[i] == -1)
-        origContractedPinList[i] = storedRequests.getVal(localPins[i]);
+        origContractedPinList[i] = storedRequests.get(localPins[i]);
   } else {
     dynamic_array<int> nonLocalMatches(numTotalVertices);
 
@@ -2246,7 +2246,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
 #ifdef DEBUG_HYPERGRAPH
       assert(receiveArray[i] >= 0 && receiveArray[i] < numTotalVertices);
 #endif
-      storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
+      storedRequests.insert(copyOfReq[i], receiveArray[i]);
     }
 
 #ifdef DEBUG_HYPERGRAPH
@@ -2260,7 +2260,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
       if (vertex >= minVertexIndex && vertex < maxLocalVertex) {
         localPins[i] = oldIndexToNew[vertex - minVertexIndex];
       } else {
-        localPins[i] = storedRequests.getVal(vertex);
+        localPins[i] = storedRequests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -2573,7 +2573,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #ifdef DEBUG_HYPERGRAPH
       assert(receiveArray[i] >= 0 && receiveArray[i] < numTotalVertices);
 #endif
-      storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
+      storedRequests.insert(copyOfReq[i], receiveArray[i]);
     }
 
 #ifdef DEBUG_HYPERGRAPH
@@ -2589,7 +2589,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (vertex >= minVertexIndex && vertex < maxLocalVertex) {
         localPins[i] = oldIndexToNew[vertex - minVertexIndex];
       } else {
-        localPins[i] = storedRequests.getVal(vertex);
+        localPins[i] = storedRequests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -2921,7 +2921,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #ifdef DEBUG_HYPERGRAPH
       assert(receiveArray[i] >= 0 && receiveArray[i] < numTotalVertices);
 #endif
-      storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
+      storedRequests.insert(copyOfReq[i], receiveArray[i]);
     }
 
 /* now we will convert the local pin list and hash keys */
@@ -2937,7 +2937,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (vertex >= minVertexIndex && vertex < maxLocalVertex) {
         localPins[i] = oldIndexToNew[vertex - minVertexIndex];
       } else {
-        localPins[i] = storedRequests.getVal(vertex);
+        localPins[i] = storedRequests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -3281,7 +3281,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #ifdef DEBUG_HYPERGRAPH
       assert(receiveArray[i] >= 0 && receiveArray[i] < numTotalVertices);
 #endif
-      storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
+      storedRequests.insert(copyOfReq[i], receiveArray[i]);
     }
 
 /* now we will convert the local pin list and hash keys */
@@ -3297,7 +3297,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (vertex >= minVertexIndex && vertex < maxLocalVertex) {
         localPins[i] = oldIndexToNew[vertex - minVertexIndex];
       } else {
-        localPins[i] = storedRequests.getVal(vertex);
+        localPins[i] = storedRequests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -3312,7 +3312,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       if (vertex >= minVertexIndex && vertex < maxLocalVertex) {
         fineMatchVector[i] = oldIndexToNew[vertex - minVertexIndex];
       } else {
-        fineMatchVector[i] = storedRequests.getVal(vertex);
+        fineMatchVector[i] = storedRequests.get(vertex);
       }
 #ifdef DEBUG_HYPERGRAPH
       assert(fineMatchVector[i] >= 0 && fineMatchVector[i] < numTotalVertices);
@@ -3762,7 +3762,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receiveArray[i] >= 0 && receiveArray[i] < numParts);
 #endif
-      storedRequests.insertKey(copyOfReq[i], receiveArray[i]);
+      storedRequests.insert(copyOfReq[i], receiveArray[i]);
     }
 
     // ###
@@ -3781,7 +3781,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
         ij = localPins[j];
 
         if (ij < minVertexIndex || ij >= maxLocalVertex) {
-          part = storedRequests.getVal(ij);
+          part = storedRequests.get(ij);
         } else {
           part = pVector[ij - minVertexIndex];
         }

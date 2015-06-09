@@ -136,9 +136,9 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
   ds::map_to_pos_int matchInfoLoc;
 
   if (numLocPins < totalVertices / 2)
-    matchInfoLoc.createTable(numLocPins, 1);
+    matchInfoLoc.create(numLocPins, 1);
   else
-    matchInfoLoc.createTable(totalVertices, 0);
+    matchInfoLoc.create(totalVertices, 0);
   // ConnVertData *vData;
   // ConnVertData **vDataArray;
 
@@ -197,7 +197,7 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
             // now try not to check the weight before checking the vertex
             // ###
 
-            auto neighbourLoc = matchInfoLoc.getCareful(candidatV);
+            auto neighbourLoc = matchInfoLoc.get_careful(candidatV);
             // vData = connTable->getDataStruct(candidatV);
 
             if (neighbourLoc >= 0) {
@@ -247,12 +247,12 @@ ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
 #ifdef DEBUG_COARSENER
               assert(numVisited >= 0);
 #endif
-              if (matchInfoLoc.insertKey(candidatV, numVisited)) {
+              if (matchInfoLoc.insert(candidatV, numVisited)) {
                 write_log(myRank, "numEntries %d",
-                          matchInfoLoc.getNumEntries());
+                          matchInfoLoc.size());
                 write_log(myRank, "using hash %d",
-                          matchInfoLoc.usingHashTable());
-                write_log(myRank, "numSlots %d", matchInfoLoc.getNumSlots());
+                          matchInfoLoc.use_hash());
+                write_log(myRank, "numSlots %d", matchInfoLoc.capacity());
                 write_log(myRank, "candidatV %d", candidatV);
                 write_log(myRank, "neighbourLoc %d", neighbourLoc);
                 assert(0);
@@ -335,7 +335,7 @@ assert(bestMatch >= 0);
 */
       }
 
-      matchInfoLoc.resetSlots();
+      matchInfoLoc.clear();
       numVisited = 0;
       // connTable->clearTable();
 

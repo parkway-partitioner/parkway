@@ -506,7 +506,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
   Hypergraph *h = b.getHypergraph();
 
   // ###
-  // h data
+  // h data_
   // ###
 
   int numHVertices = h->getNumVertices();
@@ -522,7 +522,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
   int *hPinList = h->getPinListArray();
 
   // ###
-  // newH data
+  // newH data_
   // ###
 
   int numVerts = 0;
@@ -537,7 +537,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
   dynamic_array<int> *pinList = new dynamic_array<int>(64);
 
   // ###
-  // auxiliary data
+  // auxiliary data_
   // ###
 
   int v;
@@ -710,7 +710,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   Hypergraph *h = b.getHypergraph();
 
   // ###
-  // h data
+  // h data_
   // ###
 
   int numHVertices = h->getNumVertices();
@@ -726,7 +726,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   int *hPinList = h->getPinListArray();
 
   // ###
-  // leftH data
+  // leftH data_
   // ###
 
   int numLeftVerts = 0;
@@ -741,7 +741,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   dynamic_array<int> *leftPinList = new dynamic_array<int>(64);
 
   // ###
-  // rightH data
+  // rightH data_
   // ###
 
   int numRightVerts = 0;
@@ -756,7 +756,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   dynamic_array<int> *rightPinList = new dynamic_array<int>(64);
 
   // ###
-  // auxiliary data
+  // auxiliary data_
   // ###
 
   int v;

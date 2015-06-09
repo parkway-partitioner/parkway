@@ -40,7 +40,7 @@ class table_utils {
   }
 
   static inline int table_size(int n) {
-    return table_size_tree_.getRootVal(n);
+    return table_size_tree_.root_value(n);
   }
 };
 

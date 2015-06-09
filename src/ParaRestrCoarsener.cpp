@@ -97,7 +97,7 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
   // end partition information
 
   // ###
-  // Prepare data structures
+  // Prepare data_ structures
   // ###
 
   MPI_Allgather(&minVertexIndex, 1, MPI_INT, minLocIndices.data(), 1,
@@ -145,7 +145,7 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
 #ifdef DEBUG_COARSENER
         assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-        proc = vToProc.getRootVal(localPins[j]);
+        proc = vToProc.root_value(localPins[j]);
         ++vPerProc[proc];
       }
 
@@ -205,7 +205,7 @@ void ParaRestrCoarsener::loadHyperGraph(const ParaHypergraph &h,
 #ifdef DEBUG_COARSENER
           assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-          proc = vToProc.getRootVal(localPins[j]);
+          proc = vToProc.root_value(localPins[j]);
           ++vPerProc[proc];
         }
 

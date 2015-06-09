@@ -26,13 +26,13 @@ protected:
 
   double limit;
 
-  // data structures from point of view of vertices
+  // data_ structures from point of view of vertices
 
   ds::dynamic_array<int> numNeighParts;
   ds::dynamic_array<int> neighboursOfV;
   ds::dynamic_array<int> neighboursOfVOffsets;
 
-  // data structures from point of view of hyperedges
+  // data_ structures from point of view of hyperedges
 
   ds::dynamic_array<int> hEdgeVinPart;
   ds::dynamic_array<int> hEdgeVinPartOffsets;

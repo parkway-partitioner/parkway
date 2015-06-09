@@ -18,8 +18,8 @@ namespace parkway {
 namespace data_structures {
 
 typedef struct bucket {
-  int vertexID;
-  bucket *prev;
+  int vertex_id;
+  bucket *previous;
   bucket *next;
 } bucket_node;
 
