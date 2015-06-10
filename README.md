@@ -17,7 +17,8 @@ FOR A PARTICULAR PURPOSE.
 ## Minimum Requirements
 
 * [CMake](http://cmake.org/) 3.2
-* C++11 compliant compiler (tested with Clang 3.6, GCC 4.8.2, GCC 5.1.0)
+* C++11 compliant compiler (tested with Clang 3.6, GCC 4.8.2, GCC 5.1.0;
+  minimum supported GCC version is 4.8.x)
 * MPI (tested with MPICH 3.0.4 and MPICH 3.1.4)
 
 ## Building
