@@ -51,7 +51,7 @@ void table_utils::set_scatter_array(int size) {
   scatter_size_ = size;
   scatter_array_.reserve(scatter_size_);
 
-  for (std::size_t i = 0; i < scatter_size_; ++i) {
+  for (int i = 0; i < scatter_size_; ++i) {
     scatter_array_[i] = i;
   }
 

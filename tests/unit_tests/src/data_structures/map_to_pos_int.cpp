@@ -46,9 +46,9 @@ TEST(MapToPosInt, InsertHash) {
   ASSERT_TRUE(int_map.insert(0, 4));
   ASSERT_EQ(int_map.get(0), 4);
 
-  parkway::data_structures::internal::table_utils::set_scatter_array(10);
-  // True as overwites old value (as no scatter array is set).
-  ASSERT_FALSE(int_map.insert(0, 7));
+  parkway::data_structures::internal::table_utils::set_scatter_array(1);
+  // Scatter is size 1 so the only item is index 0 -- overwrites index 0.
+  ASSERT_TRUE(int_map.insert(0, 7));
   ASSERT_EQ(int_map.get(0), 7);
 }
 
