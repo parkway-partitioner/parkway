@@ -25,7 +25,7 @@ VCycleBisectionController::VCycleBisectionController(
 }
 
 VCycleBisectionController::~VCycleBisectionController() {
-  DynaMem<RestrCoarsener>::deletePtr(restrCoarsener);
+  DynaMem::deletePtr<RestrCoarsener>(restrCoarsener);
 }
 
 void VCycleBisectionController::dispBisectionControllerOptions() const {

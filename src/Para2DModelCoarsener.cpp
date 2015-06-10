@@ -30,7 +30,7 @@ Para2DModelCoarsener::Para2DModelCoarsener(int rank, int nProcs, int nParts,
 }
 
 Para2DModelCoarsener::~Para2DModelCoarsener() {
-  DynaMem<ds::match_request_table>::deletePtr(table);
+  DynaMem::deletePtr<ds::match_request_table>(table);
 }
 
 void Para2DModelCoarsener::dispCoarseningOptions() const {

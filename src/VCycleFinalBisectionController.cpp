@@ -90,7 +90,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
       accumulator *= reductionFactor;
 
-      DynaMem<Hypergraph>::deletePtr(coarseGraph);
+      DynaMem::deletePtr<Hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
@@ -161,7 +161,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
         accumulator *= reductionFactor;
 
-        DynaMem<Hypergraph>::deletePtr(coarseGraph);
+        DynaMem::deletePtr<Hypergraph>(coarseGraph);
 
         coarseGraph = finerGraph;
       }

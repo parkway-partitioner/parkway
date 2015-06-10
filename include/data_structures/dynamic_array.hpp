@@ -25,29 +25,28 @@ namespace data_structures {
 
 template <class T> class dynamic_array {
  public:
-  inline dynamic_array() {
-    capacity_ = 0;
-    data_ = nullptr;
+  inline dynamic_array() : dynamic_array(0) {
   }
 
-  inline dynamic_array(int capacity) {
-    if (capacity <= 0) {
+  inline dynamic_array(int capacity) : capacity_(capacity), data_(nullptr) {
+    if (capacity_ <= 0) {
       capacity_ = 0;
-      data_ = nullptr;
       return;
     }
-    data_ = new T[capacity];
 
-    if (!data_) {
-      abort();
-    }
-
-    capacity_ = capacity;
-    return;
+    data_ = new T[capacity_];
+    assert(data_);
   }
 
+  // Remove auto generated assignment methods as this can cause issues with
+  // memory management.
+  // TODO(gb610): consider switching to shared_ptr internally as dangling
+  // pointers cause problems for DynaMem.
+  dynamic_array &operator=(const dynamic_array&) = delete;
+  dynamic_array(const dynamic_array&) = delete;
+
   inline ~dynamic_array() {
-    DynaMem<T>::deleteArr(data_);
+    DynaMem::deleteArr<T>(data_);
     capacity_ = 0;
   }
 
@@ -71,7 +70,7 @@ template <class T> class dynamic_array {
         return n;
       }
     }
-    return -1;
+    return not_found();
   }
 
   inline T *data() const {
@@ -79,7 +78,7 @@ template <class T> class dynamic_array {
   }
 
   inline void set_data(T *new_data, int size) {
-    DynaMem<T>::deleteArr(data_);
+    DynaMem::deleteArr<T>(data_);
     data_ = new_data;
     capacity_ = size;
   }
@@ -120,8 +119,9 @@ template <class T> class dynamic_array {
   }
 
   inline void check(int index) {
-    if (index >= capacity_)
+    if (index >= capacity_) {
       expand(index);
+    }
   }
 
   inline void assign(int index, const T value) {
@@ -130,59 +130,57 @@ template <class T> class dynamic_array {
     data_[index] = value;
   }
 
-  inline int adjust(int size) {
+  inline bool adjust(int size) {
+    if (size == 0) {
+      return true;
+    }
+
     int newLength = capacity_ + size;
-
     if (newLength <= 0) {
-      if (capacity_)
-        DynaMem<T>::deleteArr(data_);
-
+      if (capacity_ > 0) {
+        DynaMem::deleteArr<T>(data_);
+      }
       capacity_ = 0;
-      return 1;
+      return true;
     }
 
-    T *extendedArray = new T[size + capacity_];
+    T *extendedArray = new T[newLength];
 
-    if (!extendedArray) {
-#ifdef DEBUG_BASICS
-      char message[512];
-      sprintf(message,
-              "dynamic_array: (%d): memory allocation (size %d) failed!\n",
-              (int)this, size);
-      std::cout << message;
-#endif
-      abort();
+    if (size > 0) {
+      for (int i = 0; i < capacity_; ++i) {
+        extendedArray[i] = data_[i];
+      }
+    } else {
+      for (int i = 0; i < newLength; ++i) {
+        extendedArray[i] = data_[i];
+      }
     }
 
-    int i;
-
-    if (size >= 0)
-      for (i = 0; i < capacity_; ++i)
-        extendedArray[i] = data_[i];
-    else
-      for (i = 0; i < newLength; ++i)
-        extendedArray[i] = data_[i];
-
-    if (capacity_)
-      DynaMem<T>::deleteArr(data_);
+    if (capacity_ > 0) {
+      DynaMem::deleteArr<T>(data_);
+    }
 
     capacity_ = newLength;
     data_ = extendedArray;
 
-    return 1;
+    return true;
   }
+
+  static int constexpr not_found() {
+    return -1;
+  }
+
 
  protected:
   int capacity_;
   T *data_;
 
-  inline int expand(int index) {
+  inline bool expand(int index) {
     int targetLength = 1;
-    while (index >= targetLength)
+    while (index >= targetLength) {
       targetLength <<= 1;
-    if (!adjust(targetLength - capacity_))
-      return 0;
-    return 1;
+    }
+    return !adjust(targetLength - capacity_);
   }
 
   inline void delay_time() const {

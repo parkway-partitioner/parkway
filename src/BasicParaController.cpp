@@ -198,7 +198,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
 
-      DynaMem<ParaHypergraph>::deletePtr(coarseGraph);
+      DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
       coarseGraph = finerGraph;
     }
 

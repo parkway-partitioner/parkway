@@ -32,7 +32,7 @@ SeqController::SeqController(int rank, int nProcs, int nParts, ostream &out)
   partitionVectorOffsets.reserve(0);
 }
 
-SeqController::~SeqController() { DynaMem<Hypergraph>::deletePtr(h); }
+SeqController::~SeqController() { DynaMem::deletePtr<Hypergraph>(h); }
 
 void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
                                            MPI_Comm comm) {

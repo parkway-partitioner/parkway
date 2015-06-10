@@ -308,7 +308,7 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
   h.checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
 
-  DynaMem<IntArray>::deletePtr(bestPartVector);
+  DynaMem::deletePtr<IntArray>(bestPartVector);
 }
 
 void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,

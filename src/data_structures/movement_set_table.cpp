@@ -48,10 +48,10 @@ movement_set_table::~movement_set_table() {
   int i;
 
   for (i = 0; i < setArrayLen; ++i)
-    DynaMem<dynamic_array<movement_set> >::deletePtr(sets_[i]);
+    DynaMem::deletePtr<dynamic_array<movement_set> >(sets_[i]);
 
   for (i = 0; i < number_of_processors_; ++i)
-    DynaMem<dynamic_array<int> >::deletePtr(restoring_moves_[i]);
+    DynaMem::deletePtr<dynamic_array<int> >(restoring_moves_[i]);
 }
 
 void movement_set_table::initialize_part_weights(const int *partWts, int nParts) {

@@ -150,7 +150,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
       MPI_Barrier(comm);
       totRefTime += (MPI_Wtime() - startTime);
 
-      DynaMem<ParaHypergraph>::deletePtr(coarseGraph);
+      DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
 
       /* choose/reject v-cycle */
 
@@ -266,7 +266,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
             finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-            DynaMem<ParaHypergraph>::deletePtr(coarseGraph);
+            DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
 
             coarseGraph = finerGraph;
           }

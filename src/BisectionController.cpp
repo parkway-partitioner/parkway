@@ -34,8 +34,8 @@ BisectionController::BisectionController(int nRuns, double kT, double redFactor,
 }
 
 BisectionController::~BisectionController() {
-  DynaMem<Coarsener>::deletePtr(coarsener);
-  DynaMem<Refiner>::deletePtr(refiner);
+  DynaMem::deletePtr<Coarsener>(coarsener);
+  DynaMem::deletePtr<Refiner>(refiner);
 }
 
 void BisectionController::dispBisectionControllerOptions() const {
@@ -148,7 +148,7 @@ void BisectionController::computeBisection() {
 
       accumulator *= reductionFactor;
 
-      DynaMem<Hypergraph>::deletePtr(coarseGraph);
+      DynaMem::deletePtr<Hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }

@@ -39,8 +39,8 @@ FMRefiner::FMRefiner(int max, int insMethod, int ee, int dL) : Refiner(dL) {
 }
 
 FMRefiner::~FMRefiner() {
-  DynaMem<NodeArray>::deletePtr(bucketArrays[0]);
-  DynaMem<NodeArray>::deletePtr(bucketArrays[1]);
+  DynaMem::deletePtr<NodeArray>(bucketArrays[0]);
+  DynaMem::deletePtr<NodeArray>(bucketArrays[1]);
 }
 
 void FMRefiner::dispRefinerOptions(std::ostream &out) const {
@@ -136,10 +136,10 @@ void FMRefiner::destroyBuckets() {
   int i;
 
   for (i = 0; i < numVertices; ++i)
-    DynaMem<bucket_node>::deletePtr(buckets[i]);
+    DynaMem::deletePtr<bucket_node>(buckets[i]);
 
   for (i = 0; i < 2; ++i)
-    DynaMem<NodeArray>::deletePtr(bucketArrays[i]);
+    DynaMem::deletePtr<NodeArray>(bucketArrays[i]);
 }
 
 void FMRefiner::initPartitionStruct() {

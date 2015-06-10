@@ -44,7 +44,7 @@ PaToHController::PaToHController(GreedyKwayRefiner *k, int rank, int nProcs,
 }
 
 PaToHController::~PaToHController() {
-  DynaMem<GreedyKwayRefiner>::deletePtr(kWayRefiner);
+  DynaMem::deletePtr<GreedyKwayRefiner>(kWayRefiner);
 }
 
 void PaToHController::dispSeqControllerOptions() const {
@@ -198,7 +198,7 @@ void PaToHController::runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm) {
   hgraph.checkPartitions(numParts, maxPartWt, comm);
 #endif
 
-  DynaMem<Hypergraph>::deletePtr(h);
+  DynaMem::deletePtr<Hypergraph>(h);
 }
 
 #endif

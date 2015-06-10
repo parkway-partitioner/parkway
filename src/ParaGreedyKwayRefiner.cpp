@@ -75,13 +75,13 @@ ParaGreedyKwayRefiner::~ParaGreedyKwayRefiner() {
   int j;
   int ij;
 
-  DynaMem<movement_set_table>::deletePtr(movementSets);
+  DynaMem::deletePtr<movement_set_table>(movementSets);
 
   for (i = 0; i < numParts; ++i) {
     ij = i * numParts;
 
     for (j = 0; j < numParts; ++j)
-      DynaMem<dynamic_array<int> >::deletePtr(moveSets[ij + j]);
+      DynaMem::deletePtr<dynamic_array<int> >(moveSets[ij + j]);
   }
 }
 

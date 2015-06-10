@@ -649,7 +649,7 @@ void Hypergraph::convertToDIMACSGraphFile(const char *fN) const {
   out_stream.close();
 
   for (i = 0; i < numVertices; ++i)
-    DynaMem<dynamic_array<int> >::deletePtr(vNeighs[i]);
+    DynaMem::deletePtr<dynamic_array<int> >(vNeighs[i]);
 }
 
 void Hypergraph::printPercentiles(std::ostream &o) {

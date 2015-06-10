@@ -28,6 +28,7 @@ file(GLOB_RECURSE UNIT_TEST_FILES *.cpp *.cxx *.c)
 set(PROJECT_TEST_DRIVER "${PROJECT_NAME}_test_driver")
 add_executable(${PROJECT_TEST_DRIVER} ${UNIT_TEST_FILES})
 add_dependencies(${PROJECT_TEST_DRIVER} googlemock)
+include_directories("${MAINFOLDER}/include")
 
 
 # Require that libparkway is compiled with C++11.

@@ -34,7 +34,7 @@ ParaApproxFCCoarsener::ParaApproxFCCoarsener(int rank, int nProcs, int nParts,
 }
 
 ParaApproxFCCoarsener::~ParaApproxFCCoarsener() {
-  DynaMem<ds::match_request_table>::deletePtr(table);
+  DynaMem::deletePtr<ds::match_request_table>(table);
 }
 
 void ParaApproxFCCoarsener::dispCoarseningOptions() const {

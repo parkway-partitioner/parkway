@@ -34,7 +34,7 @@ KHMetisController::KHMetisController(GreedyKwayRefiner *k, int rank, int nProcs,
 }
 
 KHMetisController::~KHMetisController() {
-  DynaMem<GreedyKwayRefiner>::deletePtr(kWayRefiner);
+  DynaMem::deletePtr<GreedyKwayRefiner>(kWayRefiner);
 }
 
 void KHMetisController::dispSeqControllerOptions() const {
@@ -118,7 +118,7 @@ void KHMetisController::runSeqPartitioner(ParaHypergraph &hgraph,
   hgraph.checkPartitions(numParts, maxPartWt, comm);
 #endif
 
-  DynaMem<Hypergraph>::deletePtr(h);
+  DynaMem::deletePtr<Hypergraph>(h);
 }
 
 #endif

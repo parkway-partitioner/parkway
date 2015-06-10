@@ -1,4 +1,3 @@
-
 #ifndef _DYNA_MEM_HPP
 #define _DYNA_MEM_HPP
 
@@ -15,21 +14,27 @@
 
 // for debug purposes, remove dependence on MemoryTracker
 //#  include "MemoryTracker.hpp"
+#include <memory>
 
-template <class T> class DynaMem {
+namespace DynaMem {
 
-public:
-  static inline void deletePtr(T *&ptr) {
-    if (ptr)
-      delete ptr;
-    ptr = nullptr;
+template <typename T> inline void deletePtr(T *&ptr) {
+  if (ptr != nullptr) {
+    delete ptr;
   }
+  ptr = nullptr;
+}
 
-  static inline void deleteArr(T *&ptr) {
-    if (ptr)
-      delete[] ptr;
-    ptr = nullptr;
+template <typename T> inline void deleteArr(T *&ptr) {
+  if (ptr != nullptr) {
+    delete[] ptr;
   }
-};
+  ptr = nullptr;
+}
 
+template <typename T> inline std::shared_ptr<T> shared_array(std::size_t size) {
+  return std::shared_ptr<T>(new T[size], std::default_delete<T[]>());
+}
+
+}
 #endif

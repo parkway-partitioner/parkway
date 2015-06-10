@@ -29,7 +29,7 @@ GlobalCommunicator::GlobalCommunicator(const int rank, const int nProcs)
 
 GlobalCommunicator::~GlobalCommunicator() {
   for (int i = 0; i < numProcs; ++i) {
-    DynaMem<dynamic_array<int> >::deletePtr(dataOutSets[i]);
+    DynaMem::deletePtr<dynamic_array<int> >(dataOutSets[i]);
   }
 }
 

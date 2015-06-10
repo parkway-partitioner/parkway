@@ -145,7 +145,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-      DynaMem<ParaHypergraph>::deletePtr(coarseGraph);
+      DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
@@ -272,7 +272,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
         finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-        DynaMem<ParaHypergraph>::deletePtr(coarseGraph);
+        DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
 
         coarseGraph = finerGraph;
       }

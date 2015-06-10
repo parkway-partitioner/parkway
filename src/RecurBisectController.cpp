@@ -40,8 +40,8 @@ RecurBisectController::RecurBisectController(BisectionController *b,
 }
 
 RecurBisectController::~RecurBisectController() {
-  DynaMem<BisectionController>::deletePtr(bisector);
-  DynaMem<GreedyKwayRefiner>::deletePtr(kWayRefiner);
+  DynaMem::deletePtr<BisectionController>(bisector);
+  DynaMem::deletePtr<GreedyKwayRefiner>(kWayRefiner);
 }
 
 void RecurBisectController::dispSeqControllerOptions() const {
@@ -217,7 +217,7 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
 #endif
     }
 
-    DynaMem<Bisection>::deletePtr(b);
+    DynaMem::deletePtr<Bisection>(b);
   }
 
   // ###
@@ -245,7 +245,7 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
   hgraph.checkPartitions(numParts, maxPartWt, comm);
 #endif
 
-  DynaMem<Hypergraph>::deletePtr(h);
+  DynaMem::deletePtr<Hypergraph>(h);
 }
 
 void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
@@ -421,15 +421,15 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
       if (left) {
         Hypergraph *hLeft = left->getHypergraph();
 
-        DynaMem<Hypergraph>::deletePtr(hLeft);
-        DynaMem<Bisection>::deletePtr(left);
+        DynaMem::deletePtr<Hypergraph>(hLeft);
+        DynaMem::deletePtr<Bisection>(left);
       }
 
       if (right) {
         Hypergraph *hRight = right->getHypergraph();
 
-        DynaMem<Hypergraph>::deletePtr(hRight);
-        DynaMem<Bisection>::deletePtr(right);
+        DynaMem::deletePtr<Hypergraph>(hRight);
+        DynaMem::deletePtr<Bisection>(right);
       }
     }
   } else {
@@ -482,8 +482,8 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
       if (newB) {
         Hypergraph *hNew = newB->getHypergraph();
 
-        DynaMem<Hypergraph>::deletePtr(hNew);
-        DynaMem<Bisection>::deletePtr(newB);
+        DynaMem::deletePtr<Hypergraph>(hNew);
+        DynaMem::deletePtr<Bisection>(newB);
       }
 
       MPI_Comm_free(&new_comm);

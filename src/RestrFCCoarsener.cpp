@@ -233,7 +233,7 @@ Hypergraph *RestrFCCoarsener::coarsen(const Hypergraph &h) {
     // cannot sufficiently reduce hypergraph
     // back off
 
-    DynaMem<dynamic_array<int> >::deletePtr(coarseWts);
+    DynaMem::deletePtr<dynamic_array<int> >(coarseWts);
     return nullptr;
   }
 

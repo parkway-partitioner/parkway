@@ -178,15 +178,15 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 
   k_1cut = controller->getBestCutsize();
 
-  DynaMem<ParaController>::deletePtr(controller);
-  DynaMem<SeqController>::deletePtr(seqController);
-  DynaMem<ParaRestrCoarsener>::deletePtr(restrC);
-  DynaMem<ParaCoarsener>::deletePtr(coarsener);
-  DynaMem<ParaRefiner>::deletePtr(refiner);
-  DynaMem<ParaHypergraph>::deletePtr(hgraph);
+  DynaMem::deletePtr<ParaController>(controller);
+  DynaMem::deletePtr<SeqController>(seqController);
+  DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
+  DynaMem::deletePtr<ParaCoarsener>(coarsener);
+  DynaMem::deletePtr<ParaRefiner>(refiner);
+  DynaMem::deletePtr<ParaHypergraph>(hgraph);
 
   if (out_file) {
-    DynaMem<std::ostream>::deletePtr(output);
+    DynaMem::deletePtr<std::ostream>(output);
   }
 
 #ifdef MEM_CHECK
@@ -349,15 +349,15 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
 
   k_1cut = controller->getBestCutsize();
 
-  DynaMem<ParaController>::deletePtr(controller);
-  DynaMem<SeqController>::deletePtr(seqController);
-  DynaMem<ParaRestrCoarsener>::deletePtr(restrC);
-  DynaMem<ParaCoarsener>::deletePtr(coarsener);
-  DynaMem<ParaRefiner>::deletePtr(refiner);
-  DynaMem<ParaHypergraph>::deletePtr(hgraph);
+  DynaMem::deletePtr<ParaController>(controller);
+  DynaMem::deletePtr<SeqController>(seqController);
+  DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
+  DynaMem::deletePtr<ParaCoarsener>(coarsener);
+  DynaMem::deletePtr<ParaRefiner>(refiner);
+  DynaMem::deletePtr<ParaHypergraph>(hgraph);
 
   if (out_file)
-    DynaMem<std::ostream>::deletePtr(output);
+    DynaMem::deletePtr<std::ostream>(output);
 }
 
 #endif

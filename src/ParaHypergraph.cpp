@@ -1795,7 +1795,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
   }
 
   for (i = 0; i < numProcs; ++i)
-    DynaMem<dynamic_array<int> >::deletePtr(askingVertices[i]);
+    DynaMem::deletePtr<dynamic_array<int> >(askingVertices[i]);
 }
 
 void ParaHypergraph::prescribedVertexShuffle(int *prescribedAssignment,

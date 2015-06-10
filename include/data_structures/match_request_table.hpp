@@ -71,7 +71,7 @@ class match_request_table::entry {
   }
 
   inline ~entry() {
-    DynaMem<entry>::deletePtr(next_);
+    DynaMem::deletePtr<entry>(next_);
   }
 
   inline int non_local_vertex() const {
