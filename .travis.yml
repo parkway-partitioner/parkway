@@ -4,6 +4,13 @@ compiler:
   - gcc
   - clang
 
+before_install:
+  - echo $LANG
+  - echo $LC_ALL
+  - echo cmake --version
+  - if [ $TRAVIS_OS_NAME == linux  ]; then sudo apt-get update; fi
+  - if [ $TRAVIS_OS_NAME == osx  ]; then brew update; fi
+
 script: ./configure -DCMAKE_BUILD_TYPE=debug && make
 
 branches:
