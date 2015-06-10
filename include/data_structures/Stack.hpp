@@ -33,16 +33,12 @@ template <class T> class stack {
   }
 
   inline T pop() {
-#ifdef DEBUG_BASICS
-    assert(numElem > 0);
-#endif
+    assert(size_ > 0);
     return data_[--size_];
   }
 
   inline T top() const {
-#ifdef DEBUG_BASICS
-    assert(numElem > 0);
-#endif
+    assert(size_ > 0);
     return data_[size_ - 1];
   }
 

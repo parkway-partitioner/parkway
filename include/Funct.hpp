@@ -1,4 +1,3 @@
-
 #ifndef _FUNCT_HPP
 #define _FUNCT_HPP
 
@@ -113,14 +112,11 @@ class Funct {
   }
 
   inline static int log2(int a) {
-    int logA = -1;
-
-    while (a > 0) {
-      ++logA;
-      a = Shiftr(a, 1);
+    int result = 0;
+    while (a >>= 1) {
+      ++result;
     }
-
-    return logA;
+    return result;
   }
 
   inline static int isPowerOf2(int num) {
