@@ -28,15 +28,16 @@ class table_utils {
   static complete_binary_tree<int> table_size_tree_;
   static dynamic_array<int> scatter_array_;
   static int scatter_size_;
+  static const int SCATTER_ARRAY_NOT_SET;
 
  public:
-  table_utils();
+  table_utils() {}
   ~table_utils() {}
 
   static void set_scatter_array(int size);
 
   static inline int scatter_key(int i) {
-    return scatter_array_[i];
+    return (scatter_size_ == SCATTER_ARRAY_NOT_SET) ? 0 : scatter_array_[i];
   }
 
   static inline int table_size(int n) {

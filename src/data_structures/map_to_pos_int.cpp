@@ -4,39 +4,36 @@
 namespace parkway {
 namespace data_structures {
 
-map_to_pos_int::map_to_pos_int() {
-  create(0, 0);
+map_to_pos_int::map_to_pos_int() : map_to_pos_int(0, false) {
 }
 
-map_to_pos_int::map_to_pos_int(int new_capacity, int use_hash) {
+map_to_pos_int::map_to_pos_int(int new_capacity, bool use_hash)
+  : use_hash_(use_hash) {
   create(new_capacity, use_hash);
 }
 
-void map_to_pos_int::create(int new_capacity, int use_hash) {
+void map_to_pos_int::create(int new_capacity, bool use_hash) {
   use_hash_ = use_hash;
   size_ = 0;
   entries.reserve(2048);
 
-  int i;
-
-  if (use_hash_ == 0) {
-    capacity_ = new_capacity;
-    keys.reserve(0);
-    table.reserve(capacity_);
-
-    for (i = 0; i < capacity_; ++i)
-      table[i] = -1;
-  } else {
+  if (use_hash_) {
     capacity_ = internal::table_utils::table_size(new_capacity);
-#ifdef DEBUG_TABLES
     assert(capacity_ >= new_capacity);
-#endif
 
     keys.reserve(capacity_);
     table.reserve(capacity_);
 
-    for (i = 0; i < capacity_; ++i) {
+    for (int i = 0; i < capacity_; ++i) {
       keys[i] = -1;
+      table[i] = -1;
+    }
+  } else {
+    capacity_ = new_capacity;
+    keys.reserve(0);
+    table.reserve(capacity_);
+
+    for (int i = 0; i < capacity_; ++i) {
       table[i] = -1;
     }
   }
@@ -72,18 +69,18 @@ void map_to_pos_int::recover() {
   }
 }
 
-int map_to_pos_int::insert(int key, int val) {
+bool map_to_pos_int::insert(int key, int val) {
   #ifdef DEBUG_TABLES
   assert(key >= 0);
   assert(val >= 0);
   #endif
 
   if (use_hash_) {
-    int indepKey = internal::table_utils::scatter_key(key);
-    int slot = internal::hashes::primary(indepKey, capacity_);
+    int independent_key = internal::table_utils::scatter_key(key);
+    int slot = internal::hashes::primary(independent_key, capacity_);
 
-    while (keys[slot] != -1 && keys[slot] != indepKey) {
-      slot = (slot + internal::hashes::secondary(indepKey, capacity_)) % capacity_;
+    while (keys[slot] != -1 && keys[slot] != independent_key) {
+      slot = (slot + internal::hashes::secondary(independent_key, capacity_)) % capacity_;
     }
 
     if (keys[slot] == -1) {
@@ -91,16 +88,16 @@ int map_to_pos_int::insert(int key, int val) {
       assert(table[slot] == -1);
       #endif
       table[slot] = val;
-      keys[slot] = indepKey;
+      keys[slot] = independent_key;
       entries.assign(size_++, slot);
-      return 0;
+      return false;
     } else {
       #ifdef DEBUG_TABLES
-      assert(keys[slot] == indepKey);
+      assert(keys[slot] == independent_key);
       assert(table[slot] >= 0);
       #endif
       table[slot] = val;
-      return 1;
+      return true;
     }
   } else {
     #ifdef DEBUG_TABLES
@@ -109,34 +106,35 @@ int map_to_pos_int::insert(int key, int val) {
     if (table[key] == -1) {
       table[key] = val;
       entries.assign(size_++, key);
-      return 0;
+      return false;
     } else {
       table[key] = val;
-      return 1;
+      return true;
     }
   }
 }
 
-int map_to_pos_int::insert_if_empty(int key, int val) {
+bool map_to_pos_int::insert_if_empty(int key, int val, int &already_there) {
   #ifdef DEBUG_TABLES
   assert(key >= 0);
   #endif
 
   if (use_hash_) {
-    int indepKey = internal::table_utils::scatter_key(key);
-    int slot = internal::hashes::primary(indepKey, capacity_);
+    int independent_key = internal::table_utils::scatter_key(key);
+    int slot = internal::hashes::primary(independent_key, capacity_);
 
-    while (keys[slot] != -1 && keys[slot] != indepKey) {
-      slot = (slot + internal::hashes::secondary(indepKey, capacity_)) % capacity_;
+    while (keys[slot] != -1 && keys[slot] != independent_key) {
+      slot = (slot + internal::hashes::secondary(independent_key, capacity_)) % capacity_;
     }
 
     if (keys[slot] == -1) {
       table[slot] = val;
-      keys[slot] = indepKey;
+      keys[slot] = independent_key;
       entries.assign(size_++, slot);
-      return -1;
+      return false;
     } else {
-      return table[slot];
+      already_there = table[slot];
+      return true;
     }
   } else {
     #ifdef DEBUG_TABLES
@@ -146,9 +144,10 @@ int map_to_pos_int::insert_if_empty(int key, int val) {
     if (table[key] == -1) {
       table[key] = val;
       entries.assign(size_++, key);
-      return -1;
+      return false;
     } else {
-      return table[key];
+      already_there = table[key];
+      return true;
     }
   }
 }
@@ -178,11 +177,11 @@ int map_to_pos_int::get_careful(int key) {
 #endif
 
   if (use_hash_) {
-    int indepKey = internal::table_utils::scatter_key(key);
-    int slot = internal::hashes::primary(indepKey, capacity_);
+    int independent_key = internal::table_utils::scatter_key(key);
+    int slot = internal::hashes::primary(independent_key, capacity_);
 
-    while (keys[slot] != indepKey && keys[slot] != -1) {
-      slot = (slot + internal::hashes::secondary(indepKey, capacity_)) % capacity_;
+    while (keys[slot] != independent_key && keys[slot] != -1) {
+      slot = (slot + internal::hashes::secondary(independent_key, capacity_)) % capacity_;
     }
 
     if (keys[slot] == -1) {
@@ -213,11 +212,11 @@ int map_to_pos_int::get(int key) {
   #endif
 
   if (use_hash_) {
-    int indepKey = internal::table_utils::scatter_key(key);
-    int slot = internal::hashes::primary(indepKey, capacity_);
+    int independent_key = internal::table_utils::scatter_key(key);
+    int slot = internal::hashes::primary(independent_key, capacity_);
 
-    while (keys[slot] != indepKey) {
-      slot = (slot + internal::hashes::secondary(indepKey, capacity_)) % capacity_;
+    while (keys[slot] != independent_key) {
+      slot = (slot + internal::hashes::secondary(independent_key, capacity_)) % capacity_;
       #ifdef DEBUG_TABLES
       assert(keys[slot] != -1);
       #endif
