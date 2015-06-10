@@ -1,0 +1,15 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang
+
+script: ./configure -DCMAKE_BUILD_TYPE=debug && make
+
+branches:
+  only:
+    - master
+
+os:
+  - linux
+  - osx
