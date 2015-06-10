@@ -9,15 +9,13 @@
 // HISTORY:
 //
 // 30/11/2004: Last Modified
-//
-// NOTES:
-//
-//  - Assume that sizeof(unsigned int) == 4 bytes
+// 10/06/2015: replace unsigned int with uint32_t to ensure always 32-bits.
 //
 // ###
 
 // TODO(gb610): remove reliance on assumption
 
+#include <cstdint>
 #include <iostream>
 #include "data_structures/dynamic_array.hpp"
 
@@ -26,7 +24,11 @@ namespace data_structures {
 
 class bit_field {
  public:
-  bit_field() {
+  typedef uint32_t chunk_t;
+  const static chunk_t CHUNK_MAX;
+  const static std::size_t CHUNK_WIDTH;
+
+  bit_field() : bit_length_(0), capacity_(0) {
   }
 
   bit_field(int bits) {
@@ -45,8 +47,9 @@ class bit_field {
     capacity_ = data_.capacity();
 
     if (capacity_ > old) {
-      for (int n = old; n < capacity_; ++n)
+      for (int n = old; n < capacity_; ++n) {
         data_[n] = 0;
+      }
     }
     bit_length_ = (capacity_ << 5);
   }
@@ -59,11 +62,11 @@ class bit_field {
     return capacity_;
   }
 
-  inline unsigned int *data() const {
+  inline uint32_t *data() const {
     return data_.data();
   }
 
-  inline unsigned int chunk(int i) const {
+  inline uint32_t chunk(int i) const {
     return data_[i];
   }
 
@@ -81,20 +84,25 @@ class bit_field {
 
   inline void set() {
     for (int l = 0; l < capacity_; ++l) {
-      data_[l] = 0xFFFFFFFF;
+      data_[l] = UINT32_MAX;
     }
   }
 
   inline bool test_all() {
     bool all_set = true;
     for (int i = 0; i < capacity_; ++i)
-      if (data_[i] != 0xFFFFFFFF)
+      if (data_[i] != UINT32_MAX) {
         return false;
+      }
     return all_set;
   }
 
-  inline int operator()(int index) const {
-    return (data_(index >> 5) & (1 << (index & 31))) ? 1 : 0;
+  inline bool operator()(int index) const {
+    return operator[](index);
+  }
+
+  inline bool operator[](int index) const {
+    return (data_(index >> 5) & (1 << (index & 31)));
   }
 
   inline void set(int index) {
@@ -108,7 +116,7 @@ class bit_field {
  private:
   int bit_length_;
   int capacity_;
-  dynamic_array<unsigned int> data_;
+  dynamic_array<uint32_t> data_;
 };
 
 }  // namespace data_structures

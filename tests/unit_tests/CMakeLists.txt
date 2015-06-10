@@ -49,7 +49,6 @@ target_link_libraries(${PROJECT_TEST_DRIVER} ${PROJECT_LIB}
 
 # Scan the test sources to find test name and add them to the CTest.
 foreach(UNIT_TEST_FILE ${UNIT_TEST_FILES})
-  message(STATUS "Test file: ${UNIT_TEST_FILE} ")
   file(STRINGS ${UNIT_TEST_FILE} GTEST_NAMES REGEX ^TEST)
   foreach(GTEST_NAME ${GTEST_NAMES})
     string(REGEX REPLACE ["\) \(,"] ";" GTEST_NAME ${GTEST_NAME})
