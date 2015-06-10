@@ -2,6 +2,18 @@
 
 Parallel hypergraph partitioning in C++ using MPI.
 
+## Disclaimer
+
+Copyright (C) 2004 Aleksandar Trifunovic
+
+This program is free software; Redistribution and modification of any part or
+all of the program without explicit permission from the author is strictly
+forbidden.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.
+
 ## Minimum Requirements
 
 * [CMake](http://cmake.org/) 3.2
@@ -23,3 +35,4 @@ list all build targets. A number of targets are:
 * `make parkway_driver` - builds a utility to partition hypergraphs using
   `libparkway`.
 * `make` - builds the above and a few more utilities.
+
