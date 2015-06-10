@@ -16,8 +16,8 @@ a generator). Parkway options are as such:
 * `-D PARKWAY_TESTS=<true|false>` to add support for building and running unit
   tests.
 
-Once configured `make help` will list all build targets. A number of targets
-are:
+Assuming a UNIX system using GNU Makefiles, once configured `make help` will
+list all build targets. A number of targets are:
 
 * `make parkway` - builds `libparkway`.
 * `make parkway_driver` - builds a utility to partition hypergraphs using
