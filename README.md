@@ -2,6 +2,8 @@
 
 Parallel hypergraph partitioning in C++ using MPI.
 
+[![Build Status](https://travis-ci.org/parkway-partitioner/parkway.svg)](https://travis-ci.org/parkway-partitioner/parkway)
+
 ## Disclaimer
 
 Copyright (C) 2004 Aleksandar Trifunovic
