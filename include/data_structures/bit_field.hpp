@@ -33,6 +33,7 @@ class bit_field {
 
   bit_field(int bits) {
     reserve(bits);
+    unset();
   }
 
   ~bit_field() {
