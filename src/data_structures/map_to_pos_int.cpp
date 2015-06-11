@@ -69,7 +69,7 @@ void map_to_pos_int::recover() {
   }
 }
 
-bool map_to_pos_int::insert(int key, int val) {
+int map_to_pos_int::insert(int key, int val) {
   #ifdef DEBUG_TABLES
   assert(key >= 0);
   assert(val >= 0);
@@ -114,7 +114,7 @@ bool map_to_pos_int::insert(int key, int val) {
   }
 }
 
-bool map_to_pos_int::insert_if_empty(int key, int val, int &already_there) {
+int map_to_pos_int::insert_if_empty(int key, int val) {
   #ifdef DEBUG_TABLES
   assert(key >= 0);
   #endif
@@ -131,10 +131,9 @@ bool map_to_pos_int::insert_if_empty(int key, int val, int &already_there) {
       table[slot] = val;
       keys[slot] = independent_key;
       entries.assign(size_++, slot);
-      return false;
+      return -1;
     } else {
-      already_there = table[slot];
-      return true;
+      return table[slot];
     }
   } else {
     #ifdef DEBUG_TABLES
@@ -144,10 +143,9 @@ bool map_to_pos_int::insert_if_empty(int key, int val, int &already_there) {
     if (table[key] == -1) {
       table[key] = val;
       entries.assign(size_++, key);
-      return false;
+      return -1;
     } else {
-      already_there = table[key];
-      return true;
+      return table[key];
     }
   }
 }

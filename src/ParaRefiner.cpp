@@ -389,9 +389,9 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
       assert(ij >= 0 && ij < totalVertices);
 #endif
       if (ij < minVertexIndex || ij >= maxVertexIndex) {
-        bool not_empty = toNonLocVerts.insert_if_empty(ij, numNonLocVerts, nonLocIndex);
+        nonLocIndex = toNonLocVerts.insert_if_empty(ij, numNonLocVerts);
 
-        if (not_empty) {
+        if (nonLocIndex == -1) {
           vDegs.assign(numNonLocVerts, 1);
           nonLocVerts.assign(numNonLocVerts++, ij);
         } else {

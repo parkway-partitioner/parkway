@@ -17,9 +17,9 @@ class map_to_pos_int {
   void destroy();
   void recover();
 
-  bool insert(int key, int val);
+  int insert(int key, int val);
   void clear();
-  bool insert_if_empty(int key, int val, int &already_there);
+  int insert_if_empty(int key, int val);
 
   int get_careful(int key);
   int get(int key);
