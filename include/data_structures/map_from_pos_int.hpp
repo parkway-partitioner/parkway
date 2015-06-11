@@ -9,20 +9,20 @@ namespace data_structures {
 
 /* New MapFromPosInt Class */
 /* requires positive int keys */
-template<typename T> class map_from_pos_int {
+template<typename Type> class map_from_pos_int {
  protected:
   int size_;
   int capacity_;
 
-  dynamic_array<T> table_;
+  dynamic_array<Type> table_;
   dynamic_array<int> keys_;
 
  public:
   map_from_pos_int() : map_from_pos_int(0) {
   }
 
-  map_from_pos_int(int _size) {
-    create(_size);
+  map_from_pos_int(int _capacity) : capacity_(0) {
+    create(_capacity);
   }
 
   ~map_from_pos_int() {
@@ -60,7 +60,7 @@ template<typename T> class map_from_pos_int {
     }
   }
 
-  bool insert(int key, T value) {
+  bool insert(int key, Type value) {
     int indepKey = internal::table_utils::scatter_key(key);
     int slot = internal::hashes::primary(indepKey, capacity_);
 
@@ -80,7 +80,7 @@ template<typename T> class map_from_pos_int {
   }
 
 
-  T &get(int key) {
+  Type &get(int key) {
     int indepKey = internal::table_utils::scatter_key(key);
     int slot = internal::hashes::primary(indepKey, capacity_);
     while (keys_[slot] != indepKey) {
@@ -90,15 +90,18 @@ template<typename T> class map_from_pos_int {
       assert(keys[slot] != -1);
       #endif
     }
-
     return table_[slot];
   }
 
-  inline int size() {
+  Type &operator[](int key) {
+    return get(key);
+  }
+
+  inline int size() const {
     return size_;
   }
 
-  inline int capacity() {
+  inline int capacity() const {
     return capacity_;
   }
 };

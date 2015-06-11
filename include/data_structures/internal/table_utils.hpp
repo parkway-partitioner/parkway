@@ -28,7 +28,6 @@ class table_utils {
   static complete_binary_tree<int> table_size_tree_;
   static dynamic_array<int> scatter_array_;
   static int scatter_size_;
-  static const int SCATTER_ARRAY_NOT_SET;
 
  public:
   table_utils() {}
@@ -43,6 +42,8 @@ class table_utils {
   static inline int table_size(int n) {
     return table_size_tree_.root_value(n);
   }
+
+  static const int SCATTER_ARRAY_NOT_SET;
 };
 
 }  // namespace internal
