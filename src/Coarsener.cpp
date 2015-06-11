@@ -1,4 +1,3 @@
-
 #ifndef _COARSENER_CPP
 #define _COARSENER_CPP
 

@@ -55,7 +55,7 @@ protected:
   ds::dynamic_array<int> indexIntoMoveSetData;
   ds::dynamic_array<int> numVerticesMoved;
 
-  movement_set_table *movementSets;
+  ds::movement_set_table *movementSets;
 
 public:
   ParaGreedyKwayRefiner(int rank, int nProcs, int nParts, int numVperP,

@@ -25,7 +25,6 @@ class match_request_table {
     return capacity_;
   }
 
-
   inline entry **get_entries() const {
     return entries_.data();
   }

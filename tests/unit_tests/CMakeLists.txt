@@ -15,6 +15,8 @@ ExternalProject_Add(
   # commands.
   # Disable install step.
   INSTALL_COMMAND ""
+  # Stop CMake from updating it every time tests are made.
+  UPDATE_COMMAND ""
   # Wrap download, configure and build steps in a script to log output.
   LOG_DOWNLOAD ON
   LOG_CONFIGURE ON

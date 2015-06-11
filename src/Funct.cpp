@@ -161,7 +161,7 @@ void Funct::qsortByAnotherArray(const int left, const int right, int *array,
         ++left_arrow;
 
       if (left_arrow <= right_arrow) {
-        swap(array[left_arrow++], array[right_arrow--]);
+        std::swap(array[left_arrow++], array[right_arrow--]);
       }
     } while (right_arrow >= left_arrow);
 
@@ -178,7 +178,7 @@ void Funct::qsortByAnotherArray(const int left, const int right, int *array,
         ++left_arrow;
 
       if (left_arrow <= right_arrow) {
-        swap(array[left_arrow++], array[right_arrow--]);
+        std::swap(array[left_arrow++], array[right_arrow--]);
       }
     } while (right_arrow >= left_arrow);
 

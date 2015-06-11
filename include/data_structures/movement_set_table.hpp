@@ -13,9 +13,16 @@
 
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::dynamic_array;
+namespace parkway {
+namespace data_structures {
 
 struct movement_set {
+  movement_set(){}
+  movement_set(int gain_, int weight_, int proc_)
+      : gain(gain_),
+        weight(weight_),
+        proc(proc_) {
+  }
   int gain;
   int weight;
   int proc;
@@ -53,22 +60,34 @@ class movement_set_table {
     }
 
 #ifdef DEBUG_BASICS
-    assert(j >= -1 && j < numParts);
+    assert(j >= -1 && j < number_of_parts_);
 #endif
 
     return j;
   }
 
   void initialize_part_weights(const int *partWts, int nParts);
-  void complete_processor_sets(int proc, int dataLen, const int *data);
+  void complete_processor_sets(int proc, int data_length, const int *data);
   void compute_restoring_array();
+
+  inline int number_of_parts() const {
+    return number_of_parts_;
+  }
+
+  inline int number_of_processors() const {
+    return number_of_processors_;
+  }
+
+  inline int max_part_weight() const {
+    return max_part_weight_;
+  }
 
  protected:
   int number_of_parts_;
   // TODO(gb610): processors or processes?
   int number_of_processors_;
   int max_part_weight_;
-  int setArrayLen;
+  int set_array_len_;
 
   dynamic_array<int> part_weights_;
   dynamic_array<int> restoring_move_lens_;
@@ -76,5 +95,8 @@ class movement_set_table {
   dynamic_array<dynamic_array<int> *> restoring_moves_;
   dynamic_array<dynamic_array<movement_set> *> sets_;
 };
+
+}  // namespace data_structures
+}  // namespace parkway
 
 #endif

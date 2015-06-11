@@ -3,11 +3,9 @@
 namespace parkway {
 namespace data_structures {
 
-
 match_request_table::match_request_table(int _size)
     : size_(0),
       capacity_(_size) {
-
   table_.reserve(capacity_);
   for (std::size_t i = 0; i < capacity_; ++i) {
     table_[i] = nullptr;
@@ -22,7 +20,6 @@ match_request_table::~match_request_table() {
 
 match_request_table::entry *match_request_table::get_entry(int _vertex) const {
   entry *entry_ = table_[_vertex % capacity_];
-
   while (entry_ && entry_->non_local_vertex() != _vertex) {
     entry_ = entry_->next();
   }

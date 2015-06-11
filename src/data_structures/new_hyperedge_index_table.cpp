@@ -20,9 +20,7 @@ void new_hyperedge_index_table::createTable(unsigned int _size) {
   table.reserve(size);
   nextSameKey.reserve(size);
 
-  int i;
-
-  for (i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) {
     table[i] = -1;
     nextSameKey[i] = -1;
   }
@@ -41,9 +39,7 @@ void new_hyperedge_index_table::recoverTable() {
   nextSameKey.reserve(size);
   numEntries = 0;
 
-  int i;
-
-  for (i = 0; i < size; ++i) {
+  for (int i = 0; i < size; ++i) {
     table[i] = -1;
     nextSameKey[i] = -1;
   }
@@ -54,8 +50,9 @@ void new_hyperedge_index_table::insertKey(HashKey key, int index) {
   int lastSeen = -1;
 
   while (table[slot] != -1) {
-    if (keys[slot] == key)
+    if (keys[slot] == key) {
       lastSeen = slot;
+    }
 
     slot = internal::hashes::chained(slot, key, size);
   }
@@ -63,8 +60,9 @@ void new_hyperedge_index_table::insertKey(HashKey key, int index) {
   table[slot] = index;
   keys[slot] = key;
 
-  if (lastSeen >= 0)
+  if (lastSeen >= 0) {
     nextSameKey[lastSeen] = slot;
+  }
 
   ++numEntries;
 #ifdef DEBUG_TABLES
@@ -78,7 +76,6 @@ int new_hyperedge_index_table::getHedgeIndex(HashKey key, int &numSeen) {
 #endif
 
   int slot;
-
   if (numSeen == -1) {
     slot = internal::hashes::primary(key, size);
     while (table[slot] != -1) {
@@ -104,12 +101,13 @@ int new_hyperedge_index_table::getHedgeIndex(HashKey key, int &numSeen) {
 
 void new_hyperedge_index_table::print() {
   for (int i = 0; i < size; ++i) {
-    if (table[i] != -1)
+    if (table[i] != -1) {
       std::cout << "[" << i << "]: "
            << "key = " << keys[i] << " index = " << table[i]
            << " next = " << nextSameKey[i] << std::endl;
-    else
+    } else {
       std::cout << "[empty]" << std::endl;
+    }
   }
 }
 

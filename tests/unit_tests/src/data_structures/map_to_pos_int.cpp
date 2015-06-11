@@ -58,13 +58,10 @@ TEST(MapToPosInt, InsertIfEmptyNoHash) {
   int capacity = 3;
   map_to_pos_int int_map(capacity, use_hash);
 
-  int already_there;
-
-  // False as no item is there.
-  ASSERT_FALSE(int_map.insert_if_empty(0, 5, already_there));
-  // True as an item is there.
-  ASSERT_TRUE(int_map.insert_if_empty(0, 4, already_there));
-  ASSERT_EQ(already_there, 5);
+  // -1 if nothing in the slot.
+  ASSERT_EQ(int_map.insert_if_empty(0, 5), -1);
+  // Returns the item already in that slot.
+  ASSERT_EQ(int_map.insert_if_empty(0, 4), 5);
 }
 
 

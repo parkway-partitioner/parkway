@@ -55,7 +55,7 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   // build tables
   // ###
 
-  movementSets = new movement_set_table(numParts, numProcs);
+  movementSets = new ds::movement_set_table(numParts, numProcs);
 
   numNeighParts.reserve(0);
   neighboursOfV.reserve(0);
@@ -75,7 +75,7 @@ ParaGreedyKwayRefiner::~ParaGreedyKwayRefiner() {
   int j;
   int ij;
 
-  DynaMem::deletePtr<movement_set_table>(movementSets);
+  DynaMem::deletePtr<ds::movement_set_table>(movementSets);
 
   for (i = 0; i < numParts; ++i) {
     ij = i * numParts;

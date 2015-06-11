@@ -18,7 +18,7 @@ install:
   - if [ "$CXX" = "g++"  ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - sudo apt-get install openmpi-bin openmpi-dev
 
-script: ./configure -DCMAKE_BUILD_TYPE=debug && make
+script: ./configure && make && ./bin/parkway_test_driver
 
 os:
   - linux

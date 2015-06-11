@@ -1,4 +1,3 @@
-
 #ifndef _MOVEMENT_SETS_CPP
 #define _MOVEMENT_SETS_CPP
 
@@ -14,24 +13,25 @@
 
 #include "data_structures/movement_set_table.hpp"
 
-movement_set_table::movement_set_table(int nParts, int nProcs) {
-  number_of_parts_ = nParts;
-  number_of_processors_ = nProcs;
-  setArrayLen = number_of_parts_ * number_of_parts_;
-  max_part_weight_ = 0;
+namespace parkway {
+namespace data_structures {
+
+movement_set_table::movement_set_table(int number_of_parts,
+                                       int number_of_processors)
+    : number_of_parts_(number_of_parts),
+      number_of_processors_(number_of_processors),
+      set_array_len_(number_of_parts_ * number_of_parts_),
+      max_part_weight_(0) {
 
   part_weights_.reserve(number_of_parts_);
-  sets_.reserve(setArrayLen);
+  sets_.reserve(set_array_len_);
 
-  int i;
-  int j;
-
-  for (i = 0; i < setArrayLen; ++i) {
-    if (Mod(i, number_of_parts_) != i / number_of_parts_) {
+  for (int i = 0; i < set_array_len_; ++i) {
+    if ((i % number_of_parts_) != i / number_of_parts_) {
       sets_[i] = new dynamic_array<movement_set>(number_of_processors_);
-
-      for (j = 0; j < number_of_processors_; ++j)
+      for (int j = 0; j < number_of_processors_; ++j) {
         (*sets_[i])[j].proc = j;
+      }
     } else {
       sets_[i] = nullptr;
     }
@@ -40,34 +40,34 @@ movement_set_table::movement_set_table(int nParts, int nProcs) {
   restoring_moves_.reserve(number_of_processors_);
   restoring_move_lens_.reserve(number_of_processors_);
 
-  for (i = 0; i < number_of_processors_; ++i)
+  for (int i = 0; i < number_of_processors_; ++i) {
     restoring_moves_[i] = new dynamic_array<int>(256);
+  }
 }
 
 movement_set_table::~movement_set_table() {
-  int i;
-
-  for (i = 0; i < setArrayLen; ++i)
+  for (int i = 0; i < set_array_len_; ++i) {
     DynaMem::deletePtr<dynamic_array<movement_set> >(sets_[i]);
+  }
 
-  for (i = 0; i < number_of_processors_; ++i)
+  for (int i = 0; i < number_of_processors_; ++i) {
     DynaMem::deletePtr<dynamic_array<int> >(restoring_moves_[i]);
+  }
 }
 
-void movement_set_table::initialize_part_weights(const int *partWts, int nParts) {
+void movement_set_table::initialize_part_weights(const int *part_weights,
+                                                 int number_of_parts) {
 #ifdef DEBUG_BASICS
-  assert(nParts == numParts);
+  assert(number_of_parts == number_of_parts_);
 #endif
 
-  int i;
-  int j;
+  for (int i = 0; i < number_of_parts_; ++i) {
+    part_weights_[i] = part_weights[i];
+  }
 
-  for (i = 0; i < number_of_parts_; ++i)
-    part_weights_[i] = partWts[i];
-
-  for (j = 0; j < setArrayLen; ++j) {
-    if (Mod(j, number_of_parts_) != j / number_of_parts_) {
-      for (i = 0; i < number_of_processors_; ++i) {
+  for (int j = 0; j < set_array_len_; ++j) {
+    if ((j % number_of_parts_) != j / number_of_parts_) {
+      for (int i = 0; i < number_of_processors_; ++i) {
         (*sets_[j])[i].gain = -1;
         (*sets_[j])[i].weight = 0;
       }
@@ -75,32 +75,24 @@ void movement_set_table::initialize_part_weights(const int *partWts, int nParts)
   }
 }
 
-void movement_set_table::complete_processor_sets(int proc, int dataLen,
+void movement_set_table::complete_processor_sets(int proc, int data_length,
                                                  const int *data) {
-  int i = 0;
-  int wt;
-
-  int fromPart;
-  int toPart;
-  int setArray;
-
-  while (i < dataLen) {
-    fromPart = data[i];
-    toPart = data[i + 1];
-    setArray = fromPart * number_of_parts_ + toPart;
-    wt = data[i + 3];
+  // Each part of the data is split into 4 parts: from, to, gain and weight.
+  for (int i = 0; i < data_length; i += 4) {
+    int from_part = data[i];
+    int to_part = data[i + 1];
+    int set_array = from_part * number_of_parts_ + to_part;
+    int weight = data[i + 3];
 
 #ifdef DEBUG_BASICS
-    assert((*sets[setArray])[proc].proc == proc);
+    assert((*sets[set_array])[proc].proc == proc);
 #endif
 
-    (*sets_[setArray])[proc].gain = data[i + 2];
-    (*sets_[setArray])[proc].weight = wt;
+    (*sets_[set_array])[proc].gain = data[i + 2];
+    (*sets_[set_array])[proc].weight = weight;
 
-    part_weights_[fromPart] -= wt;
-    part_weights_[toPart] += wt;
-
-    i += 4;
+    part_weights_[from_part] -= weight;
+    part_weights_[to_part] += weight;
   }
 }
 
@@ -111,31 +103,22 @@ void movement_set_table::compute_restoring_array() {
   assert(heaviest >= -1);
 #endif
 
-  int i;
-  int j;
 
-  int minIndex;
-  int minProc;
-  int weight;
-  int gain;
-  int minGain;
-  int prod;
-
-  for (i = 0; i < number_of_processors_; ++i)
+  for (int i = 0; i < number_of_processors_; ++i) {
     restoring_move_lens_[i] = 0;
+  }
 
+  int prod;
   while (heaviest > -1) {
-    minIndex = -1;
-    minProc = -1;
-    minGain = LARGE_CONSTANT;
+    int minIndex = -1;
+    int minProc = -1;
+    int minGain = LARGE_CONSTANT;
 
-    for (j = 0; j < number_of_parts_; ++j) {
+    for (int j = 0; j < number_of_parts_; ++j) {
       if (j != heaviest) {
         prod = j * number_of_parts_;
-
-        for (i = 0; i < number_of_processors_; ++i) {
-          gain = (*sets_[prod + heaviest])[i].gain;
-
+        for (int i = 0; i < number_of_processors_; ++i) {
+          int gain = (*sets_[prod + heaviest])[i].gain;
           if (gain >= 0 && gain < minGain) {
             minGain = gain;
             minIndex = j;
@@ -152,7 +135,7 @@ void movement_set_table::compute_restoring_array() {
 #endif
 
     prod = minIndex * number_of_parts_;
-    weight = (*sets_[prod + heaviest])[minProc].weight;
+    int weight = (*sets_[prod + heaviest])[minProc].weight;
 
 #ifdef DEBUG_BASICS
     assert(weight > 0);
@@ -170,5 +153,8 @@ void movement_set_table::compute_restoring_array() {
     heaviest = find_heaviest_part_index();
   }
 }
+
+}  // namespace data_structures
+}  // namespace parkway
 
 #endif

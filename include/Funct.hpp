@@ -86,29 +86,27 @@ class Funct {
     int pivot = array[(left + right) / 2];
 
     do {
-      while (array[right_arrow] > pivot)
+      while (array[right_arrow] > pivot) {
         --right_arrow;
-      while (array[left_arrow] < pivot)
+      }
+      while (array[left_arrow] < pivot) {
         ++left_arrow;
+      }
 
       if (left_arrow <= right_arrow) {
-        swap(array[left_arrow], array[right_arrow]);
+        std::swap(array[left_arrow], array[right_arrow]);
         ++left_arrow;
         --right_arrow;
       }
     } while (right_arrow >= left_arrow);
 
-    if (left < right_arrow)
+    if (left < right_arrow) {
       qsort(left, right_arrow, array);
+    }
 
-    if (left_arrow < right)
+    if (left_arrow < right) {
       qsort(left_arrow, right, array);
-  }
-
-  inline static void swap(int &a, int &b) {
-    int t = a;
-    a = b;
-    b = t;
+    }
   }
 
   inline static int log2(int a) {
