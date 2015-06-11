@@ -18,7 +18,10 @@ install:
   - if [ "$CXX" = "g++"  ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - sudo apt-get install openmpi-bin openmpi-dev
 
-script: ./configure && make && ./bin/parkway_test_driver
+script: ./configure -DPARKWAY_TESTS=true
+     && make
+     && ./bin/parkway_test_driver
+     && mpirun -np 2 ./bin/parkway_driver -nParts 8 hypergraphs/ibm16.hgr.bin
 
 os:
   - linux
