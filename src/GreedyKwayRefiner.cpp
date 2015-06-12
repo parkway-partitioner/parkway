@@ -248,7 +248,7 @@ void GreedyKwayRefiner::updateAdjVertStat(int v, int sP, int bestDP) {
     vertSeen[seenVertices[j]] = -1;
 }
 
-void GreedyKwayRefiner::refine(hypergraph &h) {
+void GreedyKwayRefiner::refine(serial_hypergraph &h) {
   int totalGain = 0;
   int gain;
   int i;
@@ -276,7 +276,7 @@ void GreedyKwayRefiner::refine(hypergraph &h) {
   destroyDataStructs();
 }
 
-void GreedyKwayRefiner::rebalance(hypergraph &h) {
+void GreedyKwayRefiner::rebalance(serial_hypergraph &h) {
   int totalGain = 0;
   int gain;
   int i;

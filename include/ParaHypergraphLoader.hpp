@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "parallel_hypergraph.hpp"
+#include "hypergraph/parallel_hypergraph.hpp"
 
 #include <iostream>
 #include "data_structures/bit_field.hpp"
@@ -20,6 +20,7 @@
 
 using parkway::data_structures::dynamic_array;
 using parkway::data_structures::bit_field;
+using parkway::hypergraph::parallel_hypergraph;
 
 class ParaHypergraphLoader : public global_communicator {
  protected:

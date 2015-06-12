@@ -155,7 +155,7 @@ vertices.
   MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  h = new hypergraph(vWeights->data(), numVertices);
+  h = new serial_hypergraph(vWeights->data(), numVertices);
 
   h->set_number_of_hyperedges(numHedges);
   h->set_number_of_pins(numPins);

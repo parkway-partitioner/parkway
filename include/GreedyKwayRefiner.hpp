@@ -57,8 +57,8 @@ public:
   int initDataStructs();
   void updateAdjVertStat(int v, int sP, int bestDP);
 
-  void refine(hypergraph &h);
-  void rebalance(hypergraph &h);
+  void refine(serial_hypergraph &h);
+  void rebalance(serial_hypergraph &h);
 
   int runGreedyPass();
   int runRebalancingPass();

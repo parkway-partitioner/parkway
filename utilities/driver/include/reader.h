@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <cstdio>
-#include "parallel_hypergraph.hpp"
+#include "hypergraph/parallel_hypergraph.hpp"
 
 using namespace std;
 

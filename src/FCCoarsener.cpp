@@ -37,7 +37,7 @@ void FCCoarsener::dispCoarsenerOptions(ostream &out) const {
   }
 }
 
-hypergraph *FCCoarsener::coarsen(const hypergraph &h) {
+serial_hypergraph *FCCoarsener::coarsen(const serial_hypergraph &h) {
   load_for_coarsening(h);
 
   // ###

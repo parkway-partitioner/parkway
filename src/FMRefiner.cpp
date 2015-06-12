@@ -845,7 +845,7 @@ void FMRefiner::unmakeMove(int v) {
   }
 }
 
-void FMRefiner::refine(hypergraph &h) {
+void FMRefiner::refine(serial_hypergraph &h) {
   int totalGain;
   int gain;
   int i;

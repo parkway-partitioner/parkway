@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "hypergraph.hpp"
+#include "hypergraph/serial_hypergraph.hpp"
 
 using namespace std;
 
@@ -23,12 +23,12 @@ protected:
   int number_of_vertices_;
   int part_id_;
 
-  hypergraph *hypergraph_;
+  serial_hypergraph *hypergraph_;
 
   dynamic_array<int> mapToOrigVerts;
 
 public:
-  Bisection(hypergraph *h, int bAgain, int pID) {
+  Bisection(serial_hypergraph *h, int bAgain, int pID) {
     hypergraph_ = h;
 
     number_of_vertices_ = h->number_of_vertices();
@@ -54,7 +54,7 @@ public:
   inline int getNumVertices() const { return number_of_vertices_; }
   inline int *getMapArray() const { return mapToOrigVerts.data(); }
 
-  inline hypergraph *getHypergraph() const { return hypergraph_; }
+  inline serial_hypergraph *getHypergraph() const { return hypergraph_; }
 };
 
 #endif

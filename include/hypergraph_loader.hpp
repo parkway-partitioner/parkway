@@ -11,10 +11,11 @@
 //
 // ###
 
-#include "hypergraph.hpp"
+#include "hypergraph/serial_hypergraph.hpp"
 #include "data_structures/bit_field.hpp"
 
 using namespace parkway::data_structures;
+using parkway::hypergraph::serial_hypergraph;
 
 class hypergraph_loader {
 protected:
@@ -38,7 +39,7 @@ protected:
   int *partitionOffsets;
   int *partitionCutsizes;
 
-  inline void load(const hypergraph &h) {
+  inline void load(const serial_hypergraph &h) {
     numVertices = h.number_of_vertices();
     numHedges = h.number_of_hyperedges();
     numPins = h.number_of_pins();
@@ -57,12 +58,12 @@ public:
 
   void compute_hyperedges_to_load(bit_field &toLoad);
 
-  inline void load_for_coarsening(const hypergraph &h) {
+  inline void load_for_coarsening(const serial_hypergraph &h) {
     load(h);
     matchVector = h.match_vector();
   }
 
-  inline void loadHypergraphForRestrCoarsening(const hypergraph &h) {
+  inline void loadHypergraphForRestrCoarsening(const serial_hypergraph &h) {
     load(h);
 
     matchVector = h.match_vector();
@@ -72,7 +73,7 @@ public:
     partitionCutsizes = h.partition_cuts();
   }
 
-  inline void load_for_refinement(const hypergraph &h) {
+  inline void load_for_refinement(const serial_hypergraph &h) {
     load(h);
 
     numPartitions = h.number_of_partitions();
@@ -81,7 +82,7 @@ public:
     partitionCutsizes = h.partition_cuts();
   }
 
-  inline void load_for_splitting(const hypergraph &h) {
+  inline void load_for_splitting(const serial_hypergraph &h) {
     load(h);
 
     numPartitions = 1;

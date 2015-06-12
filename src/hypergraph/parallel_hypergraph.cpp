@@ -1,6 +1,3 @@
-#ifndef _PARA_HYPERGRAPH_CPP
-#define _PARA_HYPERGRAPH_CPP
-
 // ### ParaHypergraph.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -23,20 +20,24 @@
 //
 // ###
 
-#include "parallel_hypergraph.hpp"
+#include "hypergraph/parallel_hypergraph.hpp"
 #include "data_structures/bit_field.hpp"
 #include "data_structures/complete_binary_tree.hpp"
 #include "data_structures/map_from_pos_int.hpp"
 #include "data_structures/new_hyperedge_index_table.hpp"
 #include "Log.h"
 
-namespace ds = parkway::data_structures;
+
+namespace parkway {
+namespace hypergraph {
+
+namespace ds = data_structures;
 
 parallel_hypergraph::parallel_hypergraph(int rank_, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
                                int *wtArray)
     : global_communicator(rank_, nProcs),
-      parkway::hypergraph::base_hypergraph(_numLocVerts),
+      base_hypergraph(_numLocVerts),
       do_not_coarsen(coarsen),
       total_number_of_vertices_(_totVerts),
       minimum_vertex_index_(_minVertIndex),
@@ -56,7 +57,7 @@ parallel_hypergraph::parallel_hypergraph(int rank_, int nProcs, int _numLocVerts
                                int _totVerts, int _minVertIndex, int coarsen,
                                int cut, int *wtArray, int *partArray)
     : global_communicator(rank_, nProcs),
-      parkway::hypergraph::base_hypergraph(_numLocVerts, 1),
+      base_hypergraph(_numLocVerts, 1),
       do_not_coarsen(coarsen),
       total_number_of_vertices_(_totVerts),
       minimum_vertex_index_(_minVertIndex),
@@ -4082,4 +4083,5 @@ double parallel_hypergraph::average_hyperedge_size(MPI_Comm comm) {
   return (static_cast<double>(totPins) / totHedges);
 }
 
-#endif
+}  // namespace hypergraph
+}  // namespace parkway

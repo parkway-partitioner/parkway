@@ -28,9 +28,12 @@
 #include "data_structures/dynamic_array.hpp"
 #include "hypergraph/base_hypergraph.hpp"
 
+namespace parkway {
+namespace hypergraph {
+
 class parallel_hypergraph
     : public global_communicator,
-      public parkway::hypergraph::base_hypergraph {
+      public base_hypergraph {
 public:
   parallel_hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int *wtArray);
@@ -136,5 +139,8 @@ public:
 
   parkway::data_structures::dynamic_array<int> to_origin_vertex_;
 };
+
+}  // namespace hypergraph
+}  // namespace parkway
 
 #endif

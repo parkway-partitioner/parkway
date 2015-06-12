@@ -13,8 +13,11 @@
 //
 // ###
 
-#include "parallel_hypergraph.hpp"
-#include "hypergraph.hpp"
+#include "hypergraph/parallel_hypergraph.hpp"
+#include "hypergraph/serial_hypergraph.hpp"
+
+using parkway::hypergraph::parallel_hypergraph;
+using parkway::hypergraph::serial_hypergraph;
 
 using namespace std;
 
@@ -32,7 +35,7 @@ protected:
   double kWayConstraint;
   double acceptProp;
 
-  hypergraph *h;
+  serial_hypergraph *h;
 
   dynamic_array<int> partitionVector;
   dynamic_array<int> partitionCuts;
@@ -53,7 +56,7 @@ public:
   inline void setNumSeqRuns(int r) { numSeqRuns = r; }
   inline void setDispOption(int d) { dispOption = d; }
   inline void setMaxVertexWt(int max) { maxVertexWt = max; }
-  inline void setHypergraph(hypergraph *hGraph) { h = hGraph; }
+  inline void setHypergraph(serial_hypergraph *hGraph) { h = hGraph; }
   inline void setKwayConstraint(double c) { kWayConstraint = c; }
   inline void setAcceptProp(double p) { acceptProp = p; }
 };

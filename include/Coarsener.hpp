@@ -28,10 +28,10 @@ public:
   Coarsener(int min, int maxwt, double ratio, int dispL);
 
   virtual ~Coarsener();
-  virtual hypergraph *coarsen(const hypergraph &h) = 0;
+  virtual serial_hypergraph *coarsen(const serial_hypergraph &h) = 0;
   virtual void dispCoarsenerOptions(ostream &out) const = 0;
 
-  hypergraph *buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
+  serial_hypergraph *buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
                                     int totWt) const;
 
   inline void setMaxVertexWt(int maxWt) { maxVertexWt = maxWt; }

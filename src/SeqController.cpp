@@ -32,7 +32,7 @@ SeqController::SeqController(int rank, int nProcs, int nParts, ostream &out)
   partitionVectorOffsets.reserve(0);
 }
 
-SeqController::~SeqController() { DynaMem::deletePtr<hypergraph>(h); }
+SeqController::~SeqController() { DynaMem::deletePtr<serial_hypergraph>(h); }
 
 void SeqController::initCoarsestHypergraph(parallel_hypergraph &hgraph,
                                            MPI_Comm comm) {
@@ -145,7 +145,7 @@ void SeqController::initCoarsestHypergraph(parallel_hypergraph &hgraph,
   MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  h = new hypergraph(vWeights->data(), numVertices);
+  h = new serial_hypergraph(vWeights->data(), numVertices);
 
   h->set_number_of_hyperedges(numHedges);
   h->set_number_of_pins(numPins);

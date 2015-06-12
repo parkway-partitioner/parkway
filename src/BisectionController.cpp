@@ -100,7 +100,7 @@ void BisectionController::buildRefiner(int queueD) {
 }
 
 void BisectionController::computeBisection() {
-  hypergraph *origGraph = hGraphs.top();
+  serial_hypergraph *origGraph = hGraphs.top();
 
   int i;
   int cut;
@@ -115,8 +115,8 @@ void BisectionController::computeBisection() {
   bestPartition.reserve(numOrigVertices);
 
   for (i = 0; i < numSeqRuns; ++i) {
-    hypergraph *coarseGraph;
-    hypergraph *finerGraph = origGraph;
+    serial_hypergraph *coarseGraph;
+    serial_hypergraph *finerGraph = origGraph;
     hEdgePercentiles.push(startPercentile);
 
     do {
@@ -148,7 +148,7 @@ void BisectionController::computeBisection() {
 
       accumulator *= reductionFactor;
 
-      DynaMem::deletePtr<hypergraph>(coarseGraph);
+      DynaMem::deletePtr<serial_hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
@@ -171,7 +171,7 @@ void BisectionController::computeBisection() {
                                bestCut);
 }
 
-void BisectionController::bisect(hypergraph *h, int _maxPartWt) {
+void BisectionController::bisect(serial_hypergraph *h, int _maxPartWt) {
 #ifdef DEBUG_CONTROLLER
   assert(hGraphs.getNumElem() == 0);
 #endif

@@ -84,7 +84,7 @@ public:
   void updateGains0_1(int v);
   void unmakeMove(int v);
 
-  void refine(hypergraph &h);
+  void refine(serial_hypergraph &h);
 
   int doFidMatPass();
   int doRebalancingPass(int largePart);

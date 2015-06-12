@@ -23,11 +23,14 @@
 
 using parkway::data_structures::dynamic_array;
 
-class hypergraph : public parkway::hypergraph::base_hypergraph {
+namespace parkway {
+namespace hypergraph {
+
+class serial_hypergraph : public base_hypergraph {
  public:
-  hypergraph(int *vWts, int numV);
-  hypergraph(int *vWts, int *pVector, int numV, int cut);
-  ~hypergraph();
+  serial_hypergraph(int *vWts, int numV);
+  serial_hypergraph(int *vWts, int *pVector, int numV, int cut);
+  ~serial_hypergraph();
 
   void load_from_file(const char *filename);
   void buildVtoHedges();
@@ -36,7 +39,7 @@ class hypergraph : public parkway::hypergraph::base_hypergraph {
   void reset_partition_vector();
   void reset_vertex_maps();
 
-  void project_partitions(const hypergraph &coarseGraph);
+  void project_partitions(const serial_hypergraph &coarseGraph);
   void remove_bad_partitions(double fractionOK);
   void set_number_of_partitions(int nPartitions) override;
   void copy_out_partition(int *pVector, int numV, int pNo) const;
@@ -81,5 +84,8 @@ class hypergraph : public parkway::hypergraph::base_hypergraph {
  void check_part_weights_are_less_than(int *part_weights, const int number,
                                        int maximum) const;
 };
+
+}  // hypergraph
+}  // parkway
 
 #endif

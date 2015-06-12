@@ -34,7 +34,7 @@ class Refiner : public hypergraph_loader {
   Refiner(int dispL);
 
   virtual ~Refiner();
-  virtual void refine(hypergraph &h) = 0;
+  virtual void refine(serial_hypergraph &h) = 0;
   virtual void dispRefinerOptions(std::ostream &out) const = 0;
 
   inline int getMaxPartWt() const { return maxPartWt; }

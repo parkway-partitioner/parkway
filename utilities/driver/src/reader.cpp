@@ -1,5 +1,3 @@
-
-
 #ifndef _READER_CPP
 #define _READER_CPP
 
@@ -14,6 +12,8 @@
 // ###
 
 #include "reader.h"
+
+using parkway::hypergraph::parallel_hypergraph;
 
 void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
                       int *&vWeights, int *&hEdgeWts, int *&pinList,

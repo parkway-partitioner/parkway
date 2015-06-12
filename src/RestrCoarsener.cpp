@@ -23,7 +23,7 @@ RestrCoarsener::RestrCoarsener(int min, int maxWt, double ratio, int dispL)
 
 RestrCoarsener::~RestrCoarsener() {}
 
-hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
+serial_hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
                                                   int *coarsePartVector,
                                                   int numCoarseVerts,
                                                   int totWt) const {
@@ -46,7 +46,7 @@ hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
   int j;
   int ij;
 
-  hypergraph *newHypergraph = new hypergraph(
+  serial_hypergraph *newHypergraph = new serial_hypergraph(
       coarseWts, coarsePartVector, numCoarseVerts, partitionCutsizes[0]);
 
   dynamic_array<int> *newHedgeOffsets = new dynamic_array<int>(1024);

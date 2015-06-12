@@ -36,7 +36,7 @@ void InitBisector::dispInitBisectorOptions(ostream &out) const {
   }
 }
 
-void InitBisector::initBisect(hypergraph &h) {
+void InitBisector::initBisect(serial_hypergraph &h) {
   int i;
 
   int gain;

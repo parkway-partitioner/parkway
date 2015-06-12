@@ -27,7 +27,7 @@ public:
                    int dL);
   ~RestrFCCoarsener();
 
-  hypergraph *coarsen(const hypergraph &h);
+  serial_hypergraph *coarsen(const serial_hypergraph &h);
 
   void dispCoarsenerOptions(ostream &out) const;
 

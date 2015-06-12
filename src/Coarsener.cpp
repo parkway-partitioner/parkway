@@ -22,7 +22,7 @@ Coarsener::Coarsener(int min, int maxwt, double ratio, int dispL)
 
 Coarsener::~Coarsener() {}
 
-hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
+serial_hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
                                              int totWt) const {
 
   int numNewHedges = 0;
@@ -44,7 +44,7 @@ hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
   int j;
   int ij;
 
-  hypergraph *newHypergraph = new hypergraph(coarseWts, numCoarseVerts);
+  serial_hypergraph *newHypergraph = new serial_hypergraph(coarseWts, numCoarseVerts);
 
   dynamic_array<int> *newHedgeOffsets = new dynamic_array<int>(1024);
   dynamic_array<int> *newPinList = new dynamic_array<int>(1024);
