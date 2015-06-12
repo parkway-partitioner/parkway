@@ -27,45 +27,21 @@
 #include "global_communicator.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-class ParaHypergraph : public global_communicator {
- protected:
-  int indexInSequence;
-  int doNotCoarsen;
-  int numTotalVertices;
-  int numLocalVertices;
-  int numLocalPins;
-  int numLocalHedges;
-  int minVertexIndex;
-  int localVertexWt;
-  int numPartitions;
-
-  parkway::data_structures::dynamic_array<int> vWeight;
-  parkway::data_structures::dynamic_array<int> matchVector;
-
-  parkway::data_structures::dynamic_array<int> partitionVector;
-  parkway::data_structures::dynamic_array<int> partitionOffsetsVector;
-  parkway::data_structures::dynamic_array<int> partitionCutsizesVector;
-
-  parkway::data_structures::dynamic_array<int> localPins;
-  parkway::data_structures::dynamic_array<int> hEdgeOffsets;
-  parkway::data_structures::dynamic_array<int> hEdgeWeights;
-
-  parkway::data_structures::dynamic_array<int> vToOrigV;
-
+class parallel_hypergraph : public global_communicator {
 public:
-  ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
+  parallel_hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int *wtArray);
-  ParaHypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
+  parallel_hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int cut, int *wtArray,
                  int *partArray);
-  ParaHypergraph(int myRank, int nProcs, const char *filename, int dispOption,
+  parallel_hypergraph(int myRank, int nProcs, const char *filename, int dispOption,
                  std::ostream &out, MPI_Comm comm);
-  ParaHypergraph(int myRank, int nProcs, int numLocVerts, int numLocHedges,
+  parallel_hypergraph(int myRank, int nProcs, int numLocVerts, int numLocHedges,
                  int maxHedgeLen, const int *vWeights, const int *hEdgeWts,
                  const int *locPinList, const int *hEdgeOffsets, int dispOption,
                  std::ostream &out, MPI_Comm comm);
 
-  ~ParaHypergraph();
+  ~parallel_hypergraph();
 
   void hypergraphFromFile(const char *filename, int dispOption,
                           std::ostream &out, MPI_Comm comm);
@@ -73,9 +49,9 @@ public:
                              std::ostream &out, MPI_Comm comm);
 
   void allocHedgeMem(int numHedges, int numLocPins);
-  void contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm);
-  void contractRestrHyperedges(ParaHypergraph &coarse, MPI_Comm comm);
-  void projectPartitions(ParaHypergraph &coarse, MPI_Comm comm);
+  void contractHyperedges(parallel_hypergraph &coarse, MPI_Comm comm);
+  void contractRestrHyperedges(parallel_hypergraph &coarse, MPI_Comm comm);
+  void projectPartitions(parallel_hypergraph &coarse, MPI_Comm comm);
   void resetVectors();
 
   void removeBadPartitions(double cutThreshold);
@@ -93,14 +69,13 @@ public:
   void shuffleVerticesByPartition(int nParts, MPI_Comm comm);
   void randomVertexShuffle(MPI_Comm comm);
   void randomVertexShuffle(int *mapToOrigV, MPI_Comm comm);
-  // void randomVertexShuffle(int *mapToInterV, int *mapToOrigV, MPI_Comm comm);
-  void randomVertexShuffle(ParaHypergraph &fineG, MPI_Comm comm);
+  void randomVertexShuffle(parallel_hypergraph &fineG, MPI_Comm comm);
 
   void shuffleVertices(int *vToProc, int *locVPerProc, MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc, int *mapToOrigV,
                                 MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc,
-                                ParaHypergraph &fineG, MPI_Comm comm);
+                                parallel_hypergraph &fineG, MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc,
                                 int *mapToInterV, int *mapToOrigV,
                                 MPI_Comm comm);
@@ -196,6 +171,37 @@ public:
 #endif
     return partitionCutsizesVector[i];
   }
+ protected:
+  int indexInSequence;
+  int doNotCoarsen;
+
+  int numTotalVertices;
+  int numLocalVertices;
+
+  int numLocalPins;
+  int numLocalHedges;
+
+  int minVertexIndex;
+  int localVertexWt;
+
+  int numPartitions;
+
+  parkway::data_structures::dynamic_array<int> vWeight;
+  parkway::data_structures::dynamic_array<int> matchVector;
+
+  parkway::data_structures::dynamic_array<int> partitionVector;
+  parkway::data_structures::dynamic_array<int> partitionOffsetsVector;
+  parkway::data_structures::dynamic_array<int> partitionCutsizesVector;
+
+  parkway::data_structures::dynamic_array<int> localPins;
+  parkway::data_structures::dynamic_array<int> hEdgeOffsets;
+  parkway::data_structures::dynamic_array<int> hEdgeWeights;
+
+  parkway::data_structures::dynamic_array<int> vToOrigV;
+
+
+
+
 };
 
 #endif

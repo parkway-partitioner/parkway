@@ -19,7 +19,7 @@ WebGraphSeqController::WebGraphSeqController(int rank, int nProcs, int nParts,
 
 WebGraphSeqController::~WebGraphSeqController() {}
 
-void WebGraphSeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
+void WebGraphSeqController::initCoarsestHypergraph(parallel_hypergraph &hgraph,
                                                    MPI_Comm comm) {
   /***********************
 
@@ -169,7 +169,7 @@ vertices.
     h->print_characteristics(out_stream);
 }
 
-void WebGraphSeqController::initSeqPartitions(ParaHypergraph &hgraph,
+void WebGraphSeqController::initSeqPartitions(parallel_hypergraph &hgraph,
                                               MPI_Comm comm) {
   int i;
   int j;

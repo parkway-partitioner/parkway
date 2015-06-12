@@ -25,17 +25,17 @@
 
 namespace Utils {
 ParaCoarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
-                                  double constraint, ParaHypergraph *h,
+                                  double constraint, parallel_hypergraph *h,
                                   ostream &out, const int *options,
                                   MPI_Comm comm);
 
 ParaRestrCoarsener *buildParaRestrCoarsener(int myRank, int numProc,
                                             int numParts, double constraint,
-                                            ParaHypergraph *h, ostream &out,
+                                            parallel_hypergraph *h, ostream &out,
                                             const int *options, MPI_Comm comm);
 
 ParaRefiner *buildParaRefiner(int myRank, int numProc, int numParts,
-                              double constraint, ParaHypergraph *h,
+                              double constraint, parallel_hypergraph *h,
                               ostream &out, const int *options, MPI_Comm comm);
 
 SeqController *buildSeqController(int myRank, int numProc, int numParts,

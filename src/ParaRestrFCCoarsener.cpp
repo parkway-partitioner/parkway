@@ -61,7 +61,7 @@ void ParaRestrFCCoarsener::releaseMemory() {
   free_memory();
 }
 
-ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
+parallel_hypergraph *ParaRestrFCCoarsener::coarsen(parallel_hypergraph &h,
                                               MPI_Comm comm) {
   loadHyperGraph(h, comm);
 

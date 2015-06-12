@@ -22,7 +22,7 @@ ParaRefiner::ParaRefiner(int rank, int nProcs, int nParts, std::ostream &out)
 
 ParaRefiner::~ParaRefiner() {}
 
-void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
+void ParaRefiner::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) {
   int i;
   int ij;
   int vertsPerProc;
@@ -471,7 +471,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   }
 }
 
-void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
+void ParaRefiner::initPartitionStructs(const parallel_hypergraph &h, MPI_Comm comm) {
   loadHyperGraph(h, comm);
 
   // ###

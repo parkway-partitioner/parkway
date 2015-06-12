@@ -23,7 +23,7 @@
 //
 // ###
 
-#include "ParaHypergraph.hpp"
+#include "parallel_hypergraph.hpp"
 #include "data_structures/bit_field.hpp"
 #include "data_structures/complete_binary_tree.hpp"
 #include "data_structures/map_from_pos_int.hpp"
@@ -32,7 +32,7 @@
 
 namespace ds = parkway::data_structures;
 
-ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
+parallel_hypergraph::parallel_hypergraph(int rank_, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
                                int *wtArray)
     : global_communicator(rank_, nProcs),
@@ -53,7 +53,7 @@ ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
   }
 }
 
-ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
+parallel_hypergraph::parallel_hypergraph(int rank_, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
                                int cut, int *wtArray, int *partArray)
     : global_communicator(rank_, nProcs),
@@ -81,13 +81,13 @@ ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
   }
 }
 
-ParaHypergraph::ParaHypergraph(int rank_, int nProcs, const char *filename,
+parallel_hypergraph::parallel_hypergraph(int rank_, int nProcs, const char *filename,
                                int dispOption, std::ostream &out, MPI_Comm comm)
     : global_communicator(rank_, nProcs) {
   hypergraphFromFile(filename, dispOption, out, comm);
 }
 
-ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int numLocVerts,
+parallel_hypergraph::parallel_hypergraph(int rank_, int nProcs, int numLocVerts,
                                int numLocHedges, int maxHedgeLen,
                                const int *vWeights, const int *hEdgeWts,
                                const int *locPinList, const int *offsets,
@@ -167,9 +167,9 @@ ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int numLocVerts,
 #endif
 }
 
-ParaHypergraph::~ParaHypergraph() {}
+parallel_hypergraph::~parallel_hypergraph() {}
 
-void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
+void parallel_hypergraph::hypergraphFromFile(const char *filename, int dispOption,
                                         std::ostream &out, MPI_Comm comm) {
   int buffer[3];
   int numHedgesInFile;
@@ -335,7 +335,7 @@ void ParaHypergraph::hypergraphFromFile(const char *filename, int dispOption,
 #endif
 }
 
-void ParaHypergraph::initPartitionFromFile(const char *filename, int numParts,
+void parallel_hypergraph::initPartitionFromFile(const char *filename, int numParts,
                                            std::ostream &out, MPI_Comm comm) {
   int i;
   int myOffset;
@@ -384,7 +384,7 @@ void ParaHypergraph::initPartitionFromFile(const char *filename, int numParts,
   partitionCutsizesVector[0] = calcCutsize(numParts, 0, comm);
 }
 
-void ParaHypergraph::allocHedgeMem(int numHedges, int numLocPins) {
+void parallel_hypergraph::allocHedgeMem(int numHedges, int numLocPins) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numLocalHedges == numHedges);
   assert(numLocalPins == numLocPins);
@@ -395,7 +395,7 @@ void ParaHypergraph::allocHedgeMem(int numHedges, int numLocPins) {
   localPins.reserve(numLocPins);
 }
 
-void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
+void parallel_hypergraph::contractHyperedges(parallel_hypergraph &coarse, MPI_Comm comm) {
   int vFinePerProc;
   int maxLocalVertex = minVertexIndex + numLocalVertices;
   int totalToSend;
@@ -823,7 +823,7 @@ void ParaHypergraph::contractHyperedges(ParaHypergraph &coarse, MPI_Comm comm) {
     cPins[i] = coarseLocalPins[i];
 }
 
-void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
+void parallel_hypergraph::contractRestrHyperedges(parallel_hypergraph &coarse,
                                              MPI_Comm comm) {
   int maxLocalVertex = minVertexIndex + numLocalVertices;
   int totalToSend;
@@ -1227,7 +1227,7 @@ void ParaHypergraph::contractRestrHyperedges(ParaHypergraph &coarse,
     cPins[i] = coarseLocalPins[i];
 }
 
-void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
+void parallel_hypergraph::projectPartitions(parallel_hypergraph &coarse, MPI_Comm comm) {
   int totCoarseV = coarse.getNumTotalVertices();
   int numLocCoarseV = coarse.getNumLocalVertices();
   int minCoarseVindex = coarse.getMinVertexIndex();
@@ -1444,7 +1444,7 @@ void ParaHypergraph::projectPartitions(ParaHypergraph &coarse, MPI_Comm comm) {
 #endif
 }
 
-void ParaHypergraph::resetVectors() {
+void parallel_hypergraph::resetVectors() {
   int i;
 
   for (i = 0; i < numLocalVertices; ++i)
@@ -1460,7 +1460,7 @@ void ParaHypergraph::resetVectors() {
   free_memory();
 }
 
-void ParaHypergraph::removeBadPartitions(double cutThreshold) {
+void parallel_hypergraph::removeBadPartitions(double cutThreshold) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions > 0);
 #endif
@@ -1525,16 +1525,14 @@ void ParaHypergraph::removeBadPartitions(double cutThreshold) {
   numPartitions = numNewPartitions;
 }
 
-void ParaHypergraph::setNumberPartitions(int nP) {
-  int i;
-  int j = 0;
-
+void parallel_hypergraph::setNumberPartitions(int nP) {
   numPartitions = nP;
 
   partitionCutsizesVector.reserve(nP);
   partitionOffsetsVector.reserve(nP + 1);
 
-  for (i = 0; i <= numPartitions; ++i) {
+  int j = 0;
+  for (int i = 0; i <= numPartitions; ++i) {
     partitionOffsetsVector[i] = j;
     j += numLocalVertices;
   }
@@ -1542,7 +1540,7 @@ void ParaHypergraph::setNumberPartitions(int nP) {
   partitionVector.reserve(partitionOffsetsVector[numPartitions]);
 }
 
-void ParaHypergraph::computePartitionChars(int pNum, int numParts,
+void parallel_hypergraph::computePartitionChars(int pNum, int numParts,
                                            double constraint, std::ostream &out,
                                            MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
@@ -1604,7 +1602,7 @@ void ParaHypergraph::computePartitionChars(int pNum, int numParts,
   MPI_Barrier(comm);
 }
 
-void ParaHypergraph::copyInPartition(const int *partition, int numV,
+void parallel_hypergraph::copyInPartition(const int *partition, int numV,
                                      int nP) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numLocalVertices == numV);
@@ -1620,7 +1618,7 @@ void ParaHypergraph::copyInPartition(const int *partition, int numV,
     partitionVector[i] = partition[i - startOffset];
 }
 
-void ParaHypergraph::copyOutPartition(int *partition, int numV,
+void parallel_hypergraph::copyOutPartition(int *partition, int numV,
                                       int nP) const {
 #ifdef DEBUG_HYPERGRAPH
   assert(numLocalVertices == numV);
@@ -1636,7 +1634,7 @@ void ParaHypergraph::copyOutPartition(int *partition, int numV,
     partition[i] = partitionVector[i - startOffset];
 }
 
-int ParaHypergraph::keepBestPartition() {
+int parallel_hypergraph::keepBestPartition() {
   int i;
   int bestOffset;
 
@@ -1664,7 +1662,7 @@ int ParaHypergraph::keepBestPartition() {
   return bestCut;
 }
 
-void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
+void parallel_hypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
                                              MPI_Comm comm) {
   prescribedVertexShuffle(prescArray, numLocalVertices, comm);
   shiftVerticesToBalance(comm);
@@ -1798,7 +1796,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *mapToOrigV, int *prescArray,
     DynaMem::deletePtr<dynamic_array<int> >(askingVertices[i]);
 }
 
-void ParaHypergraph::prescribedVertexShuffle(int *prescribedAssignment,
+void parallel_hypergraph::prescribedVertexShuffle(int *prescribedAssignment,
                                              int nLocVer, MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numLocalVertices == nLocVer);
@@ -1821,7 +1819,7 @@ void ParaHypergraph::prescribedVertexShuffle(int *prescribedAssignment,
   shuffleVertices(prescribedAssignment, localVPerProc.data(), comm);
 }
 
-void ParaHypergraph::shuffleVerticesByPartition(int nParts, MPI_Comm comm) {
+void parallel_hypergraph::shuffleVerticesByPartition(int nParts, MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions > 0);
   assert(Mod(nParts, processors_) == 0);
@@ -1847,7 +1845,7 @@ void ParaHypergraph::shuffleVerticesByPartition(int nParts, MPI_Comm comm) {
   shuffleVertices(vToProc.data(), localVPerProc.data(), comm);
 }
 
-void ParaHypergraph::randomVertexShuffle(MPI_Comm comm) {
+void parallel_hypergraph::randomVertexShuffle(MPI_Comm comm) {
   int numVerticesEvenlyAllocated;
   int numSpareVertices;
   int totSpareVertices;
@@ -1920,7 +1918,7 @@ void ParaHypergraph::randomVertexShuffle(MPI_Comm comm) {
   shuffleVertices(vToProc.data(), localVPerProc.data(), comm);
 }
 
-void ParaHypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
+void parallel_hypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
   int numVerticesEvenlyAllocated;
   int numSpareVertices;
   int totSpareVertices;
@@ -1998,7 +1996,7 @@ void ParaHypergraph::randomVertexShuffle(int *mapToOrigV, MPI_Comm comm) {
                            mapToOrigV, comm);
 }
 
-void ParaHypergraph::randomVertexShuffle(ParaHypergraph &fG, MPI_Comm comm) {
+void parallel_hypergraph::randomVertexShuffle(parallel_hypergraph &fG, MPI_Comm comm) {
   int numVerticesEvenlyAllocated;
   int numSpareVertices;
   int totSpareVertices;
@@ -2076,7 +2074,7 @@ void ParaHypergraph::randomVertexShuffle(ParaHypergraph &fG, MPI_Comm comm) {
                            comm);
 }
 
-void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
+void parallel_hypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
                                      MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions == 0 || numPartitions == 1);
@@ -2416,7 +2414,7 @@ void ParaHypergraph::shuffleVertices(int *vToProc, int *localVPerProc,
   }
 }
 
-void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
+void parallel_hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
                                               int *mapToOrigV, MPI_Comm comm) {
   /* assume that same number of vertices will remain on each processor */
 
@@ -2761,7 +2759,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 }
 
-void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
+void parallel_hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
                                               int *mapToInterV, int *mapToOrigV,
                                               MPI_Comm comm) {
   /* assume that same number of vertices will remain on each processor */
@@ -3104,8 +3102,8 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 }
 
-void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
-                                              ParaHypergraph &fineG,
+void parallel_hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
+                                              parallel_hypergraph &fineG,
                                               MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions > 0);
@@ -3490,7 +3488,7 @@ void ParaHypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 }
 
-void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
+void parallel_hypergraph::shiftVerticesToBalance(MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions == 0);
 #endif
@@ -3625,7 +3623,7 @@ void ParaHypergraph::shiftVerticesToBalance(MPI_Comm comm) {
   }
 }
 
-int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
+int parallel_hypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions > 0);
   assert(pNum >= 0 && pNum < numPartitions);
@@ -3861,7 +3859,7 @@ int ParaHypergraph::calcCutsize(int numParts, int pNum, MPI_Comm comm) {
   return totCutsize;
 }
 
-int ParaHypergraph::checkBalance(int numParts, double balConstraint,
+int parallel_hypergraph::checkBalance(int numParts, double balConstraint,
                                  int numPartition, MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(0 < balConstraint && balConstraint < 0.5);
@@ -3899,13 +3897,13 @@ int ParaHypergraph::checkBalance(int numParts, double balConstraint,
   return -1;
 }
 
-int ParaHypergraph::computeTotalNumPins(MPI_Comm comm) {
+int parallel_hypergraph::computeTotalNumPins(MPI_Comm comm) {
   int totalPins;
   MPI_Allreduce(&numLocalPins, &totalPins, 1, MPI_INT, MPI_SUM, comm);
   return totalPins;
 }
 
-void ParaHypergraph::checkValidityOfPartitions(int numP) const {
+void parallel_hypergraph::checkValidityOfPartitions(int numP) const {
 #ifdef DEBUG_HYPERGRAPH
   assert(numPartitions > 0);
 #endif
@@ -3917,7 +3915,7 @@ void ParaHypergraph::checkValidityOfPartitions(int numP) const {
     assert(partitionVector[i] >= 0 && partitionVector[i] < numP);
 }
 
-void ParaHypergraph::checkPartitions(int numParts, int maxPartWt,
+void parallel_hypergraph::checkPartitions(int numParts, int maxPartWt,
                                      MPI_Comm comm) {
   int i;
   int j;
@@ -3949,7 +3947,7 @@ void ParaHypergraph::checkPartitions(int numParts, int maxPartWt,
   }
 }
 
-void ParaHypergraph::checkPartitions(int numParts, double constraint,
+void parallel_hypergraph::checkPartitions(int numParts, double constraint,
                                      std::ostream &out, MPI_Comm comm) {
   int i;
   int j;
@@ -4017,7 +4015,7 @@ void ParaHypergraph::checkPartitions(int numParts, double constraint,
   }
 }
 
-void ParaHypergraph::computeBalanceWarning(int numParts, double constraint,
+void parallel_hypergraph::computeBalanceWarning(int numParts, double constraint,
                                            std::ostream &out, MPI_Comm comm) {
   int i;
 
@@ -4046,7 +4044,7 @@ void ParaHypergraph::computeBalanceWarning(int numParts, double constraint,
   }
 }
 
-int ParaHypergraph::getNumTotPins(MPI_Comm comm) {
+int parallel_hypergraph::getNumTotPins(MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numLocalPins > 0);
 #endif
@@ -4056,7 +4054,7 @@ int ParaHypergraph::getNumTotPins(MPI_Comm comm) {
   return totPins;
 }
 
-int ParaHypergraph::getNumTotHedges(MPI_Comm comm) {
+int parallel_hypergraph::getNumTotHedges(MPI_Comm comm) {
 #ifdef DEBUG_HYPERGRAPH
   assert(numLocalHedges > 0);
 #endif
@@ -4066,7 +4064,7 @@ int ParaHypergraph::getNumTotHedges(MPI_Comm comm) {
   return totHedges;
 }
 
-int ParaHypergraph::getExposedHedgeWt(MPI_Comm comm) const {
+int parallel_hypergraph::getExposedHedgeWt(MPI_Comm comm) const {
   int i;
   int ij = 0;
   int totWt;
@@ -4079,20 +4077,20 @@ int ParaHypergraph::getExposedHedgeWt(MPI_Comm comm) const {
   return totWt;
 }
 
-double ParaHypergraph::getAveVertDeg(MPI_Comm comm) {
+double parallel_hypergraph::getAveVertDeg(MPI_Comm comm) {
   int totPins = getNumTotPins(comm);
 
   return (static_cast<double>(totPins) / numTotalVertices);
 }
 
-double ParaHypergraph::getAveHedgeSize(MPI_Comm comm) {
+double parallel_hypergraph::getAveHedgeSize(MPI_Comm comm) {
   int totPins = getNumTotPins(comm);
   int totHedges = getNumTotHedges(comm);
 
   return (static_cast<double>(totPins) / totHedges);
 }
 
-int ParaHypergraph::computeNonConnectedVerts(MPI_Comm comm) {
+int parallel_hypergraph::computeNonConnectedVerts(MPI_Comm comm) {
   ds::bit_field connected(numTotalVertices);
   connected.unset();
 

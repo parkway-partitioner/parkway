@@ -1,4 +1,3 @@
-
 #ifndef _PARKWAY_CPP
 #define _PARKWAY_CPP
 
@@ -42,7 +41,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 
   std::ostream *output;
 
-  ParaHypergraph *hgraph = nullptr;
+  parallel_hypergraph *hgraph = nullptr;
   ParaCoarsener *coarsener = nullptr;
   ParaRestrCoarsener *restrC = nullptr;
   ParaRefiner *refiner = nullptr;
@@ -106,7 +105,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
     Funct::printIntro(*output);
   }
 
-  hgraph = new ParaHypergraph(my_rank, num_procs, file_name, disp_option,
+  hgraph = new parallel_hypergraph(my_rank, num_procs, file_name, disp_option,
                               *output, comm);
 
   if (!hgraph) {
@@ -183,7 +182,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
   DynaMem::deletePtr<ParaCoarsener>(coarsener);
   DynaMem::deletePtr<ParaRefiner>(refiner);
-  DynaMem::deletePtr<ParaHypergraph>(hgraph);
+  DynaMem::deletePtr<parallel_hypergraph>(hgraph);
 
   if (out_file) {
     DynaMem::deletePtr<std::ostream>(output);
@@ -216,7 +215,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   int i;
   int j;
 
-  ParaHypergraph *hgraph = nullptr;
+  parallel_hypergraph *hgraph = nullptr;
   ParaCoarsener *coarsener = nullptr;
   ParaRestrCoarsener *restrC = nullptr;
   ParaRefiner *refiner = nullptr;
@@ -282,7 +281,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   if (my_rank == 0 && disp_option > 0)
     Funct::printIntro(*output);
 
-  hgraph = new ParaHypergraph(my_rank, num_procs, numVertices, numHedges,
+  hgraph = new parallel_hypergraph(my_rank, num_procs, numVertices, numHedges,
                               globMaxHedgeLen, vWeights, hEdgeWts, pinList,
                               offsets, disp_option, *output, comm);
 
@@ -354,7 +353,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
   DynaMem::deletePtr<ParaCoarsener>(coarsener);
   DynaMem::deletePtr<ParaRefiner>(refiner);
-  DynaMem::deletePtr<ParaHypergraph>(hgraph);
+  DynaMem::deletePtr<parallel_hypergraph>(hgraph);
 
   if (out_file)
     DynaMem::deletePtr<std::ostream>(output);

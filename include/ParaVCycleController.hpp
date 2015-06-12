@@ -48,15 +48,15 @@ public:
   void setWeightConstraints(MPI_Comm comm);
   void dispParaControllerOptions() const;
 
-  void recordVCyclePartition(const ParaHypergraph &h, int numIteration);
-  void gatherInVCyclePartition(ParaHypergraph &h, int cut, MPI_Comm comm);
+  void recordVCyclePartition(const parallel_hypergraph &h, int numIteration);
+  void gatherInVCyclePartition(parallel_hypergraph &h, int cut, MPI_Comm comm);
 
-  void projectVCyclePartition(ParaHypergraph &cG, ParaHypergraph &fG,
+  void projectVCyclePartition(parallel_hypergraph &cG, parallel_hypergraph &fG,
                               MPI_Comm comm);
-  void shuffleVCycleVertsByPartition(ParaHypergraph &h, MPI_Comm comm);
+  void shuffleVCycleVertsByPartition(parallel_hypergraph &h, MPI_Comm comm);
   // void randomVCycleVertShuffle(ParaHypergraph &h, ParaHypergraph &fineH,
   // MPI_Comm comm);
-  void shiftVCycleVertsToBalance(ParaHypergraph &h, MPI_Comm comm);
+  void shiftVCycleVertsToBalance(parallel_hypergraph &h, MPI_Comm comm);
   void updateMapToOrigVerts(MPI_Comm comm);
   void resetStructs();
 };

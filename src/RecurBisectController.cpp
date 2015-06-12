@@ -132,7 +132,7 @@ void RecurBisectController::convToBisectionConstraints() {
   partitionVector.reserve(partitionVectorOffsets[numMyPartitions]);
 }
 
-void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
+void RecurBisectController::runSeqPartitioner(parallel_hypergraph &hgraph,
                                               MPI_Comm comm) {
   initCoarsestHypergraph(hgraph, comm);
   convToBisectionConstraints();
@@ -248,7 +248,7 @@ void RecurBisectController::runSeqPartitioner(ParaHypergraph &hgraph,
   DynaMem::deletePtr<hypergraph>(h);
 }
 
-void RecurBisectController::initSeqPartitions(ParaHypergraph &hgraph,
+void RecurBisectController::initSeqPartitions(parallel_hypergraph &hgraph,
                                               MPI_Comm comm) {
   int i;
   int j;

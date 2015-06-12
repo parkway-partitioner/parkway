@@ -68,8 +68,8 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
   numOrigLocVerts = hgraph->getNumLocalVertices();
 
-  ParaHypergraph *coarseGraph;
-  ParaHypergraph *finerGraph;
+  parallel_hypergraph *coarseGraph;
+  parallel_hypergraph *finerGraph;
 
   initMapToOrigVerts();
 
@@ -198,7 +198,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
 
-      DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
+      DynaMem::deletePtr<parallel_hypergraph>(coarseGraph);
       coarseGraph = finerGraph;
     }
 

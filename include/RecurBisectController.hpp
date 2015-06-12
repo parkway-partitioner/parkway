@@ -56,8 +56,8 @@ public:
   void dispSeqControllerOptions() const;
   void convToBisectionConstraints();
 
-  void runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm);
-  void initSeqPartitions(ParaHypergraph &hgraph, MPI_Comm comm);
+  void runSeqPartitioner(parallel_hypergraph &hgraph, MPI_Comm comm);
+  void initSeqPartitions(parallel_hypergraph &hgraph, MPI_Comm comm);
   void recursivelyBisect(const Bisection &b, MPI_Comm comm);
 
   void splitBisection(const Bisection &b, Bisection *&newB,

@@ -96,7 +96,7 @@ void ParaVCycleController::setWeightConstraints(MPI_Comm comm) {
   seqController.setMaxVertexWt(maxVertWt);
 }
 
-void ParaVCycleController::recordVCyclePartition(const ParaHypergraph &h,
+void ParaVCycleController::recordVCyclePartition(const parallel_hypergraph &h,
                                                  int numIteration) {
 #ifdef DEBUG_CONTROLLER
   assert(numIteration >= 0);
@@ -154,7 +154,7 @@ void ParaVCycleController::recordVCyclePartition(const ParaHypergraph &h,
 #endif
 }
 
-void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
+void ParaVCycleController::gatherInVCyclePartition(parallel_hypergraph &h, int cut,
                                                    MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
   assert(minLocCurrVertId.getNumElem() > 0);
@@ -311,8 +311,8 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
   DynaMem::deletePtr<IntArray>(bestPartVector);
 }
 
-void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
-                                                  ParaHypergraph &fG,
+void ParaVCycleController::projectVCyclePartition(parallel_hypergraph &cG,
+                                                  parallel_hypergraph &fG,
                                                   MPI_Comm comm) {
   // function spec:
   // if mapToInterVerts is empty (i.e. the map to the
@@ -601,7 +601,7 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     mapToInterVerts[i] = minInterVertIndex + i;
 }
 
-void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
+void ParaVCycleController::shuffleVCycleVertsByPartition(parallel_hypergraph &h,
                                                          MPI_Comm comm) {
   // function spec:
   // as the vertices are shuffled modify the mapToInterVerts
@@ -935,7 +935,7 @@ send_displs_.getArray(), MPI_INT, comm);
 }
 */
 
-void ParaVCycleController::shiftVCycleVertsToBalance(ParaHypergraph &h,
+void ParaVCycleController::shiftVCycleVertsToBalance(parallel_hypergraph &h,
                                                      MPI_Comm comm) {
   // function spec:
   // as the vertices are shuffled modify the mapToInterVerts

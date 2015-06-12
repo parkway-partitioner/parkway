@@ -17,7 +17,7 @@ using namespace std;
 
 ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                          int num_parts, double constraint,
-                                         ParaHypergraph *h, ostream &out,
+                                         parallel_hypergraph *h, ostream &out,
                                          const int *options, MPI_Comm comm) {
   ParaCoarsener *c = nullptr;
 
@@ -111,7 +111,7 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
 
 ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
     int my_rank, int num_proc, int num_parts, double constraint,
-    ParaHypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
+    parallel_hypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
   int coarsener_type = ParaRestFCC;
   int min_nodes = options[8];
   int disp_option = options[2];
@@ -161,7 +161,7 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
 }
 
 ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
-                                     double constraint, ParaHypergraph *h,
+                                     double constraint, parallel_hypergraph *h,
                                      ostream &out, const int *options,
                                      MPI_Comm comm) {
   int refiner_type = ParaGreedyKway;

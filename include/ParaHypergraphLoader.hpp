@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "ParaHypergraph.hpp"
+#include "parallel_hypergraph.hpp"
 
 #include <iostream>
 #include "data_structures/bit_field.hpp"
@@ -60,7 +60,7 @@ class ParaHypergraphLoader : public global_communicator {
 
   virtual ~ParaHypergraphLoader();
   virtual void releaseMemory() = 0;
-  virtual void loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) = 0;
+  virtual void loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) = 0;
 
   void computeHedgesToLoad(bit_field &toLoad, int numH, int numLocalPins,
                            int *hEdgeWts, int *hEdgeOffsets, MPI_Comm comm);

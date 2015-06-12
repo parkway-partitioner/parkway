@@ -39,16 +39,16 @@ public:
   ParaCoarsener(int _rank, int _numProcs, int _numParts, std::ostream &out);
 
   virtual ~ParaCoarsener();
-  virtual ParaHypergraph *coarsen(ParaHypergraph &h, MPI_Comm comm) = 0;
+  virtual parallel_hypergraph *coarsen(parallel_hypergraph &h, MPI_Comm comm) = 0;
   virtual void setClusterIndices(MPI_Comm comm) = 0;
   virtual void releaseMemory() = 0;
   virtual void dispCoarseningOptions() const = 0;
   virtual void buildAuxiliaryStructs(int numTotPins, double aveVertDeg,
                                      double aveHedgeSize) = 0;
 
-  void loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm);
+  void loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm);
 
-  ParaHypergraph *contractHyperedges(ParaHypergraph &h, MPI_Comm comm);
+  parallel_hypergraph *contractHyperedges(parallel_hypergraph &h, MPI_Comm comm);
 
   inline void setReductionRatio(double ratio) {
     reductionRatio = ratio;

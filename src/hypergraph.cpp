@@ -15,7 +15,7 @@
 #include <cmath>
 
 hypergraph::hypergraph(int *vWts, int numVerts)
-    : number_of_vertices_(numVerts) {
+    : parkway::hypergraph::base_hypergraph(numVerts) {
 
   match_vector_.reserve(number_of_vertices_);
   vertex_weights_.set_data(vWts, number_of_vertices_);

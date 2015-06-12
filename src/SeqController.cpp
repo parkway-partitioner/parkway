@@ -34,7 +34,7 @@ SeqController::SeqController(int rank, int nProcs, int nParts, ostream &out)
 
 SeqController::~SeqController() { DynaMem::deletePtr<hypergraph>(h); }
 
-void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
+void SeqController::initCoarsestHypergraph(parallel_hypergraph &hgraph,
                                            MPI_Comm comm) {
   int i;
   int j;
@@ -159,7 +159,7 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
     h->print_characteristics(out_stream);
 }
 
-void SeqController::initSeqPartitions(ParaHypergraph &hgraph, MPI_Comm comm) {
+void SeqController::initSeqPartitions(parallel_hypergraph &hgraph, MPI_Comm comm) {
   int i;
   int j;
   int ij;

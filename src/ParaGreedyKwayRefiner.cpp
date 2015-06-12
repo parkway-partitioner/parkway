@@ -132,7 +132,7 @@ void ParaGreedyKwayRefiner::releaseMemory() {
   free_memory();
 }
 
-void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
+void ParaGreedyKwayRefiner::initDataStructs(const parallel_hypergraph &h,
                                             MPI_Comm comm) {
   int i;
   int j;
@@ -331,7 +331,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
 #endif
 }
 
-void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
+void ParaGreedyKwayRefiner::refine(parallel_hypergraph &h, MPI_Comm comm) {
   initDataStructs(h, comm);
 
   int i;
@@ -383,7 +383,7 @@ void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
   resetDataStructs();
 }
 
-int ParaGreedyKwayRefiner::runGreedyKwayRefinement(ParaHypergraph &h, int pNo,
+int ParaGreedyKwayRefiner::runGreedyKwayRefinement(parallel_hypergraph &h, int pNo,
                                                    MPI_Comm comm) {
   int i;
 

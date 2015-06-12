@@ -122,8 +122,8 @@ void error(int myRank, int a, const char *note) {
 void testRecordedPartition(const char *filename, int myRank, int numProcs,
                            int numParts, double constraint, ostream &out,
                            MPI_Comm comm) {
-  ParaHypergraph *h =
-      new ParaHypergraph(myRank, numProcs, filename, 1, out, comm);
+  parallel_hypergraph *h =
+      new parallel_hypergraph(myRank, numProcs, filename, 1, out, comm);
 
   char pFile[512];
   sprintf(pFile, "%s.part.%d", filename, numParts);
@@ -139,8 +139,8 @@ void testRecordedPartition(const char *filename, const int *pVector,
                            int numLocVerts, int myRank, int numProcs,
                            int numParts, double constraint, ostream &out,
                            MPI_Comm comm) {
-  ParaHypergraph *h =
-      new ParaHypergraph(myRank, numProcs, filename, 1, out, comm);
+  parallel_hypergraph *h =
+      new parallel_hypergraph(myRank, numProcs, filename, 1, out, comm);
 
   h->setNumberPartitions(1);
   h->copyInPartition(pVector, numLocVerts, 0);

@@ -56,14 +56,14 @@ public:
   virtual ~ParaRefiner();
   virtual void dispRefinementOptions() const = 0;
   virtual void releaseMemory() = 0;
-  virtual void initDataStructs(const ParaHypergraph &h, MPI_Comm comm) = 0;
+  virtual void initDataStructs(const parallel_hypergraph &h, MPI_Comm comm) = 0;
   virtual void resetDataStructs() = 0;
   virtual void setPartitioningStructs(int pNumber, MPI_Comm comm) = 0;
-  virtual void refine(ParaHypergraph &h, MPI_Comm comm) = 0;
+  virtual void refine(parallel_hypergraph &h, MPI_Comm comm) = 0;
   virtual int computeCutsize(MPI_Comm comm) = 0;
 
-  void loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm);
-  void initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm);
+  void loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm);
+  void initPartitionStructs(const parallel_hypergraph &h, MPI_Comm comm);
 
   inline void setBalConstraint(double b) { balConstraint = b; }
   inline int getMaxPartWt() const { return maxPartWt; }

@@ -71,12 +71,12 @@ class ParaController : public global_communicator {
   dynamic_array<int> bestPartition;
   dynamic_array<int> mapToOrigVerts;
 
-  ParaHypergraph *hgraph;
+  parallel_hypergraph *hgraph;
 
   ParaCoarsener &coarsener;
   ParaRefiner &refiner;
   SeqController &seqController;
-  parkway::data_structures::stack<ParaHypergraph *> hgraphs;
+  parkway::data_structures::stack<parallel_hypergraph *> hgraphs;
 
  public:
   ParaController(ParaCoarsener &c, ParaRefiner &r, SeqController &ref, int rank,
@@ -104,7 +104,7 @@ class ParaController : public global_communicator {
   inline void setKTFactor(double kT) { keepPartitionsWithin = kT; }
   inline void setShuffleVertices(int s) { shuffled = s; }
   inline void setRandShuffBefRef(int s) { randShuffBefRef = s; }
-  inline void setGraph(ParaHypergraph *graph) {
+  inline void setGraph(parallel_hypergraph *graph) {
     hgraph = graph;
     numOrigLocVerts = hgraph->getNumLocalVertices();
   }

@@ -38,7 +38,7 @@ ParaCoarsener::ParaCoarsener(int rank, int nProcs, int nParts, std::ostream &out
 
 ParaCoarsener::~ParaCoarsener() {}
 
-void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
+void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) {
   int i;
   int vertsPerProc;
   int endOffset;
@@ -346,7 +346,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #endif
 }
 
-ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
+parallel_hypergraph *ParaCoarsener::contractHyperedges(parallel_hypergraph &h,
                                                   MPI_Comm comm) {
   int i;
 
@@ -407,8 +407,8 @@ ParaHypergraph *ParaCoarsener::contractHyperedges(ParaHypergraph &h,
 
   myMinCluIndex = minClusterIndex[rank_];
 
-  ParaHypergraph *coarseGraph =
-      new ParaHypergraph(rank_, processors_, numMyClusters, totalClusters,
+  parallel_hypergraph *coarseGraph =
+      new parallel_hypergraph(rank_, processors_, numMyClusters, totalClusters,
                          myMinCluIndex, stopCoarsening, clusterWts->data());
 
   h.contractHyperedges(*coarseGraph, comm);

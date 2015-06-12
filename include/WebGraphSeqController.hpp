@@ -24,10 +24,10 @@ public:
 
   virtual ~WebGraphSeqController();
   virtual void dispSeqControllerOptions() const = 0;
-  virtual void runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm) = 0;
-  virtual void initSeqPartitions(ParaHypergraph &h, MPI_Comm comm);
+  virtual void runSeqPartitioner(parallel_hypergraph &hgraph, MPI_Comm comm) = 0;
+  virtual void initSeqPartitions(parallel_hypergraph &h, MPI_Comm comm);
 
-  void initCoarsestHypergraph(ParaHypergraph &hgraph, MPI_Comm comm);
+  void initCoarsestHypergraph(parallel_hypergraph &hgraph, MPI_Comm comm);
 };
 
 #endif

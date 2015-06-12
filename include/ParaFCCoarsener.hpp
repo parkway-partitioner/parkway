@@ -38,7 +38,7 @@ class ParaFCCoarsener : public ParaCoarsener {
                              double aveHedgeSize);
   void releaseMemory();
 
-  ParaHypergraph *coarsen(ParaHypergraph &h, MPI_Comm comm);
+  parallel_hypergraph *coarsen(parallel_hypergraph &h, MPI_Comm comm);
 
   void setRequestArrays(int highToLow);
   void setReplyArrays(int highToLow, int maxVertexWt);

@@ -42,8 +42,8 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 
   stack<int> hEdgePercentiles;
 
-  ParaHypergraph *coarseGraph;
-  ParaHypergraph *finerGraph;
+  parallel_hypergraph *coarseGraph;
+  parallel_hypergraph *finerGraph;
 
   initMapToOrigVerts();
 
@@ -145,7 +145,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-      DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
+      DynaMem::deletePtr<parallel_hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
@@ -272,7 +272,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
         finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-        DynaMem::deletePtr<ParaHypergraph>(coarseGraph);
+        DynaMem::deletePtr<parallel_hypergraph>(coarseGraph);
 
         coarseGraph = finerGraph;
       }

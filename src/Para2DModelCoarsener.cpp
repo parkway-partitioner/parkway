@@ -82,7 +82,7 @@ void Para2DModelCoarsener::releaseMemory() {
     free_memory();
 }
 
-ParaHypergraph *Para2DModelCoarsener::coarsen(ParaHypergraph &h,
+parallel_hypergraph *Para2DModelCoarsener::coarsen(parallel_hypergraph &h,
                                               MPI_Comm comm) {
   loadHyperGraph(h, comm);
 
@@ -102,7 +102,7 @@ ParaHypergraph *Para2DModelCoarsener::coarsen(ParaHypergraph &h,
   }
 }
 
-ParaHypergraph *Para2DModelCoarsener::ParaFCCoarsen(ParaHypergraph &h,
+parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
                                                     MPI_Comm comm) {
 #ifdef MEM_CHECK
   MPI_Barrier(comm);
@@ -432,7 +432,7 @@ ParaHypergraph *Para2DModelCoarsener::ParaFCCoarsen(ParaHypergraph &h,
   return (contractHyperedges(h, comm));
 }
 
-ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
+parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph &h,
                                                        MPI_Comm comm) {
 #ifdef MEM_CHECK
   MPI_Barrier(comm);

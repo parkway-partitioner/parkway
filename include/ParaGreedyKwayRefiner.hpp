@@ -64,13 +64,13 @@ public:
 
   void dispRefinementOptions() const;
   void releaseMemory();
-  void initDataStructs(const ParaHypergraph &h, MPI_Comm comm);
+  void initDataStructs(const parallel_hypergraph &h, MPI_Comm comm);
   void resetDataStructs();
   void setPartitioningStructs(int pNumber, MPI_Comm comm);
   // void initVertexPartTable(MPI_Comm comm);
-  void refine(ParaHypergraph &h, MPI_Comm comm);
+  void refine(parallel_hypergraph &h, MPI_Comm comm);
 
-  int runGreedyKwayRefinement(ParaHypergraph &h, int pNo, MPI_Comm comm);
+  int runGreedyKwayRefinement(parallel_hypergraph &h, int pNo, MPI_Comm comm);
   int doGreedyPass(int lowToHigh, MPI_Comm comm);
   int computeCutsize(MPI_Comm comm);
 

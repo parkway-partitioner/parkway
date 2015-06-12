@@ -25,7 +25,7 @@ ParaApproxCoarsener::ParaApproxCoarsener(int _rank, int processors,
 
 ParaApproxCoarsener::~ParaApproxCoarsener() {}
 
-void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
+void ParaApproxCoarsener::loadHyperGraph(const parallel_hypergraph &h,
                                          MPI_Comm comm) {
   int i;
   int vertsPerProc;
