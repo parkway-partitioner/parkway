@@ -1,7 +1,3 @@
-
-#ifndef _GLOBAL_COMMUNICATOR_CPP
-#define _GLOBAL_COMMUNICATOR_CPP
-
 // ### GlobalCommunicator.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -15,68 +11,67 @@
 #include "GlobalCommunicator.hpp"
 
 GlobalCommunicator::GlobalCommunicator(const int rank, const int nProcs)
-    : myRank(rank), numProcs(nProcs) {
+    : rank_(rank), processors_(nProcs) {
 
-  dataOutSets.reserve(numProcs);
-  sendLens.reserve(numProcs);
-  recvLens.reserve(numProcs);
-  sendDispls.reserve(numProcs);
-  recvDispls.reserve(numProcs);
+  data_out_sets_.reserve(processors_);
+  send_lens_.reserve(processors_);
+  receive_lens_.reserve(processors_);
+  send_displs_.reserve(processors_);
+  receive_displs_.reserve(processors_);
 
-  for (int i = 0; i < numProcs; ++i)
-    dataOutSets[i] = new dynamic_array<int>(1024);
+  for (int i = 0; i < processors_; ++i) {
+    data_out_sets_[i] = new dynamic_array<int>(1024);
+  }
 }
 
 GlobalCommunicator::~GlobalCommunicator() {
-  for (int i = 0; i < numProcs; ++i) {
-    DynaMem::deletePtr<dynamic_array<int> >(dataOutSets[i]);
+  for (int i = 0; i < processors_; ++i) {
+    DynaMem::deletePtr<dynamic_array<int> >(data_out_sets_[i]);
   }
 }
 
 void GlobalCommunicator::freeMemory() {
-  for (int i = 0; i < numProcs; ++i) {
-    dataOutSets[i]->reserve(0);
+  for (int i = 0; i < processors_; ++i) {
+    data_out_sets_[i]->reserve(0);
   }
 
-  sendArray.reserve(0);
-  receiveArray.reserve(0);
+  send_array_.reserve(0);
+  receive_array_.reserve(0);
 }
 
 void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
   int j = 0;
-  for (int i = 0; i < numProcs; ++i) {
-    sendDispls[i] = j;
+  for (int i = 0; i < processors_; ++i) {
+    send_displs_[i] = j;
 #ifdef DEBUG_BASICS
-    assert(sendLens[i] >= 0);
+    assert(send_lens_[i] >= 0);
 #endif
-    j += sendLens[i];
+    j += send_lens_[i];
   }
 
-  sendArray.reserve(j);
+  send_array_.reserve(j);
 
   int ij = 0;
   int *array;
-  for (int i = 0; i < numProcs; ++i) {
-    array = dataOutSets[i]->data();
-    for (j = 0; j < sendLens[i]; ++j) {
-      sendArray[ij++] = array[j];
+  for (int i = 0; i < processors_; ++i) {
+    array = data_out_sets_[i]->data();
+    for (j = 0; j < send_lens_[i]; ++j) {
+      send_array_[ij++] = array[j];
     }
   }
 
-  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
   j = 0;
-  for (int i = 0; i < numProcs; ++i) {
-    recvDispls[i] = j;
-    j += recvLens[i];
+  for (int i = 0; i < processors_; ++i) {
+    receive_displs_[i] = j;
+    j += receive_lens_[i];
   }
 
-  receiveArray.reserve(j);
+  receive_array_.reserve(j);
 
-  MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, receiveArray.data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 }
-
-#endif

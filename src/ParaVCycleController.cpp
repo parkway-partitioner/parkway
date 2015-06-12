@@ -201,21 +201,21 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
 
   array = bestPartVector->data();
 
-  dynamic_array<int> minStoredIDs(numProcs);
+  dynamic_array<int> minStoredIDs(processors_);
   dynamic_array<int> localSendArrayVerts;
-  dynamic_array<int> procs(numProcs);
+  dynamic_array<int> procs(processors_);
 
   MPI_Allgather(&minStoredVertexIndex, 1, MPI_INT, minStoredIDs.data(), 1,
                 MPI_INT, comm);
 
-  for (i = 0; i < numProcs; ++i)
+  for (i = 0; i < processors_; ++i)
     procs[i] = i;
 
   ds::complete_binary_tree <int> storedVtoProc(procs.data(),
-                                               minStoredIDs.data(), numProcs);
+                                               minStoredIDs.data(), processors_);
 
-  for (i = 0; i < numProcs; ++i)
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i)
+    send_lens_[i] = 0;
 
   for (i = 0; i < numLocalVertices; ++i) {
     origV = myVtoOrigV[i];
@@ -228,31 +228,31 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
     } else {
       j = storedVtoProc.root_value(origV);
 
-      dataOutSets[j]->assign(sendLens[j]++, origV);
-      dataOutSets[j]->assign(sendLens[j]++, i);
+      data_out_sets_[j]->assign(send_lens_[j]++, origV);
+      data_out_sets_[j]->assign(send_lens_[j]++, i);
     }
   }
 
   ij = 0;
 
-  for (i = 0; i < numProcs; ++i) {
-    sendLens[i] = Shiftr(sendLens[i], 1);
-    sendDispls[i] = ij;
-    ij += sendLens[i];
+  for (i = 0; i < processors_; ++i) {
+    send_lens_[i] = Shiftr(send_lens_[i], 1);
+    send_displs_[i] = ij;
+    ij += send_lens_[i];
   }
 
-  sendArray.reserve(ij);
+  send_array_.reserve(ij);
   localSendArrayVerts.reserve(ij);
   totToSend = ij;
 
   j = 0;
 
-  for (i = 0; i < numProcs; ++i) {
-    dataOutArray = dataOutSets[i]->data();
-    arrayLen = Shiftl(sendLens[i], 1);
+  for (i = 0; i < processors_; ++i) {
+    dataOutArray = data_out_sets_[i]->data();
+    arrayLen = Shiftl(send_lens_[i], 1);
 
     for (ij = 0; ij < arrayLen;) {
-      sendArray[j] = dataOutArray[ij++];
+      send_array_[j] = dataOutArray[ij++];
       localSendArrayVerts[j++] = dataOutArray[ij++];
     }
   }
@@ -260,46 +260,46 @@ void ParaVCycleController::gatherInVCyclePartition(ParaHypergraph &h, int cut,
   assert(j == totToSend);
 #endif
 
-  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
   j = 0;
-  for (i = 0; i < numProcs; ++i) {
-    recvDispls[i] = j;
-    j += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = j;
+    j += receive_lens_[i];
   }
 
-  receiveArray.reserve(j);
+  receive_array_.reserve(j);
   totToRecv = j;
 
-  MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, receiveArray.data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   // ###
   // now have received all requests and sent out our requests
   // the reply communication will have the dual dimensions
   // ###
 
-  sendArray.reserve(totToRecv);
+  send_array_.reserve(totToRecv);
 
   for (i = 0; i < totToRecv; ++i) {
 #ifdef DEBUG_CONTROLLER
-    assert(receiveArray[i] >= minStoredVertexIndex &&
-           receiveArray[i] < maxStoredVertexIndex);
+    assert(receive_array_[i] >= minStoredVertexIndex &&
+           receive_array_[i] < maxStoredVertexIndex);
 #endif
 
-    sendArray[i] = array[receiveArray[i] - minStoredVertexIndex];
+    send_array_[i] = array[receive_array_[i] - minStoredVertexIndex];
   }
 
-  receiveArray.reserve(totToSend);
+  receive_array_.reserve(totToSend);
 
-  MPI_Alltoallv(sendArray.data(), recvLens.data(),
-                recvDispls.data(), MPI_INT, receiveArray.data(),
-                sendLens.data(), sendDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
+                receive_displs_.data(), MPI_INT, receive_array_.data(),
+                send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   for (i = 0; i < totToSend; ++i) {
-    myPartVector[localSendArrayVerts[i]] = receiveArray[i];
+    myPartVector[localSendArrayVerts[i]] = receive_array_[i];
   }
 
   h.setCut(0, cut);
@@ -339,8 +339,8 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
 
 #ifdef DEBUG_CONTROLLER
     assert(numLocalCoarseVertices == mapToInterVerts.capacity());
-    if (myRank != numProcs - 1)
-      assert(numLocalCoarseVertices == numTotalCoarseVertices / numProcs);
+    if (rank_ != processors_ - 1)
+      assert(numLocalCoarseVertices == numTotalCoarseVertices / processors_);
 #endif
 
     int *coarsePartVector = cG.getPartVectorArray();
@@ -353,7 +353,7 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     int maxCoarseVertexId = minCoarseVertexId + numLocalCoarseVertices;
 #endif
     int numRequestingLocalVerts;
-    int cVertPerProc = numTotalCoarseVertices / numProcs;
+    int cVertPerProc = numTotalCoarseVertices / processors_;
     int cVertex;
     int vPart;
     int totToRecv;
@@ -366,8 +366,8 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     dynamic_array<int> interGraphPVector(numLocalCoarseVertices);
     dynamic_array<int> requestingLocalVerts;
 
-    for (i = 0; i < numProcs; ++i)
-      sendLens[i] = 0;
+    for (i = 0; i < processors_; ++i)
+      send_lens_[i] = 0;
 
     for (i = 0; i < numLocalCoarseVertices; ++i) {
       cVertex = mapToInterVerts[i];
@@ -378,34 +378,34 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
       assert(vPart >= 0 && vPart < numTotalParts);
 #endif
 
-      ij = min(cVertex / cVertPerProc, numProcs - 1);
+      ij = min(cVertex / cVertPerProc, processors_ - 1);
 
-      if (ij == myRank) {
+      if (ij == rank_) {
         interGraphPVector[cVertex - minCoarseVertexId] = vPart;
       } else {
-        dataOutSets[ij]->assign(sendLens[ij]++, cVertex);
-        dataOutSets[ij]->assign(sendLens[ij]++, vPart);
+        data_out_sets_[ij]->assign(send_lens_[ij]++, cVertex);
+        data_out_sets_[ij]->assign(send_lens_[ij]++, vPart);
       }
     }
 
     ij = 0;
 
-    for (i = 0; i < numProcs; ++i) {
-      sendDispls[i] = ij;
-      ij += sendLens[i];
+    for (i = 0; i < processors_; ++i) {
+      send_displs_[i] = ij;
+      ij += send_lens_[i];
     }
 
-    sendArray.reserve(ij);
+    send_array_.reserve(ij);
     totToSend = ij;
     ij = 0;
 
-    for (i = 0; i < numProcs; ++i) {
+    for (i = 0; i < processors_; ++i) {
       j = 0;
-      sendLength = sendLens[i];
-      array = dataOutSets[i]->data();
+      sendLength = send_lens_[i];
+      array = data_out_sets_[i]->data();
 
       while (j < sendLength) {
-        sendArray[ij++] = array[j++];
+        send_array_[ij++] = array[j++];
       }
     }
 
@@ -418,21 +418,21 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     // out the communication
     // ###
 
-    MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1,
+    MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1,
                  MPI_INT, comm);
 
     ij = 0;
-    for (i = 0; i < numProcs; ++i) {
-      recvDispls[i] = ij;
-      ij += recvLens[i];
+    for (i = 0; i < processors_; ++i) {
+      receive_displs_[i] = ij;
+      ij += receive_lens_[i];
     }
 
-    receiveArray.reserve(ij);
+    receive_array_.reserve(ij);
     totToRecv = ij;
 
-    MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                  sendDispls.data(), MPI_INT, receiveArray.data(),
-                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
+    MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                  send_displs_.data(), MPI_INT, receive_array_.data(),
+                  receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
     // ###
     // now finish the initialisation
@@ -440,8 +440,8 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     // ###
 
     for (i = 0; i < totToRecv;) {
-      cVertex = receiveArray[i++];
-      vPart = receiveArray[i++];
+      cVertex = receive_array_[i++];
+      vPart = receive_array_[i++];
 
 #ifdef DEBUG_CONTROLLER
       assert(cVertex >= minCoarseVertexId && cVertex < maxCoarseVertexId);
@@ -459,8 +459,8 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     // now have the coarse hypergraph partition initialised
     // ###
 
-    for (i = 0; i < numProcs; ++i)
-      sendLens[i] = 0;
+    for (i = 0; i < processors_; ++i)
+      send_lens_[i] = 0;
 
     // ###
     // initialise the local partition structures
@@ -472,13 +472,13 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
              fineMatVector[i] < numTotalCoarseVertices);
 #endif
       cVertex = fineMatVector[i];
-      ij = min(cVertex / cVertPerProc, numProcs - 1);
+      ij = min(cVertex / cVertPerProc, processors_ - 1);
 
-      if (ij == myRank) {
+      if (ij == rank_) {
         finePartVector[i] = interGraphPVector[cVertex - minCoarseVertexId];
       } else {
-        dataOutSets[ij]->assign(sendLens[ij]++, i);
-        dataOutSets[ij]->assign(sendLens[ij]++, cVertex);
+        data_out_sets_[ij]->assign(send_lens_[ij]++, i);
+        data_out_sets_[ij]->assign(send_lens_[ij]++, cVertex);
       }
     }
 
@@ -488,29 +488,29 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
 
     ij = 0;
 
-    for (i = 0; i < numProcs; ++i) {
-      sendDispls[i] = ij;
-      ij += (Shiftr(sendLens[i], 1));
+    for (i = 0; i < processors_; ++i) {
+      send_displs_[i] = ij;
+      ij += (Shiftr(send_lens_[i], 1));
     }
 
-    sendArray.reserve(ij);
+    send_array_.reserve(ij);
     requestingLocalVerts.reserve(ij);
 
     numRequestingLocalVerts = ij;
     totToSend = ij;
     ij = 0;
 
-    for (i = 0; i < numProcs; ++i) {
+    for (i = 0; i < processors_; ++i) {
       j = 0;
-      sendLength = sendLens[i];
-      array = dataOutSets[i]->data();
+      sendLength = send_lens_[i];
+      array = data_out_sets_[i]->data();
 
       while (j < sendLength) {
         requestingLocalVerts[ij] = array[j++];
-        sendArray[ij++] = array[j++];
+        send_array_[ij++] = array[j++];
       }
 
-      sendLens[i] = Shiftr(sendLength, 1);
+      send_lens_[i] = Shiftr(sendLength, 1);
     }
 
 #ifdef DEBUG_CONTROLLER
@@ -522,21 +522,21 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     // out the communication
     // ###
 
-    MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1,
+    MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1,
                  MPI_INT, comm);
 
     ij = 0;
-    for (i = 0; i < numProcs; ++i) {
-      recvDispls[i] = ij;
-      ij += recvLens[i];
+    for (i = 0; i < processors_; ++i) {
+      receive_displs_[i] = ij;
+      ij += receive_lens_[i];
     }
 
-    receiveArray.reserve(ij);
+    receive_array_.reserve(ij);
     totToRecv = ij;
 
-    MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                  sendDispls.data(), MPI_INT, receiveArray.data(),
-                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
+    MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                  send_displs_.data(), MPI_INT, receive_array_.data(),
+                  receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
     // ###
     // process the requests for
@@ -546,27 +546,27 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
     // ###
 
     totToSend = totToRecv;
-    sendArray.reserve(totToSend);
+    send_array_.reserve(totToSend);
 
     for (i = 0; i < totToRecv; ++i) {
 #ifdef DEBUG_CONTROLLER
-      assert(receiveArray[i] >= minCoarseVertexId &&
-             receiveArray[i] < maxCoarseVertexId);
+      assert(receive_array_[i] >= minCoarseVertexId &&
+             receive_array_[i] < maxCoarseVertexId);
 #endif
-      cVertex = receiveArray[i] - minCoarseVertexId;
-      sendArray[i] = interGraphPVector[cVertex];
+      cVertex = receive_array_[i] - minCoarseVertexId;
+      send_array_[i] = interGraphPVector[cVertex];
     }
 
     totToRecv = numRequestingLocalVerts;
-    receiveArray.reserve(totToRecv);
+    receive_array_.reserve(totToRecv);
 
     // ###
     // now do the dual communication
     // ###
 
-    MPI_Alltoallv(sendArray.data(), recvLens.data(),
-                  recvDispls.data(), MPI_INT, receiveArray.data(),
-                  sendLens.data(), sendDispls.data(), MPI_INT, comm);
+    MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
+                  receive_displs_.data(), MPI_INT, receive_array_.data(),
+                  send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
     // ###
     // finish off initialising the
@@ -579,9 +579,9 @@ void ParaVCycleController::projectVCyclePartition(ParaHypergraph &cG,
       cVertex = requestingLocalVerts[i];
 #ifdef DEBUG_CONTROLLER
       assert(cVertex >= 0 && cVertex < numLocalFineVertices);
-      assert(receiveArray[ij] >= 0 && receiveArray[ij] < numTotalParts);
+      assert(receive_array_[ij] >= 0 && receive_array_[ij] < numTotalParts);
 #endif
-      finePartVector[cVertex] = receiveArray[ij++];
+      finePartVector[cVertex] = receive_array_[ij++];
     }
 
 #ifdef DEBUG_CONTROLLER
@@ -622,7 +622,7 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
 #endif
 
   int numTotVertices = h.getNumTotalVertices();
-  int numVBefPerProc = numTotVertices / numProcs;
+  int numVBefPerProc = numTotVertices / processors_;
 
 #ifdef DEBUG_CONTROLLER
   assert(minInterVertIndex == minLocVertIdBefShuff);
@@ -644,46 +644,46 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
   dynamic_array<int> *newToInter = new dynamic_array<int>(numLocVertAftShuff);
   dynamic_array<int> requestingLocalVerts;
 
-  for (i = 0; i < numProcs; ++i)
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i)
+    send_lens_[i] = 0;
 
   array = newToInter->data();
 
   for (i = 0; i < numLocVertAftShuff; ++i) {
     j = vToOrigV[i];
-    ij = min(j / numVBefPerProc, numProcs - 1);
+    ij = min(j / numVBefPerProc, processors_ - 1);
 
-    if (ij == myRank) {
+    if (ij == rank_) {
       array[i] = mapToInterVerts[j - minInterVertIndex];
     } else {
-      dataOutSets[ij]->assign(sendLens[ij]++, i);
-      dataOutSets[ij]->assign(sendLens[ij]++, j);
+      data_out_sets_[ij]->assign(send_lens_[ij]++, i);
+      data_out_sets_[ij]->assign(send_lens_[ij]++, j);
     }
   }
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    sendDispls[i] = ij;
-    ij += (Shiftr(sendLens[i], 1));
+  for (i = 0; i < processors_; ++i) {
+    send_displs_[i] = ij;
+    ij += (Shiftr(send_lens_[i], 1));
   }
 
-  sendArray.reserve(ij);
+  send_array_.reserve(ij);
   requestingLocalVerts.reserve(ij);
   numRequestingLocalVerts = ij;
   totToSend = ij;
   ij = 0;
 
-  for (i = 0; i < numProcs; ++i) {
+  for (i = 0; i < processors_; ++i) {
     j = 0;
-    sendLength = sendLens[i];
-    array = dataOutSets[i]->data();
+    sendLength = send_lens_[i];
+    array = data_out_sets_[i]->data();
 
     while (j < sendLength) {
       requestingLocalVerts[ij] = array[j++];
-      sendArray[ij++] = array[j++];
+      send_array_[ij++] = array[j++];
     }
 
-    sendLens[i] = Shiftr(sendLens[i], 1);
+    send_lens_[i] = Shiftr(send_lens_[i], 1);
   }
 
 #ifdef DEBUG_CONTROLLER
@@ -695,21 +695,21 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
   // out the communication
   // ###
 
-  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    recvDispls[i] = ij;
-    ij += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = ij;
+    ij += receive_lens_[i];
   }
 
-  receiveArray.reserve(ij);
+  receive_array_.reserve(ij);
   totToRecv = ij;
 
-  MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, receiveArray.data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   // ###
   // process the requests for
@@ -719,27 +719,27 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
   // ###
 
   totToSend = totToRecv;
-  sendArray.reserve(totToSend);
+  send_array_.reserve(totToSend);
 
   for (i = 0; i < totToRecv; ++i) {
 #ifdef DEBUG_CONTROLLER
-    assert(receiveArray[i] >= minLocVertIdBefShuff &&
-           receiveArray[i] < maxLocVertIdBefShuff);
+    assert(receive_array_[i] >= minLocVertIdBefShuff &&
+           receive_array_[i] < maxLocVertIdBefShuff);
 #endif
-    j = receiveArray[i] - minLocVertIdBefShuff;
-    sendArray[i] = mapToInterVerts[j];
+    j = receive_array_[i] - minLocVertIdBefShuff;
+    send_array_[i] = mapToInterVerts[j];
   }
 
   totToRecv = numRequestingLocalVerts;
-  receiveArray.reserve(totToRecv);
+  receive_array_.reserve(totToRecv);
 
   // ###
   // now do the dual communication
   // ###
 
-  MPI_Alltoallv(sendArray.data(), recvLens.data(),
-                recvDispls.data(), MPI_INT, receiveArray.data(),
-                sendLens.data(), sendDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
+                receive_displs_.data(), MPI_INT, receive_array_.data(),
+                send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   // ###
   // finish off initialising the
@@ -752,9 +752,9 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(ParaHypergraph &h,
     j = requestingLocalVerts[i];
 #ifdef DEBUG_CONTROLLER
     assert(j >= 0 && j < numLocVertAftShuff);
-    assert(receiveArray[i] >= 0 && receiveArray[i] < numTotVertices);
+    assert(receive_array_[i] >= 0 && receive_array_[i] < numTotVertices);
 #endif
-    array[j] = receiveArray[i];
+    array[j] = receive_array_[i];
   }
 
   minInterVertIndex = minLocVertIdAftShuff;
@@ -778,8 +778,8 @@ ParaHypergraph &fineH, MPI_Comm comm)
   //#  endif
 
   int numTotVertices = h.getNumTotalVertices();
-  //int numVBefPerProc = numTotVertices / numProcs;
-  int numVPerProc = numTotVertices / numProcs;
+  //int numVBefPerProc = numTotVertices / processors_;
+  int numVPerProc = numTotVertices / processors_;
   int minLocVertexIndex = h.getMinVertexIndex();
   int numLocVertices = h.getNumLocalVertices();
 
@@ -807,53 +807,53 @@ ParaHypergraph &fineH, MPI_Comm comm)
   dynamic_array<int>* newToInter = new dynamic_array<int>(numLocVertices);
   dynamic_array<int> requestingLocalVerts;
 
-  for (i=0;i<numProcs;++i)
-    sendLens[i] = 0;
+  for (i=0;i<processors_;++i)
+    send_lens_[i] = 0;
 
   data_ = newToInter->getArray();
 
   for (i=0;i<numLocVertices;++i)
     {
       j = vToOrigV[i];
-      ij = min(j / numVPerProc, numProcs-1);
+      ij = min(j / numVPerProc, processors_-1);
 
-      if(ij == myRank)
+      if(ij == rank_)
         {
           data_[i] = mapToInterVerts[j-minInterVertIndex];
         }
       else
         {
-          dataOutSets[ij]->assign(sendLens[ij]++, i);
-          dataOutSets[ij]->assign(sendLens[ij]++, j);
+          data_out_sets_[ij]->assign(send_lens_[ij]++, i);
+          data_out_sets_[ij]->assign(send_lens_[ij]++, j);
         }
     }
 
   ij = 0;
-  for (i=0;i<numProcs;++i)
+  for (i=0;i<processors_;++i)
     {
-      sendDispls[i] = ij;
-      ij += (Shiftr(sendLens[i],1));
+      send_displs_[i] = ij;
+      ij += (Shiftr(send_lens_[i],1));
     }
 
-  sendArray.setLength(ij);
+  send_array_.setLength(ij);
   requestingLocalVerts.setLength(ij);
   numRequestingLocalVerts = ij;
   totToSend = ij;
   ij = 0;
 
-  for (i=0;i<numProcs;++i)
+  for (i=0;i<processors_;++i)
     {
       j=0;
-      sendLength = sendLens[i];
-      data_ = dataOutSets[i]->getArray();
+      sendLength = send_lens_[i];
+      data_ = data_out_sets_[i]->getArray();
 
       while(j < sendLength)
         {
           requestingLocalVerts[ij] = data_[j++];
-          sendArray[ij++] = data_[j++];
+          send_array_[ij++] = data_[j++];
         }
 
-      sendLens[i] = Shiftr(sendLens[i],1);
+      send_lens_[i] = Shiftr(send_lens_[i],1);
     }
 
 #  ifdef DEBUG_CONTROLLER
@@ -865,22 +865,22 @@ ParaHypergraph &fineH, MPI_Comm comm)
   // out the communication
   // ###
 
-  MPI_Alltoall(sendLens.getArray(), 1, MPI_INT, recvLens.getArray(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.getArray(), 1, MPI_INT, receive_lens_.getArray(), 1, MPI_INT,
 comm);
 
   ij = 0;
-  for (i=0;i<numProcs;++i)
+  for (i=0;i<processors_;++i)
     {
-      recvDispls[i] = ij;
-      ij += recvLens[i];
+      receive_displs_[i] = ij;
+      ij += receive_lens_[i];
     }
 
-  receiveArray.setLength(ij);
+  receive_array_.setLength(ij);
   totToRecv = ij;
 
-  MPI_Alltoallv(sendArray.getArray(), sendLens.getArray(),
-sendDispls.getArray(), MPI_INT, receiveArray.getArray(), recvLens.getArray(),
-recvDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.getArray(), send_lens_.getArray(),
+send_displs_.getArray(), MPI_INT, receive_array_.getArray(), receive_lens_.getArray(),
+receive_displs_.getArray(), MPI_INT, comm);
 
   // ###
   // process the requests for
@@ -890,28 +890,28 @@ recvDispls.getArray(), MPI_INT, comm);
   // ###
 
   totToSend = totToRecv;
-  sendArray.setLength(totToSend);
+  send_array_.setLength(totToSend);
 
   for (i=0;i<totToRecv;++i)
     {
 #  ifdef DEBUG_CONTROLLER
-      assert(receiveArray[i] >= minLocVertexIndex && receiveArray[i] <
+      assert(receive_array_[i] >= minLocVertexIndex && receive_array_[i] <
 maxLocVertexIndex);
 #  endif
-      j = receiveArray[i]-minLocVertexIndex;//minLocVertIdBefShuff;
-      sendArray[i] = mapToInterVerts[j];
+      j = receive_array_[i]-minLocVertexIndex;//minLocVertIdBefShuff;
+      send_array_[i] = mapToInterVerts[j];
     }
 
   totToRecv = numRequestingLocalVerts;
-  receiveArray.reserve(totToRecv);
+  receive_array_.reserve(totToRecv);
 
   // ###
   // now do the dual communication
   // ###
 
-  MPI_Alltoallv(sendArray.getArray(), recvLens.getArray(),
-recvDispls.getArray(), MPI_INT, receiveArray.data_(), sendLens.getArray(),
-sendDispls.getArray(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.getArray(), receive_lens_.getArray(),
+receive_displs_.getArray(), MPI_INT, receive_array_.data_(), send_lens_.getArray(),
+send_displs_.getArray(), MPI_INT, comm);
 
   // ###
   // finish off initialising the
@@ -925,9 +925,9 @@ sendDispls.getArray(), MPI_INT, comm);
       j = requestingLocalVerts[i];
 #  ifdef DEBUG_CONTROLLER
       assert(j >= 0 && j < numLocVertices);
-      assert(receiveArray[i] >= 0 && receiveArray[i] < numTotVertices);
+      assert(receive_array_[i] >= 0 && receive_array_[i] < numTotVertices);
 #  endif
-      data_[j] = receiveArray[i];
+      data_[j] = receive_array_[i];
     }
 
   minInterVertIndex = minLocVertexIndex;
@@ -951,16 +951,16 @@ void ParaVCycleController::shiftVCycleVertsToBalance(ParaHypergraph &h,
   int minVertexIndex = h.getMinVertexIndex();
   int maxVertexIndex = minVertexIndex + numLocalVertices;
   int numTotVertices = h.getNumTotalVertices();
-  int vPerProc = numTotVertices / numProcs;
+  int vPerProc = numTotVertices / processors_;
   int numMyNewVertices;
 
-  if (myRank != numProcs - 1)
+  if (rank_ != processors_ - 1)
     numMyNewVertices = vPerProc;
   else
-    numMyNewVertices = vPerProc + Mod(numTotVertices, numProcs);
+    numMyNewVertices = vPerProc + Mod(numTotVertices, processors_);
 
-  dynamic_array<int> minNewIndex(numProcs);
-  dynamic_array<int> maxNewIndex(numProcs);
+  dynamic_array<int> minNewIndex(processors_);
+  dynamic_array<int> maxNewIndex(processors_);
 
 #ifdef DEBUG_CONTROLLER
   assert(minVertexIndex == minInterVertIndex);
@@ -969,54 +969,54 @@ void ParaVCycleController::shiftVCycleVertsToBalance(ParaHypergraph &h,
   h.shiftVerticesToBalance(comm);
 
   // ###
-  // mapToInterVerts = sendArray
-  // newToInter = receiveArray
+  // mapToInterVerts = send_array_
+  // newToInter = receive_array_
   // ###
 
   dynamic_array<int> *newToInter = new dynamic_array<int>(numMyNewVertices);
 
-  for (i = 0; i < numProcs; ++i) {
+  for (i = 0; i < processors_; ++i) {
     if (i == 0) {
       minNewIndex[i] = 0;
       maxNewIndex[i] = vPerProc;
     } else {
       minNewIndex[i] = maxNewIndex[i - 1];
-      if (i == numProcs - 1)
+      if (i == processors_ - 1)
         maxNewIndex[i] = numTotVertices;
       else
         maxNewIndex[i] = minNewIndex[i] + vPerProc;
     }
   }
 
-  for (i = 0; i < numProcs; ++i) {
+  for (i = 0; i < processors_; ++i) {
     if (i == 0)
-      sendDispls[i] = 0;
+      send_displs_[i] = 0;
     else
-      sendDispls[i] = sendDispls[i - 1] + sendLens[i - 1];
+      send_displs_[i] = send_displs_[i - 1] + send_lens_[i - 1];
 
-    sendLens[i] =
+    send_lens_[i] =
         max(numLocalVertices - (max(maxVertexIndex - maxNewIndex[i], 0) +
                                 max(minNewIndex[i] - minVertexIndex, 0)),
             0);
   }
 
-  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
   j = 0;
-  for (i = 0; i < numProcs; ++i) {
-    recvDispls[i] = j;
-    j += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = j;
+    j += receive_lens_[i];
   }
 #ifdef DEBUG_CONTROLLER
   assert(j == numMyNewVertices);
 #endif
 
-  MPI_Alltoallv(mapToInterVerts.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, newToInter->data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(mapToInterVerts.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, newToInter->data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
-  minInterVertIndex = minNewIndex[myRank];
+  minInterVertIndex = minNewIndex[rank_];
   mapToInterVerts.set_data(newToInter->data(), numMyNewVertices);
 }
 
@@ -1027,7 +1027,7 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
 
   int minLocVertIndex = hgraph->getMinVertexIndex();
   int numTotalVertices = hgraph->getNumTotalVertices();
-  int vertPerProc = numTotalVertices / numProcs;
+  int vertPerProc = numTotalVertices / processors_;
   int totToRecv;
   int totToSend;
   int sendLength;
@@ -1040,7 +1040,7 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
   assert(mapToOrigVerts.getLength() == numOrigLocVerts);
   assert(mapToInterVerts.capacity() == numOrigLocVerts);
-  if (myRank != numProcs - 1)
+  if (rank_ != processors_ - 1)
     assert(numLocalVertices == vertPerProc);
 #endif
 
@@ -1050,8 +1050,8 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
   int *auxArray = newMapToOrig->data();
   int *array;
 
-  for (i = 0; i < numProcs; ++i)
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i)
+    send_lens_[i] = 0;
 
   for (i = 0; i < numOrigLocVerts; i++) {
     vertex = mapToInterVerts[i];
@@ -1060,39 +1060,39 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
     assert(vertex >= 0 && vertex < numTotalVertices);
 #endif
 
-    ij = min(vertex / vertPerProc, numProcs - 1);
+    ij = min(vertex / vertPerProc, processors_ - 1);
 
-    if (ij == myRank) {
+    if (ij == rank_) {
       auxArray[i] = mapToOrigVerts[vertex - minLocVertIndex];
     } else {
-      dataOutSets[ij]->assign(sendLens[ij]++, i);
-      dataOutSets[ij]->assign(sendLens[ij]++, vertex);
+      data_out_sets_[ij]->assign(send_lens_[ij]++, i);
+      data_out_sets_[ij]->assign(send_lens_[ij]++, vertex);
     }
   }
 
   ij = 0;
 
-  for (i = 0; i < numProcs; ++i) {
-    sendDispls[i] = ij;
-    ij += Shiftr(sendLens[i], 1);
+  for (i = 0; i < processors_; ++i) {
+    send_displs_[i] = ij;
+    ij += Shiftr(send_lens_[i], 1);
   }
 
-  sendArray.reserve(ij);
+  send_array_.reserve(ij);
   copyOfSendArray.reserve(ij);
   totToSend = ij;
   ij = 0;
 
-  for (i = 0; i < numProcs; ++i) {
+  for (i = 0; i < processors_; ++i) {
     j = 0;
-    sendLength = sendLens[i];
-    array = dataOutSets[i]->data();
+    sendLength = send_lens_[i];
+    array = data_out_sets_[i]->data();
 
     while (j < sendLength) {
       copyOfSendArray[ij] = array[j++];
-      sendArray[ij++] = array[j++];
+      send_array_[ij++] = array[j++];
     }
 
-    sendLens[i] = Shiftr(sendLens[i], 1);
+    send_lens_[i] = Shiftr(send_lens_[i], 1);
   }
 
 #ifdef DEBUG_CONTROLLER
@@ -1104,46 +1104,46 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
   // out the communication
   // ###
 
-  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    recvDispls[i] = ij;
-    ij += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = ij;
+    ij += receive_lens_[i];
   }
 
-  receiveArray.reserve(ij);
+  receive_array_.reserve(ij);
   totToRecv = ij;
 
-  MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, receiveArray.data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   // ###
   // now initialise the bestPartition data_
-  // using the data_ in receiveArray
+  // using the data_ in receive_array_
   // ###
 
-  sendArray.reserve(totToRecv);
+  send_array_.reserve(totToRecv);
 
   for (i = 0; i < totToRecv; ++i) {
 #ifdef DEBUG_CONTROLLER
-    assert(receiveArray[i] >= minLocVertIndex &&
-           receiveArray[i] < minLocVertIndex + numOrigLocVerts);
+    assert(receive_array_[i] >= minLocVertIndex &&
+           receive_array_[i] < minLocVertIndex + numOrigLocVerts);
 #endif
-    sendArray[i] = mapToOrigVerts[receiveArray[i] - minLocVertIndex];
+    send_array_[i] = mapToOrigVerts[receive_array_[i] - minLocVertIndex];
   }
 
-  receiveArray.reserve(totToSend);
+  receive_array_.reserve(totToSend);
 
   // ###
   // now do 'dual' communication
   // ###
 
-  MPI_Alltoallv(sendArray.data(), recvLens.data(),
-                recvDispls.data(), MPI_INT, receiveArray.data(),
-                sendLens.data(), sendDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
+                receive_displs_.data(), MPI_INT, receive_array_.data(),
+                send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   // ###
   // now complete the newMap
@@ -1151,10 +1151,10 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
 
   for (i = 0; i < totToSend; ++i) {
 #ifdef DEBUG_CONTROLLER
-    assert(receiveArray[i] >= 0 && receiveArray[i] < numTotalVertices);
+    assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
     assert(copyOfSendArray[i] >= 0 && copyOfSendArray[i] < numOrigLocVerts);
 #endif
-    auxArray[copyOfSendArray[i]] = receiveArray[i];
+    auxArray[copyOfSendArray[i]] = receive_array_[i];
   }
 
 #ifdef DEBUG_CONTROLLER

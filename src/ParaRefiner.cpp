@@ -69,10 +69,10 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   numAllocHedges = 0;
   numHedges = 0;
   numLocPins = 0;
-  vertsPerProc = totalVertices / numProcs;
+  vertsPerProc = totalVertices / processors_;
 
   vToHedgesOffset.reserve(numLocalVertices + 1);
-  sentToProc.reserve(numProcs);
+  sentToProc.reserve(processors_);
   vDegs.reserve(numLocalVertices);
 
   for (i = 0; i < numLocalVertices; ++i) {
@@ -80,7 +80,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
     vDegs[i] = 0;
   }
 
-  if (dispOption > 1 && myRank == 0)
+  if (dispOption > 1 && rank_ == 0)
     out_stream << "[PR]";
 
   // ###
@@ -88,8 +88,8 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   // processors and to receive hyperedges from processors
   // ###
 
-  for (i = 0; i < numProcs; ++i) {
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i) {
+    send_lens_[i] = 0;
     sentToProc[i] = 0;
   }
 
@@ -97,7 +97,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
     int numActiveProcs;
     int activeProc;
 
-    dynamic_array<int> activeProcs(numProcs);
+    dynamic_array<int> activeProcs(processors_);
 
     for (i = 0; i < numLocalHedges; ++i) {
       startOffset = localHedgeOffsets[i];
@@ -109,10 +109,10 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
         assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-        proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
+        proc = std::min(localPins[j] / vertsPerProc, processors_ - 1);
 
         if (!sentToProc[proc]) {
-          if (proc == myRank) {
+          if (proc == rank_) {
             hEdgeWeight.assign(numHedges, localHedgeWeights[i]);
             hEdgeOffset.assign(numHedges++, numLocPins);
 
@@ -126,11 +126,11 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
                 ++vToHedgesOffset[localPins[l] - minVertexIndex];
             }
           } else {
-            dataOutSets[proc]->assign(sendLens[proc]++, hEdgeLen + 2);
-            dataOutSets[proc]->assign(sendLens[proc]++, localHedgeWeights[i]);
+            data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
+            data_out_sets_[proc]->assign(send_lens_[proc]++, localHedgeWeights[i]);
 
             for (l = startOffset; l < endOffset; ++l) {
-              dataOutSets[proc]->assign(sendLens[proc]++, localPins[l]);
+              data_out_sets_[proc]->assign(send_lens_[proc]++, localPins[l]);
             }
           }
 
@@ -142,16 +142,16 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
       activeProc = activeProcs[RANDOM(0, numActiveProcs)];
 
 #ifdef DEBUG_REFINER
-      assert(activeProc >= 0 && activeProc < numProcs);
+      assert(activeProc >= 0 && activeProc < processors_);
 #endif
 
-      if (activeProc == myRank) {
+      if (activeProc == rank_) {
         allocHedges.assign(numAllocHedges++, numHedges - 1);
       } else {
-        dataOutSets[activeProc]->assign(sendLens[activeProc]++, RESP_FOR_HEDGE);
+        data_out_sets_[activeProc]->assign(send_lens_[activeProc]++, RESP_FOR_HEDGE);
       }
 
-      for (j = 0; j < numProcs; ++j) {
+      for (j = 0; j < processors_; ++j) {
         sentToProc[j] = 0;
       }
     }
@@ -179,10 +179,10 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
           assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-          proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
+          proc = std::min(localPins[j] / vertsPerProc, processors_ - 1);
 
           if (!sentToProc[proc]) {
-            if (proc == myRank) {
+            if (proc == rank_) {
               hEdgeWeight.assign(numHedges, localHedgeWeights[i]);
               hEdgeOffset.assign(numHedges++, numLocPins);
 
@@ -196,11 +196,11 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
                   ++vToHedgesOffset[localPins[l] - minVertexIndex];
               }
             } else {
-              dataOutSets[proc]->assign(sendLens[proc]++, hEdgeLen + 2);
-              dataOutSets[proc]->assign(sendLens[proc]++, localHedgeWeights[i]);
+              data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
+              data_out_sets_[proc]->assign(send_lens_[proc]++, localHedgeWeights[i]);
 
               for (l = startOffset; l < endOffset; ++l) {
-                dataOutSets[proc]->assign(sendLens[proc]++, localPins[l]);
+                data_out_sets_[proc]->assign(send_lens_[proc]++, localPins[l]);
               }
             }
 
@@ -208,7 +208,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
           }
         }
 
-        for (j = 0; j < numProcs; ++j)
+        for (j = 0; j < processors_; ++j)
           sentToProc[j] = 0;
       }
     }
@@ -239,10 +239,10 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
           assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-          proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
+          proc = std::min(localPins[j] / vertsPerProc, processors_ - 1);
 
           if (!sentToProc[proc]) {
-            if (proc == myRank) {
+            if (proc == rank_) {
               hEdgeWeight.assign(numHedges, localHedgeWeights[i]);
               hEdgeOffset.assign(numHedges++, numLocPins);
 
@@ -256,11 +256,11 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
                   ++vToHedgesOffset[localPins[l] - minVertexIndex];
               }
             } else {
-              dataOutSets[proc]->assign(sendLens[proc]++, hEdgeLen + 2);
-              dataOutSets[proc]->assign(sendLens[proc]++, localHedgeWeights[i]);
+              data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
+              data_out_sets_[proc]->assign(send_lens_[proc]++, localHedgeWeights[i]);
 
               for (l = startOffset; l < endOffset; ++l) {
-                dataOutSets[proc]->assign(sendLens[proc]++, localPins[l]);
+                data_out_sets_[proc]->assign(send_lens_[proc]++, localPins[l]);
               }
             }
 
@@ -268,7 +268,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
           }
         }
 
-        for (j = 0; j < numProcs; ++j)
+        for (j = 0; j < processors_; ++j)
           sentToProc[j] = 0;
       }
     }
@@ -285,8 +285,8 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   // ###
 
   j = 0;
-  for (i = 0; i < numProcs; ++i) {
-    j += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    j += receive_lens_[i];
   }
 
   recvLen = j;
@@ -294,22 +294,22 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 
   while (j < recvLen) {
 #ifdef DEBUG_REFINER
-    assert(receiveArray[j] > 0);
+    assert(receive_array_[j] > 0);
 #endif
-    endOffset = j + receiveArray[j];
+    endOffset = j + receive_array_[j];
     ++j;
 
-    hEdgeWeight.assign(numHedges, receiveArray[j++]);
+    hEdgeWeight.assign(numHedges, receive_array_[j++]);
     hEdgeOffset.assign(numHedges++, numLocPins);
 
     for (; j < endOffset; ++j) {
-      locPinList.assign(numLocPins++, receiveArray[j]);
+      locPinList.assign(numLocPins++, receive_array_[j]);
 
 #ifdef DEBUG_REFINER
-      assert(receiveArray[j] < totalVertices && receiveArray[j] >= 0);
+      assert(receive_array_[j] < totalVertices && receive_array_[j] >= 0);
 #endif
 
-      locVert = receiveArray[j] - minVertexIndex;
+      locVert = receive_array_[j] - minVertexIndex;
 
       if (locVert >= 0 && locVert < numLocalVertices)
         ++vToHedgesOffset[locVert];
@@ -319,7 +319,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
 #endif
 
     if (currPercentile == 100 && j < recvLen &&
-        receiveArray[j] == RESP_FOR_HEDGE) {
+        receive_array_[j] == RESP_FOR_HEDGE) {
       allocHedges.assign(numAllocHedges++, numHedges - 1);
       ++j;
     }
@@ -464,7 +464,7 @@ void ParaRefiner::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
                comm);
     MPI_Reduce(&numLocalPins, &numTotPinsInGraph, 1, MPI_INT, MPI_SUM, 0, comm);
 
-    if (myRank == 0) {
+    if (rank_ == 0) {
       out_stream << " " << totalVertices << " " << numTotHedgesInGraph << " "
                  << numTotPinsInGraph << std::endl;
     }
@@ -504,7 +504,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   partitionVectorOffsets = h.getPartitionOffsetsArray();
   partitionCuts = h.getCutsizesArray();
 
-  vPerProc = totalVertices / numProcs;
+  vPerProc = totalVertices / processors_;
 
 #ifdef DEBUG_REFINER
   for (int i = 0; i < partitionVectorOffsets[numPartitions]; ++i)
@@ -525,65 +525,65 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
     requests for values of non-local vertices
   */
 
-  for (i = 0; i < numProcs; ++i)
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i)
+    send_lens_[i] = 0;
 
   for (i = 0; i < numNonLocVerts; ++i) {
     j = nonLocVerts[i];
 #ifdef DEBUG_REFINER
     assert(j < minVertexIndex || j >= maxVertexIndex);
 #endif
-    ij = std::min(j / vPerProc, numProcs - 1);
+    ij = std::min(j / vPerProc, processors_ - 1);
 #ifdef DEBUG_REFINER
-    assert(ij != myRank);
+    assert(ij != rank_);
 #endif
-    dataOutSets[ij]->assign(sendLens[ij]++, j);
+    data_out_sets_[ij]->assign(send_lens_[ij]++, j);
   }
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    sendDispls[i] = ij;
-    ij += sendLens[i];
+  for (i = 0; i < processors_; ++i) {
+    send_displs_[i] = ij;
+    ij += send_lens_[i];
   }
 
 #ifdef DEBUG_REFINER
   assert(ij == numNonLocVerts);
-  assert(sendLens[myRank] == 0);
+  assert(send_lens_[rank_] == 0);
 #endif
 
-  sendArray.reserve(ij);
+  send_array_.reserve(ij);
   copyOfSendArray.reserve(ij);
   arraySize = ij;
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    endOffset = sendLens[i];
-    array = dataOutSets[i]->data();
+  for (i = 0; i < processors_; ++i) {
+    endOffset = send_lens_[i];
+    array = data_out_sets_[i]->data();
 
     for (j = 0; j < endOffset; ++j) {
 #ifdef DEBUG_REFINER
       assert(data_[j] < minVertexIndex || data_[j] >= maxVertexIndex);
 #endif
-      sendArray[ij] = array[j];
+      send_array_[ij] = array[j];
       copyOfSendArray[ij++] = array[j];
     }
   }
 
-  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    recvDispls[i] = ij;
-    ij += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = ij;
+    ij += receive_lens_[i];
   }
 
   totalToRecv = ij;
-  receiveArray.reserve(ij);
+  receive_array_.reserve(ij);
 
-  MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, receiveArray.data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   // ###
   // now communicate the partition vector
@@ -591,23 +591,23 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
   // ###
 
   totalToSend = totalToRecv * numPartitions;
-  sendArray.reserve(totalToSend);
+  send_array_.reserve(totalToSend);
 
-  for (i = 0; i < numProcs; ++i) {
-    ij = sendLens[i];
-    sendLens[i] = recvLens[i] * numPartitions;
-    recvLens[i] = ij * numPartitions;
+  for (i = 0; i < processors_; ++i) {
+    ij = send_lens_[i];
+    send_lens_[i] = receive_lens_[i] * numPartitions;
+    receive_lens_[i] = ij * numPartitions;
   }
 
   ij = 0;
   j = 0;
 
-  for (i = 0; i < numProcs; ++i) {
-    sendDispls[i] = ij;
-    recvDispls[i] = j;
+  for (i = 0; i < processors_; ++i) {
+    send_displs_[i] = ij;
+    receive_displs_[i] = j;
 
-    ij += sendLens[i];
-    j += recvLens[i];
+    ij += send_lens_[i];
+    j += receive_lens_[i];
   }
 
 // ###
@@ -616,13 +616,13 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
 // ###
 
 #ifdef DEBUG_REFINER
-  assert(receiveArray.getLength() == totalToRecv);
-  assert(sendArray.getLength() == totalToRecv * numPartitions);
+  assert(receive_array_.getLength() == totalToRecv);
+  assert(send_array_.getLength() == totalToRecv * numPartitions);
 #endif
 
   ij = 0;
   for (i = 0; i < totalToRecv; ++i) {
-    vertex = receiveArray[i] - minVertexIndex;
+    vertex = receive_array_[i] - minVertexIndex;
 
 #ifdef DEBUG_REFINER
     assert(vertex >= 0 && vertex < maxVertexIndex - minVertexIndex);
@@ -634,7 +634,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
       assert(part >= 0 && part < numParts);
       assert(ij < totalToRecv * numPartitions);
 #endif
-      sendArray[ij++] = partitionVector[partitionVectorOffsets[j] + vertex];
+      send_array_[ij++] = partitionVector[partitionVectorOffsets[j] + vertex];
     }
   }
 #ifdef DEBUG_REFINER
@@ -642,11 +642,11 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
 #endif
 
   totalToRecv = numNonLocVerts * numPartitions;
-  receiveArray.reserve(totalToRecv);
+  receive_array_.reserve(totalToRecv);
 
-  MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, receiveArray.data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   ij = 0;
   for (i = 0; i < arraySize; ++i) {
@@ -655,7 +655,7 @@ void ParaRefiner::initPartitionStructs(const ParaHypergraph &h, MPI_Comm comm) {
     assert(vertex >= 0 && vertex < numNonLocVerts);
 #endif
     for (j = 0; j < numPartitions; ++j)
-      partIndices[indexIntoPartIndices[j] + vertex] = receiveArray[ij++];
+      partIndices[indexIntoPartIndices[j] + vertex] = receive_array_[ij++];
   }
 }
 

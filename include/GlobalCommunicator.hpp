@@ -1,4 +1,3 @@
-
 #ifndef _GLOBAL_COMMUNICATOR_HPP
 #define _GLOBAL_COMMUNICATOR_HPP
 
@@ -19,19 +18,6 @@
 using parkway::data_structures::dynamic_array;
 
 class GlobalCommunicator {
- protected:
-  const int myRank;
-  const int numProcs;
-
-  dynamic_array<dynamic_array<int> *> dataOutSets;
-
-  dynamic_array<int> sendLens;
-  dynamic_array<int> recvLens;
-  dynamic_array<int> sendDispls;
-  dynamic_array<int> recvDispls;
-  dynamic_array<int> sendArray;
-  dynamic_array<int> receiveArray;
-
  public:
   GlobalCommunicator(int rank, int nProcs);
   ~GlobalCommunicator();
@@ -39,13 +25,26 @@ class GlobalCommunicator {
   void freeMemory();
   void sendFromDataOutArrays(MPI_Comm comm);
 
-  inline int getMyRank() const {
-    return myRank;
+  inline int rank() const {
+    return rank_;
   }
 
-  inline int getNumProcs() const {
-    return numProcs;
+  inline int processors() const {
+    return processors_;
   }
+
+protected:
+  const int rank_;
+  const int processors_;
+
+  dynamic_array<dynamic_array<int> *> data_out_sets_;
+
+  dynamic_array<int> send_lens_;
+  dynamic_array<int> receive_lens_;
+  dynamic_array<int> send_displs_;
+  dynamic_array<int> receive_displs_;
+  dynamic_array<int> send_array_;
+  dynamic_array<int> receive_array_;
 };
 
 #endif

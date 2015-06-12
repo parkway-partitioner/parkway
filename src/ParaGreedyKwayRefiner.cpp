@@ -55,7 +55,7 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   // build tables
   // ###
 
-  movementSets = new ds::movement_set_table(numParts, numProcs);
+  movementSets = new ds::movement_set_table(numParts, processors_);
 
   numNeighParts.reserve(0);
   neighboursOfV.reserve(0);
@@ -348,7 +348,7 @@ void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
     totalGain = 0;
     numPasses = 0;
 
-    if (dispOption > 1 && myRank == 0) {
+    if (dispOption > 1 && rank_ == 0) {
       out_stream << "\t[" << i << "] ";
     }
 
@@ -356,7 +356,7 @@ void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
       newCutsize = runGreedyKwayRefinement(h, i, comm);
       gain = partitionCuts[i] - newCutsize;
 
-      if (dispOption > 1 && myRank == 0) {
+      if (dispOption > 1 && rank_ == 0) {
         out_stream << gain << " ";
       }
 
@@ -374,7 +374,7 @@ void ParaGreedyKwayRefiner::refine(ParaHypergraph &h, MPI_Comm comm) {
       lastGain = gain;
     } while (gain > 0);
 
-    if (dispOption > 1 && myRank == 0) {
+    if (dispOption > 1 && rank_ == 0) {
       out_stream << "| " << numPasses << " " << totalGain << " "
                  << partitionCuts[i] << std::endl;
     }
@@ -391,7 +391,7 @@ int ParaGreedyKwayRefiner::runGreedyKwayRefinement(ParaHypergraph &h, int pNo,
   locked.unset();
 
   for (i = 0; i < 2; ++i) {
-    if (myRank == ROOT_PROC) {
+    if (rank_ == ROOT_PROC) {
       // ###
       // init movement sets
       // ###
@@ -689,14 +689,14 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
 #ifdef DEBUG_REFINER
           assert(numVerticesMoved[prod + j] > 0);
 #endif
-          sendArray.assign(numToSend++, i);
-          sendArray.assign(numToSend++, j);
-          sendArray.assign(numToSend++, moveSetData[ij]);
-          sendArray.assign(numToSend++, moveSetData[ij + 1]);
+          send_array_.assign(numToSend++, i);
+          send_array_.assign(numToSend++, j);
+          send_array_.assign(numToSend++, moveSetData[ij]);
+          send_array_.assign(numToSend++, moveSetData[ij + 1]);
         } else {
 #ifdef DEBUG_REFINER
           if (numVerticesMoved[prod + j] > 0)
-            out_stream << "p[" << myRank << "] moved vertices with weight zero"
+            out_stream << "p[" << rank_ << "] moved vertices with weight zero"
                        << std::endl;
 #endif
         }
@@ -704,32 +704,32 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
     }
   }
 
-  MPI_Gather(&numToSend, 1, MPI_INT, recvLens.data(), 1, MPI_INT, ROOT_PROC,
+  MPI_Gather(&numToSend, 1, MPI_INT, receive_lens_.data(), 1, MPI_INT, ROOT_PROC,
              comm);
 
-  if (myRank == ROOT_PROC) {
+  if (rank_ == ROOT_PROC) {
     ij = 0;
 
-    for (i = 0; i < numProcs; ++i) {
-      recvDispls[i] = ij;
-      ij += recvLens[i];
+    for (i = 0; i < processors_; ++i) {
+      receive_displs_[i] = ij;
+      ij += receive_lens_[i];
     }
 
-    receiveArray.reserve(ij);
+    receive_array_.reserve(ij);
     totToRecv = ij;
   }
 
-  MPI_Gatherv(sendArray.data(), numToSend, MPI_INT, receiveArray.data(),
-              recvLens.data(), recvDispls.data(), MPI_INT, ROOT_PROC,
+  MPI_Gatherv(send_array_.data(), numToSend, MPI_INT, receive_array_.data(),
+              receive_lens_.data(), receive_displs_.data(), MPI_INT, ROOT_PROC,
               comm);
 
-  if (myRank == ROOT_PROC) {
-    for (i = 0; i < numProcs; ++i) {
-      ij = recvDispls[i];
+  if (rank_ == ROOT_PROC) {
+    for (i = 0; i < processors_; ++i) {
+      ij = receive_displs_[i];
 
-      if (recvLens[i] > 0) {
-        movementSets->complete_processor_sets(i, recvLens[i],
-                                              &(receiveArray[ij]));
+      if (receive_lens_[i] > 0) {
+        movementSets->complete_processor_sets(i, receive_lens_[i],
+                                              &(receive_array_[ij]));
       }
     }
 
@@ -742,23 +742,23 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
   MPI_Scatter(movesLengths, 1, MPI_INT, &totToRecv, 1, MPI_INT, ROOT_PROC,
               comm);
 
-  if (myRank == ROOT_PROC) {
+  if (rank_ == ROOT_PROC) {
     ij = 0;
 
-    for (i = 0; i < numProcs; ++i) {
+    for (i = 0; i < processors_; ++i) {
       arrayLen = movesLengths[i];
-      sendDispls[i] = ij;
+      send_displs_[i] = ij;
       array = moves[i]->data();
 
       for (j = 0; j < arrayLen; ++j)
-        sendArray.assign(ij++, array[j]);
+        send_array_.assign(ij++, array[j]);
     }
   }
 
-  receiveArray.reserve(totToRecv);
+  receive_array_.reserve(totToRecv);
 
-  MPI_Scatterv(sendArray.data(), movesLengths, sendDispls.data(),
-               MPI_INT, receiveArray.data(), totToRecv, MPI_INT, ROOT_PROC,
+  MPI_Scatterv(send_array_.data(), movesLengths, send_displs_.data(),
+               MPI_INT, receive_array_.data(), totToRecv, MPI_INT, ROOT_PROC,
                comm);
 
   // ###
@@ -774,8 +774,8 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
   ij = 0;
 
   while (ij < totToRecv) {
-    i = receiveArray[ij];
-    j = receiveArray[ij + 1];
+    i = receive_array_[ij];
+    j = receive_array_[ij + 1];
 
     indexIntoMoveSets = i * numParts + j;
     unmakeMoves(indexIntoMoveSets, i, j);
@@ -800,7 +800,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
   }
 #endif
 
-  if (myRank == ROOT_PROC) {
+  if (rank_ == ROOT_PROC) {
     array = movementSets->part_weights_array();
 
     for (ij = 0; ij < numParts; ++ij) {
@@ -885,8 +885,8 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
           assert(v >= minVertexIndex && v < maxVertexIndex);
           assert(currPVector[v - minVertexIndex] == j);
 #endif
-          sendArray.assign(totToSend++, v);
-          sendArray.assign(totToSend++, j);
+          send_array_.assign(totToSend++, v);
+          send_array_.assign(totToSend++, j);
 
           movedVertices.assign(numTotVerticesMoved++, v);
           movedVertices.assign(numTotVerticesMoved++, i);
@@ -895,26 +895,26 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
     }
   }
 
-  MPI_Allgather(&totToSend, 1, MPI_INT, recvLens.data(), 1, MPI_INT, comm);
+  MPI_Allgather(&totToSend, 1, MPI_INT, receive_lens_.data(), 1, MPI_INT, comm);
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    recvDispls[i] = ij;
-    ij += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = ij;
+    ij += receive_lens_[i];
   }
 
-  receiveArray.reserve(ij);
+  receive_array_.reserve(ij);
   totToRecv = ij;
 
-  MPI_Allgatherv(sendArray.data(), totToSend, MPI_INT,
-                 receiveArray.data(), recvLens.data(),
-                 recvDispls.data(), MPI_INT, comm);
+  MPI_Allgatherv(send_array_.data(), totToSend, MPI_INT,
+                 receive_array_.data(), receive_lens_.data(),
+                 receive_displs_.data(), MPI_INT, comm);
 
   // ###
   // now go through the moved vertices and update local structures
   // ###
 
-  minIndex = recvDispls[myRank];
+  minIndex = receive_displs_[rank_];
 
 #ifdef DEBUG_REFINER
   assert(And(totToRecv, 0x1) == 0);
@@ -923,7 +923,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
   i = 0;
 
   while (i < minIndex) {
-    v = receiveArray[i];
+    v = receive_array_[i];
 
 #ifdef DEBUG_REFINER
     assert(v < minVertexIndex || v >= maxVertexIndex);
@@ -935,7 +935,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
       assert(nonLocIdx < numNonLocVerts);
 #endif
       vertexPart = currNonLocPVector[nonLocIdx];
-      newVertexPart = receiveArray[i + 1];
+      newVertexPart = receive_array_[i + 1];
       endNonLocOffset = nonLocOffsets[nonLocIdx + 1];
 
 #ifdef DEBUG_REFINER
@@ -1070,7 +1070,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
   i += totToSend;
 
   while (i < totToRecv) {
-    v = receiveArray[i];
+    v = receive_array_[i];
 
 #ifdef DEBUG_REFINER
     assert(v < minVertexIndex || v >= maxVertexIndex);
@@ -1083,7 +1083,7 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
       assert(nonLocIdx < numNonLocVerts);
 #endif
       vertexPart = currNonLocPVector[nonLocIdx];
-      newVertexPart = receiveArray[i + 1];
+      newVertexPart = receive_array_[i + 1];
       endNonLocOffset = nonLocOffsets[nonLocIdx + 1];
 
 #ifdef DEBUG_REFINER

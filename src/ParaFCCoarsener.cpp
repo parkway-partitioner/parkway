@@ -66,7 +66,7 @@ void ParaFCCoarsener::buildAuxiliaryStructs(int numTotPins, double aveVertDeg,
   int i =
       static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
 
-  table = new ds::match_request_table(ds::internal::table_utils::table_size(i / numProcs));
+  table = new ds::match_request_table(ds::internal::table_utils::table_size(i / processors_));
 }
 
 void ParaFCCoarsener::releaseMemory() {
@@ -87,8 +87,8 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
 
 #ifdef MEM_CHECK
   MPI_Barrier(comm);
-  write_log(myRank, "[begin PFCC]: usage: %f", MemoryTracker::usage());
-  Funct::printMemUse(myRank, "[begin PFCC]");
+  write_log(rank_, "[begin PFCC]: usage: %f", MemoryTracker::usage());
+  Funct::printMemUse(rank_, "[begin PFCC]");
 #endif
 
   if (totalVertices < minNodes || h.dontCoarsen()) {
@@ -107,7 +107,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
   int bestMatch;
   int bestMatchWt = -1;
   int numVisited;
-  int vPerProc = totalVertices / numProcs;
+  int vPerProc = totalVertices / processors_;
   int endOffset1;
   int endOffset2;
   int cluWeight;
@@ -148,7 +148,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
-    if (myRank == 0) {
+    if (rank_ == 0) {
       out_stream << " " << maxVertexWt << " " << maxWt << " " << aveVertexWt
                  << " ";
       out_stream.flush();
@@ -237,13 +237,13 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
               assert(numVisited >= 0);
 #endif
               if (matchInfoLoc.insert(candidatV, numVisited)) {
-                write_log(myRank, "numEntries %d",
+                write_log(rank_, "numEntries %d",
                           matchInfoLoc.size());
-                write_log(myRank, "using hash %d",
+                write_log(rank_, "using hash %d",
                           matchInfoLoc.use_hash());
-                write_log(myRank, "numSlots %d", matchInfoLoc.capacity());
-                write_log(myRank, "candidatV %d", candidatV);
-                write_log(myRank, "neighbourLoc %d", neighbourLoc);
+                write_log(rank_, "numSlots %d", matchInfoLoc.capacity());
+                write_log(rank_, "candidatV %d", candidatV);
+                write_log(rank_, "neighbourLoc %d", neighbourLoc);
                 assert(0);
               }
 
@@ -321,9 +321,9 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
                   matchVector[bestMatch - minVertexIndex] - NON_LOCAL_MATCH;
               table->add_local(nonLocV, vertex + minVertexIndex,
                                vWeight[vertex],
-                               std::min(nonLocV / vPerProc, numProcs - 1));
+                               std::min(nonLocV / vPerProc, processors_ - 1));
 #ifdef DEBUG_COARSENER
-              assert(std::min(nonLocV / vPerProc, numProcs - 1) != myRank);
+              assert(std::min(nonLocV / vPerProc, processors_ - 1) != rank_);
 #endif
               matchVector[vertex] = NON_LOCAL_MATCH + nonLocV;
               --numNotMatched;
@@ -340,9 +340,9 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
           // ###
 
           table->add_local(bestMatch, vertex + minVertexIndex, vWeight[vertex],
-                           std::min(bestMatch / vPerProc, numProcs - 1));
+                           std::min(bestMatch / vPerProc, processors_ - 1));
 #ifdef DEBUG_COARSENER
-          assert(std::min(bestMatch / vPerProc, numProcs - 1) != myRank);
+          assert(std::min(bestMatch / vPerProc, processors_ - 1) != rank_);
 #endif
           matchVector[vertex] = NON_LOCAL_MATCH + bestMatch;
           --numNotMatched;
@@ -402,7 +402,7 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
   // ###
 
   /*
-  if(myRank == 0) {
+  if(rank_ == 0) {
     std::cout << "about to contract hyperedges" << std::endl;
   }
   MPI_Barrier(comm);
@@ -421,8 +421,8 @@ void ParaFCCoarsener::setRequestArrays(int highToLow) {
   ds::match_request_table::entry *entry_;
   ds::match_request_table::entry **entryArray = table->get_entries();
 
-  for (i = 0; i < numProcs; ++i)
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i)
+    send_lens_[i] = 0;
 
   for (i = 0; i < numRequests; ++i) {
     entry_ = entryArray[i];
@@ -436,13 +436,13 @@ void ParaFCCoarsener::setRequestArrays(int highToLow) {
     procRank = entry_->non_local_process();
 
 #ifdef DEBUG_COARSENER
-    assert(procRank < numProcs);
+    assert(procRank < processors_);
 #endif
 
-    if ((cluWt >= 0) && ((highToLow && procRank < myRank) ||
-                         (!highToLow && procRank > myRank))) {
-      dataOutSets[procRank]->assign(sendLens[procRank]++, nonLocVertex);
-      dataOutSets[procRank]->assign(sendLens[procRank]++, cluWt);
+    if ((cluWt >= 0) && ((highToLow && procRank < rank_) ||
+                         (!highToLow && procRank > rank_))) {
+      data_out_sets_[procRank]->assign(send_lens_[procRank]++, nonLocVertex);
+      data_out_sets_[procRank]->assign(send_lens_[procRank]++, cluWt);
     }
   }
 }
@@ -454,8 +454,8 @@ void ParaFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
 
   dynamic_array<int> visitOrder;
 
-  for (i = 0; i < numProcs; ++i)
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i)
+    send_lens_[i] = 0;
 
   int startOffset = 0;
   int vLocReq;
@@ -463,13 +463,13 @@ void ParaFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
   int matchIndex;
   int visitOrderLen;
 
-  for (i = 0; i < numProcs; ++i) {
+  for (i = 0; i < processors_; ++i) {
 #ifdef DEBUG_COARSENER
-    assert(And(recvLens[i], 0x1) == 0);
+    assert(And(receive_lens_[i], 0x1) == 0);
 #endif
 
     if (matchRequestVisitOrder == RANDOM_ORDER) {
-      visitOrderLen = Shiftr(recvLens[i], 1);
+      visitOrderLen = Shiftr(receive_lens_[i], 1);
       visitOrder.reserve(visitOrderLen);
 
       for (j = 0; j < visitOrderLen; ++j)
@@ -485,8 +485,8 @@ void ParaFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
 
         j = Shiftl(visitOrder[l], 1);
 
-        vLocReq = receiveArray[startOffset + j];
-        reqCluWt = receiveArray[startOffset + j + 1];
+        vLocReq = receive_array_[startOffset + j];
+        reqCluWt = receive_array_[startOffset + j + 1];
 
         if (accept(vLocReq, reqCluWt, highToLow, maxVWt)) {
           // ###
@@ -495,17 +495,17 @@ void ParaFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
           // ###
 
           matchIndex = matchVector[vLocReq - minVertexIndex];
-          dataOutSets[i]->assign(sendLens[i]++, vLocReq);
-          dataOutSets[i]->assign(sendLens[i]++, matchIndex);
-          dataOutSets[i]->assign(sendLens[i]++, clusterWeights[matchIndex]);
+          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
+          data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
+          data_out_sets_[i]->assign(send_lens_[i]++, clusterWeights[matchIndex]);
         } else {
           // ###
           // cross-processor match rejected, inform vertices
           // that match rejected
           // ###
 
-          dataOutSets[i]->assign(sendLens[i]++, vLocReq);
-          dataOutSets[i]->assign(sendLens[i]++, NO_MATCH);
+          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
+          data_out_sets_[i]->assign(send_lens_[i]++, NO_MATCH);
         }
       }
     } else {
@@ -513,11 +513,11 @@ void ParaFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
       // processing match requests as they arrive
       // ###
 
-      visitOrderLen = recvLens[i];
+      visitOrderLen = receive_lens_[i];
 
       for (l = 0; l < visitOrderLen;) {
-        vLocReq = receiveArray[startOffset + (l++)];
-        reqCluWt = receiveArray[startOffset + (l++)];
+        vLocReq = receive_array_[startOffset + (l++)];
+        reqCluWt = receive_array_[startOffset + (l++)];
 
         if (accept(vLocReq, reqCluWt, highToLow, maxVWt)) {
           // ###
@@ -526,21 +526,21 @@ void ParaFCCoarsener::setReplyArrays(int highToLow, int maxVWt) {
           // ###
 
           matchIndex = matchVector[vLocReq - minVertexIndex];
-          dataOutSets[i]->assign(sendLens[i]++, vLocReq);
-          dataOutSets[i]->assign(sendLens[i]++, matchIndex);
-          dataOutSets[i]->assign(sendLens[i]++, clusterWeights[matchIndex]);
+          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
+          data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
+          data_out_sets_[i]->assign(send_lens_[i]++, clusterWeights[matchIndex]);
         } else {
           // ###
           // cross-processor match rejected, inform vertices
           // that match rejected
           // ###
 
-          dataOutSets[i]->assign(sendLens[i]++, vLocReq);
-          dataOutSets[i]->assign(sendLens[i]++, NO_MATCH);
+          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
+          data_out_sets_[i]->assign(send_lens_[i]++, NO_MATCH);
         }
       }
     }
-    startOffset += recvLens[i];
+    startOffset += receive_lens_[i];
   }
 }
 
@@ -558,18 +558,18 @@ void ParaFCCoarsener::processReqReplies() {
 
   ds::match_request_table::entry *entry_;
 
-  for (i = 0; i < numProcs; ++i) {
+  for (i = 0; i < processors_; ++i) {
     j = 0;
-    while (j < recvLens[i]) {
-      vNonLocReq = receiveArray[startOffset + (j++)];
-      matchIndex = receiveArray[startOffset + (j++)];
+    while (j < receive_lens_[i]) {
+      vNonLocReq = receive_array_[startOffset + (j++)];
+      matchIndex = receive_array_[startOffset + (j++)];
 
       if (matchIndex != NO_MATCH) {
         // ###
         // match successful - set the clusterIndex
         // ###
 
-        cluWt = receiveArray[startOffset + (j++)];
+        cluWt = receive_array_[startOffset + (j++)];
         entry_ = table->get_entry(vNonLocReq);
 
 #ifdef DEBUG_COARSENER
@@ -595,7 +595,7 @@ void ParaFCCoarsener::processReqReplies() {
         clusterWeights.assign(clusterIndex++, entry_->cluster_weight());
       }
     }
-    startOffset += recvLens[i];
+    startOffset += receive_lens_[i];
   }
 }
 
@@ -646,8 +646,8 @@ void ParaFCCoarsener::permuteVerticesArray(int *verts, int nLocVerts) {
 }
 
 void ParaFCCoarsener::setClusterIndices(MPI_Comm comm) {
-  dynamic_array<int> numClusters(numProcs);
-  dynamic_array<int> startIndex(numProcs);
+  dynamic_array<int> numClusters(processors_);
+  dynamic_array<int> startIndex(processors_);
 
   MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.data(), 1, MPI_INT,
                 comm);
@@ -664,13 +664,13 @@ void ParaFCCoarsener::setClusterIndices(MPI_Comm comm) {
   int *locals;
 
   i = 0;
-  for (; index < numProcs; ++index) {
+  for (; index < processors_; ++index) {
     startIndex[index] = i;
     i += numClusters[index];
   }
   totalClusters = i;
 
-  myMinCluIndex = startIndex[myRank];
+  myMinCluIndex = startIndex[rank_];
 
   for (index = 0; index < numLocalVertices; ++index) {
 #ifdef DEBUG_COARSENER
@@ -749,9 +749,9 @@ int ParaFCCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
   } else {
 
     int nonLocReq = matchValue - NON_LOCAL_MATCH;
-    int proc = nonLocReq / (totalVertices / numProcs);
+    int proc = nonLocReq / (totalVertices / processors_);
 
-    if ((highToLow && proc < myRank) || (!highToLow && proc > myRank))
+    if ((highToLow && proc < rank_) || (!highToLow && proc > rank_))
       return 0;
 
     // ###

@@ -90,8 +90,8 @@ void ParaController::setPrescribedPartition(const char *filename,
 
   if (shuffled == 2) {
     int len;
-    int numVPerProc = hgraph->getNumTotalVertices() / numProcs;
-    int myOffset = myRank * numVPerProc;
+    int numVPerProc = hgraph->getNumTotalVertices() / processors_;
+    int myOffset = rank_ * numVPerProc;
 
     char message[512];
     ifstream in_stream;
@@ -99,7 +99,7 @@ void ParaController::setPrescribedPartition(const char *filename,
     in_stream.open(filename, ifstream::in | ifstream::binary);
 
     if (!in_stream.is_open()) {
-      sprintf(message, "p[%d] could not open partition file %s\n", myRank,
+      sprintf(message, "p[%d] could not open partition file %s\n", rank_,
               filename);
       out_stream << message;
       MPI_Abort(comm, 0);
@@ -112,7 +112,7 @@ void ParaController::setPrescribedPartition(const char *filename,
     in_stream.read((char *)(shufflePartition.data()), len);
 
     if (in_stream.gcount() != len) {
-      sprintf(message, "p[%d] could not read in %d elements\n", myRank,
+      sprintf(message, "p[%d] could not read in %d elements\n", rank_,
               numOrigLocVerts);
       out_stream << message;
       MPI_Abort(comm, 0);
@@ -131,7 +131,7 @@ void ParaController::storeBestPartition(int numV, const int *array,
 
   int minLocVertIndex = hgraph->getMinVertexIndex();
   int numTotalVertices = hgraph->getNumTotalVertices();
-  int vertPerProc = numTotalVertices / numProcs;
+  int vertPerProc = numTotalVertices / processors_;
   int totToRecv;
   int totToSend;
   int sendLength;
@@ -145,15 +145,15 @@ void ParaController::storeBestPartition(int numV, const int *array,
 #ifdef DEBUG_CONTROLLER
   assert(numLocalVertices == numV);
   assert(mapToOrigVerts.getLength() == numV);
-  if (myRank != numProcs - 1)
+  if (rank_ != processors_ - 1)
     assert(numLocalVertices == vertPerProc);
 #endif
 
   int *mapToHgraphVerts = mapToOrigVerts.data();
   int *auxArray;
 
-  for (i = 0; i < numProcs; ++i)
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i)
+    send_lens_[i] = 0;
 
   bestPartition.reserve(numV);
 
@@ -166,34 +166,34 @@ void ParaController::storeBestPartition(int numV, const int *array,
     assert(vPart >= 0 && vPart < numTotalParts);
 #endif
 
-    ij = min(vertex / vertPerProc, numProcs - 1);
-    assert(ij < numProcs);
-    if (ij == myRank) {
+    ij = min(vertex / vertPerProc, processors_ - 1);
+    assert(ij < processors_);
+    if (ij == rank_) {
       bestPartition[vertex - minLocVertIndex] = vPart;
     } else {
-      dataOutSets[ij]->assign(sendLens[ij]++, vertex);
-      dataOutSets[ij]->assign(sendLens[ij]++, vPart);
+      data_out_sets_[ij]->assign(send_lens_[ij]++, vertex);
+      data_out_sets_[ij]->assign(send_lens_[ij]++, vPart);
     }
   }
 
   ij = 0;
 
-  for (i = 0; i < numProcs; ++i) {
-    sendDispls[i] = ij;
-    ij += sendLens[i];
+  for (i = 0; i < processors_; ++i) {
+    send_displs_[i] = ij;
+    ij += send_lens_[i];
   }
 
-  sendArray.reserve(ij);
+  send_array_.reserve(ij);
   totToSend = ij;
   ij = 0;
 
-  for (i = 0; i < numProcs; ++i) {
+  for (i = 0; i < processors_; ++i) {
     j = 0;
-    sendLength = sendLens[i];
-    auxArray = dataOutSets[i]->data();
+    sendLength = send_lens_[i];
+    auxArray = data_out_sets_[i]->data();
 
     while (j < sendLength) {
-      sendArray[ij++] = auxArray[j++];
+      send_array_[ij++] = auxArray[j++];
     }
   }
 
@@ -206,30 +206,30 @@ void ParaController::storeBestPartition(int numV, const int *array,
   // out the communication
   // ###
 
-  MPI_Alltoall(sendLens.data(), 1, MPI_INT, recvLens.data(), 1, MPI_INT,
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
   ij = 0;
-  for (i = 0; i < numProcs; ++i) {
-    recvDispls[i] = ij;
-    ij += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = ij;
+    ij += receive_lens_[i];
   }
 
-  receiveArray.reserve(ij);
+  receive_array_.reserve(ij);
   totToRecv = ij;
 
-  MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, receiveArray.data(),
-                recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   // ###
   // now initialise the bestPartition data_
-  // using the data_ in receiveArray
+  // using the data_ in receive_array_
   // ###
 
   for (i = 0; i < totToRecv;) {
-    vertex = receiveArray[i++];
-    vPart = receiveArray[i++];
+    vertex = receive_array_[i++];
+    vPart = receive_array_[i++];
 
 #ifdef DEBUG_CONTROLLER
     assert(vertex >= minLocVertIndex && vertex < minLocVertIndex + numV);
@@ -252,17 +252,17 @@ void ParaController::partitionToFile(const char *filename,
   char message[512];
   ofstream out;
 
-  if (myRank == 0)
+  if (rank_ == 0)
     remove(filename);
 
   MPI_Barrier(comm);
 
-  for (i = 0; i < numProcs; ++i) {
-    if (myRank == i) {
+  for (i = 0; i < processors_; ++i) {
+    if (rank_ == i) {
       out.open(filename, ofstream::out | ofstream::app | ofstream::binary);
 
       if (!out.is_open()) {
-        sprintf(message, "p[%d] cannot open %s\n", myRank, filename);
+        sprintf(message, "p[%d] cannot open %s\n", rank_, filename);
         out_stream << message;
       } else
         out.write((char *)(bestPartition.data()),
@@ -310,22 +310,22 @@ void ParaController::setWeightConstraints(MPI_Comm comm) {
 
 #ifdef DEBUG_TABLES
 void ParaController::printHashMemUse() {
-  // write_log(myRank, "HedgeIndex diff: %d",
+  // write_log(rank_, "HedgeIndex diff: %d",
   // HedgeIndexEntry::getNumAllocated()-HedgeIndexEntry::getNumDeleted());
-  // write_log(myRank, "MatchEntry diff: %d",
+  // write_log(rank_, "MatchEntry diff: %d",
   // MatchEntry::getNumAllocated()-MatchEntry::getNumDeleted());
-  write_log(myRank, "MatchRequestEntry diff: %d",
+  write_log(rank_, "MatchRequestEntry diff: %d",
             MatchRequestEntry::getNumAllocated() -
                 MatchRequestEntry::getNumDeleted());
-  // write_log(myRank, "IndexEntry diff: %d",
+  // write_log(rank_, "IndexEntry diff: %d",
   // IndexEntry::getNumAllocated()-IndexEntry::getNumDeleted());
-  // write_log(myRank, "ConnVertData diff: %d",
+  // write_log(rank_, "ConnVertData diff: %d",
   // ConnVertData::getNumAllocated()-ConnVertData::getNumDeleted());
-  // write_log(myRank, "VertexPartEntry diff: %d",
+  // write_log(rank_, "VertexPartEntry diff: %d",
   // VertexPartEntry::getNumAllocated()-VertexPartEntry::getNumDeleted());
-  // write_log(myRank, "DuplRemEntry diff: %d",
+  // write_log(rank_, "DuplRemEntry diff: %d",
   // DuplRemEntry::getNumAllocated()-DuplRemEntry::getNumDeleted());
-  // write_log(myRank, "PVectorEntry diff: %d",
+  // write_log(rank_, "PVectorEntry diff: %d",
   // PVectorEntry::getNumAllocated()-PVectorEntry::getNumDeleted());
 }
 #endif

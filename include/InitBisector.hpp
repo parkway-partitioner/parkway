@@ -1,5 +1,3 @@
-
-
 #ifndef _INIT_BISECTOR_HPP
 #define _INIT_BISECTOR_HPP
 

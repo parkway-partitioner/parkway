@@ -1,4 +1,3 @@
-
 #ifndef _PARA_APPROX_COARSENER_CPP
 #define _PARA_APPROX_COARSENER_CPP
 
@@ -15,10 +14,10 @@
 #include "ParaApproxCoarsener.hpp"
 #include <iostream>
 
-ParaApproxCoarsener::ParaApproxCoarsener(int _rank, int _numProcs,
+ParaApproxCoarsener::ParaApproxCoarsener(int _rank, int processors,
                                          int _numParts, int percentile, int inc,
                                          std::ostream &out)
-    : ParaCoarsener(_rank, _numProcs, _numParts, out) {
+    : ParaCoarsener(_rank, processors, _numParts, out) {
   startPercentile = percentile;
   currPercentile = percentile;
   increment = inc;
@@ -33,7 +32,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   int endOffset;
   int startOffset;
   int hEdgeLen;
-  int recvLen;
+  int Len;
   int numLocalPins;
   int numLocalHedges;
 
@@ -72,10 +71,10 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
 
   numHedges = 0;
   numLocPins = 0;
-  vertsPerProc = totalVertices / numProcs;
+  vertsPerProc = totalVertices / processors_;
 
   vToHedgesOffset.reserve(numLocalVertices + 1);
-  sentToProc.reserve(numProcs);
+  sentToProc.reserve(processors_);
   vDegs.reserve(numLocalVertices);
   toLoad.reserve(numLocalHedges);
 
@@ -95,8 +94,8 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   // processors and to receive hyperedges from processors
   // ###
 
-  for (i = 0; i < numProcs; ++i) {
-    sendLens[i] = 0;
+  for (i = 0; i < processors_; ++i) {
+    send_lens_[i] = 0;
     sentToProc[i] = 0;
   }
 
@@ -110,10 +109,10 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
 #ifdef DEBUG_COARSENER
         assert(localPins[j] < totalVertices && localPins[j] >= 0);
 #endif
-        proc = std::min(localPins[j] / vertsPerProc, numProcs - 1);
+        proc = std::min(localPins[j] / vertsPerProc, processors_ - 1);
 
         if (!sentToProc[proc]) {
-          if (proc == myRank) {
+          if (proc == rank_) {
             hEdgeWeight.assign(numHedges, localHedgeWeights[i]);
             hEdgeOffset.assign(numHedges++, numLocPins);
 
@@ -127,11 +126,11 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
                 ++vToHedgesOffset[localPins[l] - minVertexIndex];
             }
           } else {
-            dataOutSets[proc]->assign(sendLens[proc]++, hEdgeLen + 2);
-            dataOutSets[proc]->assign(sendLens[proc]++, localHedgeWeights[i]);
+            data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
+            data_out_sets_[proc]->assign(send_lens_[proc]++, localHedgeWeights[i]);
 
             for (l = startOffset; l < endOffset; ++l) {
-              dataOutSets[proc]->assign(sendLens[proc]++, localPins[l]);
+              data_out_sets_[proc]->assign(send_lens_[proc]++, localPins[l]);
             }
           }
 
@@ -139,7 +138,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
         }
       }
 
-      for (j = 0; j < numProcs; ++j)
+      for (j = 0; j < processors_; ++j)
         sentToProc[j] = 0;
     }
   }
@@ -155,27 +154,27 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   // ###
 
   j = 0;
-  for (i = 0; i < numProcs; ++i) {
-    j += recvLens[i];
+  for (i = 0; i < processors_; ++i) {
+    j += receive_lens_[i];
   }
-  recvLen = j;
+  Len = j;
 
   j = 0;
-  while (j < recvLen) {
-    endOffset = j + receiveArray[j];
+  while (j < Len) {
+    endOffset = j + receive_array_[j];
     ++j;
 
-    hEdgeWeight.assign(numHedges, receiveArray[j++]);
+    hEdgeWeight.assign(numHedges, receive_array_[j++]);
     hEdgeOffset.assign(numHedges++, numLocPins);
 
     for (; j < endOffset; ++j) {
-      locPinList.assign(numLocPins++, receiveArray[j]);
+      locPinList.assign(numLocPins++, receive_array_[j]);
 
 #ifdef DEBUG_COARSENER
-      assert(receiveArray[j] < totalVertices && receiveArray[j] >= 0);
+      assert(receive_array_[j] < totalVertices && receive_array_[j] >= 0);
 #endif
 
-      locVert = receiveArray[j] - minVertexIndex;
+      locVert = receive_array_[j] - minVertexIndex;
 
       if (locVert >= 0 && locVert < numLocalVertices)
         ++vToHedgesOffset[locVert];
@@ -290,7 +289,7 @@ void ParaApproxCoarsener::computeHedgesToLoad(bit_field &toLoad, int numH,
   MPI_Allreduce(&myPercentileLen, &percentileLen, 1, MPI_INT, MPI_MAX, comm);
 
   MPI_Barrier(comm);
-  if (myRank == 0) {
+  if (rank_ == 0) {
     std::cout << "percentileLen = " << percentileLen << std::endl;
     std::cout << "maxHedgeLen = " << maxLen << std::endl;
     std::cout << "aveLen = " << aveLen << std::endl;

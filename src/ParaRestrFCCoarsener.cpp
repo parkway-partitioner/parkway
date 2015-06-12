@@ -115,7 +115,7 @@ ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
-    if (myRank == 0) {
+    if (rank_ == 0) {
       out_stream << " " << maxVertexWt << " " << maxWt << " " << aveVertexWt
                  << " ";
     }
@@ -360,12 +360,12 @@ void ParaRestrFCCoarsener::setClusterIndices(MPI_Comm comm) {
 
   MPI_Scan(&clusterIndex, &myMinCluIndex, 1, MPI_INT, MPI_SUM, comm);
 
-  if (myRank == numProcs - 1)
+  if (rank_ == processors_ - 1)
     totalClusters = myMinCluIndex;
 
   myMinCluIndex -= clusterIndex;
 
-  MPI_Bcast(&totalClusters, 1, MPI_INT, numProcs - 1, comm);
+  MPI_Bcast(&totalClusters, 1, MPI_INT, processors_ - 1, comm);
 
   for (i = 0; i < numLocalVertices; ++i) {
 #ifdef DEBUG_COARSENER

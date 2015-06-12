@@ -86,8 +86,8 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
   for (i = 0; i < numParaRuns; ++i) {
 #ifdef MEM_CHECK
-    write_log(myRank, "[begin run]: usage: %f", MemoryTracker::usage());
-    Funct::printMemUse(myRank, "[begin run]");
+    write_log(rank_, "[begin run]: usage: %f", MemoryTracker::usage());
+    Funct::printMemUse(rank_, "[begin run]");
 #endif
     if (shuffled == 1) {
       hgraph->randomVertexShuffle(mapToOrigVerts.data(), comm);
@@ -134,8 +134,8 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
 #ifdef MEM_CHECK
     MPI_Barrier(comm);
-    write_log(myRank, "[after coarsening]: usage: %f", MemoryTracker::usage());
-    Funct::printMemUse(myRank, "[after coarsening]");
+    write_log(rank_, "[after coarsening]: usage: %f", MemoryTracker::usage());
+    Funct::printMemUse(rank_, "[after coarsening]");
     MPI_Barrier(comm);
 #endif
     // ###
@@ -157,9 +157,9 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
 #ifdef MEM_CHECK
     MPI_Barrier(comm);
-    write_log(myRank, "[after seq partitioning]: usage: %f",
+    write_log(rank_, "[after seq partitioning]: usage: %f",
               MemoryTracker::usage());
-    Funct::printMemUse(myRank, "[after seq partitioning]");
+    Funct::printMemUse(rank_, "[after seq partitioning]");
     MPI_Barrier(comm);
 #endif
 
@@ -189,8 +189,8 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
         refiner.setPercentile(hEdgePercentile);
 
 #ifdef MEM_CHECK
-      write_log(myRank, "[before refineme]: usage: %f", MemoryTracker::usage());
-      Funct::printMemUse(myRank, "[before refinement]");
+      write_log(rank_, "[before refineme]: usage: %f", MemoryTracker::usage());
+      Funct::printMemUse(rank_, "[before refinement]");
 #endif
       refiner.refine(*finerGraph, comm);
 
@@ -213,8 +213,8 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
 #ifdef MEM_CHECK
     MPI_Barrier(comm);
-    write_log(myRank, "[after refinement]: usage: %f", MemoryTracker::usage());
-    Funct::printMemUse(myRank, "[after refinement]");
+    write_log(rank_, "[after refinement]: usage: %f", MemoryTracker::usage());
+    Funct::printMemUse(rank_, "[after refinement]");
     MPI_Barrier(comm);
 #endif
 
@@ -245,7 +245,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
     assert(hgraphs.getNumElem() == 0);
 #endif
 
-    if (myRank == 0 && dispOption > 0) {
+    if (rank_ == 0 && dispOption > 0) {
       out_stream << "\nPRUN[" << i << "] = " << cutSize << endl << endl;
     }
   }
@@ -261,7 +261,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
   aveCutSize = static_cast<double>(totCutsizes) / numParaRuns;
 
-  if (myRank == 0 && dispOption > 0) {
+  if (rank_ == 0 && dispOption > 0) {
     out_stream << endl
                << " --- PARTITIONING SUMMARY ---" << endl
                << "|" << endl

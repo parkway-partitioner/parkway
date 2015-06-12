@@ -1,4 +1,3 @@
-
 #ifndef _interface_h_
 #define _interface_h_
 

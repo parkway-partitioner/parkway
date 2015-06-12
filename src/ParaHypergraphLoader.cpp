@@ -101,7 +101,7 @@ void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
 
   MPI_Allreduce(&myPercentileLen, &percentileLen, 1, MPI_INT, MPI_MAX, comm);
 
-  if (dispOption > 1 && myRank == 0) {
+  if (dispOption > 1 && rank_ == 0) {
     out_stream << " " << currPercentile << " " << maxLen << " " << aveLen << " "
                << percentileLen;
   }

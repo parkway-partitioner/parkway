@@ -170,7 +170,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
         numInStack = hgraphs.size();
         interMedGraph = finerGraph;
 
-        if (dispOption > 1 && myRank == 0) {
+        if (dispOption > 1 && rank_ == 0) {
           out_stream << "\t ------ PARALLEL V-CYCLE CALL ------" << endl;
         }
 
@@ -290,7 +290,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 #endif
           diffInCutSize = firstCutSize - secondCutSize;
 
-          if (dispOption > 1 && myRank == 0) {
+          if (dispOption > 1 && rank_ == 0) {
             out_stream << "\t ------ [" << vCycleIteration << "] "
                        << diffInCutSize << endl;
           }
@@ -314,7 +314,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 
         gatherInVCyclePartition(*coarseGraph, firstCutSize, comm);
 
-        if (dispOption > 1 && myRank == 0) {
+        if (dispOption > 1 && rank_ == 0) {
           out_stream << "\t ------ " << vCycleGain << " ------" << endl;
         }
       } else {
@@ -340,7 +340,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
     assert(firstCutSize == checkCutsize);
 #endif
 
-    if (myRank == 0 && dispOption > 0) {
+    if (rank_ == 0 && dispOption > 0) {
       out_stream << "\nPRUN[" << i << "] " << firstCutSize << endl << endl;
     }
 
@@ -372,7 +372,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 
   aveCutSize = static_cast<double>(totCutsizes) / numParaRuns;
 
-  if (myRank == 0 && dispOption > 0) {
+  if (rank_ == 0 && dispOption > 0) {
     out_stream << endl
                << " --- PARTITIONING SUMMARY ---" << endl
                << "|" << endl
