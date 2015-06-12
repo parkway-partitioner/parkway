@@ -845,14 +845,14 @@ void FMRefiner::unmakeMove(int v) {
   }
 }
 
-void FMRefiner::refine(Hypergraph &h) {
+void FMRefiner::refine(hypergraph &h) {
   int totalGain;
   int gain;
   int i;
   int bestCutsize = LARGE_CONSTANT;
   int maxCutsize = 0;
 
-  loadHypergraphForRefinement(h);
+  load_for_refinement(h);
   setEEThreshold();
   buildBuckets();
 

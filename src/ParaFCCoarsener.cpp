@@ -79,7 +79,7 @@ void ParaFCCoarsener::releaseMemory() {
   allocHedges.reserve(0);
   clusterWeights.reserve(0);
 
-  freeMemory();
+    free_memory();
 }
 
 ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
@@ -382,9 +382,9 @@ ParaHypergraph *ParaFCCoarsener::coarsen(ParaHypergraph &h, MPI_Comm comm) {
 
   for (i = 0; i < 2; ++i) {
     setRequestArrays(i);
-    sendFromDataOutArrays(comm); // actually sending requests
+      send_from_data_out(comm); // actually sending requests
     setReplyArrays(i, maxVertexWt);
-    sendFromDataOutArrays(comm); // actually sending replies
+      send_from_data_out(comm); // actually sending replies
     processReqReplies();
   }
 

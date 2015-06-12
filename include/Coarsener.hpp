@@ -12,11 +12,11 @@
 //
 // ###
 
-#include "HypergraphLoader.hpp"
+#include "hypergraph_loader.hpp"
 
 using namespace std;
 
-class Coarsener : public HypergraphLoader {
+class Coarsener : public hypergraph_loader {
 
 protected:
   int minNodes;
@@ -28,10 +28,10 @@ public:
   Coarsener(int min, int maxwt, double ratio, int dispL);
 
   virtual ~Coarsener();
-  virtual Hypergraph *coarsen(const Hypergraph &h) = 0;
+  virtual hypergraph *coarsen(const hypergraph &h) = 0;
   virtual void dispCoarsenerOptions(ostream &out) const = 0;
 
-  Hypergraph *buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
+  hypergraph *buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
                                     int totWt) const;
 
   inline void setMaxVertexWt(int maxWt) { maxVertexWt = maxWt; }

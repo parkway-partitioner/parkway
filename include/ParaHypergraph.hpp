@@ -24,10 +24,10 @@
 #include <cstdio>
 #include <cassert>
 
-#include "GlobalCommunicator.hpp"
+#include "global_communicator.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-class ParaHypergraph : public GlobalCommunicator {
+class ParaHypergraph : public global_communicator {
  protected:
   int indexInSequence;
   int doNotCoarsen;

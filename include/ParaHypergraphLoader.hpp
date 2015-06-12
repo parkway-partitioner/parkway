@@ -21,7 +21,7 @@
 using parkway::data_structures::dynamic_array;
 using parkway::data_structures::bit_field;
 
-class ParaHypergraphLoader : public GlobalCommunicator {
+class ParaHypergraphLoader : public global_communicator {
  protected:
   std::ostream &out_stream;
 

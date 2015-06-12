@@ -36,15 +36,15 @@ void InitBisector::dispInitBisectorOptions(ostream &out) const {
   }
 }
 
-void InitBisector::initBisect(Hypergraph &h) {
+void InitBisector::initBisect(hypergraph &h) {
   int i;
 
   int gain;
   int balanced;
 
-  h.setNumPartitions(numInitRuns);
+  h.set_number_of_partitions(numInitRuns);
 
-  loadHypergraphForRefinement(h);
+  load_for_refinement(h);
   removeEEThreshold();
   buildBuckets();
 

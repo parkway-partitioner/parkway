@@ -15,7 +15,7 @@
 
 #include "Refiner.hpp"
 
-Refiner::Refiner(int dL) : HypergraphLoader(dL) {
+Refiner::Refiner(int dL) : hypergraph_loader(dL) {
   maxPartWt = 0;
   numParts = 0;
   acceptProp = 0;

@@ -21,7 +21,7 @@
 #include "ParaGreedyKwayRefiner.hpp"
 #include "SeqController.hpp"
 
-class ParaController : public GlobalCommunicator {
+class ParaController : public global_communicator {
  protected:
   std::ostream &out_stream;
 

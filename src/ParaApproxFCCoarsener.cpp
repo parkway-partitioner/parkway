@@ -91,7 +91,7 @@ void ParaApproxFCCoarsener::releaseMemory() {
   allocHedges.reserve(0);
   clusterWeights.reserve(0);
 
-  freeMemory();
+    free_memory();
 }
 
 ParaHypergraph *ParaApproxFCCoarsener::coarsen(ParaHypergraph &h,
@@ -427,9 +427,9 @@ assert(bestMatch >= 0);
 
   for (i = 0; i < 2; ++i) {
     setRequestArrays(i);
-    sendFromDataOutArrays(comm); // actually sending requests
+      send_from_data_out(comm); // actually sending requests
     setReplyArrays(i, maxVertexWt);
-    sendFromDataOutArrays(comm); // actually sending replies
+      send_from_data_out(comm); // actually sending replies
     processReqReplies();
   }
 

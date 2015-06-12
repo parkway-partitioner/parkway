@@ -32,7 +32,7 @@ SeqController::SeqController(int rank, int nProcs, int nParts, ostream &out)
   partitionVectorOffsets.reserve(0);
 }
 
-SeqController::~SeqController() { DynaMem::deletePtr<Hypergraph>(h); }
+SeqController::~SeqController() { DynaMem::deletePtr<hypergraph>(h); }
 
 void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
                                            MPI_Comm comm) {
@@ -145,18 +145,18 @@ void SeqController::initCoarsestHypergraph(ParaHypergraph &hgraph,
   MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  h = new Hypergraph(vWeights->data(), numVertices);
+  h = new hypergraph(vWeights->data(), numVertices);
 
-  h->setNumHedges(numHedges);
-  h->setNumPins(numPins);
-  h->setTotWeight(totVertexWt);
-  h->setHedgeWtArray(hEdgeWeights->data(), hEdgeWeights->capacity());
-  h->setHedgeOffsetArray(hEdgeOffsets->data(), hEdgeOffsets->capacity());
-  h->setPinListArray(pinList->data(), pinList->capacity());
+  h->set_number_of_hypererges(numHedges);
+  h->set_number_of_pins(numPins);
+  h->set_total_weight(totVertexWt);
+  h->set_hyperedge_weights(hEdgeWeights->data(), hEdgeWeights->capacity());
+  h->set_hyperedge_offsets(hEdgeOffsets->data(), hEdgeOffsets->capacity());
+  h->set_pin_list(pinList->data(), pinList->capacity());
   h->buildVtoHedges();
 
   if (dispOption > 0 && myRank == 0)
-    h->printCharacteristics(out_stream);
+    h->print_characteristics(out_stream);
 }
 
 void SeqController::initSeqPartitions(ParaHypergraph &hgraph, MPI_Comm comm) {
@@ -167,7 +167,7 @@ void SeqController::initSeqPartitions(ParaHypergraph &hgraph, MPI_Comm comm) {
   int keepMyPartition;
   int proc;
   int numKept;
-  int myBestCut = h->getCut(0);
+  int myBestCut = h->cut(0);
   int ijk;
   int startOffset;
   int endOffset;
@@ -177,9 +177,9 @@ void SeqController::initSeqPartitions(ParaHypergraph &hgraph, MPI_Comm comm) {
   int *hPartVectorOffsets;
   int *hPartCuts;
 
-  int numTotVertices = h->getNumVertices();
-  int *pVector = h->getPartVectorArray();
-  int *pCuts = h->getPartCutArray();
+  int numTotVertices = h->number_of_vertices();
+  int *pVector = h->partition_vector();
+  int *pCuts = h->partition_cuts();
 
   dynamic_array<int> numVperProc(numProcs);
   dynamic_array<int> procDispls(numProcs);

@@ -12,36 +12,36 @@
 //
 // ###
 
-#include "Hypergraph.hpp"
+#include "hypergraph.hpp"
 
 using namespace std;
 
 class Bisection {
 
 protected:
-  int bisectAgain;
-  int numVertices;
-  int partID;
+  int bisect_again_;
+  int number_of_vertices_;
+  int part_id_;
 
-  Hypergraph *hypergraph;
+  hypergraph *hypergraph_;
 
   dynamic_array<int> mapToOrigVerts;
 
 public:
-  Bisection(Hypergraph *h, int bAgain, int pID) {
-    hypergraph = h;
+  Bisection(hypergraph *h, int bAgain, int pID) {
+    hypergraph_ = h;
 
-    numVertices = h->getNumVertices();
-    bisectAgain = bAgain;
-    partID = pID;
+    number_of_vertices_ = h->number_of_vertices();
+    bisect_again_ = bAgain;
+    part_id_ = pID;
   }
 
   inline void initMap() {
     int i;
 
-    mapToOrigVerts.reserve(numVertices);
+    mapToOrigVerts.reserve(number_of_vertices_);
 
-    for (i = 0; i < numVertices; ++i)
+    for (i = 0; i < number_of_vertices_; ++i)
       mapToOrigVerts[i] = i;
   }
 
@@ -49,12 +49,12 @@ public:
     mapToOrigVerts.set_data(vMap, nV);
   }
 
-  inline int getPartID() const { return partID; }
-  inline int getBisectAgain() const { return bisectAgain; }
-  inline int getNumVertices() const { return numVertices; }
+  inline int getPartID() const { return part_id_; }
+  inline int getBisectAgain() const { return bisect_again_; }
+  inline int getNumVertices() const { return number_of_vertices_; }
   inline int *getMapArray() const { return mapToOrigVerts.data(); }
 
-  inline Hypergraph *getHypergraph() const { return hypergraph; }
+  inline hypergraph *getHypergraph() const { return hypergraph_; }
 };
 
 #endif

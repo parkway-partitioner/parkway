@@ -116,7 +116,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
       coarsener.setPercentile(hEdgePercentile);
 
       coarseGraph = coarsener.coarsen(*finerGraph, comm);
-      finerGraph->freeMemory();
+        finerGraph->free_memory();
 
       if (coarseGraph) {
         hEdgePercentiles.push(min(hEdgePercentile + percentileIncrement, 100));
@@ -286,7 +286,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
 void BasicParaController::resetStructs() {
   hgraph->resetVectors();
-  freeMemory();
+    free_memory();
 }
 
 #endif

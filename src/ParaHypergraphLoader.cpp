@@ -16,7 +16,7 @@
 
 ParaHypergraphLoader::ParaHypergraphLoader(int rank, int nProcs, int nParts,
                                            std::ostream &o)
-    : GlobalCommunicator(rank, nProcs), out_stream(o) {
+    : global_communicator(rank, nProcs), out_stream(o) {
   numParts = nParts;
   vWeight = nullptr;
   matchVector = nullptr;

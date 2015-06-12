@@ -79,7 +79,7 @@ void Para2DModelCoarsener::releaseMemory() {
   allocHedges.reserve(0);
   clusterWeights.reserve(0);
 
-  freeMemory();
+    free_memory();
 }
 
 ParaHypergraph *Para2DModelCoarsener::coarsen(ParaHypergraph &h,
@@ -407,9 +407,9 @@ ParaHypergraph *Para2DModelCoarsener::ParaFCCoarsen(ParaHypergraph &h,
 
   for (i = 0; i < 2; ++i) {
     setRequestArrays(i);
-    sendFromDataOutArrays(comm); // actually sending requests
+      send_from_data_out(comm); // actually sending requests
     setReplyArrays(i, maxVertexWt);
-    sendFromDataOutArrays(comm); // actually sending replies
+      send_from_data_out(comm); // actually sending replies
     processReqReplies();
   }
 
@@ -648,9 +648,9 @@ ParaHypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(ParaHypergraph &h,
 
   for (i = 0; i < 2; ++i) {
     setRequestArrays(i);
-    sendFromDataOutArrays(comm); // actually sending requests
+      send_from_data_out(comm); // actually sending requests
     setReplyArrays(i, maxVertexWt);
-    sendFromDataOutArrays(comm); // actually sending replies
+      send_from_data_out(comm); // actually sending replies
     processReqReplies();
   }
 

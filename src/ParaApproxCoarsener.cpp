@@ -147,7 +147,7 @@ void ParaApproxCoarsener::loadHyperGraph(const ParaHypergraph &h,
   // Now exchange the hyperedges
   // ###
 
-  sendFromDataOutArrays(comm);
+  send_from_data_out(comm);
 
   // ###
   // Now load the non-local hyperedges

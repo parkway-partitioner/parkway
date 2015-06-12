@@ -17,13 +17,13 @@
 
 using parkway::data_structures::dynamic_array;
 
-class GlobalCommunicator {
+class global_communicator {
  public:
-  GlobalCommunicator(int rank, int nProcs);
-  ~GlobalCommunicator();
+  global_communicator(int rank, int nProcs);
+  ~global_communicator();
 
-  void freeMemory();
-  void sendFromDataOutArrays(MPI_Comm comm);
+  void free_memory();
+  void send_from_data_out(MPI_Comm comm);
 
   inline int rank() const {
     return rank_;

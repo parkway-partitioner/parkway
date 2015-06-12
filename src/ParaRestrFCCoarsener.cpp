@@ -58,7 +58,7 @@ void ParaRestrFCCoarsener::releaseMemory() {
   vToHedgesList.reserve(0);
   allocHedges.reserve(0);
 
-  freeMemory();
+  free_memory();
 }
 
 ParaHypergraph *ParaRestrFCCoarsener::coarsen(ParaHypergraph &h,

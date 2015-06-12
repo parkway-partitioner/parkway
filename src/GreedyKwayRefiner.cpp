@@ -248,12 +248,12 @@ void GreedyKwayRefiner::updateAdjVertStat(int v, int sP, int bestDP) {
     vertSeen[seenVertices[j]] = -1;
 }
 
-void GreedyKwayRefiner::refine(Hypergraph &h) {
+void GreedyKwayRefiner::refine(hypergraph &h) {
   int totalGain = 0;
   int gain;
   int i;
 
-  loadHypergraphForRefinement(h);
+  load_for_refinement(h);
   buildDataStructs();
 
   if (limit < 1.0) {
@@ -276,12 +276,12 @@ void GreedyKwayRefiner::refine(Hypergraph &h) {
   destroyDataStructs();
 }
 
-void GreedyKwayRefiner::rebalance(Hypergraph &h) {
+void GreedyKwayRefiner::rebalance(hypergraph &h) {
   int totalGain = 0;
   int gain;
   int i;
 
-  loadHypergraphForRefinement(h);
+  load_for_refinement(h);
   buildDataStructs();
 
   for (i = 0; i < numPartitions; ++i) {

@@ -25,7 +25,7 @@ public:
   ~InitBisector();
 
   void dispInitBisectorOptions(ostream &out) const;
-  void initBisect(Hypergraph &h);
+  void initBisect(hypergraph &h);
 
   int setBaseVertex();
   int chooseBestVertex1to0();

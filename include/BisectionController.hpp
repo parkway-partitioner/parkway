@@ -40,7 +40,7 @@ protected:
   Coarsener *coarsener;
   Refiner *refiner;
   InitBisector *initBisector;
-  stack<Hypergraph *> hGraphs;
+  stack<hypergraph *> hGraphs;
 
   dynamic_array<int> bestPartition;
 
@@ -57,7 +57,7 @@ public:
 
   virtual void computeBisection();
 
-  void bisect(Hypergraph *h, int maxPartWt);
+  void bisect(hypergraph *h, int maxPartWt);
 
   inline void setNumRuns(int r) { numSeqRuns = r; }
 };

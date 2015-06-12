@@ -266,7 +266,7 @@ void ParaCoarsener::loadHyperGraph(const ParaHypergraph &h, MPI_Comm comm) {
   // Now exchange the hyperedges
   // ###
 
-  sendFromDataOutArrays(comm);
+    send_from_data_out(comm);
 
   // ###
   // Now load the non-local hyperedges

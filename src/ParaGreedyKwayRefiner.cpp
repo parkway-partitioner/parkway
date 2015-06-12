@@ -129,7 +129,7 @@ void ParaGreedyKwayRefiner::releaseMemory() {
 
   toNonLocVerts.destroy();
 
-  freeMemory();
+  free_memory();
 }
 
 void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
@@ -179,7 +179,7 @@ void ParaGreedyKwayRefiner::initDataStructs(const ParaHypergraph &h,
 
 void ParaGreedyKwayRefiner::resetDataStructs() {
   toNonLocVerts.destroy();
-  freeMemory();
+  free_memory();
 }
 
 void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {

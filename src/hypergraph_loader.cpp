@@ -11,9 +11,9 @@
 //
 // ###
 
-#include "HypergraphLoader.hpp"
+#include "hypergraph_loader.hpp"
 
-HypergraphLoader::HypergraphLoader(int disp) {
+hypergraph_loader::hypergraph_loader(int disp) {
   dispOption = disp;
   currPercentile = 100;
 
@@ -34,9 +34,9 @@ HypergraphLoader::HypergraphLoader(int disp) {
   partitionCutsizes = nullptr;
 }
 
-HypergraphLoader::~HypergraphLoader() {}
+hypergraph_loader::~hypergraph_loader() {}
 
-void HypergraphLoader::computeHedgesToLoad(bit_field &toLoad) {
+void hypergraph_loader::compute_hyperedges_to_load(bit_field &toLoad) {
   int i;
   int j = 0;
 

@@ -35,7 +35,7 @@ namespace ds = parkway::data_structures;
 ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
                                int *wtArray)
-    : GlobalCommunicator(rank_, nProcs),
+    : global_communicator(rank_, nProcs),
       doNotCoarsen(coarsen),
       numTotalVertices(_totVerts),
       numLocalVertices(_numLocVerts),
@@ -56,7 +56,7 @@ ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
 ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
                                int _totVerts, int _minVertIndex, int coarsen,
                                int cut, int *wtArray, int *partArray)
-    : GlobalCommunicator(rank_, nProcs),
+    : global_communicator(rank_, nProcs),
       doNotCoarsen(coarsen),
       numTotalVertices(_totVerts),
       numLocalVertices(_numLocVerts),
@@ -83,7 +83,7 @@ ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int _numLocVerts,
 
 ParaHypergraph::ParaHypergraph(int rank_, int nProcs, const char *filename,
                                int dispOption, std::ostream &out, MPI_Comm comm)
-    : GlobalCommunicator(rank_, nProcs) {
+    : global_communicator(rank_, nProcs) {
   hypergraphFromFile(filename, dispOption, out, comm);
 }
 
@@ -92,7 +92,7 @@ ParaHypergraph::ParaHypergraph(int rank_, int nProcs, int numLocVerts,
                                const int *vWeights, const int *hEdgeWts,
                                const int *locPinList, const int *offsets,
                                int dispOption, std::ostream &out, MPI_Comm comm)
-    : GlobalCommunicator(rank_, nProcs) {
+    : global_communicator(rank_, nProcs) {
 
   MPI_Allreduce(&numLocVerts, &numTotalVertices, 1, MPI_INT, MPI_SUM, comm);
   MPI_Scan(&numLocVerts, &minVertexIndex, 1, MPI_INT, MPI_SUM, comm);
@@ -1457,7 +1457,7 @@ void ParaHypergraph::resetVectors() {
   partitionOffsetsVector.reserve(0);
   partitionCutsizesVector.reserve(0);
 
-  freeMemory();
+  free_memory();
 }
 
 void ParaHypergraph::removeBadPartitions(double cutThreshold) {

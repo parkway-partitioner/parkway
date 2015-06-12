@@ -8,9 +8,9 @@
 //
 // ###
 
-#include "GlobalCommunicator.hpp"
+#include "global_communicator.hpp"
 
-GlobalCommunicator::GlobalCommunicator(const int rank, const int nProcs)
+global_communicator::global_communicator(const int rank, const int nProcs)
     : rank_(rank), processors_(nProcs) {
 
   data_out_sets_.reserve(processors_);
@@ -24,13 +24,13 @@ GlobalCommunicator::GlobalCommunicator(const int rank, const int nProcs)
   }
 }
 
-GlobalCommunicator::~GlobalCommunicator() {
+global_communicator::~global_communicator() {
   for (int i = 0; i < processors_; ++i) {
     DynaMem::deletePtr<dynamic_array<int> >(data_out_sets_[i]);
   }
 }
 
-void GlobalCommunicator::freeMemory() {
+void global_communicator::free_memory() {
   for (int i = 0; i < processors_; ++i) {
     data_out_sets_[i]->reserve(0);
   }
@@ -39,7 +39,7 @@ void GlobalCommunicator::freeMemory() {
   receive_array_.reserve(0);
 }
 
-void GlobalCommunicator::sendFromDataOutArrays(MPI_Comm comm) {
+void global_communicator::send_from_data_out(MPI_Comm comm) {
   int j = 0;
   for (int i = 0; i < processors_; ++i) {
     send_displs_[i] = j;

@@ -37,8 +37,8 @@ void FCCoarsener::dispCoarsenerOptions(ostream &out) const {
   }
 }
 
-Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
-  loadHypergraphForCoarsening(h);
+hypergraph *FCCoarsener::coarsen(const hypergraph &h) {
+  load_for_coarsening(h);
 
   // ###
   // back off if the hypergraph too small
@@ -92,7 +92,7 @@ Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
   }
 
   if (currPercentile < 100)
-    computeHedgesToLoad(toLoad);
+    compute_hyperedges_to_load(toLoad);
 
   Funct::randomPermutation(vertices.data(), numVertices);
 
@@ -249,7 +249,7 @@ Hypergraph *FCCoarsener::coarsen(const Hypergraph &h) {
   coarseWts->reserve(coarseIndex);
 
   return (buildCoarseHypergraph(coarseWts->data(), coarseIndex,
-                                h.getTotWeight()));
+                                h.total_weight()));
 }
 
 #endif

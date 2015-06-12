@@ -18,7 +18,7 @@ ParaController::ParaController(ParaCoarsener &c, ParaRefiner &r,
                                SeqController &con, int rank, int nP,
                                int percentile, int inc, int approxRef,
                                ostream &out)
-    : GlobalCommunicator(rank, nP), out_stream(out), coarsener(c), refiner(r),
+    : global_communicator(rank, nP), out_stream(out), coarsener(c), refiner(r),
       seqController(con) {
   shuffled = 0;
   numParaRuns = -1;

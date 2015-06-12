@@ -27,9 +27,9 @@ void VCycleFinalBisectionController::printVCycleType() const {
 }
 
 void VCycleFinalBisectionController::computeBisection() {
-  Hypergraph *origGraph = hGraphs.top();
-  Hypergraph *coarseGraph;
-  Hypergraph *finerGraph;
+  hypergraph *origGraph = hGraphs.top();
+  hypergraph *coarseGraph;
+  hypergraph *finerGraph;
 
   int i;
   int bestCut = LARGE_CONSTANT;
@@ -43,7 +43,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
   stack<int> hEdgePercentiles;
 
-  numOrigVertices = origGraph->getNumVertices();
+  numOrigVertices = origGraph->number_of_vertices();
   bestPartition.reserve(numOrigVertices);
   vCyclePartition.reserve(numOrigVertices);
 
@@ -59,7 +59,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
     do {
       hEdgePercentile = hEdgePercentiles.top();
-      coarsener->setPercentile(hEdgePercentile);
+        coarsener->set_percentile(hEdgePercentile);
       coarseGraph = coarsener->coarsen(*finerGraph);
 
       if (coarseGraph) {
@@ -75,22 +75,22 @@ void VCycleFinalBisectionController::computeBisection() {
 
     coarseGraph = hGraphs.pop();
     initBisector->initBisect(*coarseGraph);
-    coarseGraph->removeBadPartitions(keepThreshold);
+      coarseGraph->remove_bad_partitions(keepThreshold);
 
     accumulator = 1.0;
 
     while (coarseGraph != origGraph) {
       hEdgePercentiles.pop();
       finerGraph = hGraphs.pop();
-      finerGraph->projectPartitions(*coarseGraph);
+        finerGraph->project_partitions(*coarseGraph);
 
       refiner->refine(*finerGraph);
 
-      finerGraph->removeBadPartitions(keepThreshold * accumulator);
+        finerGraph->remove_bad_partitions(keepThreshold * accumulator);
 
       accumulator *= reductionFactor;
 
-      DynaMem::deletePtr<Hypergraph>(coarseGraph);
+      DynaMem::deletePtr<hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
@@ -102,16 +102,16 @@ void VCycleFinalBisectionController::computeBisection() {
     // select the best partition
     // ###
 
-    firstCutsize = coarseGraph->keepBestPartition();
+    firstCutsize = coarseGraph->keep_best_partition();
 
     // ###
     // call v-cycle
 
     vCycleGain = 0;
-    recordVCyclePartition(coarseGraph->getPartVectorArray(), numOrigVertices);
+    recordVCyclePartition(coarseGraph->partition_vector(), numOrigVertices);
 
     do {
-      coarseGraph->resetMatchVector();
+        coarseGraph->reset_match_vector();
       hEdgePercentiles.push(startPercentile);
       hGraphs.push(coarseGraph);
       finerGraph = coarseGraph;
@@ -122,7 +122,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
       do {
         hEdgePercentile = hEdgePercentiles.top();
-        restrCoarsener->setPercentile(hEdgePercentile);
+          restrCoarsener->set_percentile(hEdgePercentile);
         coarseGraph = restrCoarsener->coarsen(*finerGraph);
 
         if (coarseGraph) {
@@ -142,7 +142,7 @@ void VCycleFinalBisectionController::computeBisection() {
       coarseGraph = hGraphs.pop();
 
       initBisector->initBisect(*coarseGraph);
-      coarseGraph->removeBadPartitions(keepThreshold);
+        coarseGraph->remove_bad_partitions(keepThreshold);
 
       // ###
       // uncoarsen the initial partition
@@ -153,15 +153,15 @@ void VCycleFinalBisectionController::computeBisection() {
       while (coarseGraph != origGraph) {
         hEdgePercentiles.pop();
         finerGraph = hGraphs.pop();
-        finerGraph->projectPartitions(*coarseGraph);
+          finerGraph->project_partitions(*coarseGraph);
 
         refiner->refine(*finerGraph);
 
-        finerGraph->removeBadPartitions(keepThreshold * accumulator);
+          finerGraph->remove_bad_partitions(keepThreshold * accumulator);
 
         accumulator *= reductionFactor;
 
-        DynaMem::deletePtr<Hypergraph>(coarseGraph);
+        DynaMem::deletePtr<hypergraph>(coarseGraph);
 
         coarseGraph = finerGraph;
       }
@@ -173,12 +173,12 @@ void VCycleFinalBisectionController::computeBisection() {
       // select the best partition
       // ###
 
-      secondCutsize = coarseGraph->keepBestPartition();
+      secondCutsize = coarseGraph->keep_best_partition();
       diffInCutsize = firstCutsize - secondCutsize;
 
       if (firstCutsize > secondCutsize) {
 
-        recordVCyclePartition(coarseGraph->getPartVectorArray(),
+        recordVCyclePartition(coarseGraph->partition_vector(),
                               numOrigVertices);
 
         firstCutsize = secondCutsize;
@@ -195,13 +195,13 @@ void VCycleFinalBisectionController::computeBisection() {
     // reset hypergraph
     // ###
 
-    origGraph->resetVertexMaps();
+      origGraph->reset_vertex_maps();
     hGraphs.push(coarseGraph);
   }
 
-  origGraph->setNumPartitions(1);
-  origGraph->copyInPartition(bestPartition.data(), numOrigVertices, 0,
-                             bestCut);
+    origGraph->set_number_of_partitions(1);
+    origGraph->copy_in_partition(bestPartition.data(), numOrigVertices, 0,
+                                 bestCut);
 }
 
 #endif

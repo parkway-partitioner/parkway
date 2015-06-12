@@ -26,7 +26,7 @@ public:
   FCCoarsener(int _min, int _maxwt, double r, int fanOut, int dbWt, int dL);
   ~FCCoarsener();
 
-  Hypergraph *coarsen(const Hypergraph &h);
+  hypergraph *coarsen(const hypergraph &h);
 
   void dispCoarsenerOptions(ostream &out) const;
 

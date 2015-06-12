@@ -14,7 +14,7 @@
 // ###
 
 #include "ParaHypergraph.hpp"
-#include "Hypergraph.hpp"
+#include "hypergraph.hpp"
 
 using namespace std;
 
@@ -32,7 +32,7 @@ protected:
   double kWayConstraint;
   double acceptProp;
 
-  Hypergraph *h;
+  hypergraph *h;
 
   dynamic_array<int> partitionVector;
   dynamic_array<int> partitionCuts;
@@ -53,7 +53,7 @@ public:
   inline void setNumSeqRuns(int r) { numSeqRuns = r; }
   inline void setDispOption(int d) { dispOption = d; }
   inline void setMaxVertexWt(int max) { maxVertexWt = max; }
-  inline void setHypergraph(Hypergraph *hGraph) { h = hGraph; }
+  inline void setHypergraph(hypergraph *hGraph) { h = hGraph; }
   inline void setKwayConstraint(double c) { kWayConstraint = c; }
   inline void setAcceptProp(double p) { acceptProp = p; }
 };

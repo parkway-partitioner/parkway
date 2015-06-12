@@ -100,7 +100,7 @@ void BisectionController::buildRefiner(int queueD) {
 }
 
 void BisectionController::computeBisection() {
-  Hypergraph *origGraph = hGraphs.top();
+  hypergraph *origGraph = hGraphs.top();
 
   int i;
   int cut;
@@ -111,17 +111,17 @@ void BisectionController::computeBisection() {
 
   stack<int> hEdgePercentiles;
 
-  numOrigVertices = origGraph->getNumVertices();
+  numOrigVertices = origGraph->number_of_vertices();
   bestPartition.reserve(numOrigVertices);
 
   for (i = 0; i < numSeqRuns; ++i) {
-    Hypergraph *coarseGraph;
-    Hypergraph *finerGraph = origGraph;
+    hypergraph *coarseGraph;
+    hypergraph *finerGraph = origGraph;
     hEdgePercentiles.push(startPercentile);
 
     do {
       hEdgePercentile = hEdgePercentiles.top();
-      coarsener->setPercentile(hEdgePercentile);
+      coarsener->set_percentile(hEdgePercentile);
       coarseGraph = coarsener->coarsen(*finerGraph);
 
       if (coarseGraph) {
@@ -133,52 +133,52 @@ void BisectionController::computeBisection() {
 
     coarseGraph = hGraphs.pop();
     initBisector->initBisect(*coarseGraph);
-    coarseGraph->removeBadPartitions(keepThreshold);
+    coarseGraph->remove_bad_partitions(keepThreshold);
 
     accumulator = 1.0;
 
     while (coarseGraph != origGraph) {
       hEdgePercentiles.pop();
       finerGraph = hGraphs.pop();
-      finerGraph->projectPartitions(*coarseGraph);
+      finerGraph->project_partitions(*coarseGraph);
 
       refiner->refine(*finerGraph);
 
-      finerGraph->removeBadPartitions(keepThreshold * accumulator);
+      finerGraph->remove_bad_partitions(keepThreshold * accumulator);
 
       accumulator *= reductionFactor;
 
-      DynaMem::deletePtr<Hypergraph>(coarseGraph);
+      DynaMem::deletePtr<hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
 
-    cut = coarseGraph->keepBestPartition();
+    cut = coarseGraph->keep_best_partition();
 
     if (cut < bestCut) {
       bestCut = cut;
-      coarseGraph->copyOutPartition(bestPartition.data(), numOrigVertices,
-                                    0);
+      coarseGraph->copy_out_partition(bestPartition.data(), numOrigVertices,
+                                      0);
     }
 
-    coarseGraph->resetVertexMaps();
+    coarseGraph->reset_vertex_maps();
 
     hGraphs.push(coarseGraph);
   }
 
-  origGraph->setNumPartitions(1);
-  origGraph->copyInPartition(bestPartition.data(), numOrigVertices, 0,
-                             bestCut);
+  origGraph->set_number_of_partitions(1);
+  origGraph->copy_in_partition(bestPartition.data(), numOrigVertices, 0,
+                               bestCut);
 }
 
-void BisectionController::bisect(Hypergraph *h, int _maxPartWt) {
+void BisectionController::bisect(hypergraph *h, int _maxPartWt) {
 #ifdef DEBUG_CONTROLLER
   assert(hGraphs.getNumElem() == 0);
 #endif
 
   hGraphs.push(h);
 
-  int totWt = h->getTotWeight();
+  int totWt = h->total_weight();
   int maxVertWt;
 
   double avePartWt = static_cast<double>(totWt) / 2;
