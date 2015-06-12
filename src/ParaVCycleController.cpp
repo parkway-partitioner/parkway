@@ -79,7 +79,7 @@ void ParaVCycleController::setWeightConstraints(MPI_Comm comm) {
 
   double avePartWt;
 
-  locGraphWt = hgraph->getLocalVertexWt();
+  locGraphWt = hgraph->vertex_weight();
 
   MPI_Allreduce(&locGraphWt, &totGraphWt, 1, MPI_INT, MPI_SUM, comm);
 
@@ -112,9 +112,9 @@ void ParaVCycleController::recordVCyclePartition(const parallel_hypergraph &h,
 
   IntArray *bestPartVector;
 
-  pVector = h.getPartVectorArray();
-  minVertexIndex = h.getMinVertexIndex();
-  numLocalVertices = h.getNumLocalVertices();
+  pVector = h.partition_vector();
+  minVertexIndex = h.minimum_vertex_index();
+  numLocalVertices = h.number_of_vertices();
 
   if (numIteration == 0) {
     bestPartVector = new IntArray(numLocalVertices);
@@ -185,9 +185,9 @@ void ParaVCycleController::gatherInVCyclePartition(parallel_hypergraph &h, int c
   int *myPartVector;
   int *myVtoOrigV;
 
-  myPartVector = h.getPartVectorArray();
-  numLocalVertices = h.getNumLocalVertices();
-  myVtoOrigV = h.getToOrigVArray();
+  myPartVector = h.partition_vector();
+  numLocalVertices = h.number_of_vertices();
+  myVtoOrigV = h.to_origin_vertex();
 
   minStoredVertexIndex = minLocCurrVertId.pop();
   numStoredLocVertices = numLocCurrVerts.pop();
@@ -302,7 +302,7 @@ void ParaVCycleController::gatherInVCyclePartition(parallel_hypergraph &h, int c
     myPartVector[localSendArrayVerts[i]] = receive_array_[i];
   }
 
-  h.setCut(0, cut);
+    h.set_cut(0, cut);
 
 #ifdef DEBUG_CONTROLLER
   h.checkPartitions(numTotalParts, maxPartWt, comm);
@@ -326,16 +326,16 @@ void ParaVCycleController::projectVCyclePartition(parallel_hypergraph &cG,
 
   int i;
 
-  int numLocalFineVertices = fG.getNumLocalVertices();
+  int numLocalFineVertices = fG.number_of_vertices();
 
   if (mapToInterVerts.capacity() != 0) {
-    fG.setNumberPartitions(1);
+      fG.set_number_of_partitions(1);
 
-    int numLocalCoarseVertices = cG.getNumLocalVertices();
-    int numTotalCoarseVertices = cG.getNumTotalVertices();
-    int coarseCut = cG.getCut(0);
+    int numLocalCoarseVertices = cG.number_of_vertices();
+    int numTotalCoarseVertices = cG.total_number_of_vertices();
+    int coarseCut = cG.cut(0);
 
-    fG.setCut(0, coarseCut);
+      fG.set_cut(0, coarseCut);
 
 #ifdef DEBUG_CONTROLLER
     assert(numLocalCoarseVertices == mapToInterVerts.capacity());
@@ -343,12 +343,12 @@ void ParaVCycleController::projectVCyclePartition(parallel_hypergraph &cG,
       assert(numLocalCoarseVertices == numTotalCoarseVertices / processors_);
 #endif
 
-    int *coarsePartVector = cG.getPartVectorArray();
-    int *finePartVector = fG.getPartVectorArray();
-    int *fineMatVector = fG.getMatchVectorArray();
+    int *coarsePartVector = cG.partition_vector();
+    int *finePartVector = fG.partition_vector();
+    int *fineMatVector = fG.match_vector();
     int *array;
 
-    int minCoarseVertexId = cG.getMinVertexIndex();
+    int minCoarseVertexId = cG.minimum_vertex_index();
 #ifdef DEBUG_CONTROLLER
     int maxCoarseVertexId = minCoarseVertexId + numLocalCoarseVertices;
 #endif
@@ -591,11 +591,11 @@ void ParaVCycleController::projectVCyclePartition(parallel_hypergraph &cG,
     assert(coarseCut == calcCut);
 #endif
   } else {
-    fG.projectPartitions(cG, comm);
+      fG.project_partitions(cG, comm);
   }
 
   mapToInterVerts.reserve(numLocalFineVertices);
-  minInterVertIndex = fG.getMinVertexIndex();
+  minInterVertIndex = fG.minimum_vertex_index();
 
   for (i = 0; i < numLocalFineVertices; ++i)
     mapToInterVerts[i] = minInterVertIndex + i;
@@ -614,14 +614,14 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(parallel_hypergraph &h,
   int j;
   int ij;
 
-  int minLocVertIdBefShuff = h.getMinVertexIndex();
+  int minLocVertIdBefShuff = h.minimum_vertex_index();
 
 #ifdef DEBUG_CONTROLLER
   int numLocVertBefShuff = h.getNumLocalVertices();
   int maxLocVertIdBefShuff = minLocVertIdBefShuff + numLocVertBefShuff;
 #endif
 
-  int numTotVertices = h.getNumTotalVertices();
+  int numTotVertices = h.total_number_of_vertices();
   int numVBefPerProc = numTotVertices / processors_;
 
 #ifdef DEBUG_CONTROLLER
@@ -629,16 +629,16 @@ void ParaVCycleController::shuffleVCycleVertsByPartition(parallel_hypergraph &h,
   assert(numLocVertBefShuff == mapToInterVerts.capacity());
 #endif
 
-  h.shuffleVerticesByPartition(numTotalParts, comm);
+    h.shuffle_vertices_by_partition(numTotalParts, comm);
 
-  int numLocVertAftShuff = h.getNumLocalVertices();
-  int minLocVertIdAftShuff = h.getMinVertexIndex();
+  int numLocVertAftShuff = h.number_of_vertices();
+  int minLocVertIdAftShuff = h.minimum_vertex_index();
   int totToSend;
   int totToRecv;
   int sendLength;
   int numRequestingLocalVerts;
 
-  int *vToOrigV = h.getToOrigVArray();
+  int *vToOrigV = h.to_origin_vertex();
   int *array;
 
   dynamic_array<int> *newToInter = new dynamic_array<int>(numLocVertAftShuff);
@@ -792,7 +792,7 @@ ParaHypergraph &fineH, MPI_Comm comm)
 #  endif
 
   //h.shuffleVerticesByPartition(numTotalParts,comm);
-  h.randomVertexShuffle(fineH, comm);
+  h.shuffle_vertices_randomly(fineH, comm);
 
   //int numLocVertAftShuff = h.getNumLocalVertices();
   //int minLocVertIdAftShuff = h.getMinVertexIndex();
@@ -947,10 +947,10 @@ void ParaVCycleController::shiftVCycleVertsToBalance(parallel_hypergraph &h,
   int i;
   int j;
 
-  int numLocalVertices = h.getNumLocalVertices();
-  int minVertexIndex = h.getMinVertexIndex();
+  int numLocalVertices = h.number_of_vertices();
+  int minVertexIndex = h.minimum_vertex_index();
   int maxVertexIndex = minVertexIndex + numLocalVertices;
-  int numTotVertices = h.getNumTotalVertices();
+  int numTotVertices = h.total_number_of_vertices();
   int vPerProc = numTotVertices / processors_;
   int numMyNewVertices;
 
@@ -966,7 +966,7 @@ void ParaVCycleController::shiftVCycleVertsToBalance(parallel_hypergraph &h,
   assert(minVertexIndex == minInterVertIndex);
 #endif
 
-  h.shiftVerticesToBalance(comm);
+    h.shift_vertices_to_balance(comm);
 
   // ###
   // mapToInterVerts = send_array_
@@ -1025,8 +1025,8 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
   int numLocalVertices = hgraph->getNumLocalVertices();
 #endif
 
-  int minLocVertIndex = hgraph->getMinVertexIndex();
-  int numTotalVertices = hgraph->getNumTotalVertices();
+  int minLocVertIndex = hgraph->minimum_vertex_index();
+  int numTotalVertices = hgraph->total_number_of_vertices();
   int vertPerProc = numTotalVertices / processors_;
   int totToRecv;
   int totToSend;
@@ -1166,7 +1166,7 @@ void ParaVCycleController::updateMapToOrigVerts(MPI_Comm comm) {
 }
 
 void ParaVCycleController::resetStructs() {
-  hgraph->resetVectors();
+    hgraph->reset_vectors();
 
   mapToInterVerts.reserve(0);
 

@@ -42,7 +42,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
   /* experimental limit on number of v-cycle iterations */
 
   int doVCycle;
-  int numOrigTotVerts = hgraph->getNumTotalVertices();
+  int numOrigTotVerts = hgraph->total_number_of_vertices();
 
   double othAccumulator;
   double totStartTime;
@@ -68,11 +68,11 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 
   for (i = 0; i < numParaRuns; ++i) {
     if (shuffled == 1)
-      hgraph->randomVertexShuffle(mapToOrigVerts.data(), comm);
+        hgraph->shuffle_vertices_randomly(mapToOrigVerts.data(), comm);
 
     if (shuffled == 2)
-      hgraph->prescribedVertexShuffle(mapToOrigVerts.data(),
-                                      shufflePartition.data(), comm);
+        hgraph->prescribed_vertex_shuffle(mapToOrigVerts.data(),
+                                          shufflePartition.data(), comm);
 
     hgraphs.push(hgraph);
     hEdgePercentiles.push(startPercentile);
@@ -124,7 +124,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
     // ###
 
     while (hgraphs.size() > 0) {
-      coarseGraph->removeBadPartitions(keepPartitionsWithin * accumulator);
+        coarseGraph->remove_bad_partitions(keepPartitionsWithin * accumulator);
       accumulator *= reductionInKeepThreshold;
       hEdgePercentile = hEdgePercentiles.pop();
       finerGraph = hgraphs.pop();
@@ -154,7 +154,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 
       /* choose/reject v-cycle */
 
-      if (finerGraph->getNumTotalVertices() > numOrigTotVerts / 4)
+      if (finerGraph->total_number_of_vertices() > numOrigTotVerts / 4)
         doVCycle = 0;
       else
         doVCycle = 1;
@@ -164,7 +164,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 
         vCycleIteration = 0;
         vCycleGain = 0;
-        firstCutSize = finerGraph->keepBestPartition();
+        firstCutSize = finerGraph->keep_best_partition();
         recordVCyclePartition(*finerGraph, vCycleIteration++);
 
         numInStack = hgraphs.size();
@@ -213,8 +213,8 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
           // ###
 
           coarseGraph = hgraphs.pop();
-          coarseGraph->setNumberPartitions(0);
-          coarseGraph->shiftVerticesToBalance(comm);
+            coarseGraph->set_number_of_partitions(0);
+            coarseGraph->shift_vertices_to_balance(comm);
 
           MPI_Barrier(comm);
           startTime = MPI_Wtime();
@@ -232,8 +232,8 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
           startTime = MPI_Wtime();
 
           while (hgraphs.size() > numInStack) {
-            coarseGraph->removeBadPartitions(keepPartitionsWithin *
-                                             othAccumulator);
+              coarseGraph->remove_bad_partitions(keepPartitionsWithin *
+                                                 othAccumulator);
             othAccumulator *= reductionInKeepThreshold;
 
             hEdgePercentile = hEdgePercentiles.pop();
@@ -242,10 +242,10 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
             if (finerGraph == interMedGraph) {
               shiftVCycleVertsToBalance(*finerGraph, comm);
             } else {
-              finerGraph->shiftVerticesToBalance(comm);
+                finerGraph->shift_vertices_to_balance(comm);
             }
 
-            finerGraph->projectPartitions(*coarseGraph, comm);
+              finerGraph->project_partitions(*coarseGraph, comm);
 
 #ifdef DEBUG_CONTROLLER
             finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
@@ -253,10 +253,10 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 
             if (randShuffBefRef) {
               if (finerGraph == interMedGraph)
-                finerGraph->randomVertexShuffle(mapToInterVerts.data(),
-                                                comm);
+                  finerGraph->shuffle_vertices_randomly(mapToInterVerts.data(),
+                                                        comm);
               else
-                finerGraph->randomVertexShuffle(*(hgraphs.top()), comm);
+                  finerGraph->shuffle_vertices_randomly(*(hgraphs.top()), comm);
             }
 
             if (approxRefine)
@@ -283,7 +283,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
           // select the best partition
           // ###
 
-          secondCutSize = coarseGraph->keepBestPartition();
+          secondCutSize = coarseGraph->keep_best_partition();
 
 #ifdef DEBUG_CONTROLLER
           coarseGraph->checkPartitions(numTotalParts, maxPartWt, comm);
@@ -331,7 +331,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
     assert(coarseGraph == hgraph);
 #endif
 
-    firstCutSize = coarseGraph->keepBestPartition();
+    firstCutSize = coarseGraph->keep_best_partition();
 
     updateMapToOrigVerts(comm);
 
@@ -348,7 +348,7 @@ void ParaVCycleAllController::runPartitioner(MPI_Comm comm) {
 
     if (firstCutSize < bestCutsize) {
       bestCutsize = firstCutSize;
-      storeBestPartition(numOrigLocVerts, hgraph->getPartVectorArray(), comm);
+      storeBestPartition(numOrigLocVerts, hgraph->partition_vector(), comm);
     }
 
     if (firstCutSize > worstCutsize)

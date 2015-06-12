@@ -66,7 +66,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
   stack<int> hEdgePercentiles;
 
-  numOrigLocVerts = hgraph->getNumLocalVertices();
+  numOrigLocVerts = hgraph->number_of_vertices();
 
   parallel_hypergraph *coarseGraph;
   parallel_hypergraph *finerGraph;
@@ -90,12 +90,12 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
     Funct::printMemUse(rank_, "[begin run]");
 #endif
     if (shuffled == 1) {
-      hgraph->randomVertexShuffle(mapToOrigVerts.data(), comm);
+        hgraph->shuffle_vertices_randomly(mapToOrigVerts.data(), comm);
     }
 
     if (shuffled == 2) {
-      hgraph->prescribedVertexShuffle(mapToOrigVerts.data(),
-                                      shufflePartition.data(), comm);
+        hgraph->prescribed_vertex_shuffle(mapToOrigVerts.data(),
+                                          shufflePartition.data(), comm);
     }
 
     hgraphs.push(hgraph);
@@ -167,22 +167,22 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
     startTime = MPI_Wtime();
 
     while (hgraphs.size() > 0) {
-      coarseGraph->removeBadPartitions(keepPartitionsWithin * accumulator);
+        coarseGraph->remove_bad_partitions(keepPartitionsWithin * accumulator);
       accumulator *= reductionInKeepThreshold;
 
       finerGraph = hgraphs.pop();
       hEdgePercentile = hEdgePercentiles.pop();
 
-      finerGraph->projectPartitions(*coarseGraph, comm);
+        finerGraph->project_partitions(*coarseGraph, comm);
 
 #ifdef DEBUG_CONTROLLER
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
       if (randShuffBefRef) {
         if (hgraphs.size() == 0)
-          finerGraph->randomVertexShuffle(mapToOrigVerts.data(), comm);
+            finerGraph->shuffle_vertices_randomly(mapToOrigVerts.data(), comm);
         else
-          finerGraph->randomVertexShuffle(*(hgraphs.top()), comm);
+            finerGraph->shuffle_vertices_randomly(*(hgraphs.top()), comm);
       }
 
       if (approxRefine)
@@ -220,7 +220,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
     /* select the best partition */
 
-    cutSize = coarseGraph->keepBestPartition();
+    cutSize = coarseGraph->keep_best_partition();
 
 #ifdef DEBUG_CONTROLLER
     checkCutsize = coarseGraph->calcCutsize(numTotalParts, 0, comm);
@@ -229,7 +229,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
     if (cutSize < bestCutsize) {
       bestCutsize = cutSize;
-      storeBestPartition(numOrigLocVerts, hgraph->getPartVectorArray(), comm);
+      storeBestPartition(numOrigLocVerts, hgraph->partition_vector(), comm);
     }
 
     if (cutSize > worstCutsize)
@@ -285,7 +285,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 }
 
 void BasicParaController::resetStructs() {
-  hgraph->resetVectors();
+    hgraph->reset_vectors();
     free_memory();
 }
 

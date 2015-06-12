@@ -10,7 +10,7 @@ namespace hypergraph {
 
 class base_hypergraph {
  public:
-  base_hypergraph(int number_of_vertices = 0);
+  base_hypergraph(int number_of_vertices = 0, int number_of_partitions = 0);
   virtual ~base_hypergraph();
 
   inline int number_of_partitions() const {
@@ -33,7 +33,7 @@ class base_hypergraph {
     return number_of_hyperedges_;
   }
 
-  inline void set_number_of_hypererges(int number) {
+  inline void set_number_of_hyperedges(int number) {
     number_of_hyperedges_ = number;
   }
 

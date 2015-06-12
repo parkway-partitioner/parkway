@@ -410,7 +410,7 @@ int ParaGreedyKwayRefiner::runGreedyKwayRefinement(parallel_hypergraph &h, int p
 #ifdef DEBUG_REFINER
 // assert(currPercentile > 0 && currPercentile < 100);
 #endif
-    return (h.calcCutsize(numParts, pNo, comm));
+    return (h.calculate_cut_size(numParts, pNo, comm));
   }
 }
 

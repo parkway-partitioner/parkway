@@ -60,19 +60,19 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
   dynamic_array<int> sentToProc;
   dynamic_array<int> vDegs;
 
-  numLocalPins = h.getNumLocalPins();
-  numLocalHedges = h.getNumLocalHedges();
-  localPins = h.getLocalPinsArray();
-  localHedgeOffsets = h.getHedgeOffsetsArray();
-  localHedgeWeights = h.getHedgeWeightsArray();
+  numLocalPins = h.number_of_pins();
+  numLocalHedges = h.number_of_hyperedges();
+  localPins = h.pin_list();
+  localHedgeOffsets = h.hyperedge_offsets();
+  localHedgeWeights = h.hyperedge_weights();
 
-  locVertWt = h.getLocalVertexWt();
-  vWeight = h.getWeightArray();
-  matchVector = h.getMatchVectorArray();
+  locVertWt = h.vertex_weight();
+  vWeight = h.vertex_weights();
+  matchVector = h.match_vector();
 
-  numLocalVertices = h.getNumLocalVertices();
-  totalVertices = h.getNumTotalVertices();
-  minVertexIndex = h.getMinVertexIndex();
+  numLocalVertices = h.number_of_vertices();
+  totalVertices = h.total_number_of_vertices();
+  minVertexIndex = h.minimum_vertex_index();
   maxVertexIndex = minVertexIndex + numLocalVertices;
 
   // ###
@@ -411,12 +411,12 @@ parallel_hypergraph *ParaCoarsener::contractHyperedges(parallel_hypergraph &h,
       new parallel_hypergraph(rank_, processors_, numMyClusters, totalClusters,
                          myMinCluIndex, stopCoarsening, clusterWts->data());
 
-  h.contractHyperedges(*coarseGraph, comm);
+    h.contract_hyperedges(*coarseGraph, comm);
 
   if (dispOption > 1) {
-    int numTotCoarseVerts = coarseGraph->getNumTotalVertices();
-    int numLocHedges = coarseGraph->getNumLocalHedges();
-    int numLocPins = coarseGraph->getNumLocalPins();
+    int numTotCoarseVerts = coarseGraph->total_number_of_vertices();
+    int numLocHedges = coarseGraph->number_of_hyperedges();
+    int numLocPins = coarseGraph->number_of_pins();
     int numTotCoarseHedges;
     int numTotCoarsePins;
 

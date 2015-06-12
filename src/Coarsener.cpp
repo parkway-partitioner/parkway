@@ -195,7 +195,7 @@ hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
   newPinList->reserve(numNewPins);
   newHedgeOffsets->reserve(numNewHedges + 1);
 
-  newHypergraph->set_number_of_hypererges(numNewHedges);
+  newHypergraph->set_number_of_hyperedges(numNewHedges);
   newHypergraph->set_number_of_pins(numNewPins);
   newHypergraph->set_total_weight(totWt);
   newHypergraph->set_hyperedge_weights(newHedgeWt->data(), numNewHedges);

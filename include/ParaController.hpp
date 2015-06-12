@@ -106,7 +106,7 @@ class ParaController : public global_communicator {
   inline void setRandShuffBefRef(int s) { randShuffBefRef = s; }
   inline void setGraph(parallel_hypergraph *graph) {
     hgraph = graph;
-    numOrigLocVerts = hgraph->getNumLocalVertices();
+    numOrigLocVerts = hgraph->number_of_vertices();
   }
 
   // void setShuffleFile(const char *filename);

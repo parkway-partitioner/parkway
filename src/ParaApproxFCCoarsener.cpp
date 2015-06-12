@@ -98,7 +98,7 @@ parallel_hypergraph *ParaApproxFCCoarsener::coarsen(parallel_hypergraph &h,
                                                MPI_Comm comm) {
   loadHyperGraph(h, comm);
 
-  if (totalVertices < minNodes || h.dontCoarsen()) {
+  if (totalVertices < minNodes || h.dont_coarsen()) {
     currPercentile = startPercentile;
     return nullptr;
   }

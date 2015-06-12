@@ -62,7 +62,7 @@ void ParaController::setShuffleFile(const char *filename)
 
 void ParaController::initMapToOrigVerts() {
   int i;
-  int j = hgraph->getMinVertexIndex();
+  int j = hgraph->minimum_vertex_index();
 
   mapToOrigVerts.reserve(numOrigLocVerts);
 
@@ -90,7 +90,7 @@ void ParaController::setPrescribedPartition(const char *filename,
 
   if (shuffled == 2) {
     int len;
-    int numVPerProc = hgraph->getNumTotalVertices() / processors_;
+    int numVPerProc = hgraph->total_number_of_vertices() / processors_;
     int myOffset = rank_ * numVPerProc;
 
     char message[512];
@@ -129,8 +129,8 @@ void ParaController::storeBestPartition(int numV, const int *array,
   int numLocalVertices = hgraph->getNumLocalVertices();
 #endif
 
-  int minLocVertIndex = hgraph->getMinVertexIndex();
-  int numTotalVertices = hgraph->getNumTotalVertices();
+  int minLocVertIndex = hgraph->minimum_vertex_index();
+  int numTotalVertices = hgraph->total_number_of_vertices();
   int vertPerProc = numTotalVertices / processors_;
   int totToRecv;
   int totToSend;
@@ -295,7 +295,7 @@ void ParaController::setWeightConstraints(MPI_Comm comm) {
 
   double avePartWt;
 
-  locGraphWt = hgraph->getLocalVertexWt();
+  locGraphWt = hgraph->vertex_weight();
 
   MPI_Allreduce(&locGraphWt, &totGraphWt, 1, MPI_INT, MPI_SUM, comm);
 

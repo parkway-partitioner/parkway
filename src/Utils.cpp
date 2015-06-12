@@ -24,11 +24,11 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
   int coarsener_type = ParaFCC; // Para2DModel
   int min_nodes = options[8];
   int disp_option = options[2];
-  int numTotPins = h->getNumTotPins(comm);
+  int numTotPins = h->total_number_of_pins(comm);
 
   double r = static_cast<double>(options[9]) / options[10];
-  double aveVertDeg = h->getAveVertDeg(comm);
-  double aveHedgeSize = h->getAveHedgeSize(comm);
+  double aveVertDeg = h->average_vertex_degree(comm);
+  double aveHedgeSize = h->average_hyperedge_size(comm);
 
   if (coarsener_type == ParaFCC) {
     int vertexVisitOrder = options[11];
@@ -166,7 +166,7 @@ ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
                                      MPI_Comm comm) {
   int refiner_type = ParaGreedyKway;
   int disp_option = options[2];
-  int numTotPins = h->getNumTotPins(comm);
+  int numTotPins = h->total_number_of_pins(comm);
 
   ParaRefiner *r = nullptr;
 

@@ -128,8 +128,8 @@ void testRecordedPartition(const char *filename, int myRank, int numProcs,
   char pFile[512];
   sprintf(pFile, "%s.part.%d", filename, numParts);
 
-  h->initPartitionFromFile(pFile, numParts, out, comm);
-  h->checkPartitions(numParts, constraint, out, comm);
+  h->initalize_partition_from_file(pFile, numParts, out, comm);
+  h->check_partitions(numParts, constraint, out, comm);
 
   if (h)
     delete h;
@@ -142,9 +142,9 @@ void testRecordedPartition(const char *filename, const int *pVector,
   parallel_hypergraph *h =
       new parallel_hypergraph(myRank, numProcs, filename, 1, out, comm);
 
-  h->setNumberPartitions(1);
-  h->copyInPartition(pVector, numLocVerts, 0);
-  h->checkPartitions(numParts, constraint, out, comm);
+  h->set_number_of_partitions(1);
+  h->copy_in_partition(pVector, numLocVerts, 0);
+  h->check_partitions(numParts, constraint, out, comm);
 
   if (h)
     delete h;

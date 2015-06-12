@@ -26,8 +26,11 @@
 
 #include "global_communicator.hpp"
 #include "data_structures/dynamic_array.hpp"
+#include "hypergraph/base_hypergraph.hpp"
 
-class parallel_hypergraph : public global_communicator {
+class parallel_hypergraph
+    : public global_communicator,
+      public parkway::hypergraph::base_hypergraph {
 public:
   parallel_hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int *wtArray);
@@ -43,35 +46,35 @@ public:
 
   ~parallel_hypergraph();
 
-  void hypergraphFromFile(const char *filename, int dispOption,
-                          std::ostream &out, MPI_Comm comm);
-  void initPartitionFromFile(const char *filename, int numParts,
-                             std::ostream &out, MPI_Comm comm);
+  void load_from_file(const char *filename, int dispOption,
+                      std::ostream &out, MPI_Comm comm);
+  void initalize_partition_from_file(const char *filename, int numParts,
+                                     std::ostream &out, MPI_Comm comm);
 
-  void allocHedgeMem(int numHedges, int numLocPins);
-  void contractHyperedges(parallel_hypergraph &coarse, MPI_Comm comm);
+  void allocate_hyperedge_memory(int numHedges, int numLocPins);
+  void contract_hyperedges(parallel_hypergraph &coarse, MPI_Comm comm);
   void contractRestrHyperedges(parallel_hypergraph &coarse, MPI_Comm comm);
-  void projectPartitions(parallel_hypergraph &coarse, MPI_Comm comm);
-  void resetVectors();
+  void project_partitions(parallel_hypergraph &coarse, MPI_Comm comm);
+  void reset_vectors();
 
-  void removeBadPartitions(double cutThreshold);
-  void setNumberPartitions(int nP);
-  void computePartitionChars(int pNum, int numParts, double constraint,
-                             std::ostream &out, MPI_Comm comm);
-  void copyInPartition(const int *partition, int numV, int nP);
-  void copyOutPartition(int *partition, int numV, int nP) const;
-  int keepBestPartition();
+  void remove_bad_partitions(double cutThreshold);
+  void set_number_of_partitions(int nP) override;
+  void compute_partition_characteristics(int pNum, int numParts, double constraint,
+                                         std::ostream &out, MPI_Comm comm);
+  void copy_in_partition(const int *partition, int numV, int nP);
+  void copy_out_partition(int *partition, int numV, int nP) const;
+  int keep_best_partition();
 
-  void prescribedVertexShuffle(int *prescribedAssignment, int nLocVer,
-                               MPI_Comm comm);
-  void prescribedVertexShuffle(int *mapToOrigV, int *partitionFile,
-                               MPI_Comm comm);
-  void shuffleVerticesByPartition(int nParts, MPI_Comm comm);
-  void randomVertexShuffle(MPI_Comm comm);
-  void randomVertexShuffle(int *mapToOrigV, MPI_Comm comm);
-  void randomVertexShuffle(parallel_hypergraph &fineG, MPI_Comm comm);
+  void prescribed_vertex_shuffle(int *prescribedAssignment, int nLocVer,
+                                 MPI_Comm comm);
+  void prescribed_vertex_shuffle(int *mapToOrigV, int *partitionFile,
+                                 MPI_Comm comm);
+  void shuffle_vertices_by_partition(int nParts, MPI_Comm comm);
+  void shuffle_vertices_randomly(MPI_Comm comm);
+  void shuffle_vertices_randomly(int *mapToOrigV, MPI_Comm comm);
+  void shuffle_vertices_randomly(parallel_hypergraph &fineG, MPI_Comm comm);
 
-  void shuffleVertices(int *vToProc, int *locVPerProc, MPI_Comm comm);
+  void shuffle_vertices(int *vToProc, int *locVPerProc, MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc, int *mapToOrigV,
                                 MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc,
@@ -80,128 +83,58 @@ public:
                                 int *mapToInterV, int *mapToOrigV,
                                 MPI_Comm comm);
 
-  // void shuffleVerticesWithPartVals(int *vToProc, int *locVPerProc, MPI_Comm
-  // comm);
-  void shiftVerticesToBalance(MPI_Comm comm);
+  void shift_vertices_to_balance(MPI_Comm comm);
 
-  int calcCutsize(int numParts, int pNum, MPI_Comm comm);
-  int checkBalance(int numParts, double balConstraint, int numPartition,
-                   MPI_Comm comm);
-  int computeTotalNumPins(MPI_Comm comm);
+  int calculate_cut_size(int numParts, int pNum, MPI_Comm comm);
+  int check_balance(int numParts, double balConstraint, int numPartition,
+                    MPI_Comm comm);
 
-  void checkValidityOfPartitions(int numParts) const;
-  void checkPartitions(int numParts, int maxPartWt, MPI_Comm comm);
-  void checkPartitions(int numParts, double constraint, std::ostream &out,
-                       MPI_Comm comm);
-  void computeBalanceWarning(int numParts, double constraint, std::ostream &out,
-                             MPI_Comm comm);
+  void check_validity_of_partitions(int numParts) const;
+  void check_partitions(int numParts, int maxPartWt, MPI_Comm comm);
+  void check_partitions(int numParts, double constraint, std::ostream &out,
+                        MPI_Comm comm);
+  void compute_balance_warnings(int numParts, double constraint, std::ostream &out,
+                                MPI_Comm comm);
 
-  int getNumTotPins(MPI_Comm comm);
-  int getNumTotHedges(MPI_Comm comm);
-  int getExposedHedgeWt(MPI_Comm comm) const;
+  int total_number_of_pins(MPI_Comm comm);
+  int total_number_of_hyperedges(MPI_Comm comm);
+  int exposed_hyperedge_weight(MPI_Comm comm) const;
 
-  double getAveVertDeg(MPI_Comm comm);
-  double getAveHedgeSize(MPI_Comm comm);
+  double average_vertex_degree(MPI_Comm comm);
+  double average_hyperedge_size(MPI_Comm comm);
 
-  int computeNonConnectedVerts(MPI_Comm comm);
+  inline int total_number_of_vertices() const { return total_number_of_vertices_; }
+  inline int minimum_vertex_index() const { return minimum_vertex_index_; }
+  inline int vertex_weight() const { return vertex_weight_; }
+  inline int dont_coarsen() const { return do_not_coarsen; }
 
-  inline int getNumTotalVertices() const { return numTotalVertices; }
-  inline int getNumLocalVertices() const { return numLocalVertices; }
-  inline int getNumLocalHedges() const { return numLocalHedges; }
-  inline int getNumLocalPins() const { return numLocalPins; }
-  inline int getMinVertexIndex() const { return minVertexIndex; }
-  inline int getLocalVertexWt() const { return localVertexWt; }
-  inline int getNumPartitions() const { return numPartitions; }
-  inline int getIndexInSeq() const { return indexInSequence; }
-  inline int dontCoarsen() const { return doNotCoarsen; }
-
-  inline int *getWeightArray() const { return vWeight.data(); }
-  inline int *getMatchVectorArray() const { return matchVector.data(); }
-  inline int *getPartVectorArray() const { return partitionVector.data(); }
-  inline int *getLocalPinsArray() const { return localPins.data(); }
-  inline int *getHedgeOffsetsArray() const { return hEdgeOffsets.data(); }
-  inline int *getHedgeWeightsArray() const { return hEdgeWeights.data(); }
-  inline int *getPartitionArray() const { return partitionVector.data(); }
-  inline int *getPartitionOffsetsArray() const {
-    return partitionOffsetsVector.data();
-  }
-  inline int *getCutsizesArray() const {
-    return partitionCutsizesVector.data();
-  }
-  inline int *getToOrigVArray() const { return vToOrigV.data(); }
+  inline int *to_origin_vertex() const { return to_origin_vertex_.data(); }
 
 
-  inline void setIndexInSeq(int index) { indexInSequence = index; }
-  inline void setNumTotalVertices(int v) { numTotalVertices = v; }
-  inline void setNumLocalVertices(int v) { numLocalVertices = v; }
-  inline void setNumLocalHedges(int h) { numLocalHedges = h; }
-  inline void setNumLocalPins(int p) { numLocalPins = p; }
-  inline void setMinVertexIndex(int m) { minVertexIndex = m; }
-  inline void setLocalVertexWt(int w) { localVertexWt = w; }
+  inline void set_total_number_of_vertics(int v) { total_number_of_vertices_ = v; }
+  inline void set_minimum_vertex_index(int m) { minimum_vertex_index_ = m; }
 
-  inline void setWeightArray(int *a, int l) {
-    vWeight.set_data(a, l);
-  }
-  inline void setMatchVectorArray(int *a, int l) {
-    matchVector.set_data(a, l);
-  }
-  inline void setPartVectorArray(int *a, int l) {
-    partitionVector.set_data(a, l);
-  }
-  inline void setLocalPinsArray(int *a, int l) {
-    localPins.set_data(a, l);
-  }
-  inline void setHedgeOffsetsArray(int *a, int l) {
-    hEdgeOffsets.set_data(a, l);
-  }
-  inline void setHedgeWeightsArray(int *a, int l) {
-    hEdgeWeights.set_data(a, l);
-  }
-
-  inline void setCut(int pNo, int cut) {
+  inline void set_cut(int pNo, int cut) {
 #ifdef DEBUG_HYPERGRAPH
     assert(pNo >= 0 && pNo < numPartitions);
 #endif
-    partitionCutsizesVector[pNo] = cut;
+    partition_cuts_[pNo] = cut;
   }
 
-  inline int getCut(int i) const {
+  inline int cut(int i) const {
 #ifdef DEBUG_HYPERGRAPH
     assert(i >= 0 && i < numPartitions);
 #endif
-    return partitionCutsizesVector[i];
+    return partition_cuts_[i];
   }
+
  protected:
-  int indexInSequence;
-  int doNotCoarsen;
+  int do_not_coarsen;
+  int total_number_of_vertices_;
+  int minimum_vertex_index_;
+  int vertex_weight_;
 
-  int numTotalVertices;
-  int numLocalVertices;
-
-  int numLocalPins;
-  int numLocalHedges;
-
-  int minVertexIndex;
-  int localVertexWt;
-
-  int numPartitions;
-
-  parkway::data_structures::dynamic_array<int> vWeight;
-  parkway::data_structures::dynamic_array<int> matchVector;
-
-  parkway::data_structures::dynamic_array<int> partitionVector;
-  parkway::data_structures::dynamic_array<int> partitionOffsetsVector;
-  parkway::data_structures::dynamic_array<int> partitionCutsizesVector;
-
-  parkway::data_structures::dynamic_array<int> localPins;
-  parkway::data_structures::dynamic_array<int> hEdgeOffsets;
-  parkway::data_structures::dynamic_array<int> hEdgeWeights;
-
-  parkway::data_structures::dynamic_array<int> vToOrigV;
-
-
-
-
+  parkway::data_structures::dynamic_array<int> to_origin_vertex_;
 };
 
 #endif

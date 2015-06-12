@@ -277,11 +277,11 @@ void RecurBisectController::initSeqPartitions(parallel_hypergraph &hgraph,
   dynamic_array<int> recvDispls(numProcs);
   dynamic_array<int> sendArray;
 
-  hgraph.setNumberPartitions(numSeqRuns);
+  hgraph.set_number_of_partitions(numSeqRuns);
 
-  hGraphPartitionVector = hgraph.getPartitionArray();
-  hGraphPartVectorOffsets = hgraph.getPartitionOffsetsArray();
-  hGraphPartCuts = hgraph.getCutsizesArray();
+  hGraphPartitionVector = hgraph.partition_vector();
+  hGraphPartVectorOffsets = hgraph.partition_offsets();
+  hGraphPartCuts = hgraph.partition_cuts();
 
   // ###
   // communicate partition vector values
@@ -606,7 +606,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
     // now init the hypergraphs
     // ###
 
-    newH->set_number_of_hypererges(numHedges);
+    newH->set_number_of_hyperedges(numHedges);
     newH->set_number_of_pins(numPins);
     newH->set_total_weight(totWt);
     newH->set_hyperedge_weights(hedgeWts->data(), numHedges);
@@ -682,7 +682,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
     // now init the hypergraph
     // ###
 
-    newH->set_number_of_hypererges(numHedges);
+    newH->set_number_of_hyperedges(numHedges);
     newH->set_number_of_pins(numPins);
     newH->set_total_weight(totWt);
     newH->set_hyperedge_weights(hedgeWts->data(), numHedges);
@@ -841,7 +841,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   // now init the hypergraphs
   // ###
 
-  leftH->set_number_of_hypererges(numLeftHedges);
+  leftH->set_number_of_hyperedges(numLeftHedges);
   leftH->set_number_of_pins(numLeftPins);
   leftH->set_total_weight(totLeftWt);
   leftH->set_hyperedge_weights(leftHedgeWts->data(), numLeftHedges);
@@ -850,7 +850,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
 
   leftH->buildVtoHedges();
 
-  rightH->set_number_of_hypererges(numRightHedges);
+  rightH->set_number_of_hyperedges(numRightHedges);
   rightH->set_number_of_pins(numRightPins);
   rightH->set_total_weight(totRightWt);
   rightH->set_hyperedge_weights(rightHedgeWts->data(), numRightHedges);

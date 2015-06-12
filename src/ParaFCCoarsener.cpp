@@ -91,7 +91,7 @@ parallel_hypergraph *ParaFCCoarsener::coarsen(parallel_hypergraph &h, MPI_Comm c
   Funct::printMemUse(rank_, "[begin PFCC]");
 #endif
 
-  if (totalVertices < minNodes || h.dontCoarsen()) {
+  if (totalVertices < minNodes || h.dont_coarsen()) {
     return nullptr;
   }
 

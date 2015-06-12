@@ -42,17 +42,17 @@ void SeqController::initCoarsestHypergraph(parallel_hypergraph &hgraph,
 
   int recvArrayLen;
   int index;
-  int numLocalVertices = hgraph.getNumLocalVertices();
-  int numLocalHedges = hgraph.getNumLocalHedges();
-  int numLocalPins = hgraph.getNumLocalPins();
-  int localVertexWt = hgraph.getLocalVertexWt();
+  int numLocalVertices = hgraph.number_of_vertices();
+  int numLocalHedges = hgraph.number_of_hyperedges();
+  int numLocalPins = hgraph.number_of_pins();
+  int localVertexWt = hgraph.vertex_weight();
 
-  int *localVertWeight = hgraph.getWeightArray();
-  int *localHedgeOffsets = hgraph.getHedgeOffsetsArray();
-  int *localHedgeWeights = hgraph.getHedgeWeightsArray();
-  int *localPins = hgraph.getLocalPinsArray();
+  int *localVertWeight = hgraph.vertex_weights();
+  int *localHedgeOffsets = hgraph.hyperedge_offsets();
+  int *localHedgeWeights = hgraph.hyperedge_weights();
+  int *localPins = hgraph.pin_list();
 
-  int numVertices = hgraph.getNumTotalVertices();
+  int numVertices = hgraph.total_number_of_vertices();
   int numHedges;
   int numPins;
   int totVertexWt;
@@ -147,7 +147,7 @@ void SeqController::initCoarsestHypergraph(parallel_hypergraph &hgraph,
 
   h = new hypergraph(vWeights->data(), numVertices);
 
-  h->set_number_of_hypererges(numHedges);
+  h->set_number_of_hyperedges(numHedges);
   h->set_number_of_pins(numPins);
   h->set_total_weight(totVertexWt);
   h->set_hyperedge_weights(hEdgeWeights->data(), hEdgeWeights->capacity());
@@ -233,11 +233,11 @@ void SeqController::initSeqPartitions(parallel_hypergraph &hgraph, MPI_Comm comm
               MPI_INT, ROOT_PROC, comm);
   MPI_Bcast(&numKept, 1, MPI_INT, ROOT_PROC, comm);
 
-  hgraph.setNumberPartitions(numKept);
+  hgraph.set_number_of_partitions(numKept);
 
-  hPartitionVector = hgraph.getPartitionArray();
-  hPartVectorOffsets = hgraph.getPartitionOffsetsArray();
-  hPartCuts = hgraph.getCutsizesArray();
+  hPartitionVector = hgraph.partition_vector();
+  hPartVectorOffsets = hgraph.partition_offsets();
+  hPartCuts = hgraph.partition_cuts();
 
   // ###
   // communicate partition vector values

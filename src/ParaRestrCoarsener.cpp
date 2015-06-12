@@ -68,27 +68,27 @@ void ParaRestrCoarsener::loadHyperGraph(const parallel_hypergraph &h,
   dynamic_array<int> maxLocIndices(processors_);
   dynamic_array<int> vPerProc(processors_);
 
-  numLocalPins = h.getNumLocalPins();
-  numLocalHedges = h.getNumLocalHedges();
-  localPins = h.getLocalPinsArray();
-  localHedgeOffsets = h.getHedgeOffsetsArray();
-  localHedgeWeights = h.getHedgeWeightsArray();
+  numLocalPins = h.number_of_pins();
+  numLocalHedges = h.number_of_hyperedges();
+  localPins = h.pin_list();
+  localHedgeOffsets = h.hyperedge_offsets();
+  localHedgeWeights = h.hyperedge_weights();
 
-  locVertWt = h.getLocalVertexWt();
-  vWeight = h.getWeightArray();
-  matchVector = h.getMatchVectorArray();
+  locVertWt = h.vertex_weight();
+  vWeight = h.vertex_weights();
+  matchVector = h.match_vector();
 
-  numLocalVertices = h.getNumLocalVertices();
-  totalVertices = h.getNumTotalVertices();
-  minVertexIndex = h.getMinVertexIndex();
+  numLocalVertices = h.number_of_vertices();
+  totalVertices = h.total_number_of_vertices();
+  minVertexIndex = h.minimum_vertex_index();
   maxVertexIndex = minVertexIndex + numLocalVertices;
 
   // here add partition information
 
-  numPartitions = h.getNumPartitions();
-  partitionVector = h.getPartitionArray();
-  partitionVectorOffsets = h.getPartitionOffsetsArray();
-  partitionCuts = h.getCutsizesArray();
+  numPartitions = h.number_of_partitions();
+  partitionVector = h.partition_vector();
+  partitionVectorOffsets = h.partition_offsets();
+  partitionCuts = h.partition_cuts();
 
 #ifdef DEBUG_COARSENER
   assert(numPartitions == 1);
@@ -339,12 +339,12 @@ parallel_hypergraph *ParaRestrCoarsener::contractHyperedges(parallel_hypergraph 
   pVector = nullptr;
 
   h.contractRestrHyperedges(*coarseGraph, comm);
-  h.setNumberPartitions(0);
+    h.set_number_of_partitions(0);
 
   if (dispOption > 1) {
-    int numTotCoarseVerts = coarseGraph->getNumTotalVertices();
-    int numLocHedges = coarseGraph->getNumLocalHedges();
-    int numLocPins = coarseGraph->getNumLocalPins();
+    int numTotCoarseVerts = coarseGraph->total_number_of_vertices();
+    int numLocHedges = coarseGraph->number_of_hyperedges();
+    int numLocPins = coarseGraph->number_of_pins();
     int numTotHedges;
     int numTotPins;
 

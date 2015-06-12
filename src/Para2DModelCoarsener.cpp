@@ -90,7 +90,7 @@ parallel_hypergraph *Para2DModelCoarsener::coarsen(parallel_hypergraph &h,
   // std::cout << "loaded hypergraph" << std::endl;
   // MPI_Barrier(comm);
 
-  if (totalVertices < minNodes || h.dontCoarsen())
+  if (totalVertices < minNodes || h.dont_coarsen())
     return nullptr;
 
   if (totalVertices < 3000000) {

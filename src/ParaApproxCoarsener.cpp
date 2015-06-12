@@ -50,19 +50,19 @@ void ParaApproxCoarsener::loadHyperGraph(const parallel_hypergraph &h,
 
   bit_field toLoad;
 
-  numLocalPins = h.getNumLocalPins();
-  numLocalHedges = h.getNumLocalHedges();
-  localPins = h.getLocalPinsArray();
-  localHedgeOffsets = h.getHedgeOffsetsArray();
-  localHedgeWeights = h.getHedgeWeightsArray();
+  numLocalPins = h.number_of_pins();
+  numLocalHedges = h.number_of_hyperedges();
+  localPins = h.pin_list();
+  localHedgeOffsets = h.hyperedge_offsets();
+  localHedgeWeights = h.hyperedge_weights();
 
-  locVertWt = h.getLocalVertexWt();
-  vWeight = h.getWeightArray();
-  matchVector = h.getMatchVectorArray();
+  locVertWt = h.vertex_weight();
+  vWeight = h.vertex_weights();
+  matchVector = h.match_vector();
 
-  numLocalVertices = h.getNumLocalVertices();
-  totalVertices = h.getNumTotalVertices();
-  minVertexIndex = h.getMinVertexIndex();
+  numLocalVertices = h.number_of_vertices();
+  totalVertices = h.total_number_of_vertices();
+  minVertexIndex = h.minimum_vertex_index();
   maxVertexIndex = minVertexIndex + numLocalVertices;
 
   // ###

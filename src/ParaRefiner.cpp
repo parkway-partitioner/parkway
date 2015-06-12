@@ -47,19 +47,19 @@ void ParaRefiner::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) {
   dynamic_array<int> sentToProc;
   dynamic_array<int> vDegs;
 
-  numLocalPins = h.getNumLocalPins();
-  numLocalHedges = h.getNumLocalHedges();
-  localPins = h.getLocalPinsArray();
-  localHedgeOffsets = h.getHedgeOffsetsArray();
-  localHedgeWeights = h.getHedgeWeightsArray();
+  numLocalPins = h.number_of_pins();
+  numLocalHedges = h.number_of_hyperedges();
+  localPins = h.pin_list();
+  localHedgeOffsets = h.hyperedge_offsets();
+  localHedgeWeights = h.hyperedge_weights();
 
-  locVertWt = h.getLocalVertexWt();
-  vWeight = h.getWeightArray();
-  matchVector = h.getMatchVectorArray();
+  locVertWt = h.vertex_weight();
+  vWeight = h.vertex_weights();
+  matchVector = h.match_vector();
 
-  numLocalVertices = h.getNumLocalVertices();
-  totalVertices = h.getNumTotalVertices();
-  minVertexIndex = h.getMinVertexIndex();
+  numLocalVertices = h.number_of_vertices();
+  totalVertices = h.total_number_of_vertices();
+  minVertexIndex = h.minimum_vertex_index();
   maxVertexIndex = minVertexIndex + numLocalVertices;
 
   // ###
@@ -499,10 +499,10 @@ void ParaRefiner::initPartitionStructs(const parallel_hypergraph &h, MPI_Comm co
   avePartWt = static_cast<double>(totWt) / numParts;
   maxPartWt = static_cast<int>(floor(avePartWt + avePartWt * balConstraint));
 
-  numPartitions = h.getNumPartitions();
-  partitionVector = h.getPartitionArray();
-  partitionVectorOffsets = h.getPartitionOffsetsArray();
-  partitionCuts = h.getCutsizesArray();
+  numPartitions = h.number_of_partitions();
+  partitionVector = h.partition_vector();
+  partitionVectorOffsets = h.partition_offsets();
+  partitionCuts = h.partition_cuts();
 
   vPerProc = totalVertices / processors_;
 

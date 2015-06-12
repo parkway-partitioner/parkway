@@ -116,7 +116,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
     MPI_Abort(comm, 0);
   }
 
-  ds::internal::table_utils::set_scatter_array(hgraph->getNumTotalVertices());
+  ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
 
   coarsener =
       Utils::buildParaCoarsener(my_rank, num_procs, num_parts, constraint,
@@ -150,7 +150,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   }
 
   controller = Utils::buildParaController(
-      my_rank, num_procs, num_parts, hgraph->getNumTotalVertices(), constraint,
+      my_rank, num_procs, num_parts, hgraph->total_number_of_vertices(), constraint,
       coarsener, restrC, refiner, seqController, *output, init_options, comm);
 
   if (!controller) {
@@ -164,7 +164,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
     Funct::printEnd(*output);
   }
 
-  hgraph->computeBalanceWarning(num_parts, constraint, *output, comm);
+  hgraph->compute_balance_warnings(num_parts, constraint, *output, comm);
 
   controller->setGraph(hgraph);
   controller->setPrescribedPartition(shuffle_file, comm);
@@ -292,7 +292,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
     MPI_Abort(comm, 0);
   }
 
-  ds::internal::table_utils::set_scatter_array(hgraph->getNumTotalVertices());
+  ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
 
   coarsener =
       Utils::buildParaCoarsener(my_rank, num_procs, numParts, constraint,
@@ -326,7 +326,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   }
 
   controller = Utils::buildParaController(
-      my_rank, num_procs, numParts, hgraph->getNumTotalVertices(), constraint,
+      my_rank, num_procs, numParts, hgraph->total_number_of_vertices(), constraint,
       coarsener, restrC, refiner, seqController, *output, init_options, comm);
 
   if (!controller) {
@@ -339,7 +339,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   if (my_rank == 0 && disp_option > 0)
     Funct::printEnd(*output);
 
-  hgraph->computeBalanceWarning(numParts, constraint, *output, comm);
+  hgraph->compute_balance_warnings(numParts, constraint, *output, comm);
 
   controller->setGraph(hgraph);
   controller->setWeightConstraints(comm);
