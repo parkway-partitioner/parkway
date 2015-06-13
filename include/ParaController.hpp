@@ -13,13 +13,16 @@
 // ###
 
 #include <iostream>
+#include "hypergraph/parallel/hypergraph.hpp"
 #include "data_structures/stack.hpp"
 #include "ParaFCCoarsener.hpp"
 #include "Para2DModelCoarsener.hpp"
-#include "ParaApproxFCCoarsener.hpp"
+#include "parallel_approximate_first_choice_coarsener.hpp"
 #include "ParaRestrFCCoarsener.hpp"
 #include "ParaGreedyKwayRefiner.hpp"
 #include "SeqController.hpp"
+
+using parkway::hypergraph::parallel::hypergraph;
 
 class ParaController : public global_communicator {
  protected:
@@ -71,15 +74,15 @@ class ParaController : public global_communicator {
   dynamic_array<int> bestPartition;
   dynamic_array<int> mapToOrigVerts;
 
-  parallel_hypergraph *hgraph;
+  hypergraph *hgraph;
 
-  ParaCoarsener &coarsener;
+  parallel_coarsener &coarsener;
   ParaRefiner &refiner;
   SeqController &seqController;
-  parkway::data_structures::stack<parallel_hypergraph *> hgraphs;
+  parkway::data_structures::stack<hypergraph *> hgraphs;
 
  public:
-  ParaController(ParaCoarsener &c, ParaRefiner &r, SeqController &ref, int rank,
+  ParaController(parallel_coarsener &c, ParaRefiner &r, SeqController &ref, int rank,
                  int nP, int percentile, int inc, int approxRefine,
                  std::ostream &out);
 
@@ -104,7 +107,7 @@ class ParaController : public global_communicator {
   inline void setKTFactor(double kT) { keepPartitionsWithin = kT; }
   inline void setShuffleVertices(int s) { shuffled = s; }
   inline void setRandShuffBefRef(int s) { randShuffBefRef = s; }
-  inline void setGraph(parallel_hypergraph *graph) {
+  inline void setGraph(hypergraph *graph) {
     hgraph = graph;
     numOrigLocVerts = hgraph->number_of_vertices();
   }

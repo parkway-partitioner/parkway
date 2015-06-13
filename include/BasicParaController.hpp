@@ -20,7 +20,7 @@ class BasicParaController : public ParaController {
 
 protected:
 public:
-  BasicParaController(ParaCoarsener &c, ParaRefiner &r, SeqController &ref,
+  BasicParaController(parallel_coarsener &c, ParaRefiner &r, SeqController &ref,
                       int rank, int nP, int percentile, int inc, int approxRef,
                       ostream &out);
   ~BasicParaController();

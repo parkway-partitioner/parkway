@@ -19,7 +19,7 @@ Para2DModelCoarsener::Para2DModelCoarsener(int rank, int nProcs, int nParts,
                                            int vertVisOrder, int matchReqOrder,
                                            int divByWt, int divByLen,
                                            std::ostream &out)
-    : ParaCoarsener(rank, nProcs, nParts, out) {
+    : parallel_coarsener(rank, nProcs, nParts, out) {
   vertexVisitOrder = vertVisOrder;
   matchRequestVisitOrder = matchReqOrder;
   divByCluWt = divByWt;
@@ -33,8 +33,8 @@ Para2DModelCoarsener::~Para2DModelCoarsener() {
   DynaMem::deletePtr<ds::match_request_table>(table);
 }
 
-void Para2DModelCoarsener::dispCoarseningOptions() const {
-  switch (dispOption) {
+void Para2DModelCoarsener::display_coarsening_options() const {
+  switch (display_options_) {
   case SILENT:
 
     break;
@@ -43,7 +43,8 @@ void Para2DModelCoarsener::dispCoarseningOptions() const {
 
     out_stream << "|--- PARA_C:" << std::endl
                << "|- 2DModel:"
-               << " r = " << reductionRatio << " min = " << minNodes
+               << " r = " << reduction_ratio_ << " min = " <<
+                                                 minimum_number_of_nodes_
                << " vvo = ";
     printVisitOrder(vertexVisitOrder);
     out_stream << " mvo = ";
@@ -55,9 +56,9 @@ void Para2DModelCoarsener::dispCoarseningOptions() const {
   }
 }
 
-void Para2DModelCoarsener::buildAuxiliaryStructs(int numTotPins,
-                                                 double aveVertDeg,
-                                                 double aveHedgeSize) {
+void Para2DModelCoarsener::build_auxiliary_structures(int numTotPins,
+                                                      double aveVertDeg,
+                                                      double aveHedgeSize) {
   // ###
   // build the ds::match_request_table
   // ###
@@ -69,31 +70,31 @@ void Para2DModelCoarsener::buildAuxiliaryStructs(int numTotPins,
       ds::internal::table_utils::table_size(i / processors_));
 }
 
-void Para2DModelCoarsener::releaseMemory() {
-  hEdgeWeight.reserve(0);
-  hEdgeOffset.reserve(0);
-  locPinList.reserve(0);
+void Para2DModelCoarsener::release_memory() {
+  hyperedge_weights_.reserve(0);
+  hyperedge_offsets_.reserve(0);
+  local_pin_list_.reserve(0);
 
-  vToHedgesOffset.reserve(0);
-  vToHedgesList.reserve(0);
-  allocHedges.reserve(0);
-  clusterWeights.reserve(0);
+  vertex_to_hyperedges_offset_.reserve(0);
+  vertex_to_hyperedges_.reserve(0);
+  allocated_hyperedges_.reserve(0);
+  cluster_weights_.reserve(0);
 
     free_memory();
 }
 
-parallel_hypergraph *Para2DModelCoarsener::coarsen(parallel_hypergraph &h,
+hypergraph *Para2DModelCoarsener::coarsen(hypergraph &h,
                                               MPI_Comm comm) {
-  loadHyperGraph(h, comm);
+  load(h, comm);
 
   // if(rank_ == 0)
   // std::cout << "loaded hypergraph" << std::endl;
   // MPI_Barrier(comm);
 
-  if (totalVertices < minNodes || h.dont_coarsen())
+  if (number_of_vertices_ < minimum_number_of_nodes_ || h.dont_coarsen())
     return nullptr;
 
-  if (totalVertices < 3000000) {
+  if (number_of_vertices_ < 3000000) {
     // if(rank_ == 0) std::cout << "ParaFCC " << std::endl;
     return (ParaFCCoarsen(h, comm));
   } else {
@@ -102,7 +103,7 @@ parallel_hypergraph *Para2DModelCoarsener::coarsen(parallel_hypergraph &h,
   }
 }
 
-parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
+hypergraph *Para2DModelCoarsener::ParaFCCoarsen(hypergraph &h,
                                                     MPI_Comm comm) {
 #ifdef MEM_CHECK
   MPI_Barrier(comm);
@@ -114,15 +115,15 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
   int j;
 
   int index = 0;
-  int numNotMatched = numLocalVertices;
+  int numNotMatched = number_of_local_vertices_;
   int maxLocWt = 0;
   int maxWt;
   int aveVertexWt = static_cast<int>(
-      ceil(static_cast<double>(totalHypergraphWt) / totalVertices));
+      ceil(static_cast<double>(total_hypergraph_weight_) / number_of_vertices_));
   int bestMatch;
   int bestMatchWt = -1;
   int numVisited;
-  int vPerProc = totalVertices / processors_;
+  int vPerProc = number_of_vertices_ / processors_;
   int endOffset1;
   int endOffset2;
   int cluWeight;
@@ -143,65 +144,65 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
 
   ds::map_to_pos_int matchInfoLoc;
 
-  if (numLocPins < totalVertices / 2)
-    matchInfoLoc.create(numLocPins, 1);
+  if (number_of_local_pins_ < number_of_vertices_ / 2)
+    matchInfoLoc.create(number_of_local_pins_, 1);
   else
-    matchInfoLoc.create(totalVertices, 0);
+    matchInfoLoc.create(number_of_vertices_, 0);
 
   dynamic_array<int> neighVerts;
   dynamic_array<int> neighCluWts;
   dynamic_array<double> connectVals;
-  dynamic_array<int> vertices(numLocalVertices);
+  dynamic_array<int> vertices(number_of_local_vertices_);
 
-  permuteVerticesArray(vertices.data(), numLocalVertices);
+  permuteVerticesArray(vertices.data(), number_of_local_vertices_);
 
-  if (dispOption > 1) {
-    for (i = 0; i < numLocalVertices; ++i) {
-      if (vWeight[i] > maxLocWt)
-        maxLocWt = vWeight[i];
+  if (display_options_ > 1) {
+    for (i = 0; i < number_of_local_vertices_; ++i) {
+      if (vertex_weights_[i] > maxLocWt)
+        maxLocWt = vertex_weights_[i];
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
     if (rank_ == 0) {
-      out_stream << " " << maxVertexWt << " " << maxWt << " " << aveVertexWt
+      out_stream << " " << maximum_vertex_weight_ << " " << maxWt << " " << aveVertexWt
                  << " ";
       out_stream.flush();
     }
   }
 
-  metric = static_cast<double>(numLocalVertices) / reductionRatio;
+  metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
   limitOnIndexDuringCoarsening =
-      numLocalVertices - static_cast<int>(floor(metric - 1.0));
-  clusterIndex = 0;
-  stopCoarsening = 0;
+      number_of_local_vertices_ - static_cast<int>(floor(metric - 1.0));
+  cluster_index_ = 0;
+  stop_coarsening_ = 0;
 
   // write_log(rank_, "numLocalVertices = %d, numLocalPins = %d, numHedges =
   // %d", numLocalVertices, numLocPins, numHedges);
 
-  for (; index < numLocalVertices; ++index) {
+  for (; index < number_of_local_vertices_; ++index) {
     if (index % 50000 == 0 && rank_ == 0)
       write_log(rank_, "considering local vertex index %d", index);
 
-    if (matchVector[vertices[index]] == -1) {
+    if (match_vector_[vertices[index]] == -1) {
       vertex = vertices[index];
 #ifdef DEBUG_COARSENER
       assert(vertex >= 0 && vertex < numLocalVertices);
 #endif
-      globalVertexIndex = vertex + minVertexIndex;
-      endOffset1 = vToHedgesOffset[vertex + 1];
+      globalVertexIndex = vertex + minimum_vertex_index_;
+      endOffset1 = vertex_to_hyperedges_offset_[vertex + 1];
       bestMatch = -1;
       maxMatchMetric = 0.0;
       numVisited = 0;
 
-      for (i = vToHedgesOffset[vertex]; i < endOffset1; ++i) {
-        hEdge = vToHedgesList[i];
-        endOffset2 = hEdgeOffset[hEdge + 1];
-        hEdgeLen = endOffset2 - hEdgeOffset[hEdge];
+      for (i = vertex_to_hyperedges_offset_[vertex]; i < endOffset1; ++i) {
+        hEdge = vertex_to_hyperedges_[i];
+        endOffset2 = hyperedge_offsets_[hEdge + 1];
+        hEdgeLen = endOffset2 - hyperedge_offsets_[hEdge];
 
-        for (j = hEdgeOffset[hEdge]; j < endOffset2; ++j) {
+        for (j = hyperedge_offsets_[hEdge]; j < endOffset2; ++j) {
 
-          candidatV = locPinList[j];
+          candidatV = local_pin_list_[j];
 #ifdef DEBUG_COARSENER
           assert(candidatV >= 0 && candidatV < totalVertices);
 #endif
@@ -213,33 +214,36 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
             if (neighbourLoc >= 0) {
               if (divByHedgeLen)
                 connectVals[neighbourLoc] +=
-                    (static_cast<double>(hEdgeWeight[hEdge]) / (hEdgeLen - 1));
+                    (static_cast<double>(hyperedge_weights_[hEdge]) / (hEdgeLen - 1));
               else
                 connectVals[neighbourLoc] +=
-                    (static_cast<double>(hEdgeWeight[hEdge]));
+                    (static_cast<double>(hyperedge_weights_[hEdge]));
             } else {
               // ###
               // here compute the cluster weight
               // ###
 
-              if (candidatV >= minVertexIndex && candidatV < maxVertexIndex) {
+              if (candidatV >= minimum_vertex_index_ && candidatV <
+                                                        maximum_vertex_index_) {
                 // ###
                 // candidatV is a local vertex
                 // ###
 
-                if (matchVector[candidatV - minVertexIndex] == -1)
+                if (match_vector_[candidatV - minimum_vertex_index_] == -1)
                   cluWeight =
-                      vWeight[vertex] + vWeight[candidatV - minVertexIndex];
-                else if (matchVector[candidatV - minVertexIndex] >=
+                      vertex_weights_[vertex] + vertex_weights_[candidatV -
+                                                minimum_vertex_index_];
+                else if (match_vector_[candidatV - minimum_vertex_index_] >=
                          NON_LOCAL_MATCH) {
                   nonLocV =
-                      matchVector[candidatV - minVertexIndex] - NON_LOCAL_MATCH;
-                  cluWeight = vWeight[vertex] +
+                      match_vector_[candidatV - minimum_vertex_index_] - NON_LOCAL_MATCH;
+                  cluWeight = vertex_weights_[vertex] +
                               table->cluster_weight(nonLocV) + aveVertexWt;
                 } else
                   cluWeight =
-                      vWeight[vertex] +
-                      clusterWeights[matchVector[candidatV - minVertexIndex]];
+                      vertex_weights_[vertex] +
+                      cluster_weights_[match_vector_[candidatV -
+                                                 minimum_vertex_index_]];
               } else {
                 // ###
                 // candidatV is not a local vertex or it is a local
@@ -249,9 +253,9 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
                 candVwt = table->cluster_weight(candidatV);
 
                 if (candVwt != -1)
-                  cluWeight = vWeight[vertex] + candVwt + aveVertexWt;
+                  cluWeight = vertex_weights_[vertex] + candVwt + aveVertexWt;
                 else
-                  cluWeight = vWeight[vertex] + aveVertexWt;
+                  cluWeight = vertex_weights_[vertex] + aveVertexWt;
               }
 
 #ifdef DEBUG_COARSENER
@@ -273,11 +277,11 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
 
               if (divByHedgeLen)
                 connectVals.assign(numVisited++,
-                                   static_cast<double>(hEdgeWeight[hEdge]) /
+                                   static_cast<double>(hyperedge_weights_[hEdge]) /
                                        (hEdgeLen - 1));
               else
                 connectVals.assign(numVisited++,
-                                   static_cast<double>(hEdgeWeight[hEdge]));
+                                   static_cast<double>(hyperedge_weights_[hEdge]));
             }
           }
         }
@@ -292,7 +296,7 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
         pairWt = neighCluWts[i];
         candidatV = neighVerts[i];
 
-        if (pairWt <= maxVertexWt) {
+        if (pairWt <= maximum_vertex_weight_) {
           metric = connectVals[i];
 
           if (divByCluWt)
@@ -318,40 +322,42 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
         // match as singleton
         // ###
 
-        matchVector[vertex] = clusterIndex;
-        clusterWeights.assign(clusterIndex++, vWeight[vertex]);
+        match_vector_[vertex] = cluster_index_;
+        cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
         --numNotMatched;
       } else {
 #ifdef DEBUG_COARSENER
         assert(bestMatch >= 0);
 #endif
 
-        if (bestMatch >= minVertexIndex && bestMatch < maxVertexIndex) {
+        if (bestMatch >= minimum_vertex_index_ && bestMatch <
+                                                  maximum_vertex_index_) {
           // ###
           // best match is a local vertex
           // ###
 
-          if (matchVector[bestMatch - minVertexIndex] == -1) {
-            matchVector[bestMatch - minVertexIndex] = clusterIndex;
-            matchVector[vertex] = clusterIndex;
-            clusterWeights.assign(clusterIndex++, bestMatchWt);
+          if (match_vector_[bestMatch - minimum_vertex_index_] == -1) {
+            match_vector_[bestMatch - minimum_vertex_index_] = cluster_index_;
+            match_vector_[vertex] = cluster_index_;
+            cluster_weights_.assign(cluster_index_++, bestMatchWt);
             numNotMatched -= 2;
           } else {
-            if (matchVector[bestMatch - minVertexIndex] >= NON_LOCAL_MATCH) {
+            if (match_vector_[bestMatch - minimum_vertex_index_] >= NON_LOCAL_MATCH) {
               nonLocV =
-                  matchVector[bestMatch - minVertexIndex] - NON_LOCAL_MATCH;
-              table->add_local(nonLocV, vertex + minVertexIndex,
-                               vWeight[vertex],
+                  match_vector_[bestMatch - minimum_vertex_index_] - NON_LOCAL_MATCH;
+              table->add_local(nonLocV, vertex + minimum_vertex_index_,
+                               vertex_weights_[vertex],
                                std::min(nonLocV / vPerProc, processors_ - 1));
 #ifdef DEBUG_COARSENER
               assert(std::min(nonLocV / vPerProc, processors_ - 1) != rank_);
 #endif
-              matchVector[vertex] = NON_LOCAL_MATCH + nonLocV;
+              match_vector_[vertex] = NON_LOCAL_MATCH + nonLocV;
               --numNotMatched;
             } else {
-              matchVector[vertex] = matchVector[bestMatch - minVertexIndex];
-              clusterWeights[matchVector[vertex]] +=
-                  vWeight[vertex]; // bestMatchWt;
+              match_vector_[vertex] = match_vector_[bestMatch -
+                                                minimum_vertex_index_];
+              cluster_weights_[match_vector_[vertex]] +=
+                  vertex_weights_[vertex]; // bestMatchWt;
               --numNotMatched;
             }
           }
@@ -360,12 +366,12 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
           // best match is not a local vertex
           // ###
 
-          table->add_local(bestMatch, vertex + minVertexIndex, vWeight[vertex],
+          table->add_local(bestMatch, vertex + minimum_vertex_index_, vertex_weights_[vertex],
                            std::min(bestMatch / vPerProc, processors_ - 1));
 #ifdef DEBUG_COARSENER
           assert(std::min(bestMatch / vPerProc, processors_ - 1) != rank_);
 #endif
-          matchVector[vertex] = NON_LOCAL_MATCH + bestMatch;
+          match_vector_[vertex] = NON_LOCAL_MATCH + bestMatch;
           --numNotMatched;
         }
       }
@@ -375,8 +381,8 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
       // ###
 
       if (index > limitOnIndexDuringCoarsening) {
-        reducedBy = static_cast<double>(numLocalVertices) /
-                    (numNotMatched + clusterIndex + table->size());
+        reducedBy = static_cast<double>(number_of_local_vertices_) /
+                    (numNotMatched + cluster_index_ + table->size());
         break;
       }
     }
@@ -392,12 +398,12 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
   // now carry over all the unmatched vertices as singletons
   // ###
 
-  for (; index < numLocalVertices; ++index) {
+  for (; index < number_of_local_vertices_; ++index) {
     vertex = vertices[index];
 
-    if (matchVector[vertex] == -1) {
-      matchVector[vertex] = clusterIndex;
-      clusterWeights.assign(clusterIndex++, vWeight[vertex]);
+    if (match_vector_[vertex] == -1) {
+      match_vector_[vertex] = cluster_index_;
+      cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
     }
   }
 
@@ -408,16 +414,16 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
   for (i = 0; i < 2; ++i) {
     setRequestArrays(i);
       send_from_data_out(comm); // actually sending requests
-    setReplyArrays(i, maxVertexWt);
+    setReplyArrays(i, maximum_vertex_weight_);
       send_from_data_out(comm); // actually sending replies
     processReqReplies();
   }
 
-  setClusterIndices(comm);
+  set_cluster_indices(comm);
 
-  if (static_cast<double>(totalVertices) / totalClusters <
+  if (static_cast<double>(number_of_vertices_) / total_number_of_clusters_ <
       MIN_ALLOWED_REDUCTION_RATIO) {
-    stopCoarsening = 1;
+    stop_coarsening_ = 1;
   }
 
   table->clear();
@@ -429,10 +435,10 @@ parallel_hypergraph *Para2DModelCoarsener::ParaFCCoarsen(parallel_hypergraph &h,
   // if(rank_ == 0)
   // std::cout << "about to contract hyperedges" << std::endl;
   // MPI_Barrier(comm);
-  return (contractHyperedges(h, comm));
+  return (constract_hyperedges(h, comm));
 }
 
-parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph &h,
+hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(hypergraph &h,
                                                        MPI_Comm comm) {
 #ifdef MEM_CHECK
   MPI_Barrier(comm);
@@ -443,50 +449,50 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
   int i;
 
   int index;
-  int numNotMatched = numLocalVertices;
+  int numNotMatched = number_of_local_vertices_;
   int maxLocWt = 0;
   int maxWt;
   int aveVertexWt = static_cast<int>(
-      ceil(static_cast<double>(totalHypergraphWt) / totalVertices));
+      ceil(static_cast<double>(total_hypergraph_weight_) / number_of_vertices_));
 
-  int vPerProc = totalVertices / processors_;
+  int vPerProc = number_of_vertices_ / processors_;
 
   int hEdge;
   int vertex;
 
   double reducedBy;
 
-  if (dispOption > 1) {
-    for (i = 0; i < numLocalVertices; ++i) {
-      if (vWeight[i] > maxLocWt)
-        maxLocWt = vWeight[i];
+  if (display_options_ > 1) {
+    for (i = 0; i < number_of_local_vertices_; ++i) {
+      if (vertex_weights_[i] > maxLocWt)
+        maxLocWt = vertex_weights_[i];
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
     if (rank_ == 0) {
-      out_stream << " [PHEDGE] " << maxVertexWt << " " << maxWt << " "
+      out_stream << " [PHEDGE] " << maximum_vertex_weight_ << " " << maxWt << " "
                  << aveVertexWt << " ";
       out_stream.flush();
     }
   }
 
-  bit_field matchedVertices(totalVertices);
+  bit_field matchedVertices(number_of_vertices_);
   matchedVertices.unset();
 
-  dynamic_array<int> hEdges(numHedges);
-  dynamic_array<int> hEdgeLens(numHedges);
+  dynamic_array<int> hEdges(number_of_hyperedges_);
+  dynamic_array<int> hEdgeLens(number_of_hyperedges_);
   dynamic_array<int> unmatchedLocals;
   dynamic_array<int> unmatchedNonLocals;
 
-  for (i = 0; i < numHedges; ++i) {
+  for (i = 0; i < number_of_hyperedges_; ++i) {
     hEdges[i] = i;
-    hEdgeLens[i] = hEdgeOffset[i + 1] - hEdgeOffset[i];
+    hEdgeLens[i] = hyperedge_offsets_[i + 1] - hyperedge_offsets_[i];
   }
 
   /* sort hedges in increasing order of capacity_ */
 
-  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.data(),
+  Funct::qsortByAnotherArray(0, number_of_hyperedges_ - 1, hEdges.data(),
                              hEdgeLens.data(), INC);
 
   /*
@@ -499,11 +505,11 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
   int rightBound;
   int length;
 
-  for (; leftBound < numHedges;) {
-    length = hEdgeWeight[leftBound];
+  for (; leftBound < number_of_hyperedges_;) {
+    length = hyperedge_weights_[leftBound];
     rightBound = leftBound + 1;
 
-    for (; rightBound < numHedges && hEdgeLens[rightBound] == length;
+    for (; rightBound < number_of_hyperedges_ && hEdgeLens[rightBound] == length;
          ++rightBound)
       ;
     /*
@@ -513,7 +519,7 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
     }
     */
     Funct::qsortByAnotherArray(leftBound, rightBound - 1, hEdges.data(),
-                               hEdgeWeight.data(), DEC);
+                               hyperedge_weights_.data(), DEC);
     leftBound = rightBound;
   }
 
@@ -527,10 +533,10 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
   MPI_Barrier(comm);
   */
 
-  clusterIndex = 0;
-  stopCoarsening = 0;
+  cluster_index_ = 0;
+  stop_coarsening_ = 0;
 
-  for (index = 0; index < numHedges; ++index) {
+  for (index = 0; index < number_of_hyperedges_; ++index) {
 
     hEdge = hEdges[index];
     /*
@@ -544,14 +550,15 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
     int numUnmatchedLocals = 0;
     int numUnmatchedNonLocals = 0;
 
-    for (i = hEdgeOffset[hEdge]; i < hEdgeOffset[hEdge + 1]; ++i) {
-      vertex = locPinList[i];
+    for (i = hyperedge_offsets_[hEdge]; i < hyperedge_offsets_[hEdge + 1]; ++i) {
+      vertex = local_pin_list_[i];
 #ifdef DEBUG_COARSENER
       assert(vertex >= 0 && vertex < totalVertices);
 #endif
-      if (vertex >= minVertexIndex && vertex < maxVertexIndex) {
-        if (matchVector[vertex - minVertexIndex] == -1) {
-          unmatchedLocals.assign(numUnmatchedLocals++, vertex - minVertexIndex);
+      if (vertex >= minimum_vertex_index_ && vertex < maximum_vertex_index_) {
+        if (match_vector_[vertex - minimum_vertex_index_] == -1) {
+          unmatchedLocals.assign(numUnmatchedLocals++, vertex -
+                                                       minimum_vertex_index_);
         }
       } else {
         if (matchedVertices(vertex) == 0) {
@@ -572,30 +579,30 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
       int totMatchWt = 0;
 
       for (i = 0; i < numUnmatchedLocals; ++i)
-        totMatchWt += vWeight[unmatchedLocals[i]];
+        totMatchWt += vertex_weights_[unmatchedLocals[i]];
 
       if (numUnmatchedLocals > 1) {
-        if (totMatchWt < maxVertexWt) {
+        if (totMatchWt < maximum_vertex_weight_) {
           for (i = 0; i < numUnmatchedLocals; ++i) {
             vertex = unmatchedLocals[i];
-            matchVector[vertex] = clusterIndex;
-            clusterWeights.assign(clusterIndex, totMatchWt);
+            match_vector_[vertex] = cluster_index_;
+            cluster_weights_.assign(cluster_index_, totMatchWt);
           }
 
-          ++clusterIndex;
+          ++cluster_index_;
           numNotMatched -= numUnmatchedLocals;
-          reducedBy = static_cast<double>(numLocalVertices) /
-                      (numNotMatched + clusterIndex + table->size());
+          reducedBy = static_cast<double>(number_of_local_vertices_) /
+                      (numNotMatched + cluster_index_ + table->size());
 
           // if(rank_ == 0)
           // std::cout << "[local] reducedBy = " << reducedBy << std::endl;
 
-          if (reducedBy > reductionRatio)
+          if (reducedBy > reduction_ratio_)
             break;
         }
       } else {
         if (totMatchWt <
-            (maxVertexWt - (aveVertexWt * numUnmatchedNonLocals))) {
+            (maximum_vertex_weight_ - (aveVertexWt * numUnmatchedNonLocals))) {
           /*
           if(numUnmatchedNonLocals > 0) {
           */
@@ -603,13 +610,13 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
 
           for (i = 0; i < numUnmatchedLocals; ++i) {
             vertex = unmatchedLocals[i];
-            table->add_local(nonLocalVert, vertex + minVertexIndex,
-                             vWeight[vertex],
+            table->add_local(nonLocalVert, vertex + minimum_vertex_index_,
+                             vertex_weights_[vertex],
                              std::min(nonLocalVert / vPerProc, processors_ - 1));
 #ifdef DEBUG_COARSENER
             assert(std::min(nonLocalVert / vPerProc, processors_ - 1) != rank_);
 #endif
-            matchVector[vertex] = NON_LOCAL_MATCH + nonLocalVert;
+            match_vector_[vertex] = NON_LOCAL_MATCH + nonLocalVert;
           }
 
           // for (i=0;i<numUnmatchedNonLocals;++i) {
@@ -617,13 +624,13 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
           //}
 
           numNotMatched -= numUnmatchedLocals;
-          reducedBy = static_cast<double>(numLocalVertices) /
-                      (numNotMatched + clusterIndex + table->size());
+          reducedBy = static_cast<double>(number_of_local_vertices_) /
+                      (numNotMatched + cluster_index_ + table->size());
 
           // if(rank_ == 0)
           //  std::cout << "[remote] reducedBy = " << reducedBy << std::endl;
 
-          if (reducedBy > reductionRatio)
+          if (reducedBy > reduction_ratio_)
             break;
         }
       }
@@ -635,10 +642,10 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
   // << ", index = " << index << std::endl;
   // MPI_Barrier(comm);
 
-  for (index = 0; index < numLocalVertices; ++index) {
-    if (matchVector[index] == -1) {
-      matchVector[index] = clusterIndex;
-      clusterWeights.assign(clusterIndex++, vWeight[index]);
+  for (index = 0; index < number_of_local_vertices_; ++index) {
+    if (match_vector_[index] == -1) {
+      match_vector_[index] = cluster_index_;
+      cluster_weights_.assign(cluster_index_++, vertex_weights_[index]);
     }
   }
 
@@ -649,16 +656,16 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
   for (i = 0; i < 2; ++i) {
     setRequestArrays(i);
       send_from_data_out(comm); // actually sending requests
-    setReplyArrays(i, maxVertexWt);
+    setReplyArrays(i, maximum_vertex_weight_);
       send_from_data_out(comm); // actually sending replies
     processReqReplies();
   }
 
-  setClusterIndices(comm);
+  set_cluster_indices(comm);
 
-  if (static_cast<double>(totalVertices) / totalClusters <
+  if (static_cast<double>(number_of_vertices_) / total_number_of_clusters_ <
       MIN_ALLOWED_REDUCTION_RATIO) {
-    stopCoarsening = 1;
+    stop_coarsening_ = 1;
   }
 
   table->clear();
@@ -671,7 +678,7 @@ parallel_hypergraph *Para2DModelCoarsener::ParaHedgeCoarsen(parallel_hypergraph 
   // std::cout << "about to contract hyperedges" << std::endl;
   // MPI_Barrier(comm);
 
-  return (contractHyperedges(h, comm));
+  return (constract_hyperedges(h, comm));
 }
 
 void Para2DModelCoarsener::setRequestArrays(int highToLow) {
@@ -758,10 +765,10 @@ void Para2DModelCoarsener::setReplyArrays(int highToLow, int maxVWt) {
           // of their cluster index and cluster weight
           // ###
 
-          matchIndex = matchVector[vLocReq - minVertexIndex];
+          matchIndex = match_vector_[vLocReq - minimum_vertex_index_];
           data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
           data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
-          data_out_sets_[i]->assign(send_lens_[i]++, clusterWeights[matchIndex]);
+          data_out_sets_[i]->assign(send_lens_[i]++, cluster_weights_[matchIndex]);
         } else {
           // ###
           // cross-processor match rejected, inform vertices
@@ -789,10 +796,10 @@ void Para2DModelCoarsener::setReplyArrays(int highToLow, int maxVWt) {
           // of their cluster index and cluster weight
           // ###
 
-          matchIndex = matchVector[vLocReq - minVertexIndex];
+          matchIndex = match_vector_[vLocReq - minimum_vertex_index_];
           data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
           data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
-          data_out_sets_[i]->assign(send_lens_[i]++, clusterWeights[matchIndex]);
+          data_out_sets_[i]->assign(send_lens_[i]++, cluster_weights_[matchIndex]);
         } else {
           // ###
           // cross-processor match rejected, inform vertices
@@ -854,20 +861,20 @@ void Para2DModelCoarsener::processReqReplies() {
         entry->set_cluster_index(MATCHED_LOCALLY);
 
         for (index = 0; index < numLocals; ++index)
-          matchVector[locals[index] - minVertexIndex] = clusterIndex;
+          match_vector_[locals[index] - minimum_vertex_index_] = cluster_index_;
 
-        clusterWeights.assign(clusterIndex++, entry->cluster_weight());
+        cluster_weights_.assign(cluster_index_++, entry->cluster_weight());
       }
     }
     startOffset += receive_lens_[i];
   }
 }
 
-void Para2DModelCoarsener::setClusterIndices(MPI_Comm comm) {
+void Para2DModelCoarsener::set_cluster_indices(MPI_Comm comm) {
   dynamic_array<int> numClusters(processors_);
   dynamic_array<int> startIndex(processors_);
 
-  MPI_Allgather(&clusterIndex, 1, MPI_INT, numClusters.data(), 1, MPI_INT,
+  MPI_Allgather(&cluster_index_, 1, MPI_INT, numClusters.data(), 1, MPI_INT,
                 comm);
 
   int index = 0;
@@ -886,16 +893,16 @@ void Para2DModelCoarsener::setClusterIndices(MPI_Comm comm) {
     startIndex[index] = i;
     i += numClusters[index];
   }
-  totalClusters = i;
+  total_number_of_clusters_ = i;
 
-  myMinCluIndex = startIndex[rank_];
+  minimum_cluster_index_ = startIndex[rank_];
 
-  for (index = 0; index < numLocalVertices; ++index) {
+  for (index = 0; index < number_of_local_vertices_; ++index) {
 #ifdef DEBUG_COARSENER
     assert(matchVector[index] != -1);
 #endif
-    if (matchVector[index] < NON_LOCAL_MATCH)
-      matchVector[index] += myMinCluIndex;
+    if (match_vector_[index] < NON_LOCAL_MATCH)
+      match_vector_[index] += minimum_cluster_index_;
   }
 
   // ###
@@ -933,7 +940,7 @@ void Para2DModelCoarsener::setClusterIndices(MPI_Comm comm) {
       // information is redundant?
 
       for (i = 0; i < numLocals; ++i)
-        matchVector[locals[i] - minVertexIndex] = cluIndex;
+        match_vector_[locals[i] - minimum_vertex_index_] = cluIndex;
     }
   }
 
@@ -948,11 +955,11 @@ void Para2DModelCoarsener::setClusterIndices(MPI_Comm comm) {
 
 int Para2DModelCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
                                  int maxWt) {
-  int locVertexIndex = locVertex - minVertexIndex;
-  int matchValue = matchVector[locVertexIndex];
+  int locVertexIndex = locVertex - minimum_vertex_index_;
+  int matchValue = match_vector_[locVertexIndex];
 
   if (matchValue < NON_LOCAL_MATCH) {
-    if (clusterWeights[matchValue] + nonLocCluWt >= maxWt)
+    if (cluster_weights_[matchValue] + nonLocCluWt >= maxWt)
       return 0;
     else {
       // ###
@@ -960,13 +967,13 @@ int Para2DModelCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
       // cluster index as locVertex
       // ###
 
-      clusterWeights[matchValue] += nonLocCluWt;
+      cluster_weights_[matchValue] += nonLocCluWt;
       return 1;
     }
   } else {
 
     int nonLocReq = matchValue - NON_LOCAL_MATCH;
-    int proc = nonLocReq / (totalVertices / processors_);
+    int proc = nonLocReq / (number_of_vertices_ / processors_);
 
     if ((highToLow && proc < rank_) || (!highToLow && proc > rank_))
       return 0;
@@ -978,7 +985,7 @@ int Para2DModelCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
     if (table->cluster_index(nonLocReq) != -1)
       return 0;
 
-    int cluWt = vWeight[locVertexIndex] + nonLocCluWt;
+    int cluWt = vertex_weights_[locVertexIndex] + nonLocCluWt;
 
     if (cluWt >= maxWt)
       return 0;
@@ -990,9 +997,9 @@ int Para2DModelCoarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
       // remove locVertex from the request table
       // ###
 
-      table->remove_local(nonLocReq, locVertex, vWeight[locVertexIndex]);
-      matchVector[locVertexIndex] = clusterIndex;
-      clusterWeights.assign(clusterIndex++, cluWt);
+      table->remove_local(nonLocReq, locVertex, vertex_weights_[locVertexIndex]);
+      match_vector_[locVertexIndex] = cluster_index_;
+      cluster_weights_.assign(cluster_index_++, cluWt);
 
       return 1;
     }
@@ -1026,14 +1033,14 @@ void Para2DModelCoarsener::permuteVerticesArray(int *verts, int nLocVerts) {
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vWeight, INC);
+    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, INC);
     break;
 
   case DECREASING_WEIGHT_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vWeight, DEC);
+    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, DEC);
     break;
 
   default:

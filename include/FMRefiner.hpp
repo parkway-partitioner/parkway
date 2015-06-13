@@ -24,7 +24,9 @@
 #include "Refiner.hpp"
 #include "data_structures/bit_field.hpp"
 #include "data_structures/bucket_node.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 
+namespace serial = parkway::hypergraph::serial;
 using namespace parkway::data_structures;
 
 class FMRefiner : public Refiner {
@@ -84,7 +86,7 @@ public:
   void updateGains0_1(int v);
   void unmakeMove(int v);
 
-  void refine(serial_hypergraph &h);
+  void refine(serial::hypergraph &h);
 
   int doFidMatPass();
   int doRebalancingPass(int largePart);

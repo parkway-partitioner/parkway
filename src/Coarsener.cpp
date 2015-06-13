@@ -12,9 +12,12 @@
 // ###
 
 #include "Coarsener.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
+
+namespace serial = parkway::hypergraph::serial;
 
 Coarsener::Coarsener(int min, int maxwt, double ratio, int dispL)
-    : hypergraph_loader(dispL) {
+    : serial::loader(dispL) {
   minNodes = min;
   maxVertexWt = maxwt;
   reductionRatio = ratio;
@@ -22,7 +25,7 @@ Coarsener::Coarsener(int min, int maxwt, double ratio, int dispL)
 
 Coarsener::~Coarsener() {}
 
-serial_hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
+serial::hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
                                              int totWt) const {
 
   int numNewHedges = 0;
@@ -44,7 +47,7 @@ serial_hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoars
   int j;
   int ij;
 
-  serial_hypergraph *newHypergraph = new serial_hypergraph(coarseWts, numCoarseVerts);
+  serial::hypergraph *newHypergraph = new serial::hypergraph(coarseWts, numCoarseVerts);
 
   dynamic_array<int> *newHedgeOffsets = new dynamic_array<int>(1024);
   dynamic_array<int> *newPinList = new dynamic_array<int>(1024);

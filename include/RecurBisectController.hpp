@@ -25,8 +25,9 @@
 #include "VCycleAllBisectionController.hpp"
 #include "GreedyKwayRefiner.hpp"
 #include "Bisection.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
-using namespace std;
+namespace parallel = parkway::hypergraph::parallel;
 
 class RecurBisectController : public SeqController {
 protected:
@@ -56,8 +57,8 @@ public:
   void dispSeqControllerOptions() const;
   void convToBisectionConstraints();
 
-  void runSeqPartitioner(parallel_hypergraph &hgraph, MPI_Comm comm);
-  void initSeqPartitions(parallel_hypergraph &hgraph, MPI_Comm comm);
+  void runSeqPartitioner(parallel::hypergraph &hgraph, MPI_Comm comm);
+  void initSeqPartitions(parallel::hypergraph &hgraph, MPI_Comm comm);
   void recursivelyBisect(const Bisection &b, MPI_Comm comm);
 
   void splitBisection(const Bisection &b, Bisection *&newB,

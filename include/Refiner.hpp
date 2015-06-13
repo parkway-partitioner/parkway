@@ -14,12 +14,14 @@
 
 #include <ostream>
 #include "Macros.h"
-#include "hypergraph_loader.hpp"
 #include "data_structures/dynamic_array.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
+#include "hypergraph/serial/loader.hpp"
 
+namespace serial = parkway::hypergraph::serial;
 using parkway::data_structures::dynamic_array;
 
-class Refiner : public hypergraph_loader {
+class Refiner : public serial::loader {
  protected:
   int maxPartWt;
   int numParts;
@@ -34,7 +36,7 @@ class Refiner : public hypergraph_loader {
   Refiner(int dispL);
 
   virtual ~Refiner();
-  virtual void refine(serial_hypergraph &h) = 0;
+  virtual void refine(serial::hypergraph &h) = 0;
   virtual void dispRefinerOptions(std::ostream &out) const = 0;
 
   inline int getMaxPartWt() const { return maxPartWt; }

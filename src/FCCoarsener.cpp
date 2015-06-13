@@ -12,6 +12,9 @@
 // ###
 
 #include "FCCoarsener.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
+
+namespace serial = parkway::hypergraph::serial;
 
 FCCoarsener::FCCoarsener(int _min, int _maxwt, double r, int fanOut, int dbWt,
                          int dL)
@@ -22,7 +25,7 @@ FCCoarsener::FCCoarsener(int _min, int _maxwt, double r, int fanOut, int dbWt,
 
 FCCoarsener::~FCCoarsener() {}
 
-void FCCoarsener::dispCoarsenerOptions(ostream &out) const {
+void FCCoarsener::dispCoarsenerOptions(std::ostream &out) const {
   switch (dispOption) {
   case SILENT:
     break;
@@ -31,13 +34,13 @@ void FCCoarsener::dispCoarsenerOptions(ostream &out) const {
 
     out << "|- FCC:"
         << " r = " << reductionRatio << " min = " << minNodes
-        << " util = " << utilFanOut << endl
-        << "|" << endl;
+        << " util = " << utilFanOut << std::endl
+        << "|" << std::endl;
     break;
   }
 }
 
-serial_hypergraph *FCCoarsener::coarsen(const serial_hypergraph &h) {
+serial::hypergraph *FCCoarsener::coarsen(const serial::hypergraph &h) {
   load_for_coarsening(h);
 
   // ###

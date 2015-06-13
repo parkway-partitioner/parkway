@@ -15,8 +15,10 @@
 #include <iostream>
 #include "data_structures/bit_field.hpp"
 #include "data_structures/movement_set_table.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 #include "ParaRefiner.hpp"
 
+using parkway::hypergraph::parallel::hypergraph;
 namespace ds = parkway::data_structures;
 
 class ParaGreedyKwayRefiner : public ParaRefiner {
@@ -63,14 +65,14 @@ public:
   ~ParaGreedyKwayRefiner();
 
   void dispRefinementOptions() const;
-  void releaseMemory();
-  void initDataStructs(const parallel_hypergraph &h, MPI_Comm comm);
+  void release_memory();
+  void initDataStructs(const hypergraph &h, MPI_Comm comm);
   void resetDataStructs();
   void setPartitioningStructs(int pNumber, MPI_Comm comm);
   // void initVertexPartTable(MPI_Comm comm);
-  void refine(parallel_hypergraph &h, MPI_Comm comm);
+  void refine(hypergraph &h, MPI_Comm comm);
 
-  int runGreedyKwayRefinement(parallel_hypergraph &h, int pNo, MPI_Comm comm);
+  int runGreedyKwayRefinement(hypergraph &h, int pNo, MPI_Comm comm);
   int doGreedyPass(int lowToHigh, MPI_Comm comm);
   int computeCutsize(MPI_Comm comm);
 

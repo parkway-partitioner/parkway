@@ -16,6 +16,7 @@
 
 #include "mpi.h"
 #include "Log.h"
+#include "hypergraph/parallel/hypergraph.hpp"
 #include "BasicParaController.hpp"
 #include "ParaVCycleFinalController.hpp"
 #include "ParaVCycleAllController.hpp"
@@ -23,19 +24,21 @@
 #include "KHMetisController.hpp"
 #include "PaToHController.hpp"
 
+namespace parallel = parkway::hypergraph::parallel;
+
 namespace Utils {
-ParaCoarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
-                                  double constraint, parallel_hypergraph *h,
+parallel_coarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
+                                  double constraint, parallel::hypergraph *h,
                                   ostream &out, const int *options,
                                   MPI_Comm comm);
 
 ParaRestrCoarsener *buildParaRestrCoarsener(int myRank, int numProc,
                                             int numParts, double constraint,
-                                            parallel_hypergraph *h, ostream &out,
+                                            parallel::hypergraph *h, ostream &out,
                                             const int *options, MPI_Comm comm);
 
 ParaRefiner *buildParaRefiner(int myRank, int numProc, int numParts,
-                              double constraint, parallel_hypergraph *h,
+                              double constraint, parallel::hypergraph *h,
                               ostream &out, const int *options, MPI_Comm comm);
 
 SeqController *buildSeqController(int myRank, int numProc, int numParts,
@@ -44,7 +47,7 @@ SeqController *buildSeqController(int myRank, int numProc, int numParts,
 
 ParaController *buildParaController(int myRank, int numProcs, int numParts,
                                     int num_tot_verts, double constraint,
-                                    ParaCoarsener *c, ParaRestrCoarsener *rc,
+                                    parallel_coarsener *c, ParaRestrCoarsener *rc,
                                     ParaRefiner *r, SeqController *s,
                                     ostream &out, const int *options,
                                     MPI_Comm comm);

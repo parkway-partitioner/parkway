@@ -12,13 +12,15 @@
 //
 // ###
 
-#include "ParaHypergraphLoader.hpp"
 #include <iostream>
 #include "data_structures/dynamic_array.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
+#include "hypergraph/parallel/loader.hpp"
 
+namespace parallel = parkway::hypergraph::parallel;
 namespace ds = parkway::data_structures;
 
-class ParaRestrCoarsener : public ParaHypergraphLoader {
+class ParaRestrCoarsener : public parallel::loader {
  protected:
   /* coarsening auxiliary variables */
 
@@ -47,16 +49,16 @@ class ParaRestrCoarsener : public ParaHypergraphLoader {
   ParaRestrCoarsener(int _rank, int _numProcs, int _numParts, std::ostream &out);
 
   virtual ~ParaRestrCoarsener();
-  virtual parallel_hypergraph *coarsen(parallel_hypergraph &h, MPI_Comm comm) = 0;
+  virtual parallel::hypergraph *coarsen(parallel::hypergraph &h, MPI_Comm comm) = 0;
   virtual void setClusterIndices(MPI_Comm comm) = 0;
-  virtual void releaseMemory() = 0;
+  virtual void release_memory() = 0;
   virtual void dispCoarseningOptions() const = 0;
   virtual void buildAuxiliaryStructs(int numTotPins, double aveVertDeg,
                                      double aveHedgeSize) = 0;
 
-  void loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm);
+  void load(const parallel::hypergraph &h, MPI_Comm comm);
 
-  parallel_hypergraph *contractHyperedges(parallel_hypergraph &h, MPI_Comm comm);
+  parallel::hypergraph *contractHyperedges(parallel::hypergraph &h, MPI_Comm comm);
 
   inline void setReductionRatio(double ratio) {
     reductionRatio = ratio;

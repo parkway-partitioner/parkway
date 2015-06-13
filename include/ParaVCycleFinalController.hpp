@@ -20,7 +20,7 @@ class ParaVCycleFinalController : public ParaVCycleController {
 
 protected:
 public:
-  ParaVCycleFinalController(ParaRestrCoarsener &rc, ParaCoarsener &c,
+  ParaVCycleFinalController(ParaRestrCoarsener &rc, parallel_coarsener &c,
                             ParaRefiner &r, SeqController &ref, int rank,
                             int nP, int percentile, int inc, int approxRef,
                             int limit, double limitAsPercent, ostream &out);

@@ -14,10 +14,10 @@
 
 #include "ParaController.hpp"
 #include "ParaRestrFCCoarsener.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
+using parkway::hypergraph::parallel::hypergraph;
 typedef dynamic_array<int> IntArray;
-
-using namespace std;
 
 class ParaVCycleController : public ParaController {
 
@@ -36,10 +36,10 @@ protected:
   ParaRestrCoarsener &restrCoarsener;
 
 public:
-  ParaVCycleController(ParaRestrCoarsener &rc, ParaCoarsener &c, ParaRefiner &r,
+  ParaVCycleController(ParaRestrCoarsener &rc, parallel_coarsener &c, ParaRefiner &r,
                        SeqController &ref, int rank, int nP, int percentile,
                        int inc, int approxRef, int limit, double limitAsPercent,
-                       ostream &out);
+                       std::ostream &out);
 
   virtual ~ParaVCycleController();
   virtual void runPartitioner(MPI_Comm comm) = 0;
@@ -48,15 +48,15 @@ public:
   void setWeightConstraints(MPI_Comm comm);
   void dispParaControllerOptions() const;
 
-  void recordVCyclePartition(const parallel_hypergraph &h, int numIteration);
-  void gatherInVCyclePartition(parallel_hypergraph &h, int cut, MPI_Comm comm);
+  void recordVCyclePartition(const hypergraph &h, int numIteration);
+  void gatherInVCyclePartition(hypergraph &h, int cut, MPI_Comm comm);
 
-  void projectVCyclePartition(parallel_hypergraph &cG, parallel_hypergraph &fG,
+  void projectVCyclePartition(hypergraph &cG, hypergraph &fG,
                               MPI_Comm comm);
-  void shuffleVCycleVertsByPartition(parallel_hypergraph &h, MPI_Comm comm);
+  void shuffleVCycleVertsByPartition(hypergraph &h, MPI_Comm comm);
   // void randomVCycleVertShuffle(ParaHypergraph &h, ParaHypergraph &fineH,
   // MPI_Comm comm);
-  void shiftVCycleVertsToBalance(parallel_hypergraph &h, MPI_Comm comm);
+  void shiftVCycleVertsToBalance(hypergraph &h, MPI_Comm comm);
   void updateMapToOrigVerts(MPI_Comm comm);
   void resetStructs();
 };

@@ -29,7 +29,7 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   earlyExit = eExit;
   limit = lim;
   numTotVerticesMoved = 0;
-  ij = numParts * numParts;
+  ij = number_of_partitions_ * number_of_partitions_;
 
   moveSets.reserve(ij);
   moveSetData.reserve(Shiftl(ij, 1));
@@ -39,10 +39,10 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   for (i = 0; i < ij; ++i)
     moveSets[i] = new dynamic_array<int>;
 
-  for (i = 0; i < numParts; ++i) {
-    ij = i * numParts;
+  for (i = 0; i < number_of_partitions_; ++i) {
+    ij = i * number_of_partitions_;
 
-    for (j = 0; j < numParts; ++j) {
+    for (j = 0; j < number_of_partitions_; ++j) {
       if (i == j) {
         indexIntoMoveSetData[ij + j] = -1;
       } else {
@@ -55,7 +55,7 @@ ParaGreedyKwayRefiner::ParaGreedyKwayRefiner(int rank, int nProcs, int nParts,
   // build tables
   // ###
 
-  movementSets = new ds::movement_set_table(numParts, processors_);
+  movementSets = new ds::movement_set_table(number_of_partitions_, processors_);
 
   numNeighParts.reserve(0);
   neighboursOfV.reserve(0);
@@ -77,16 +77,16 @@ ParaGreedyKwayRefiner::~ParaGreedyKwayRefiner() {
 
   DynaMem::deletePtr<ds::movement_set_table>(movementSets);
 
-  for (i = 0; i < numParts; ++i) {
-    ij = i * numParts;
+  for (i = 0; i < number_of_partitions_; ++i) {
+    ij = i * number_of_partitions_;
 
-    for (j = 0; j < numParts; ++j)
+    for (j = 0; j < number_of_partitions_; ++j)
       DynaMem::deletePtr<dynamic_array<int> >(moveSets[ij + j]);
   }
 }
 
 void ParaGreedyKwayRefiner::dispRefinementOptions() const {
-  switch (dispOption) {
+  switch (display_options_) {
   case SILENT:
 
     break;
@@ -101,14 +101,14 @@ void ParaGreedyKwayRefiner::dispRefinementOptions() const {
   }
 }
 
-void ParaGreedyKwayRefiner::releaseMemory() {
-  hEdgeWeight.reserve(0);
-  hEdgeOffset.reserve(0);
-  locPinList.reserve(0);
+void ParaGreedyKwayRefiner::release_memory() {
+  hyperedge_weights_.reserve(0);
+  hyperedge_offsets_.reserve(0);
+  local_pin_list_.reserve(0);
 
-  vToHedgesOffset.reserve(0);
-  vToHedgesList.reserve(0);
-  allocHedges.reserve(0);
+  vertex_to_hyperedges_offset_.reserve(0);
+  vertex_to_hyperedges_.reserve(0);
+  allocated_hyperedges_.reserve(0);
 
   numNeighParts.reserve(0);
   neighboursOfV.reserve(0);
@@ -132,7 +132,7 @@ void ParaGreedyKwayRefiner::releaseMemory() {
   free_memory();
 }
 
-void ParaGreedyKwayRefiner::initDataStructs(const parallel_hypergraph &h,
+void ParaGreedyKwayRefiner::initDataStructs(const hypergraph &h,
                                             MPI_Comm comm) {
   int i;
   int j;
@@ -146,32 +146,32 @@ void ParaGreedyKwayRefiner::initDataStructs(const parallel_hypergraph &h,
   // init data_ structures used in refinement
   // ###
 
-  vertSeen.reserve(numLocalVertices);
+  vertSeen.reserve(number_of_local_vertices_);
   vertSeen.unset();
 
-  locked.reserve(numLocalVertices);
-  vertices.reserve(numLocalVertices);
-  seenVertices.reserve(numLocalVertices);
-  spannedParts.reserve(numParts);
-  numPartsSpanned.reserve(numHedges);
-  numNeighParts.reserve(numLocalVertices);
-  neighboursOfV.reserve(numLocalVertices * numParts);
-  neighboursOfVOffsets.reserve(numLocalVertices + 1);
+  locked.reserve(number_of_local_vertices_);
+  vertices.reserve(number_of_local_vertices_);
+  seenVertices.reserve(number_of_local_vertices_);
+  spannedParts.reserve(number_of_partitions_);
+  numPartsSpanned.reserve(number_of_hyperedges_);
+  numNeighParts.reserve(number_of_local_vertices_);
+  neighboursOfV.reserve(number_of_local_vertices_ * number_of_partitions_);
+  neighboursOfVOffsets.reserve(number_of_local_vertices_ + 1);
 
-  hEdgeVinPart.reserve(numHedges * numParts);
-  hEdgeVinPartOffsets.reserve(numHedges + 1);
+  hEdgeVinPart.reserve(number_of_hyperedges_ * number_of_partitions_);
+  hEdgeVinPartOffsets.reserve(number_of_hyperedges_ + 1);
 
   j = 0;
-  ij = numParts;
+  ij = number_of_partitions_;
 
-  for (i = 0; i <= numLocalVertices; ++i) {
+  for (i = 0; i <= number_of_local_vertices_; ++i) {
     neighboursOfVOffsets[i] = j;
     j += ij;
   }
 
   j = 0;
 
-  for (i = 0; i <= numHedges; ++i) {
+  for (i = 0; i <= number_of_hyperedges_; ++i) {
     hEdgeVinPartOffsets[i] = j;
     j += ij;
   }
@@ -209,7 +209,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
   assert(hEdgeVinPartOffsets.getLength() > 0);
 #endif
 
-  dynamic_array<int> locPartWts(numParts);
+  dynamic_array<int> locPartWts(number_of_partitions_);
 
   // ###
   // initialise current partition vector
@@ -222,7 +222,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
     currNonLocPVector = &partIndices[indexIntoPartIndices[pNo]];
   currPnumber = pNo;
 
-  for (i = 0; i < numParts; ++i)
+  for (i = 0; i < number_of_partitions_; ++i)
     locPartWts[i] = 0;
 
   // ###
@@ -230,29 +230,29 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
   // first reset to zeros...
   // ###
 
-  j = numLocalVertices;
+  j = number_of_local_vertices_;
 
   for (i = 0; i < j; ++i) {
-    locPartWts[currPVector[i]] += vWeight[i];
+    locPartWts[currPVector[i]] += vertex_weights_[i];
     numNeighParts[i] = 0;
   }
 
-  j = neighboursOfVOffsets[numLocalVertices];
+  j = neighboursOfVOffsets[number_of_local_vertices_];
 
   for (i = 0; i < j; ++i)
     neighboursOfV[i] = 0;
 
-  j = numHedges;
+  j = number_of_hyperedges_;
 
   for (i = 0; i < j; ++i)
     numPartsSpanned[i] = 0;
 
-  j = hEdgeVinPartOffsets[numHedges];
+  j = hEdgeVinPartOffsets[number_of_hyperedges_];
 
   for (i = 0; i < j; ++i)
     hEdgeVinPart[i] = 0;
 
-  MPI_Allreduce(locPartWts.data(), partWeights.data(), numParts,
+  MPI_Allreduce(locPartWts.data(), partWeights.data(), number_of_partitions_,
                 MPI_INT, MPI_SUM, comm);
 
 #ifdef DEBUG_REFINER
@@ -260,16 +260,16 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
     assert(partWeights[i] <= maxPartWt);
 #endif
 
-  for (i = 0; i < numHedges; ++i) {
-    endOffset = hEdgeOffset[i + 1];
+  for (i = 0; i < number_of_hyperedges_; ++i) {
+    endOffset = hyperedge_offsets_[i + 1];
     hEdgeVertOffset = hEdgeVinPartOffsets[i];
     numSpanned = 0;
 
-    for (j = hEdgeOffset[i]; j < endOffset; ++j) {
-      ij = locPinList[j];
+    for (j = hyperedge_offsets_[i]; j < endOffset; ++j) {
+      ij = local_pin_list_[j];
 
-      if (ij >= minVertexIndex && ij < maxVertexIndex) {
-        vPart = currPVector[ij - minVertexIndex];
+      if (ij >= minimum_vertex_index_ && ij < maximum_vertex_index_) {
+        vPart = currPVector[ij - minimum_vertex_index_];
       } else {
         nonLocIndex = toNonLocVerts.get(ij);
 #ifdef DEBUG_REFINER
@@ -302,15 +302,15 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
     // update the vertex neighbour structs
     // ###
 
-    for (j = hEdgeOffset[i]; j < endOffset; ++j) {
-      vertex = locPinList[j];
+    for (j = hyperedge_offsets_[i]; j < endOffset; ++j) {
+      vertex = local_pin_list_[j];
 
       // ###
       // only consider if vertex a local vertex
       // ###
 
-      if (vertex >= minVertexIndex && vertex < maxVertexIndex) {
-        v = vertex - minVertexIndex;
+      if (vertex >= minimum_vertex_index_ && vertex < maximum_vertex_index_) {
+        v = vertex - minimum_vertex_index_;
         vertOffset = neighboursOfVOffsets[v];
 
         for (ij = 0; ij < numSpanned; ++ij) {
@@ -331,7 +331,7 @@ void ParaGreedyKwayRefiner::setPartitioningStructs(int pNo, MPI_Comm comm) {
 #endif
 }
 
-void ParaGreedyKwayRefiner::refine(parallel_hypergraph &h, MPI_Comm comm) {
+void ParaGreedyKwayRefiner::refine(hypergraph &h, MPI_Comm comm) {
   initDataStructs(h, comm);
 
   int i;
@@ -348,7 +348,7 @@ void ParaGreedyKwayRefiner::refine(parallel_hypergraph &h, MPI_Comm comm) {
     totalGain = 0;
     numPasses = 0;
 
-    if (dispOption > 1 && rank_ == 0) {
+    if (display_options_ > 1 && rank_ == 0) {
       out_stream << "\t[" << i << "] ";
     }
 
@@ -356,7 +356,7 @@ void ParaGreedyKwayRefiner::refine(parallel_hypergraph &h, MPI_Comm comm) {
       newCutsize = runGreedyKwayRefinement(h, i, comm);
       gain = partitionCuts[i] - newCutsize;
 
-      if (dispOption > 1 && rank_ == 0) {
+      if (display_options_ > 1 && rank_ == 0) {
         out_stream << gain << " ";
       }
 
@@ -374,7 +374,7 @@ void ParaGreedyKwayRefiner::refine(parallel_hypergraph &h, MPI_Comm comm) {
       lastGain = gain;
     } while (gain > 0);
 
-    if (dispOption > 1 && rank_ == 0) {
+    if (display_options_ > 1 && rank_ == 0) {
       out_stream << "| " << numPasses << " " << totalGain << " "
                  << partitionCuts[i] << std::endl;
     }
@@ -383,7 +383,7 @@ void ParaGreedyKwayRefiner::refine(parallel_hypergraph &h, MPI_Comm comm) {
   resetDataStructs();
 }
 
-int ParaGreedyKwayRefiner::runGreedyKwayRefinement(parallel_hypergraph &h, int pNo,
+int ParaGreedyKwayRefiner::runGreedyKwayRefinement(hypergraph &h, int pNo,
                                                    MPI_Comm comm) {
   int i;
 
@@ -396,7 +396,8 @@ int ParaGreedyKwayRefiner::runGreedyKwayRefinement(parallel_hypergraph &h, int p
       // init movement sets
       // ###
 
-      movementSets->initialize_part_weights(partWeights.data(), numParts);
+      movementSets->initialize_part_weights(partWeights.data(),
+                                            number_of_partitions_);
     }
 
     doGreedyPass(i, comm);
@@ -404,13 +405,13 @@ int ParaGreedyKwayRefiner::runGreedyKwayRefinement(parallel_hypergraph &h, int p
     updateVertexMoveInfo(comm);
   }
 
-  if (currPercentile == 100)
+  if (percentile_ == 100)
     return (computeCutsize(comm));
   else {
 #ifdef DEBUG_REFINER
 // assert(currPercentile > 0 && currPercentile < 100);
 #endif
-    return (h.calculate_cut_size(numParts, pNo, comm));
+    return (h.calculate_cut_size(number_of_partitions_, pNo, comm));
   }
 }
 
@@ -435,17 +436,17 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
   int neighOfVOffset;
   int numNonPos = 0;
   int limNonPosMoves =
-      static_cast<int>(ceil(limit * static_cast<double>(numLocalVertices)));
+      static_cast<int>(ceil(limit * static_cast<double>(number_of_local_vertices_)));
   ;
 
   double currImbalance = 0;
   double bestImbalance;
   double posImbalance;
 
-  for (i = 0; i < numParts; ++i) {
-    prod = numParts * i;
+  for (i = 0; i < number_of_partitions_; ++i) {
+    prod = number_of_partitions_ * i;
 
-    for (j = 0; j < numParts; ++j) {
+    for (j = 0; j < number_of_partitions_; ++j) {
       if (i != j) {
         ij = prod + j;
 
@@ -458,13 +459,13 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
     }
   }
 
-  for (i = 0; i < numLocalVertices; ++i)
+  for (i = 0; i < number_of_local_vertices_; ++i)
     vertices[i] = i;
 
-  for (i = 0; i < numParts; ++i)
+  for (i = 0; i < number_of_partitions_; ++i)
     currImbalance += fabs(partWeights[i] - avePartWt);
 
-  i = numLocalVertices;
+  i = number_of_local_vertices_;
   gain = 0;
 
   do {
@@ -472,7 +473,7 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
     v = vertices[randomNum];
 
     if (!locked(v)) {
-      vertexWt = vWeight[v];
+      vertexWt = vertex_weights_[v];
       sP = currPVector[v];
       vGain = 0;
       bestImbalance = currImbalance;
@@ -481,25 +482,25 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
       if (numNeighParts[v] > 1) {
         vNeighOffset = neighboursOfVOffsets[v];
 
-        for (j = 0; j < numParts; ++j) {
+        for (j = 0; j < number_of_partitions_; ++j) {
           if (neighboursOfV[vNeighOffset + j] > 0 &&
               ((lowToHigh && j > sP) || (!lowToHigh && j < sP))) {
             if (partWeights[j] + vertexWt <= maxPartWt) {
               posGain = 0;
-              vertOffset = vToHedgesOffset[v + 1];
+              vertOffset = vertex_to_hyperedges_offset_[v + 1];
 
-              for (ij = vToHedgesOffset[v]; ij < vertOffset; ++ij) {
-                hEdge = vToHedgesList[ij];
+              for (ij = vertex_to_hyperedges_offset_[v]; ij < vertOffset; ++ij) {
+                hEdge = vertex_to_hyperedges_[ij];
 #ifdef DEBUG_REFINER
                 assert(hEdge >= 0 && hEdge < numHedges);
 #endif
                 hEdgeOff = hEdgeVinPartOffsets[hEdge];
 
                 if (hEdgeVinPart[hEdgeOff + sP] == 1)
-                  posGain += hEdgeWeight[hEdge];
+                  posGain += hyperedge_weights_[hEdge];
 
                 if (hEdgeVinPart[hEdgeOff + j] == 0)
-                  posGain -= hEdgeWeight[hEdge];
+                  posGain -= hyperedge_weights_[hEdge];
               }
 
               posImbalance = currImbalance +
@@ -522,7 +523,7 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
           assert(bestMove >= 0 && bestMove < numParts);
 #endif
-          vertOffset = vToHedgesOffset[v + 1];
+          vertOffset = vertex_to_hyperedges_offset_[v + 1];
           neighOfVOffset = neighboursOfVOffsets[v];
 
           // ###
@@ -535,12 +536,12 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
           neighboursOfV[neighOfVOffset + bestMove] = 1;
           neighboursOfV[neighOfVOffset + sP] = 0;
 
-          for (j = vToHedgesOffset[v]; j < vertOffset; ++j) {
+          for (j = vertex_to_hyperedges_offset_[v]; j < vertOffset; ++j) {
             // ###
             // update the hyperedge stats: (vInPart etc.)
             // ###
 
-            hEdge = vToHedgesList[j];
+            hEdge = vertex_to_hyperedges_[j];
 #ifdef DEBUG_REFINER
             assert(hEdge >= 0 && hEdge < numHedges);
 #endif
@@ -606,7 +607,7 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
           // update the movement set structures
           // ###
 
-          ij = sP * numParts + bestMove;
+          ij = sP * number_of_partitions_ + bestMove;
 
 #ifdef DEBUG_REFINER
           assert(ij < numParts * numParts);
@@ -614,7 +615,8 @@ int ParaGreedyKwayRefiner::doGreedyPass(int lowToHigh, MPI_Comm comm) {
           assert(indexIntoMoveSetData[ij] >= 0);
           assert(indexIntoMoveSetData[ij] < Shiftl(numParts * numParts, 1));
 #endif
-          moveSets[ij]->assign(numVerticesMoved[ij]++, v + minVertexIndex);
+          moveSets[ij]->assign(numVerticesMoved[ij]++, v +
+                                                       minimum_vertex_index_);
           moveSetData[indexIntoMoveSetData[ij]] += vGain;
           moveSetData[indexIntoMoveSetData[ij] + 1] += vertexWt;
 
@@ -645,13 +647,13 @@ int ParaGreedyKwayRefiner::computeCutsize(MPI_Comm comm) {
 
   int totalCut;
 
-  for (i = 0; i < numAllocHedges; ++i) {
-    ij = allocHedges[i];
+  for (i = 0; i < number_of_allocated_hyperedges_; ++i) {
+    ij = allocated_hyperedges_[i];
 #ifdef DEBUG_REFINER
     assert(numPartsSpanned[ij] > 0 && numPartsSpanned[ij] <= numParts);
     assert(hEdgeWeight[ij] > 0);
 #endif
-    locCut += ((numPartsSpanned[ij] - 1) * hEdgeWeight[ij]);
+    locCut += ((numPartsSpanned[ij] - 1) * hyperedge_weights_[ij]);
   }
 
   MPI_Allreduce(&locCut, &totalCut, 1, MPI_INT, MPI_SUM, comm);
@@ -678,10 +680,10 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
 
   numToSend = 0;
 
-  for (i = 0; i < numParts; ++i) {
-    prod = i * numParts;
+  for (i = 0; i < number_of_partitions_; ++i) {
+    prod = i * number_of_partitions_;
 
-    for (j = 0; j < numParts; ++j) {
+    for (j = 0; j < number_of_partitions_; ++j) {
       if (i != j) {
         ij = indexIntoMoveSetData[prod + j];
 
@@ -777,7 +779,7 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
     i = receive_array_[ij];
     j = receive_array_[ij + 1];
 
-    indexIntoMoveSets = i * numParts + j;
+    indexIntoMoveSets = i * number_of_partitions_ + j;
     unmakeMoves(indexIntoMoveSets, i, j);
 
     ij += 2;
@@ -803,12 +805,12 @@ void ParaGreedyKwayRefiner::manageBalanceConstraint(MPI_Comm comm) {
   if (rank_ == ROOT_PROC) {
     array = movementSets->part_weights_array();
 
-    for (ij = 0; ij < numParts; ++ij) {
+    for (ij = 0; ij < number_of_partitions_; ++ij) {
       partWeights[ij] = array[ij];
     }
   }
 
-  MPI_Bcast(partWeights.data(), numParts, MPI_INT, ROOT_PROC, comm);
+  MPI_Bcast(partWeights.data(), number_of_partitions_, MPI_INT, ROOT_PROC, comm);
 
 #ifdef DEBUG_REFINER
   for (i = 0; i < numParts; ++i)
@@ -833,7 +835,7 @@ void ParaGreedyKwayRefiner::takeBackPassMoves() {
     assert(vPart >= 0 && vPart < numParts);
 #endif
 
-    currPVector[v - minVertexIndex] = vPart;
+    currPVector[v - minimum_vertex_index_] = vPart;
   }
 }
 
@@ -870,10 +872,10 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
   int *array;
 
   totToSend = 0;
-  for (i = 0; i < numParts; ++i) {
-    prod = i * numParts;
+  for (i = 0; i < number_of_partitions_; ++i) {
+    prod = i * number_of_partitions_;
 
-    for (j = 0; j < numParts; ++j) {
+    for (j = 0; j < number_of_partitions_; ++j) {
       if (i != j) {
         index = prod + j;
         endOffset = numVerticesMoved[index];
@@ -990,17 +992,17 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
 #ifdef DEBUG_REFINER
         assert(hEdge >= 0 && hEdge < numHedges);
 #endif
-        hEdgeOff = hEdgeOffset[hEdge + 1];
+        hEdgeOff = hyperedge_offsets_[hEdge + 1];
 
-        for (ij = hEdgeOffset[hEdge]; ij < hEdgeOff; ++ij) {
-          vert = locPinList[ij];
+        for (ij = hyperedge_offsets_[hEdge]; ij < hEdgeOff; ++ij) {
+          vert = local_pin_list_[ij];
 
           // ###
           // if the adjacent vertex is a local vertex
           // ###
 
-          if (vert >= minVertexIndex && vert < maxVertexIndex) {
-            locVertIndex = vert - minVertexIndex;
+          if (vert >= minimum_vertex_index_ && vert < maximum_vertex_index_) {
+            locVertIndex = vert - minimum_vertex_index_;
 
             if (vertSeen(locVertIndex) == 0) {
               neighOfVOffset = neighboursOfVOffsets[locVertIndex];
@@ -1019,11 +1021,11 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
                 // connected to part bestDP to determine
                 // whether to set to 0 or 1!!!
 
-                othVOffset = vToHedgesOffset[locVertIndex + 1];
+                othVOffset = vertex_to_hyperedges_offset_[locVertIndex + 1];
 
-                for (ijk = vToHedgesOffset[locVertIndex]; ijk < othVOffset;
+                for (ijk = vertex_to_hyperedges_offset_[locVertIndex]; ijk < othVOffset;
                      ++ijk) {
-                  othHedge = vToHedgesList[ijk];
+                  othHedge = vertex_to_hyperedges_[ijk];
 
                   if (hEdgeVinPart[hEdgeVinPartOffsets[othHedge] + vertexPart] >
                       0) {
@@ -1136,17 +1138,17 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
 #ifdef DEBUG_REFINER
         assert(hEdge >= 0 && hEdge < numHedges);
 #endif
-        hEdgeOff = hEdgeOffset[hEdge + 1];
+        hEdgeOff = hyperedge_offsets_[hEdge + 1];
 
-        for (ij = hEdgeOffset[hEdge]; ij < hEdgeOff; ++ij) {
-          vert = locPinList[ij];
+        for (ij = hyperedge_offsets_[hEdge]; ij < hEdgeOff; ++ij) {
+          vert = local_pin_list_[ij];
 
           // ###
           // if the adjacent vertex is a local vertex
           // ###
 
-          if (vert >= minVertexIndex && vert < maxVertexIndex) {
-            locVertIndex = vert - minVertexIndex;
+          if (vert >= minimum_vertex_index_ && vert < maximum_vertex_index_) {
+            locVertIndex = vert - minimum_vertex_index_;
 
             if (vertSeen(locVertIndex) == 0) {
               neighOfVOffset = neighboursOfVOffsets[locVertIndex];
@@ -1165,11 +1167,11 @@ void ParaGreedyKwayRefiner::updateVertexMoveInfo(MPI_Comm comm) {
                 // connected to part bestDP to determine
                 // whether to set to 0 or 1!!!
 
-                othVOffset = vToHedgesOffset[locVertIndex + 1];
+                othVOffset = vertex_to_hyperedges_offset_[locVertIndex + 1];
 
-                for (ijk = vToHedgesOffset[locVertIndex]; ijk < othVOffset;
+                for (ijk = vertex_to_hyperedges_offset_[locVertIndex]; ijk < othVOffset;
                      ++ijk) {
-                  othHedge = vToHedgesList[ijk];
+                  othHedge = vertex_to_hyperedges_[ijk];
 
                   if (hEdgeVinPart[hEdgeVinPartOffsets[othHedge] + vertexPart] >
                       0) {
@@ -1232,22 +1234,22 @@ void ParaGreedyKwayRefiner::updateAdjVertStatus(int v, int sP, int bestMove) {
   int othVOffset;
   int othHedge;
 
-  vertOffset = vToHedgesOffset[v + 1];
+  vertOffset = vertex_to_hyperedges_offset_[v + 1];
   numVerticesSeen = 0;
 
-  for (i = vToHedgesOffset[v]; i < vertOffset; ++i) {
-    hEdge = vToHedgesList[i];
-    hEdgeOff = hEdgeOffset[hEdge + 1];
+  for (i = vertex_to_hyperedges_offset_[v]; i < vertOffset; ++i) {
+    hEdge = vertex_to_hyperedges_[i];
+    hEdgeOff = hyperedge_offsets_[hEdge + 1];
 
-    for (j = hEdgeOffset[hEdge]; j < hEdgeOff; ++j) {
-      vert = locPinList[j];
+    for (j = hyperedge_offsets_[hEdge]; j < hEdgeOff; ++j) {
+      vert = local_pin_list_[j];
 
       // ###
       // if the adjacent vertex is a local vertex
       // ###
 
-      if (vert >= minVertexIndex && vert < maxVertexIndex) {
-        locVertIndex = vert - minVertexIndex;
+      if (vert >= minimum_vertex_index_ && vert < maximum_vertex_index_) {
+        locVertIndex = vert - minimum_vertex_index_;
 
         if (locVertIndex != v && vertSeen(locVertIndex) == 0) {
           neighOfVOffset = neighboursOfVOffsets[locVertIndex];
@@ -1266,10 +1268,10 @@ void ParaGreedyKwayRefiner::updateAdjVertStatus(int v, int sP, int bestMove) {
             // connected to part bestDP to determine
             // whether to set to 0 or 1!!!
 
-            othVOffset = vToHedgesOffset[locVertIndex + 1];
+            othVOffset = vertex_to_hyperedges_offset_[locVertIndex + 1];
 
-            for (ij = vToHedgesOffset[locVertIndex]; ij < othVOffset; ++ij) {
-              othHedge = vToHedgesList[ij];
+            for (ij = vertex_to_hyperedges_offset_[locVertIndex]; ij < othVOffset; ++ij) {
+              othHedge = vertex_to_hyperedges_[ij];
 
               if (hEdgeVinPart[hEdgeVinPartOffsets[othHedge] + sP] > 0) {
                 neighboursOfV[neighOfVOffset + sP] = 1;
@@ -1321,7 +1323,7 @@ void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
   int *movedArray = moveSets[indexIntoMoveSets]->data();
 
   for (i = 0; i < numVmoved; ++i) {
-    v = movedArray[i] - minVertexIndex;
+    v = movedArray[i] - minimum_vertex_index_;
 
 #ifdef DEBUG_REFINER
     assert(v >= 0 && v < numLocalVertices);
@@ -1331,7 +1333,7 @@ void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
     // make the move and update the vertex's structs
     // ###
 
-    vertOffset = vToHedgesOffset[v + 1];
+    vertOffset = vertex_to_hyperedges_offset_[v + 1];
     neighOfVOffset = neighboursOfVOffsets[v];
 
     // ###
@@ -1345,12 +1347,12 @@ void ParaGreedyKwayRefiner::unmakeMoves(int indexIntoMoveSets, int from,
     neighboursOfV[neighOfVOffset + from] = 1;
     neighboursOfV[neighOfVOffset + to] = 0;
 
-    for (j = vToHedgesOffset[v]; j < vertOffset; ++j) {
+    for (j = vertex_to_hyperedges_offset_[v]; j < vertOffset; ++j) {
       // ###
       // update the hyperedge stats: (vInPart etc.)
       // ###
 
-      hEdge = vToHedgesList[j];
+      hEdge = vertex_to_hyperedges_[j];
 #ifdef DEBUG_REFINER
       assert(hEdge >= 0 && hEdge < numHedges);
 #endif
@@ -1437,8 +1439,8 @@ void ParaGreedyKwayRefiner::sanityHedgeCheck() const {
   int hEdgeLen;
   int inParts;
 
-  for (i = 0; i < numHedges; ++i) {
-    hEdgeLen = hEdgeOffset[i + 1] - hEdgeOffset[i];
+  for (i = 0; i < number_of_hyperedges_; ++i) {
+    hEdgeLen = hyperedge_offsets_[i + 1] - hyperedge_offsets_[i];
     inParts = 0;
     ij = hEdgeVinPartOffsets[i + 1];
 

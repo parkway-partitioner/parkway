@@ -15,7 +15,7 @@
 #include "ParaVCycleFinalController.hpp"
 
 ParaVCycleFinalController::ParaVCycleFinalController(
-    ParaRestrCoarsener &rc, ParaCoarsener &c, ParaRefiner &r,
+    ParaRestrCoarsener &rc, parallel_coarsener &c, ParaRefiner &r,
     SeqController &ref, int rank, int nP, int percentile, int inc,
     int approxRef, int limit, double limitAsPercent, ostream &out)
     : ParaVCycleController(rc, c, r, ref, rank, nP, percentile, inc, approxRef,
@@ -42,8 +42,8 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 
   stack<int> hEdgePercentiles;
 
-  parallel_hypergraph *coarseGraph;
-  parallel_hypergraph *finerGraph;
+  hypergraph *coarseGraph;
+  hypergraph *finerGraph;
 
   initMapToOrigVerts();
 
@@ -85,7 +85,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 
     do {
       hEdgePercentile = hEdgePercentiles.top();
-      coarsener.setPercentile(hEdgePercentile);
+      coarsener.set_percentile(hEdgePercentile);
       coarseGraph = coarsener.coarsen(*finerGraph, comm);
 
       if (coarseGraph) {
@@ -100,7 +100,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
     MPI_Barrier(comm);
     totCoaTime += (MPI_Wtime() - startTime);
 
-    coarsener.releaseMemory();
+    coarsener.release_memory();
 
     // ###
     // compute the initial partition
@@ -138,14 +138,14 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
       if (approxRefine)
-        refiner.setPercentile(hEdgePercentile);
+        refiner.set_percentile(hEdgePercentile);
 
       refiner.refine(*finerGraph, comm);
 
 #ifdef DEBUG_CONTROLLER
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-      DynaMem::deletePtr<parallel_hypergraph>(coarseGraph);
+      DynaMem::deletePtr<hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
@@ -157,7 +157,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
     MPI_Barrier(comm);
     totRefTime += (MPI_Wtime() - startTime);
 
-    refiner.releaseMemory();
+    refiner.release_memory();
 
     // ###
     // select the best partition
@@ -198,7 +198,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
 
       do {
         hEdgePercentile = hEdgePercentiles.top();
-        restrCoarsener.setPercentile(hEdgePercentile);
+        restrCoarsener.set_percentile(hEdgePercentile);
         coarseGraph = restrCoarsener.coarsen(*finerGraph, comm);
 
         if (coarseGraph) {
@@ -214,7 +214,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
       MPI_Barrier(comm);
       totCoaTime += (MPI_Wtime() - startTime);
 
-      restrCoarsener.releaseMemory();
+      restrCoarsener.release_memory();
 
       // ###
       // compute the initial partition
@@ -265,14 +265,14 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
         }
 
         if (approxRefine)
-          refiner.setPercentile(hEdgePercentile);
+          refiner.set_percentile(hEdgePercentile);
 
         refiner.refine(*finerGraph, comm);
 
 #ifdef DEBUG_CONTROLLER
         finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-        DynaMem::deletePtr<parallel_hypergraph>(coarseGraph);
+        DynaMem::deletePtr<hypergraph>(coarseGraph);
 
         coarseGraph = finerGraph;
       }
@@ -284,7 +284,7 @@ void ParaVCycleFinalController::runPartitioner(MPI_Comm comm) {
       MPI_Barrier(comm);
       totRefTime += (MPI_Wtime() - startTime);
 
-      refiner.releaseMemory();
+      refiner.release_memory();
 
       // ###
       // select the best partition

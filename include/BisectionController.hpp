@@ -1,4 +1,3 @@
-
 #ifndef _BISECTION_CONTROLLER_HPP
 #define _BISECTION_CONTROLLER_HPP
 
@@ -14,9 +13,11 @@
 
 #include <ostream>
 #include "data_structures/stack.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 #include "FCCoarsener.hpp"
 #include "InitBisector.hpp"
 
+namespace serial = parkway::hypergraph::serial;
 using namespace parkway::data_structures;
 
 class BisectionController {
@@ -40,7 +41,7 @@ protected:
   Coarsener *coarsener;
   Refiner *refiner;
   InitBisector *initBisector;
-  stack<serial_hypergraph *> hGraphs;
+  stack<serial::hypergraph *> hGraphs;
 
   dynamic_array<int> bestPartition;
 
@@ -57,7 +58,7 @@ public:
 
   virtual void computeBisection();
 
-  void bisect(serial_hypergraph *h, int maxPartWt);
+  void bisect(serial::hypergraph *h, int maxPartWt);
 
   inline void setNumRuns(int r) { numSeqRuns = r; }
 };

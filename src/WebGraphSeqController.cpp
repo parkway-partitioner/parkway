@@ -19,7 +19,7 @@ WebGraphSeqController::WebGraphSeqController(int rank, int nProcs, int nParts,
 
 WebGraphSeqController::~WebGraphSeqController() {}
 
-void WebGraphSeqController::initCoarsestHypergraph(parallel_hypergraph &hgraph,
+void WebGraphSeqController::initCoarsestHypergraph(parallel::hypergraph &hgraph,
                                                    MPI_Comm comm) {
   /***********************
 
@@ -155,7 +155,7 @@ vertices.
   MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  h = new serial_hypergraph(vWeights->data(), numVertices);
+  h = new serial::hypergraph(vWeights->data(), numVertices);
 
   h->set_number_of_hyperedges(numHedges);
   h->set_number_of_pins(numPins);
@@ -169,7 +169,7 @@ vertices.
     h->print_characteristics(out_stream);
 }
 
-void WebGraphSeqController::initSeqPartitions(parallel_hypergraph &hgraph,
+void WebGraphSeqController::initSeqPartitions(parallel::hypergraph &hgraph,
                                               MPI_Comm comm) {
   int i;
   int j;

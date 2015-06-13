@@ -30,24 +30,23 @@
 
 namespace parkway {
 namespace hypergraph {
+namespace parallel {
 
-class parallel_hypergraph
-    : public global_communicator,
-      public base_hypergraph {
+class hypergraph : public global_communicator, public base_hypergraph {
 public:
-  parallel_hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
+  hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int *wtArray);
-  parallel_hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
+  hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int cut, int *wtArray,
                  int *partArray);
-  parallel_hypergraph(int myRank, int nProcs, const char *filename, int dispOption,
+  hypergraph(int myRank, int nProcs, const char *filename, int dispOption,
                  std::ostream &out, MPI_Comm comm);
-  parallel_hypergraph(int myRank, int nProcs, int numLocVerts, int numLocHedges,
+  hypergraph(int myRank, int nProcs, int numLocVerts, int numLocHedges,
                  int maxHedgeLen, const int *vWeights, const int *hEdgeWts,
                  const int *locPinList, const int *hEdgeOffsets, int dispOption,
                  std::ostream &out, MPI_Comm comm);
 
-  ~parallel_hypergraph();
+  ~hypergraph();
 
   void load_from_file(const char *filename, int dispOption,
                       std::ostream &out, MPI_Comm comm);
@@ -55,9 +54,9 @@ public:
                                      std::ostream &out, MPI_Comm comm);
 
   void allocate_hyperedge_memory(int numHedges, int numLocPins);
-  void contract_hyperedges(parallel_hypergraph &coarse, MPI_Comm comm);
-  void contractRestrHyperedges(parallel_hypergraph &coarse, MPI_Comm comm);
-  void project_partitions(parallel_hypergraph &coarse, MPI_Comm comm);
+  void contract_hyperedges(hypergraph &coarse, MPI_Comm comm);
+  void contractRestrHyperedges(hypergraph &coarse, MPI_Comm comm);
+  void project_partitions(hypergraph &coarse, MPI_Comm comm);
   void reset_vectors();
 
   void remove_bad_partitions(double cutThreshold);
@@ -75,13 +74,13 @@ public:
   void shuffle_vertices_by_partition(int nParts, MPI_Comm comm);
   void shuffle_vertices_randomly(MPI_Comm comm);
   void shuffle_vertices_randomly(int *mapToOrigV, MPI_Comm comm);
-  void shuffle_vertices_randomly(parallel_hypergraph &fineG, MPI_Comm comm);
+  void shuffle_vertices_randomly(hypergraph &fineG, MPI_Comm comm);
 
   void shuffle_vertices(int *vToProc, int *locVPerProc, MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc, int *mapToOrigV,
                                 MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc,
-                                parallel_hypergraph &fineG, MPI_Comm comm);
+                                hypergraph &fineG, MPI_Comm comm);
   void shuffleVerticesAftRandom(int *vToProc, int *locVPerProc,
                                 int *mapToInterV, int *mapToOrigV,
                                 MPI_Comm comm);
@@ -140,6 +139,7 @@ public:
   parkway::data_structures::dynamic_array<int> to_origin_vertex_;
 };
 
+}  // namespace parallel
 }  // namespace hypergraph
 }  // namespace parkway
 

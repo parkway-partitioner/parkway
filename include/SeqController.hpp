@@ -13,11 +13,11 @@
 //
 // ###
 
-#include "hypergraph/parallel_hypergraph.hpp"
-#include "hypergraph/serial_hypergraph.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 
-using parkway::hypergraph::parallel_hypergraph;
-using parkway::hypergraph::serial_hypergraph;
+namespace parallel = parkway::hypergraph::parallel;
+namespace serial = parkway::hypergraph::serial;
 
 using namespace std;
 
@@ -35,7 +35,7 @@ protected:
   double kWayConstraint;
   double acceptProp;
 
-  serial_hypergraph *h;
+  serial::hypergraph *h;
 
   dynamic_array<int> partitionVector;
   dynamic_array<int> partitionCuts;
@@ -46,9 +46,9 @@ public:
 
   virtual ~SeqController();
   virtual void dispSeqControllerOptions() const = 0;
-  virtual void runSeqPartitioner(parallel_hypergraph &hgraph, MPI_Comm comm) = 0;
-  virtual void initSeqPartitions(parallel_hypergraph &h, MPI_Comm comm);
-  virtual void initCoarsestHypergraph(parallel_hypergraph &hgraph, MPI_Comm comm);
+  virtual void runSeqPartitioner(parallel::hypergraph &hgraph, MPI_Comm comm) = 0;
+  virtual void initSeqPartitions(parallel::hypergraph &h, MPI_Comm comm);
+  virtual void initCoarsestHypergraph(parallel::hypergraph &hgraph, MPI_Comm comm);
 
   int chooseBestPartition() const;
   int getAcceptCut() const;
@@ -56,7 +56,7 @@ public:
   inline void setNumSeqRuns(int r) { numSeqRuns = r; }
   inline void setDispOption(int d) { dispOption = d; }
   inline void setMaxVertexWt(int max) { maxVertexWt = max; }
-  inline void setHypergraph(serial_hypergraph *hGraph) { h = hGraph; }
+  inline void setHypergraph(serial::hypergraph *hGraph) { h = hGraph; }
   inline void setKwayConstraint(double c) { kWayConstraint = c; }
   inline void setAcceptProp(double p) { acceptProp = p; }
 };

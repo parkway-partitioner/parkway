@@ -14,7 +14,7 @@
 
 #include "ParaController.hpp"
 
-ParaController::ParaController(ParaCoarsener &c, ParaRefiner &r,
+ParaController::ParaController(parallel_coarsener &c, ParaRefiner &r,
                                SeqController &con, int rank, int nP,
                                int percentile, int inc, int approxRef,
                                ostream &out)
@@ -303,8 +303,8 @@ void ParaController::setWeightConstraints(MPI_Comm comm) {
   maxPartWt = static_cast<int>(floor(avePartWt + avePartWt * balConstraint));
   maxVertWt = static_cast<int>(floor(avePartWt * balConstraint));
 
-  coarsener.setMaxVertexWt(maxVertWt);
-  coarsener.setTotGraphWt(totGraphWt);
+  coarsener.set_maximum_vertex_weight(maxVertWt);
+  coarsener.set_total_hypergraph_weight(totGraphWt);
   seqController.setMaxVertexWt(maxVertWt);
 }
 

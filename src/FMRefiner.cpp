@@ -1,4 +1,3 @@
-
 #ifndef _FM_REFINER_CPP
 #define _FM_REFINER_CPP
 
@@ -845,7 +844,7 @@ void FMRefiner::unmakeMove(int v) {
   }
 }
 
-void FMRefiner::refine(serial_hypergraph &h) {
+void FMRefiner::refine(serial::hypergraph &h) {
   int totalGain;
   int gain;
   int i;

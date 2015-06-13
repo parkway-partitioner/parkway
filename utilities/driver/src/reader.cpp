@@ -13,8 +13,6 @@
 
 #include "reader.h"
 
-using parkway::hypergraph::parallel_hypergraph;
-
 void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
                       int *&vWeights, int *&hEdgeWts, int *&pinList,
                       int *&offsets, const char *filename, int myRank) {
@@ -122,8 +120,8 @@ void error(int myRank, int a, const char *note) {
 void testRecordedPartition(const char *filename, int myRank, int numProcs,
                            int numParts, double constraint, ostream &out,
                            MPI_Comm comm) {
-  parallel_hypergraph *h =
-      new parallel_hypergraph(myRank, numProcs, filename, 1, out, comm);
+  parallel::hypergraph *h =
+      new parallel::hypergraph(myRank, numProcs, filename, 1, out, comm);
 
   char pFile[512];
   sprintf(pFile, "%s.part.%d", filename, numParts);
@@ -139,8 +137,8 @@ void testRecordedPartition(const char *filename, const int *pVector,
                            int numLocVerts, int myRank, int numProcs,
                            int numParts, double constraint, ostream &out,
                            MPI_Comm comm) {
-  parallel_hypergraph *h =
-      new parallel_hypergraph(myRank, numProcs, filename, 1, out, comm);
+  parallel::hypergraph *h =
+      new parallel::hypergraph(myRank, numProcs, filename, 1, out, comm);
 
   h->set_number_of_partitions(1);
   h->copy_in_partition(pVector, numLocVerts, 0);

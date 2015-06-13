@@ -1,5 +1,3 @@
-
-
 #ifndef _REFINER_CPP
 #define _REFINER_CPP
 
@@ -15,7 +13,7 @@
 
 #include "Refiner.hpp"
 
-Refiner::Refiner(int dL) : hypergraph_loader(dL) {
+Refiner::Refiner(int dL) : serial::loader(dL) {
   maxPartWt = 0;
   numParts = 0;
   acceptProp = 0;

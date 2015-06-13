@@ -27,10 +27,10 @@ void VCycleAllBisectionController::printVCycleType() const {
 }
 
 void VCycleAllBisectionController::computeBisection() {
-  serial_hypergraph *origGraph = hGraphs.top();
-  serial_hypergraph *coarseGraph;
-  serial_hypergraph *finerGraph;
-  serial_hypergraph *interMedGraph;
+  serial::hypergraph *origGraph = hGraphs.top();
+  serial::hypergraph *coarseGraph;
+  serial::hypergraph *finerGraph;
+  serial::hypergraph *interMedGraph;
 
   int i;
   int numInStack;
@@ -92,7 +92,7 @@ void VCycleAllBisectionController::computeBisection() {
 
       accumulator *= reductionFactor;
 
-      DynaMem::deletePtr<serial_hypergraph>(coarseGraph);
+      DynaMem::deletePtr<serial::hypergraph>(coarseGraph);
 
       // ###
       // prepare to call v-cycle
@@ -145,7 +145,7 @@ void VCycleAllBisectionController::computeBisection() {
 
           refiner->refine(*finerGraph);
 
-          DynaMem::deletePtr<serial_hypergraph>(coarseGraph);
+          DynaMem::deletePtr<serial::hypergraph>(coarseGraph);
 
           coarseGraph = finerGraph;
         }

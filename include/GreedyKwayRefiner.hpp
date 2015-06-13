@@ -1,4 +1,3 @@
-
 #ifndef _KWAY_GREEDY_REFINER_HPP
 #define _KWAY_GREEDY_REFINER_HPP
 
@@ -14,8 +13,9 @@
 
 #include "Refiner.hpp"
 #include "hypergraph/VertexNode.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 
-using namespace std;
+namespace serial = parkway::hypergraph::serial;
 
 class GreedyKwayRefiner : public Refiner {
 
@@ -51,14 +51,14 @@ public:
   GreedyKwayRefiner(int max, int nparts, double ave, double limit, int dL);
   ~GreedyKwayRefiner();
 
-  void dispRefinerOptions(ostream &out) const;
+  void dispRefinerOptions(std::ostream &out) const;
   void buildDataStructs();
   void destroyDataStructs();
   int initDataStructs();
   void updateAdjVertStat(int v, int sP, int bestDP);
 
-  void refine(serial_hypergraph &h);
-  void rebalance(serial_hypergraph &h);
+  void refine(serial::hypergraph &h);
+  void rebalance(serial::hypergraph &h);
 
   int runGreedyPass();
   int runRebalancingPass();

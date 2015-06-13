@@ -27,9 +27,9 @@ void VCycleFinalBisectionController::printVCycleType() const {
 }
 
 void VCycleFinalBisectionController::computeBisection() {
-  serial_hypergraph *origGraph = hGraphs.top();
-  serial_hypergraph *coarseGraph;
-  serial_hypergraph *finerGraph;
+  serial::hypergraph *origGraph = hGraphs.top();
+  serial::hypergraph *coarseGraph;
+  serial::hypergraph *finerGraph;
 
   int i;
   int bestCut = LARGE_CONSTANT;
@@ -90,7 +90,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
       accumulator *= reductionFactor;
 
-      DynaMem::deletePtr<serial_hypergraph>(coarseGraph);
+      DynaMem::deletePtr<serial::hypergraph>(coarseGraph);
 
       coarseGraph = finerGraph;
     }
@@ -161,7 +161,7 @@ void VCycleFinalBisectionController::computeBisection() {
 
         accumulator *= reductionFactor;
 
-        DynaMem::deletePtr<serial_hypergraph>(coarseGraph);
+        DynaMem::deletePtr<serial::hypergraph>(coarseGraph);
 
         coarseGraph = finerGraph;
       }

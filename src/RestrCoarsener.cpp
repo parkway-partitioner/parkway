@@ -1,4 +1,3 @@
-
 #ifndef _RESTR_COARSENER_CPP
 #define _RESTR_COARSENER_CPP
 
@@ -15,7 +14,7 @@
 #include "RestrCoarsener.hpp"
 
 RestrCoarsener::RestrCoarsener(int min, int maxWt, double ratio, int dispL)
-    : hypergraph_loader(dispL) {
+    : serial::loader(dispL) {
   minNodes = min;
   maxVertexWt = maxWt;
   reductionRatio = ratio;
@@ -23,7 +22,7 @@ RestrCoarsener::RestrCoarsener(int min, int maxWt, double ratio, int dispL)
 
 RestrCoarsener::~RestrCoarsener() {}
 
-serial_hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
+serial::hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
                                                   int *coarsePartVector,
                                                   int numCoarseVerts,
                                                   int totWt) const {
@@ -46,7 +45,7 @@ serial_hypergraph *RestrCoarsener::buildCoarseHypergraph(int *coarseWts,
   int j;
   int ij;
 
-  serial_hypergraph *newHypergraph = new serial_hypergraph(
+  serial::hypergraph *newHypergraph = new serial::hypergraph(
       coarseWts, coarsePartVector, numCoarseVerts, partitionCutsizes[0]);
 
   dynamic_array<int> *newHedgeOffsets = new dynamic_array<int>(1024);

@@ -1,4 +1,3 @@
-
 #ifndef _RESTR_FCCOARSENER_HPP
 #define _RESTR_FCCOARSENER_HPP
 
@@ -13,8 +12,9 @@
 // ###
 
 #include "RestrCoarsener.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 
-using namespace std;
+namespace serial = parkway::hypergraph::serial;
 
 class RestrFCCoarsener : public RestrCoarsener {
 
@@ -27,9 +27,9 @@ public:
                    int dL);
   ~RestrFCCoarsener();
 
-  serial_hypergraph *coarsen(const serial_hypergraph &h);
+  serial::hypergraph *coarsen(const serial::hypergraph &h);
 
-  void dispCoarsenerOptions(ostream &out) const;
+  void dispCoarsenerOptions(std::ostream &out) const;
 
   inline void setUtilFanOut(int f) { utilFanOut = f; }
   inline int getUtilFanOut() const { return utilFanOut; }

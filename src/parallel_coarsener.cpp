@@ -17,28 +17,28 @@
 //
 // ###
 
-#include "ParaCoarsener.hpp"
+#include "parallel_coarsener.hpp"
 #include <iostream>
 
-ParaCoarsener::ParaCoarsener(int rank, int nProcs, int nParts, std::ostream &out)
-    : ParaHypergraphLoader(rank, nProcs, nParts, out) {
-  totalHypergraphWt = 0;
-  maxVertexWt = 0;
-  minNodes = 0;
-  stopCoarsening = 0;
-  clusterIndex = 0;
-  totalClusters = 0;
-  myMinCluIndex = 0;
-  dispOption = 0;
-  reductionRatio = 0;
-  balConstraint = 0;
+parallel_coarsener::parallel_coarsener(int rank, int nProcs, int nParts, std::ostream &out)
+    : loader(rank, nProcs, nParts, out) {
+  total_hypergraph_weight_ = 0;
+  maximum_vertex_weight_ = 0;
+  minimum_number_of_nodes_ = 0;
+  stop_coarsening_ = 0;
+  cluster_index_ = 0;
+  total_number_of_clusters_ = 0;
+  minimum_cluster_index_ = 0;
+  display_options_ = 0;
+  reduction_ratio_ = 0;
+  balance_constrain_ = 0;
 
-  clusterWeights.reserve(0);
+  cluster_weights_.reserve(0);
 }
 
-ParaCoarsener::~ParaCoarsener() {}
+parallel_coarsener::~parallel_coarsener() {}
 
-void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) {
+void parallel_coarsener::load(const parallel::hypergraph &h, MPI_Comm comm) {
   int i;
   int vertsPerProc;
   int endOffset;
@@ -66,33 +66,33 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
   localHedgeOffsets = h.hyperedge_offsets();
   localHedgeWeights = h.hyperedge_weights();
 
-  locVertWt = h.vertex_weight();
-  vWeight = h.vertex_weights();
-  matchVector = h.match_vector();
+  local_vertex_weight_ = h.vertex_weight();
+  vertex_weights_ = h.vertex_weights();
+  match_vector_ = h.match_vector();
 
-  numLocalVertices = h.number_of_vertices();
-  totalVertices = h.total_number_of_vertices();
-  minVertexIndex = h.minimum_vertex_index();
-  maxVertexIndex = minVertexIndex + numLocalVertices;
+  number_of_local_vertices_ = h.number_of_vertices();
+  number_of_vertices_ = h.total_number_of_vertices();
+  minimum_vertex_index_ = h.minimum_vertex_index();
+  maximum_vertex_index_ = minimum_vertex_index_ + number_of_local_vertices_;
 
   // ###
   // Prepare data_ structures
   // ###
 
-  numHedges = 0;
-  numLocPins = 0;
-  vertsPerProc = totalVertices / processors_;
+  number_of_hyperedges_ = 0;
+  number_of_local_pins_ = 0;
+  vertsPerProc = number_of_vertices_ / processors_;
 
-  vToHedgesOffset.reserve(numLocalVertices + 1);
+  vertex_to_hyperedges_offset_.reserve(number_of_local_vertices_ + 1);
   sentToProc.reserve(processors_);
-  vDegs.reserve(numLocalVertices);
+  vDegs.reserve(number_of_local_vertices_);
 
-  for (i = 0; i < numLocalVertices; ++i) {
-    vToHedgesOffset[i] = 0;
+  for (i = 0; i < number_of_local_vertices_; ++i) {
+    vertex_to_hyperedges_offset_[i] = 0;
     vDegs[i] = 0;
   }
 
-  if (dispOption > 1 && rank_ == 0)
+  if (display_options_ > 1 && rank_ == 0)
     out_stream << "[PFCC]";
 
   // ###
@@ -105,7 +105,7 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
     sentToProc[i] = 0;
   }
 
-  if (currPercentile == 100) {
+  if (percentile_ == 100) {
     for (i = 0; i < numLocalHedges; ++i) {
       startOffset = localHedgeOffsets[i];
       endOffset = localHedgeOffsets[i + 1];
@@ -119,17 +119,17 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
 
         if (!sentToProc[proc]) {
           if (proc == rank_) {
-            hEdgeWeight.assign(numHedges, localHedgeWeights[i]);
-            hEdgeOffset.assign(numHedges++, numLocPins);
+            hyperedge_weights_.assign(number_of_hyperedges_, localHedgeWeights[i]);
+            hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
 
             for (l = startOffset; l < endOffset; ++l) {
-              locPinList.assign(numLocPins++, localPins[l]);
+              local_pin_list_.assign(number_of_local_pins_++, localPins[l]);
 #ifdef DEBUG_COARSENER
               assert(localPins[l] < totalVertices && localPins[l] >= 0);
 #endif
-              if (localPins[l] >= minVertexIndex &&
-                  localPins[l] < maxVertexIndex)
-                ++vToHedgesOffset[localPins[l] - minVertexIndex];
+              if (localPins[l] >= minimum_vertex_index_ &&
+                  localPins[l] < maximum_vertex_index_)
+                ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
             }
           } else {
             data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
@@ -147,15 +147,16 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
       for (j = 0; j < processors_; ++j)
         sentToProc[j] = 0;
     }
-  } else if (currPercentile > 0) {
+  } else if (percentile_ > 0) {
 #ifdef DEBUG_COARSENER
     assert(currPercentile > 0 && currPercentile < 100);
 #endif
 
     bit_field toLoad(numLocalHedges);
 
-    computeHedgesToLoad(toLoad, numLocalHedges, numLocalPins, localHedgeWeights,
-                        localHedgeOffsets, comm);
+    compute_hyperedges_to_load(toLoad, numLocalHedges, numLocalPins,
+                               localHedgeWeights,
+                               localHedgeOffsets, comm);
 
     for (i = 0; i < numLocalHedges; ++i) {
       if (toLoad(i) == 1) {
@@ -171,17 +172,17 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
 
           if (!sentToProc[proc]) {
             if (proc == rank_) {
-              hEdgeWeight.assign(numHedges, localHedgeWeights[i]);
-              hEdgeOffset.assign(numHedges++, numLocPins);
+              hyperedge_weights_.assign(number_of_hyperedges_, localHedgeWeights[i]);
+              hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
 
               for (l = startOffset; l < endOffset; ++l) {
-                locPinList.assign(numLocPins++, localPins[l]);
+                local_pin_list_.assign(number_of_local_pins_++, localPins[l]);
 #ifdef DEBUG_COARSENER
                 assert(localPins[l] < totalVertices && localPins[l] >= 0);
 #endif
-                if (localPins[l] >= minVertexIndex &&
-                    localPins[l] < maxVertexIndex)
-                  ++vToHedgesOffset[localPins[l] - minVertexIndex];
+                if (localPins[l] >= minimum_vertex_index_ &&
+                    localPins[l] < maximum_vertex_index_)
+                  ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
               }
             } else {
               data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
@@ -231,17 +232,17 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
 
           if (!sentToProc[proc]) {
             if (proc == rank_) {
-              hEdgeWeight.assign(numHedges, localHedgeWeights[i]);
-              hEdgeOffset.assign(numHedges++, numLocPins);
+              hyperedge_weights_.assign(number_of_hyperedges_, localHedgeWeights[i]);
+              hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
 
               for (l = startOffset; l < endOffset; ++l) {
-                locPinList.assign(numLocPins++, localPins[l]);
+                local_pin_list_.assign(number_of_local_pins_++, localPins[l]);
 #ifdef DEBUG_COARSENER
                 assert(localPins[l] < totalVertices && localPins[l] >= 0);
 #endif
-                if (localPins[l] >= minVertexIndex &&
-                    localPins[l] < maxVertexIndex)
-                  ++vToHedgesOffset[localPins[l] - minVertexIndex];
+                if (localPins[l] >= minimum_vertex_index_ &&
+                    localPins[l] < maximum_vertex_index_)
+                  ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
               }
             } else {
               data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
@@ -283,29 +284,29 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
     endOffset = j + receive_array_[j];
     ++j;
 
-    hEdgeWeight.assign(numHedges, receive_array_[j++]);
-    hEdgeOffset.assign(numHedges++, numLocPins);
+    hyperedge_weights_.assign(number_of_hyperedges_, receive_array_[j++]);
+    hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
 
     for (; j < endOffset; ++j) {
-      locPinList.assign(numLocPins++, receive_array_[j]);
+      local_pin_list_.assign(number_of_local_pins_++, receive_array_[j]);
 
 #ifdef DEBUG_COARSENER
       assert(receive_array_[j] < totalVertices && receive_array_[j] >= 0);
 #endif
 
-      locVert = receive_array_[j] - minVertexIndex;
+      locVert = receive_array_[j] - minimum_vertex_index_;
 
-      if (locVert >= 0 && locVert < numLocalVertices)
-        ++vToHedgesOffset[locVert];
+      if (locVert >= 0 && locVert < number_of_local_vertices_)
+        ++vertex_to_hyperedges_offset_[locVert];
     }
   }
 
-  hEdgeOffset.assign(numHedges, numLocPins);
+  hyperedge_offsets_.assign(number_of_hyperedges_, number_of_local_pins_);
 
 #ifdef MEM_OPT
-  hEdgeOffset.reserve(numHedges + 1);
-  hEdgeWeight.reserve(numHedges);
-  locPinList.reserve(numLocPins);
+  hyperedge_offsets_.reserve(number_of_hyperedges_ + 1);
+  hyperedge_weights_.reserve(number_of_hyperedges_);
+  local_pin_list_.reserve(number_of_local_pins_);
 #endif
 
   // ###
@@ -315,27 +316,28 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
   j = 0;
   l = 0;
 
-  for (; j < numLocalVertices; ++j) {
+  for (; j < number_of_local_vertices_; ++j) {
 #ifdef DEBUG_COARSENER
     assert(vToHedgesOffset[j] >= 0);
 #endif
 
-    locVert = vToHedgesOffset[j];
-    vToHedgesOffset[j] = l;
+    locVert = vertex_to_hyperedges_offset_[j];
+    vertex_to_hyperedges_offset_[j] = l;
     l += locVert;
   }
 
-  vToHedgesOffset[j] = l;
-  vToHedgesList.reserve(l);
+  vertex_to_hyperedges_offset_[j] = l;
+  vertex_to_hyperedges_.reserve(l);
 
-  for (j = 0; j < numHedges; ++j) {
-    endOffset = hEdgeOffset[j + 1];
+  for (j = 0; j < number_of_hyperedges_; ++j) {
+    endOffset = hyperedge_offsets_[j + 1];
 
-    for (l = hEdgeOffset[j]; l < endOffset; ++l) {
-      if (locPinList[l] >= minVertexIndex && locPinList[l] < maxVertexIndex) {
+    for (l = hyperedge_offsets_[j]; l < endOffset; ++l) {
+      if (local_pin_list_[l] >= minimum_vertex_index_ && local_pin_list_[l] <
+                                                    maximum_vertex_index_) {
 
-        locVert = locPinList[l] - minVertexIndex;
-        vToHedgesList[vToHedgesOffset[locVert] + (vDegs[locVert]++)] = j;
+        locVert = local_pin_list_[l] - minimum_vertex_index_;
+        vertex_to_hyperedges_[vertex_to_hyperedges_offset_[locVert] + (vDegs[locVert]++)] = j;
       }
     }
   }
@@ -346,18 +348,19 @@ void ParaCoarsener::loadHyperGraph(const parallel_hypergraph &h, MPI_Comm comm) 
 #endif
 }
 
-parallel_hypergraph *ParaCoarsener::contractHyperedges(parallel_hypergraph &h,
-                                                  MPI_Comm comm) {
+parallel::hypergraph *parallel_coarsener::constract_hyperedges(
+    parallel::hypergraph &h,
+    MPI_Comm comm) {
   int i;
 
   int totalToRecv = 0;
   int numMyClusters;
-  int clustersPerProc = totalClusters / processors_;
+  int clustersPerProc = total_number_of_clusters_ / processors_;
 
   if (rank_ != processors_ - 1)
     numMyClusters = clustersPerProc;
   else
-    numMyClusters = clustersPerProc + Mod(totalClusters, processors_);
+    numMyClusters = clustersPerProc + Mod(total_number_of_clusters_, processors_);
 
   dynamic_array<int> minClusterIndex(processors_);
   dynamic_array<int> maxClusterIndex(processors_);
@@ -370,7 +373,7 @@ parallel_hypergraph *ParaCoarsener::contractHyperedges(parallel_hypergraph &h,
     } else {
       minClusterIndex[i] = maxClusterIndex[i - 1];
       if (i == processors_ - 1)
-        maxClusterIndex[i] = totalClusters;
+        maxClusterIndex[i] = total_number_of_clusters_;
       else
         maxClusterIndex[i] = minClusterIndex[i] + clustersPerProc;
     }
@@ -383,9 +386,9 @@ parallel_hypergraph *ParaCoarsener::contractHyperedges(parallel_hypergraph &h,
       send_displs_[i] = send_displs_[i - 1] + send_lens_[i - 1];
 
     send_lens_[i] =
-        std::max(clusterIndex -
-                (std::max(clusterIndex + myMinCluIndex - maxClusterIndex[i], 0) +
-                 std::max(minClusterIndex[i] - myMinCluIndex, 0)),
+        std::max(cluster_index_ -
+                (std::max(cluster_index_ + minimum_cluster_index_ - maxClusterIndex[i], 0) +
+                 std::max(minClusterIndex[i] - minimum_cluster_index_, 0)),
             0);
   }
 
@@ -401,19 +404,21 @@ parallel_hypergraph *ParaCoarsener::contractHyperedges(parallel_hypergraph &h,
   assert(totalToRecv == numMyClusters);
 #endif
 
-  MPI_Alltoallv(clusterWeights.data(), send_lens_.data(),
+  MPI_Alltoallv(cluster_weights_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, clusterWts->data(),
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
-  myMinCluIndex = minClusterIndex[rank_];
+  minimum_cluster_index_ = minClusterIndex[rank_];
 
-  parallel_hypergraph *coarseGraph =
-      new parallel_hypergraph(rank_, processors_, numMyClusters, totalClusters,
-                         myMinCluIndex, stopCoarsening, clusterWts->data());
+  parallel::hypergraph *coarseGraph = new parallel::hypergraph(rank_, processors_, numMyClusters,
+                                           total_number_of_clusters_,
+                                           minimum_cluster_index_,
+                                           stop_coarsening_,
+                                           clusterWts->data());
 
     h.contract_hyperedges(*coarseGraph, comm);
 
-  if (dispOption > 1) {
+  if (display_options_ > 1) {
     int numTotCoarseVerts = coarseGraph->total_number_of_vertices();
     int numLocHedges = coarseGraph->number_of_hyperedges();
     int numLocPins = coarseGraph->number_of_pins();

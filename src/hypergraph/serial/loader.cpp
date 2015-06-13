@@ -11,9 +11,13 @@
 //
 // ###
 
-#include "hypergraph_loader.hpp"
+#include "hypergraph/serial/loader.hpp"
 
-hypergraph_loader::hypergraph_loader(int disp) {
+namespace parkway {
+namespace hypergraph {
+namespace serial {
+
+loader::loader(int disp) {
   dispOption = disp;
   currPercentile = 100;
 
@@ -34,9 +38,9 @@ hypergraph_loader::hypergraph_loader(int disp) {
   partitionCutsizes = nullptr;
 }
 
-hypergraph_loader::~hypergraph_loader() {}
+loader::~loader() {}
 
-void hypergraph_loader::compute_hyperedges_to_load(bit_field &toLoad) {
+void loader::compute_hyperedges_to_load(bit_field &toLoad) {
   int i;
   int j = 0;
 
@@ -68,5 +72,9 @@ void hypergraph_loader::compute_hyperedges_to_load(bit_field &toLoad) {
     if (hEdgeLens[hEdges[i]] > percentileLen)
       toLoad.unset(hEdges[i]);
 }
+
+}  // serial
+}  // hypergraph
+}  // parkway
 
 #endif

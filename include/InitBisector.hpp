@@ -11,9 +11,11 @@
 //
 // ###
 
+#include <iostream>
 #include "FMRefiner.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 
-using namespace std;
+namespace serial = parkway::hypergraph::serial;
 
 class InitBisector : public FMRefiner {
 
@@ -24,8 +26,8 @@ public:
   InitBisector(int nRuns, int insMethod, int ee, int dL);
   ~InitBisector();
 
-  void dispInitBisectorOptions(ostream &out) const;
-  void initBisect(serial_hypergraph &h);
+  void dispInitBisectorOptions(std::ostream &out) const;
+  void initBisect(serial::hypergraph &h);
 
   int setBaseVertex();
   int chooseBestVertex1to0();

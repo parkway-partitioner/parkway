@@ -12,13 +12,15 @@
 //
 // ###
 
-#include "ParaCoarsener.hpp"
+#include "parallel_coarsener.hpp"
 #include <iostream>
 #include "data_structures/match_request_table.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
+using parkway::hypergraph::parallel::hypergraph;
 namespace ds = parkway::data_structures;
 
-class ParaFCCoarsener : public ParaCoarsener {
+class ParaFCCoarsener : public parallel_coarsener {
  protected:
   int vertexVisitOrder;
   int matchRequestVisitOrder;
@@ -33,18 +35,18 @@ class ParaFCCoarsener : public ParaCoarsener {
                   int matchReqOrder, int divByWt, int divByLen, std::ostream &out);
   ~ParaFCCoarsener();
 
-  void dispCoarseningOptions() const;
-  void buildAuxiliaryStructs(int numPins, double aveVertDeg,
-                             double aveHedgeSize);
-  void releaseMemory();
+  void display_coarsening_options() const;
+  void build_auxiliary_structures(int numPins, double aveVertDeg,
+                                  double aveHedgeSize);
+  void release_memory();
 
-  parallel_hypergraph *coarsen(parallel_hypergraph &h, MPI_Comm comm);
+  hypergraph *coarsen(hypergraph &h, MPI_Comm comm);
 
   void setRequestArrays(int highToLow);
   void setReplyArrays(int highToLow, int maxVertexWt);
   void processReqReplies();
   void permuteVerticesArray(int *verts, int numLocVerts);
-  void setClusterIndices(MPI_Comm comm);
+  void set_cluster_indices(MPI_Comm comm);
 
   int accept(int _locV, int _nonLocCluWt, int hToLow, int _maxWt);
 

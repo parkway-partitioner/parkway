@@ -14,8 +14,9 @@
 // ###
 
 #include "SeqController.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
-using namespace std;
+namespace parallel = parkway::hypergraph::parallel;
 
 class WebGraphSeqController : public SeqController {
 protected:
@@ -24,10 +25,10 @@ public:
 
   virtual ~WebGraphSeqController();
   virtual void dispSeqControllerOptions() const = 0;
-  virtual void runSeqPartitioner(parallel_hypergraph &hgraph, MPI_Comm comm) = 0;
-  virtual void initSeqPartitions(parallel_hypergraph &h, MPI_Comm comm);
+  virtual void runSeqPartitioner(parallel::hypergraph &hgraph, MPI_Comm comm) = 0;
+  virtual void initSeqPartitions(parallel::hypergraph &h, MPI_Comm comm);
 
-  void initCoarsestHypergraph(parallel_hypergraph &hgraph, MPI_Comm comm);
+  void initCoarsestHypergraph(parallel::hypergraph &hgraph, MPI_Comm comm);
 };
 
 #endif

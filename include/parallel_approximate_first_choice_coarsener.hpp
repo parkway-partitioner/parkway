@@ -12,11 +12,14 @@
 //
 // ###
 
-#include "ParaApproxCoarsener.hpp"
+#include "parallel_approximate_coarsener.hpp"
 #include <iostream>
 #include "data_structures/match_request_table.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
-class ParaApproxFCCoarsener : public ParaApproxCoarsener {
+using parkway::hypergraph::parallel::hypergraph;
+
+class parallel_approximate_first_choice_coarsener : public parallel_approximate_coarsener {
  protected:
   int vertexVisitOrder;
   int matchRequestVisitOrder;
@@ -27,17 +30,17 @@ class ParaApproxFCCoarsener : public ParaApproxCoarsener {
   parkway::data_structures::match_request_table *table;
 
  public:
-  ParaApproxFCCoarsener(int rank, int nProcs, int nParts, int percentile,
+  parallel_approximate_first_choice_coarsener(int rank, int nProcs, int nParts, int percentile,
                         int inc, int vertVisOrder, int matchReqOrder,
                         int divByWt, int divByLen, std::ostream &out);
-  ~ParaApproxFCCoarsener();
+  ~parallel_approximate_first_choice_coarsener();
 
   void dispCoarseningOptions() const;
   void buildAuxiliaryStructs(int numPins, double aveVertDeg,
                              double aveHedgeSize);
-  void releaseMemory();
+  void release_memory();
 
-  parallel_hypergraph *coarsen(parallel_hypergraph &h, MPI_Comm comm);
+  hypergraph *coarsen(hypergraph &h, MPI_Comm comm);
 
   void setRequestArrays(int highToLow);
   void setReplyArrays(int highToLow, int maxVertexWt);

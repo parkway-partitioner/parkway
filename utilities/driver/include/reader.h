@@ -1,5 +1,3 @@
-
-
 #ifndef _READER_H
 #define _READER_H
 
@@ -15,7 +13,9 @@
 
 #include <iostream>
 #include <cstdio>
-#include "hypergraph/parallel_hypergraph.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
+
+namespace parallel = parkway::hypergraph::parallel;
 
 using namespace std;
 

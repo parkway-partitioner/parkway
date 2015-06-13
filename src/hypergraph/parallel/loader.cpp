@@ -1,7 +1,3 @@
-
-#ifndef _PARA_HYPO_LOADER_CPP
-#define _PARA_HYPO_LOADER_CPP
-
 // ### ParaHypergraphLoader.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -12,39 +8,45 @@
 //
 // ###
 
-#include "ParaHypergraphLoader.hpp"
+#include "hypergraph/parallel/loader.hpp"
 
-ParaHypergraphLoader::ParaHypergraphLoader(int rank, int nProcs, int nParts,
+namespace parkway {
+namespace hypergraph {
+namespace parallel {
+
+loader::loader(int rank, int nProcs, int nParts,
                                            std::ostream &o)
     : global_communicator(rank, nProcs), out_stream(o) {
-  numParts = nParts;
-  vWeight = nullptr;
-  matchVector = nullptr;
+  number_of_partitions_ = nParts;
+  vertex_weights_ = nullptr;
+  match_vector_ = nullptr;
 
-  numHedges = 0;
-  numLocPins = 0;
-  numLocalVertices = 0;
-  totalVertices = 0;
-  minVertexIndex = 0;
-  locVertWt = 0;
-  numAllocHedges = 0;
+  number_of_hyperedges_ = 0;
+  number_of_local_pins_ = 0;
+  number_of_local_vertices_ = 0;
+  number_of_vertices_ = 0;
+  minimum_vertex_index_ = 0;
+  local_vertex_weight_ = 0;
+  number_of_allocated_hyperedges_ = 0;
 
-  currPercentile = 100;
+  percentile_ = 100;
 
-  hEdgeWeight.reserve(0);
-  hEdgeOffset.reserve(0);
-  locPinList.reserve(0);
-  vToHedgesOffset.reserve(0);
-  vToHedgesList.reserve(0);
-  allocHedges.reserve(0);
+  hyperedge_weights_.reserve(0);
+  hyperedge_offsets_.reserve(0);
+  local_pin_list_.reserve(0);
+  vertex_to_hyperedges_offset_.reserve(0);
+  vertex_to_hyperedges_.reserve(0);
+  allocated_hyperedges_.reserve(0);
 }
 
-ParaHypergraphLoader::~ParaHypergraphLoader() {}
+loader::~loader() {}
 
-void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
-                                               int numLocalPins, int *hEdgeWts,
-                                               int *hEdgeOffsets,
-                                               MPI_Comm comm) {
+void loader::compute_hyperedges_to_load(bit_field &toLoad,
+                                                            int numH,
+                                                            int numLocalPins,
+                                                            int *hEdgeWts,
+                                                            int *hEdgeOffsets,
+                                                            MPI_Comm comm) {
   int i;
   int j;
 
@@ -86,7 +88,7 @@ void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
   for (i = 0; i < numH; ++i)
     j += hEdgeWts[i];
 
-  percentileThreshold = (static_cast<double>(j) * currPercentile) / 100;
+  percentileThreshold = (static_cast<double>(j) * percentile_) / 100;
   Funct::qsortByAnotherArray(0, numH - 1, hEdges.data(),
                              hEdgeLens.data(), INC);
   toLoad.set();
@@ -101,8 +103,8 @@ void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
 
   MPI_Allreduce(&myPercentileLen, &percentileLen, 1, MPI_INT, MPI_MAX, comm);
 
-  if (dispOption > 1 && rank_ == 0) {
-    out_stream << " " << currPercentile << " " << maxLen << " " << aveLen << " "
+  if (display_options_ > 1 && rank_ == 0) {
+    out_stream << " " << percentile_ << " " << maxLen << " " << aveLen << " "
                << percentileLen;
   }
 
@@ -111,4 +113,6 @@ void ParaHypergraphLoader::computeHedgesToLoad(bit_field &toLoad, int numH,
       toLoad.unset(hEdges[i]);
 }
 
-#endif
+}  // namespace parallel
+}  // namespace hypergraph
+}  // namespace parallel

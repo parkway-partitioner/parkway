@@ -1,4 +1,3 @@
-
 #ifndef _PARA_RESTR_FCC_HPP
 #define _PARA_RESTR_FCC_HPP
 
@@ -12,9 +11,11 @@
 //
 // ###
 
+#include <iostream>
 #include "ParaRestrCoarsener.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
-using namespace std;
+using parkway::hypergraph::parallel::hypergraph;
 
 class ParaRestrFCCoarsener : public ParaRestrCoarsener {
 
@@ -26,15 +27,15 @@ protected:
 
 public:
   ParaRestrFCCoarsener(int rank, int nProcs, int nParts, int verVisOrder,
-                       int divByWt, int divByLen, ostream &out);
+                       int divByWt, int divByLen, std::ostream &out);
   ~ParaRestrFCCoarsener();
 
   void dispCoarseningOptions() const;
   void buildAuxiliaryStructs(int numPins, double aveVertDeg,
                              double aveHedgeSize);
-  void releaseMemory();
+  void release_memory();
 
-  parallel_hypergraph *coarsen(parallel_hypergraph &h, MPI_Comm comm);
+  hypergraph *coarsen(hypergraph &h, MPI_Comm comm);
 
   void permuteVerticesArray(int *verts, int numLocVerts);
   void setClusterIndices(MPI_Comm comm);

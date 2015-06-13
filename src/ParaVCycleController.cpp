@@ -18,7 +18,7 @@
 namespace ds = parkway::data_structures;
 
 ParaVCycleController::ParaVCycleController(ParaRestrCoarsener &rc,
-                                           ParaCoarsener &c, ParaRefiner &r,
+                                           parallel_coarsener &c, ParaRefiner &r,
                                            SeqController &ref, int rank, int nP,
                                            int percentile, int inc,
                                            int approxRef, int limit,
@@ -87,16 +87,16 @@ void ParaVCycleController::setWeightConstraints(MPI_Comm comm) {
   maxPartWt = static_cast<int>(floor(avePartWt + avePartWt * balConstraint));
   maxVertWt = static_cast<int>(floor(avePartWt * balConstraint));
 
-  coarsener.setMaxVertexWt(maxVertWt);
+  coarsener.set_maximum_vertex_weight(maxVertWt);
   restrCoarsener.setMaxVertexWt(maxVertWt);
 
-  coarsener.setTotGraphWt(totGraphWt);
+  coarsener.set_total_hypergraph_weight(totGraphWt);
   restrCoarsener.setTotGraphWt(totGraphWt);
 
   seqController.setMaxVertexWt(maxVertWt);
 }
 
-void ParaVCycleController::recordVCyclePartition(const parallel_hypergraph &h,
+void ParaVCycleController::recordVCyclePartition(const hypergraph &h,
                                                  int numIteration) {
 #ifdef DEBUG_CONTROLLER
   assert(numIteration >= 0);
@@ -154,7 +154,7 @@ void ParaVCycleController::recordVCyclePartition(const parallel_hypergraph &h,
 #endif
 }
 
-void ParaVCycleController::gatherInVCyclePartition(parallel_hypergraph &h, int cut,
+void ParaVCycleController::gatherInVCyclePartition(hypergraph &h, int cut,
                                                    MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
   assert(minLocCurrVertId.getNumElem() > 0);
@@ -311,8 +311,8 @@ void ParaVCycleController::gatherInVCyclePartition(parallel_hypergraph &h, int c
   DynaMem::deletePtr<IntArray>(bestPartVector);
 }
 
-void ParaVCycleController::projectVCyclePartition(parallel_hypergraph &cG,
-                                                  parallel_hypergraph &fG,
+void ParaVCycleController::projectVCyclePartition(hypergraph &cG,
+                                                  hypergraph &fG,
                                                   MPI_Comm comm) {
   // function spec:
   // if mapToInterVerts is empty (i.e. the map to the
@@ -601,7 +601,7 @@ void ParaVCycleController::projectVCyclePartition(parallel_hypergraph &cG,
     mapToInterVerts[i] = minInterVertIndex + i;
 }
 
-void ParaVCycleController::shuffleVCycleVertsByPartition(parallel_hypergraph &h,
+void ParaVCycleController::shuffleVCycleVertsByPartition(hypergraph &h,
                                                          MPI_Comm comm) {
   // function spec:
   // as the vertices are shuffled modify the mapToInterVerts
@@ -935,7 +935,7 @@ send_displs_.getArray(), MPI_INT, comm);
 }
 */
 
-void ParaVCycleController::shiftVCycleVertsToBalance(parallel_hypergraph &h,
+void ParaVCycleController::shiftVCycleVertsToBalance(hypergraph &h,
                                                      MPI_Comm comm) {
   // function spec:
   // as the vertices are shuffled modify the mapToInterVerts

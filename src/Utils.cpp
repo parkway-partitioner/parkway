@@ -15,11 +15,11 @@
 
 using namespace std;
 
-ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
+parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                          int num_parts, double constraint,
-                                         parallel_hypergraph *h, ostream &out,
+                                         parallel::hypergraph *h, ostream &out,
                                          const int *options, MPI_Comm comm) {
-  ParaCoarsener *c = nullptr;
+  parallel_coarsener *c = nullptr;
 
   int coarsener_type = ParaFCC; // Para2DModel
   int min_nodes = options[8];
@@ -59,11 +59,11 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
     c = new ParaFCCoarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
                             matchReqVisitOrder, divByCluWt, divByHedgeLen, out);
 
-    c->setMinNodes(min_nodes * num_parts);
-    c->setDispOption(disp_option);
-    c->setBalConstraint(constraint);
-    c->setReductionRatio(r);
-    c->buildAuxiliaryStructs(numTotPins, aveVertDeg, aveHedgeSize);
+    c->set_minimum_number_of_nodes(min_nodes * num_parts);
+    c->set_display_option(disp_option);
+    c->set_balance_constraint(constraint);
+    c->set_reduction_ratio(r);
+    c->build_auxiliary_structures(numTotPins, aveVertDeg, aveHedgeSize);
   }
 
   if (coarsener_type == Para2DModel) {
@@ -96,22 +96,22 @@ ParaCoarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                  matchReqVisitOrder, divByCluWt, divByHedgeLen,
                                  out);
 
-    c->setMinNodes(min_nodes * num_parts);
-    c->setDispOption(disp_option);
-    c->setBalConstraint(constraint);
-    c->setReductionRatio(r);
-    c->buildAuxiliaryStructs(numTotPins, aveVertDeg, aveHedgeSize);
+    c->set_minimum_number_of_nodes(min_nodes * num_parts);
+    c->set_display_option(disp_option);
+    c->set_balance_constraint(constraint);
+    c->set_reduction_ratio(r);
+    c->build_auxiliary_structures(numTotPins, aveVertDeg, aveHedgeSize);
   }
 
   if (c && my_rank == 0)
-    c->dispCoarseningOptions();
+    c->display_coarsening_options();
 
   return c;
 }
 
 ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
     int my_rank, int num_proc, int num_parts, double constraint,
-    parallel_hypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
+    parallel::hypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
   int coarsener_type = ParaRestFCC;
   int min_nodes = options[8];
   int disp_option = options[2];
@@ -149,7 +149,7 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
                                  divByCluWt, divByHedgeLen, out);
 
     c->setMinNodes(min_nodes * num_parts);
-    c->setDispOption(disp_option);
+    c->set_display_option(disp_option);
     c->setBalConstraint(constraint);
     c->setReductionRatio(r);
   }
@@ -161,8 +161,8 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
 }
 
 ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
-                                     double constraint, parallel_hypergraph *h,
-                                     ostream &out, const int *options,
+                                     double constraint, parallel::hypergraph *h,
+                                     std::ostream &out, const int *options,
                                      MPI_Comm comm) {
   int refiner_type = ParaGreedyKway;
   int disp_option = options[2];
@@ -181,7 +181,7 @@ ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
                                   numTotPins / num_proc, earlyExit, eeLimit,
                                   out);
 
-    r->setDispOption(disp_option);
+    r->set_display_option(disp_option);
     r->setBalConstraint(constraint);
   }
 
@@ -477,7 +477,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
 ParaController *Utils::buildParaController(
     int my_rank, int num_proc, int num_parts, int num_tot_verts,
-    double constraint, ParaCoarsener *c, ParaRestrCoarsener *rc, ParaRefiner *r,
+    double constraint, parallel_coarsener *c, ParaRestrCoarsener *rc, ParaRefiner *r,
     SeqController *s, ostream &out, const int *options, MPI_Comm comm) {
   int paraControllerType = options[22];
   int numParaRuns = options[4];

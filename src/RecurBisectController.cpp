@@ -1,4 +1,3 @@
-
 #ifndef _RECUR_BISECT_CONTROLLER_CPP
 #define _RECUR_BISECT_CONTROLLER_CPP
 
@@ -13,6 +12,11 @@
 // ###
 
 #include "RecurBisectController.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
+
+namespace parallel = parkway::hypergraph::parallel;
+namespace serial = parkway::hypergraph::serial;
 
 RecurBisectController::RecurBisectController(BisectionController *b,
                                              GreedyKwayRefiner *k, int rank,
@@ -132,7 +136,7 @@ void RecurBisectController::convToBisectionConstraints() {
   partitionVector.reserve(partitionVectorOffsets[numMyPartitions]);
 }
 
-void RecurBisectController::runSeqPartitioner(parallel_hypergraph &hgraph,
+void RecurBisectController::runSeqPartitioner(parallel::hypergraph &hgraph,
                                               MPI_Comm comm) {
   initCoarsestHypergraph(hgraph, comm);
   convToBisectionConstraints();
@@ -245,10 +249,10 @@ void RecurBisectController::runSeqPartitioner(parallel_hypergraph &hgraph,
   hgraph.checkPartitions(numParts, maxPartWt, comm);
 #endif
 
-  DynaMem::deletePtr<serial_hypergraph>(h);
+  DynaMem::deletePtr<serial::hypergraph>(h);
 }
 
-void RecurBisectController::initSeqPartitions(parallel_hypergraph &hgraph,
+void RecurBisectController::initSeqPartitions(parallel::hypergraph &hgraph,
                                               MPI_Comm comm) {
   int i;
   int j;
@@ -375,7 +379,7 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
   int nProcs;
   int bisectAgain = b.getBisectAgain();
 
-  serial_hypergraph *h = b.getHypergraph();
+  serial::hypergraph *h = b.getHypergraph();
 
   if (h->number_of_vertices() == 0)
     return;
@@ -419,16 +423,16 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
       recursivelyBisect(*right, comm);
 
       if (left) {
-        serial_hypergraph *hLeft = left->getHypergraph();
+        serial::hypergraph *hLeft = left->getHypergraph();
 
-        DynaMem::deletePtr<serial_hypergraph>(hLeft);
+        DynaMem::deletePtr<serial::hypergraph>(hLeft);
         DynaMem::deletePtr<Bisection>(left);
       }
 
       if (right) {
-        serial_hypergraph *hRight = right->getHypergraph();
+        serial::hypergraph *hRight = right->getHypergraph();
 
-        DynaMem::deletePtr<serial_hypergraph>(hRight);
+        DynaMem::deletePtr<serial::hypergraph>(hRight);
         DynaMem::deletePtr<Bisection>(right);
       }
     }
@@ -480,9 +484,9 @@ void RecurBisectController::recursivelyBisect(const Bisection &b,
       recursivelyBisect(*newB, new_comm);
 
       if (newB) {
-        serial_hypergraph *hNew = newB->getHypergraph();
+        serial::hypergraph *hNew = newB->getHypergraph();
 
-        DynaMem::deletePtr<serial_hypergraph>(hNew);
+        DynaMem::deletePtr<serial::hypergraph>(hNew);
         DynaMem::deletePtr<Bisection>(newB);
       }
 
@@ -502,8 +506,8 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
   int i;
   int j;
 
-  serial_hypergraph *newH;
-  serial_hypergraph *h = b.getHypergraph();
+  serial::hypergraph *newH;
+  serial::hypergraph *h = b.getHypergraph();
 
   // ###
   // h data_
@@ -568,7 +572,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
     vertWt->reserve(numVerts);
     mapOrig->reserve(numVerts);
 
-    newH = new serial_hypergraph(vertWt->data(), numVerts);
+    newH = new serial::hypergraph(vertWt->data(), numVerts);
 
     // ###
     // initialise pin list
@@ -644,7 +648,7 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&newB,
     vertWt->reserve(numVerts);
     mapOrig->reserve(numVerts);
 
-    newH = new serial_hypergraph(vertWt->data(), numVerts);
+    newH = new serial::hypergraph(vertWt->data(), numVerts);
 
     // ###
     // initialise pin list
@@ -705,9 +709,9 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   int i;
   int j;
 
-  serial_hypergraph *leftH;
-  serial_hypergraph *rightH;
-  serial_hypergraph *h = b.getHypergraph();
+  serial::hypergraph *leftH;
+  serial::hypergraph *rightH;
+  serial::hypergraph *h = b.getHypergraph();
 
   // ###
   // h data_
@@ -789,8 +793,8 @@ void RecurBisectController::splitBisection(const Bisection &b, Bisection *&l,
   rightVertWt->reserve(numRightVerts);
   rightMapOrig->reserve(numRightVerts);
 
-  leftH = new serial_hypergraph(leftVertWt->data(), numLeftVerts);
-  rightH = new serial_hypergraph(rightVertWt->data(), numRightVerts);
+  leftH = new serial::hypergraph(leftVertWt->data(), numLeftVerts);
+  rightH = new serial::hypergraph(rightVertWt->data(), numRightVerts);
 
   // ###
   // initialise pin list

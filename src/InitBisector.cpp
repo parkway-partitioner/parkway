@@ -22,7 +22,7 @@ InitBisector::InitBisector(int nRuns, int insMethod, int ee, int dL)
 
 InitBisector::~InitBisector() {}
 
-void InitBisector::dispInitBisectorOptions(ostream &out) const {
+void InitBisector::dispInitBisectorOptions(std::ostream &out) const {
   switch (dispOption) {
   case SILENT:
     break;
@@ -30,13 +30,13 @@ void InitBisector::dispInitBisectorOptions(ostream &out) const {
   default:
 
     out << "|- GIB:"
-        << " runs = " << numInitRuns << endl
-        << "|" << endl;
+        << " runs = " << numInitRuns << std::endl
+        << "|" << std::endl;
     break;
   }
 }
 
-void InitBisector::initBisect(serial_hypergraph &h) {
+void InitBisector::initBisect(serial::hypergraph &h) {
   int i;
 
   int gain;

@@ -12,11 +12,13 @@
 //
 // ###
 
-#include "hypergraph_loader.hpp"
+#include <iostream>
+#include "hypergraph/serial/hypergraph.hpp"
+#include "hypergraph/serial/loader.hpp"
 
-using namespace std;
+namespace serial = parkway::hypergraph::serial;
 
-class RestrCoarsener : public hypergraph_loader {
+class RestrCoarsener : public serial::loader {
 
 protected:
   int minNodes;
@@ -28,10 +30,10 @@ public:
   RestrCoarsener(int min, int maxwt, double ratio, int dispL);
 
   virtual ~RestrCoarsener();
-  virtual serial_hypergraph *coarsen(const serial_hypergraph &h) = 0;
-  virtual void dispCoarsenerOptions(ostream &out) const = 0;
+  virtual serial::hypergraph *coarsen(const serial::hypergraph &h) = 0;
+  virtual void dispCoarsenerOptions(std::ostream &out) const = 0;
 
-  serial_hypergraph *buildCoarseHypergraph(int *coarseWts, int *pVector,
+  serial::hypergraph *buildCoarseHypergraph(int *coarseWts, int *pVector,
                                     int numCoarseVerts, int totWt) const;
 
   inline void setMaxVertexWt(int maxWt) { maxVertexWt = maxWt; }

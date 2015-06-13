@@ -41,7 +41,7 @@ GreedyKwayRefiner::GreedyKwayRefiner(int max, int nparts, double ave,
 
 GreedyKwayRefiner::~GreedyKwayRefiner() {}
 
-void GreedyKwayRefiner::dispRefinerOptions(ostream &out) const {
+void GreedyKwayRefiner::dispRefinerOptions(std::ostream &out) const {
   switch (dispOption) {
   case SILENT:
     break;
@@ -49,8 +49,8 @@ void GreedyKwayRefiner::dispRefinerOptions(ostream &out) const {
   default:
 
     out << "|- GKWAY:"
-        << " lim = " << limit << endl
-        << "|" << endl;
+        << " lim = " << limit << std::endl
+        << "|" << std::endl;
     break;
   }
 }
@@ -248,7 +248,7 @@ void GreedyKwayRefiner::updateAdjVertStat(int v, int sP, int bestDP) {
     vertSeen[seenVertices[j]] = -1;
 }
 
-void GreedyKwayRefiner::refine(serial_hypergraph &h) {
+void GreedyKwayRefiner::refine(serial::hypergraph &h) {
   int totalGain = 0;
   int gain;
   int i;
@@ -276,7 +276,7 @@ void GreedyKwayRefiner::refine(serial_hypergraph &h) {
   destroyDataStructs();
 }
 
-void GreedyKwayRefiner::rebalance(serial_hypergraph &h) {
+void GreedyKwayRefiner::rebalance(serial::hypergraph &h) {
   int totalGain = 0;
   int gain;
   int i;

@@ -25,12 +25,13 @@ using parkway::data_structures::dynamic_array;
 
 namespace parkway {
 namespace hypergraph {
+namespace serial {
 
-class serial_hypergraph : public base_hypergraph {
+class hypergraph : public base_hypergraph {
  public:
-  serial_hypergraph(int *vWts, int numV);
-  serial_hypergraph(int *vWts, int *pVector, int numV, int cut);
-  ~serial_hypergraph();
+  hypergraph(int *vWts, int numV);
+  hypergraph(int *vWts, int *pVector, int numV, int cut);
+  ~hypergraph();
 
   void load_from_file(const char *filename);
   void buildVtoHedges();
@@ -39,7 +40,7 @@ class serial_hypergraph : public base_hypergraph {
   void reset_partition_vector();
   void reset_vertex_maps();
 
-  void project_partitions(const serial_hypergraph &coarseGraph);
+  void project_partitions(const hypergraph &coarseGraph);
   void remove_bad_partitions(double fractionOK);
   void set_number_of_partitions(int nPartitions) override;
   void copy_out_partition(int *pVector, int numV, int pNo) const;
@@ -85,6 +86,7 @@ class serial_hypergraph : public base_hypergraph {
                                        int maximum) const;
 };
 
+}  // serial
 }  // hypergraph
 }  // parkway
 

@@ -15,7 +15,9 @@
 #include <fstream>
 #include <iostream>
 #include "data_structures/internal/table_utils.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
+namespace parallel = parkway::hypergraph::parallel;
 namespace ds = parkway::data_structures;
 
 void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
@@ -41,8 +43,8 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 
   std::ostream *output;
 
-  parallel_hypergraph *hgraph = nullptr;
-  ParaCoarsener *coarsener = nullptr;
+  parallel::hypergraph *hgraph = nullptr;
+  parallel_coarsener *coarsener = nullptr;
   ParaRestrCoarsener *restrC = nullptr;
   ParaRefiner *refiner = nullptr;
   SeqController *seqController = nullptr;
@@ -105,7 +107,7 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
     Funct::printIntro(*output);
   }
 
-  hgraph = new parallel_hypergraph(my_rank, num_procs, file_name, disp_option,
+  hgraph = new parallel::hypergraph(my_rank, num_procs, file_name, disp_option,
                               *output, comm);
 
   if (!hgraph) {
@@ -180,9 +182,9 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
   DynaMem::deletePtr<ParaController>(controller);
   DynaMem::deletePtr<SeqController>(seqController);
   DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
-  DynaMem::deletePtr<ParaCoarsener>(coarsener);
+  DynaMem::deletePtr<parallel_coarsener>(coarsener);
   DynaMem::deletePtr<ParaRefiner>(refiner);
-  DynaMem::deletePtr<parallel_hypergraph>(hgraph);
+  DynaMem::deletePtr<parallel::hypergraph>(hgraph);
 
   if (out_file) {
     DynaMem::deletePtr<std::ostream>(output);
@@ -215,8 +217,8 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   int i;
   int j;
 
-  parallel_hypergraph *hgraph = nullptr;
-  ParaCoarsener *coarsener = nullptr;
+  parallel::hypergraph *hgraph = nullptr;
+  parallel_coarsener *coarsener = nullptr;
   ParaRestrCoarsener *restrC = nullptr;
   ParaRefiner *refiner = nullptr;
   SeqController *seqController = nullptr;
@@ -281,7 +283,7 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   if (my_rank == 0 && disp_option > 0)
     Funct::printIntro(*output);
 
-  hgraph = new parallel_hypergraph(my_rank, num_procs, numVertices, numHedges,
+  hgraph = new parallel::hypergraph(my_rank, num_procs, numVertices, numHedges,
                               globMaxHedgeLen, vWeights, hEdgeWts, pinList,
                               offsets, disp_option, *output, comm);
 
@@ -351,9 +353,9 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
   DynaMem::deletePtr<ParaController>(controller);
   DynaMem::deletePtr<SeqController>(seqController);
   DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
-  DynaMem::deletePtr<ParaCoarsener>(coarsener);
+  DynaMem::deletePtr<parallel_coarsener>(coarsener);
   DynaMem::deletePtr<ParaRefiner>(refiner);
-  DynaMem::deletePtr<parallel_hypergraph>(hgraph);
+  DynaMem::deletePtr<parallel::hypergraph>(hgraph);
 
   if (out_file)
     DynaMem::deletePtr<std::ostream>(output);

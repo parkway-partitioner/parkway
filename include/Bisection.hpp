@@ -12,9 +12,9 @@
 //
 // ###
 
-#include "hypergraph/serial_hypergraph.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 
-using namespace std;
+namespace serial = parkway::hypergraph::serial;
 
 class Bisection {
 
@@ -23,12 +23,12 @@ protected:
   int number_of_vertices_;
   int part_id_;
 
-  serial_hypergraph *hypergraph_;
+  serial::hypergraph *hypergraph_;
 
   dynamic_array<int> mapToOrigVerts;
 
 public:
-  Bisection(serial_hypergraph *h, int bAgain, int pID) {
+  Bisection(serial::hypergraph *h, int bAgain, int pID) {
     hypergraph_ = h;
 
     number_of_vertices_ = h->number_of_vertices();
@@ -54,7 +54,7 @@ public:
   inline int getNumVertices() const { return number_of_vertices_; }
   inline int *getMapArray() const { return mapToOrigVerts.data(); }
 
-  inline serial_hypergraph *getHypergraph() const { return hypergraph_; }
+  inline serial::hypergraph *getHypergraph() const { return hypergraph_; }
 };
 
 #endif

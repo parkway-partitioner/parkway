@@ -23,7 +23,7 @@ RestrFCCoarsener::RestrFCCoarsener(int _min, int _maxwt, double r, int fanOut,
 
 RestrFCCoarsener::~RestrFCCoarsener() {}
 
-void RestrFCCoarsener::dispCoarsenerOptions(ostream &out) const {
+void RestrFCCoarsener::dispCoarsenerOptions(std::ostream &out) const {
   switch (dispOption) {
   case SILENT:
     break;
@@ -32,13 +32,13 @@ void RestrFCCoarsener::dispCoarsenerOptions(ostream &out) const {
 
     out << "|- RestrFCC:"
         << " r = " << reductionRatio << " min = " << minNodes
-        << " util = " << utilFanOut << endl
-        << "|" << endl;
+        << " util = " << utilFanOut << std::endl
+        << "|" << std::endl;
     break;
   }
 }
 
-serial_hypergraph *RestrFCCoarsener::coarsen(const serial_hypergraph &h) {
+serial::hypergraph *RestrFCCoarsener::coarsen(const serial::hypergraph &h) {
   loadHypergraphForRestrCoarsening(h);
 
   // ###

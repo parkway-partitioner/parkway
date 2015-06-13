@@ -1,5 +1,3 @@
-
-
 #ifndef _BASIC_PARA_CONTROLLER_CPP
 #define _BASIC_PARA_CONTROLLER_CPP
 
@@ -20,8 +18,11 @@
 // ###
 
 #include "BasicParaController.hpp"
+#include "hypergraph/parallel/hypergraph.hpp"
 
-BasicParaController::BasicParaController(ParaCoarsener &c, ParaRefiner &r,
+using parkway::hypergraph::parallel::hypergraph;
+
+BasicParaController::BasicParaController(parallel_coarsener &c, ParaRefiner &r,
                                          SeqController &ref, int rank, int nP,
                                          int percentile, int inc, int approxRef,
                                          ostream &out)
@@ -68,8 +69,8 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
   numOrigLocVerts = hgraph->number_of_vertices();
 
-  parallel_hypergraph *coarseGraph;
-  parallel_hypergraph *finerGraph;
+  hypergraph *coarseGraph;
+  hypergraph *finerGraph;
 
   initMapToOrigVerts();
 
@@ -113,7 +114,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
 
     do {
       hEdgePercentile = hEdgePercentiles.top();
-      coarsener.setPercentile(hEdgePercentile);
+      coarsener.set_percentile(hEdgePercentile);
 
       coarseGraph = coarsener.coarsen(*finerGraph, comm);
         finerGraph->free_memory();
@@ -130,7 +131,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
     MPI_Barrier(comm);
     totCoaTime += (MPI_Wtime() - startTime);
 
-    coarsener.releaseMemory();
+    coarsener.release_memory();
 
 #ifdef MEM_CHECK
     MPI_Barrier(comm);
@@ -186,7 +187,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
       }
 
       if (approxRefine)
-        refiner.setPercentile(hEdgePercentile);
+        refiner.set_percentile(hEdgePercentile);
 
 #ifdef MEM_CHECK
       write_log(rank_, "[before refineme]: usage: %f", MemoryTracker::usage());
@@ -198,7 +199,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
 
-      DynaMem::deletePtr<parallel_hypergraph>(coarseGraph);
+      DynaMem::deletePtr<hypergraph>(coarseGraph);
       coarseGraph = finerGraph;
     }
 
@@ -209,7 +210,7 @@ void BasicParaController::runPartitioner(MPI_Comm comm) {
     MPI_Barrier(comm);
     totRefTime += (MPI_Wtime() - startTime);
 
-    refiner.releaseMemory();
+    refiner.release_memory();
 
 #ifdef MEM_CHECK
     MPI_Barrier(comm);
