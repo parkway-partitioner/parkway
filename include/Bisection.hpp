@@ -14,9 +14,9 @@
 
 #include "hypergraph/serial/hypergraph.hpp"
 
-namespace serial = parkway::hypergraph::serial;
+namespace serial = parkway::serial;
 
-class Bisection {
+class bisection {
 
 protected:
   int bisect_again_;
@@ -25,10 +25,10 @@ protected:
 
   serial::hypergraph *hypergraph_;
 
-  dynamic_array<int> mapToOrigVerts;
+  dynamic_array<int> map_to_orig_vertices_;
 
 public:
-  Bisection(serial::hypergraph *h, int bAgain, int pID) {
+  bisection(serial::hypergraph *h, int bAgain, int pID) {
     hypergraph_ = h;
 
     number_of_vertices_ = h->number_of_vertices();
@@ -39,22 +39,22 @@ public:
   inline void initMap() {
     int i;
 
-    mapToOrigVerts.reserve(number_of_vertices_);
+    map_to_orig_vertices_.reserve(number_of_vertices_);
 
     for (i = 0; i < number_of_vertices_; ++i)
-      mapToOrigVerts[i] = i;
+      map_to_orig_vertices_[i] = i;
   }
 
   inline void setMap(int *vMap, int nV) {
-    mapToOrigVerts.set_data(vMap, nV);
+    map_to_orig_vertices_.set_data(vMap, nV);
   }
 
-  inline int getPartID() const { return part_id_; }
-  inline int getBisectAgain() const { return bisect_again_; }
-  inline int getNumVertices() const { return number_of_vertices_; }
-  inline int *getMapArray() const { return mapToOrigVerts.data(); }
+  inline int part_id() const { return part_id_; }
+  inline int bisect_again() const { return bisect_again_; }
+  inline int number_of_vertices() const { return number_of_vertices_; }
+  inline int *map_to_orig_vertices() const { return map_to_orig_vertices_.data(); }
 
-  inline serial::hypergraph *getHypergraph() const { return hypergraph_; }
+  inline serial::hypergraph *hypergraph() const { return hypergraph_; }
 };
 
 #endif

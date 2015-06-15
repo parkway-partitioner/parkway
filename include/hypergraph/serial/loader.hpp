@@ -17,7 +17,6 @@
 using namespace parkway::data_structures;
 
 namespace parkway {
-namespace hypergraph {
 namespace serial {
 
 class loader {
@@ -99,7 +98,6 @@ public:
 };
 
 }  // serial
-}  // hypergraph
 }  // parkway
 
 #endif

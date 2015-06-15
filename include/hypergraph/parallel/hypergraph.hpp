@@ -29,8 +29,9 @@
 #include "hypergraph/base_hypergraph.hpp"
 
 namespace parkway {
-namespace hypergraph {
 namespace parallel {
+
+using parkway::hypergraph::base_hypergraph;
 
 class hypergraph : public global_communicator, public base_hypergraph {
 public:
@@ -140,7 +141,6 @@ public:
 };
 
 }  // namespace parallel
-}  // namespace hypergraph
 }  // namespace parkway
 
 #endif

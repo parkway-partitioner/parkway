@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "Config.h"
+#include "configurtion.h"
 #ifdef LINK_PATOH
 #include "patoh.h"
 #include "SeqController.hpp"

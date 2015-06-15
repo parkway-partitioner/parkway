@@ -15,11 +15,10 @@
 #include <cmath>
 
 namespace parkway {
-namespace hypergraph {
 namespace serial {
 
 hypergraph::hypergraph(int *vWts, int numVerts)
-    : base_hypergraph(numVerts) {
+    : hg::base_hypergraph(numVerts) {
 
   match_vector_.reserve(number_of_vertices_);
   vertex_weights_.set_data(vWts, number_of_vertices_);
@@ -53,7 +52,7 @@ void hypergraph::buildVtoHedges() {
   assert(hEdgeOffsets.getLength() >= 0);
 #endif
 
-  dynamic_array<int> vDegs(number_of_vertices_);
+  ds::dynamic_array<int> vDegs(number_of_vertices_);
   vertex_to_hyperedges_.reserve(number_of_pins_);
   vertex_offsets_.reserve(number_of_vertices_ + 1);
 
@@ -238,9 +237,9 @@ void hypergraph::print_characteristics(std::ostream &out_stream) {
   double percentile_25;
   double percentile_95;
 
-  dynamic_array<int> hEdgeLens(number_of_hyperedges_);
-  dynamic_array<int> hEdges(number_of_hyperedges_);
-  dynamic_array<int> vertices(number_of_vertices_);
+  ds::dynamic_array<int> hEdgeLens(number_of_hyperedges_);
+  ds::dynamic_array<int> hEdges(number_of_hyperedges_);
+  ds::dynamic_array<int> vertices(number_of_vertices_);
 
   int j = 0;
   for (int i = 0; i < number_of_hyperedges_; ++i) {
@@ -369,7 +368,7 @@ int hypergraph::export_hyperedge_weight() const {
 
 int hypergraph::cut_size(int nP, int partitionNo) const {
   int *p_vector = &partition_vector_[partition_vector_offsets_[partitionNo]];
-  dynamic_array<int> spanned(nP);
+  ds::dynamic_array<int> spanned(nP);
   int k_1_cut = 0;
 
   for (int i = 0; i < number_of_hyperedges_; ++i) {
@@ -400,7 +399,7 @@ int hypergraph::cut_size(int nP, int partitionNo) const {
 int hypergraph::sum_of_external_degrees(int nP, int partitionNo) const {
   int *p_vector = &partition_vector_[partition_vector_offsets_[partitionNo]];
 
-  dynamic_array<int> spanned(nP);
+  ds::dynamic_array<int> spanned(nP);
 
   int soed = 0;
 
@@ -445,7 +444,7 @@ void hypergraph::initialize_cut_sizes(int numParts) {
 }
 
 void hypergraph::check_partitions(int nP, int maxWt) const {
-  dynamic_array<int> partWts(nP);
+  ds::dynamic_array<int> partWts(nP);
   for (int i = 0; i < number_of_partitions_; ++i) {
     int cut = cut_size(nP, i);
     assert(partition_cuts_[i] == cut);
@@ -465,7 +464,7 @@ void hypergraph::check_partitions(int nP, int maxWt) const {
 }
 
 void hypergraph::check_partition(int numPartition, int nP, int maxWt) const {
-  dynamic_array<int> partWts(nP);
+  ds::dynamic_array<int> partWts(nP);
 
   int cut = cut_size(nP, numPartition);
   assert(cut == partition_cuts_[numPartition]);
@@ -504,14 +503,14 @@ void hypergraph::convert_to_DOMACS_graph_file(const char *fN) const {
 
   std::ofstream out_stream;
 
-  dynamic_array<int> numVNeighs(number_of_vertices_);
-  dynamic_array<int> vDegs(number_of_vertices_);
+  ds::dynamic_array<int> numVNeighs(number_of_vertices_);
+  ds::dynamic_array<int> vDegs(number_of_vertices_);
 
-  dynamic_array<dynamic_array<int> *> vNeighs(number_of_vertices_);
+  ds::dynamic_array<ds::dynamic_array<int> *> vNeighs(number_of_vertices_);
 
   for (i = 0; i < number_of_vertices_; ++i) {
     numVNeighs[i] = 0;
-    vNeighs[i] = new dynamic_array<int>(32);
+    vNeighs[i] = new ds::dynamic_array<int>(32);
   }
 
   // ###
@@ -585,7 +584,7 @@ void hypergraph::convert_to_DOMACS_graph_file(const char *fN) const {
   out_stream.close();
 
   for (i = 0; i < number_of_vertices_; ++i)
-    DynaMem::deletePtr<dynamic_array<int> >(vNeighs[i]);
+    dynamic_memory::delete_pointer<ds::dynamic_array<int> >(vNeighs[i]);
 }
 
 void hypergraph::print_percentiles(std::ostream &out_stream) {
@@ -603,8 +602,8 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
   double percentile_50;
   double percentile_25;
 
-  dynamic_array<int> indices;
-  dynamic_array<int> hEdgeLens(number_of_hyperedges_);
+  ds::dynamic_array<int> indices;
+  ds::dynamic_array<int> hEdgeLens(number_of_hyperedges_);
 
   /* display hyperedge information */
 
@@ -718,7 +717,6 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
 }
 
 }  // serial
-}  // hypergraph
 }  // parkway
 
 #endif

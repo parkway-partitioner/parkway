@@ -26,7 +26,7 @@ global_communicator::global_communicator(const int rank, const int nProcs)
 
 global_communicator::~global_communicator() {
   for (int i = 0; i < processors_; ++i) {
-    DynaMem::deletePtr<dynamic_array<int> >(data_out_sets_[i]);
+    dynamic_memory::delete_pointer<dynamic_array<int> >(data_out_sets_[i]);
   }
 }
 

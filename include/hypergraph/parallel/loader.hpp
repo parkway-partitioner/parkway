@@ -21,7 +21,6 @@ using parkway::data_structures::dynamic_array;
 using parkway::data_structures::bit_field;
 
 namespace parkway {
-namespace hypergraph {
 namespace parallel {
 
 class loader : public global_communicator {
@@ -30,7 +29,7 @@ class loader : public global_communicator {
 
   /* hypergraph variables */
 
-  int number_of_partitions_;
+  int number_of_parts_;
   int number_of_hyperedges_;
   int number_of_local_pins_;
   int number_of_local_vertices_;
@@ -69,7 +68,7 @@ class loader : public global_communicator {
                                   int *hEdgeWts, int *hEdgeOffsets,
                                   MPI_Comm comm);
 
-  inline int number_of_partitions() const { return number_of_partitions_; }
+  inline int number_of_parts() const { return number_of_parts_; }
   inline int percentile() const { return percentile_; }
 
   inline void set_display_option(int d) { display_options_ = d; }
@@ -77,7 +76,6 @@ class loader : public global_communicator {
 };
 
 }  // namespace parallel
-}  // namespace hypergraph
-}  // namespace parallel
+}  // namespace parkway
 
 #endif

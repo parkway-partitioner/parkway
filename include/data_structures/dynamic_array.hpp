@@ -18,7 +18,7 @@
 #include <cstring>
 #include <cstdio>
 #include "Macros.h"
-#include "DynaMem.hpp"
+#include "dynamic_memory.hpp"
 
 namespace parkway {
 namespace data_structures {
@@ -46,7 +46,7 @@ template <class T> class dynamic_array {
   dynamic_array(const dynamic_array&) = delete;
 
   inline ~dynamic_array() {
-    DynaMem::deleteArr<T>(data_);
+    dynamic_memory::delete_array<T>(data_);
     capacity_ = 0;
   }
 
@@ -78,7 +78,7 @@ template <class T> class dynamic_array {
   }
 
   inline void set_data(T *new_data, int size) {
-    DynaMem::deleteArr<T>(data_);
+    dynamic_memory::delete_array<T>(data_);
     data_ = new_data;
     capacity_ = size;
   }
@@ -138,7 +138,7 @@ template <class T> class dynamic_array {
     int newLength = capacity_ + size;
     if (newLength <= 0) {
       if (capacity_ > 0) {
-        DynaMem::deleteArr<T>(data_);
+        dynamic_memory::delete_array<T>(data_);
       }
       capacity_ = 0;
       return true;
@@ -157,7 +157,7 @@ template <class T> class dynamic_array {
     }
 
     if (capacity_ > 0) {
-      DynaMem::deleteArr<T>(data_);
+      dynamic_memory::delete_array<T>(data_);
     }
 
     capacity_ = newLength;

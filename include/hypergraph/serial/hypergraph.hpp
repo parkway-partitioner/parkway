@@ -21,13 +21,14 @@
 #include "data_structures/dynamic_array.hpp"
 #include "hypergraph/base_hypergraph.hpp"
 
-using parkway::data_structures::dynamic_array;
 
 namespace parkway {
-namespace hypergraph {
 namespace serial {
 
-class hypergraph : public base_hypergraph {
+namespace ds = parkway::data_structures;
+namespace hg = parkway::hypergraph;
+
+class hypergraph : public hg::base_hypergraph {
  public:
   hypergraph(int *vWts, int numV);
   hypergraph(int *vWts, int *pVector, int numV, int cut);
@@ -78,8 +79,8 @@ class hypergraph : public base_hypergraph {
   protected:
   int total_weight_;
 
-  dynamic_array<int> vertex_to_hyperedges_;
-  dynamic_array<int> vertex_offsets_;
+  ds::dynamic_array<int> vertex_to_hyperedges_;
+  ds::dynamic_array<int> vertex_offsets_;
 
  void convert_to_DOMACS_graph_file(const char *fName) const;
  void check_part_weights_are_less_than(int *part_weights, const int number,
@@ -87,7 +88,6 @@ class hypergraph : public base_hypergraph {
 };
 
 }  // serial
-}  // hypergraph
 }  // parkway
 
 #endif

@@ -25,7 +25,7 @@ parallel_approximate_coarsener::parallel_approximate_coarsener(int _rank, int pr
 
 parallel_approximate_coarsener::~parallel_approximate_coarsener() {}
 
-void parallel_approximate_coarsener::load(const hypergraph &h, MPI_Comm comm) {
+void parallel_approximate_coarsener::load(const parallel::hypergraph &h, MPI_Comm comm) {
   int i;
   int vertsPerProc;
   int endOffset;

@@ -14,7 +14,6 @@
 #include "hypergraph/serial/loader.hpp"
 
 namespace parkway {
-namespace hypergraph {
 namespace serial {
 
 loader::loader(int disp) {
@@ -74,7 +73,6 @@ void loader::compute_hyperedges_to_load(bit_field &toLoad) {
 }
 
 }  // serial
-}  // hypergraph
 }  // parkway
 
 #endif

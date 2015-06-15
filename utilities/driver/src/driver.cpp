@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "Parkway.h"
+#include "parkway.h"
 #include "reader.h"
 
 int main(int argc, char **argv) {
@@ -180,8 +180,8 @@ int main(int argc, char **argv) {
                   << endl;
     }
 
-    ParaPartKway(argv[argc - 1], outputFile, numParts, constraint, bestCut,
-                 options, MPI_COMM_WORLD);
+    k_way_partition(argv[argc - 1], outputFile, numParts, constraint, bestCut,
+                    options, MPI_COMM_WORLD);
 
     if (myRank == 0) {
       test_output << "----- completed ParaPartKway, best cut = " << bestCut
@@ -225,9 +225,10 @@ int main(int argc, char **argv) {
                      "int*,int*,char*,MPI_Comm): " << endl;
     }
 
-    ParaPartKway(numVertices, numHedges, vWeights, hEdgeWts, offsets, pinList,
-                 numParts, constraint, bestCut, options, pVector, outputFile,
-                 MPI_COMM_WORLD);
+    k_way_partition(numVertices, numHedges, vWeights, hEdgeWts, offsets,
+                    pinList,
+                    numParts, constraint, bestCut, options, pVector, outputFile,
+                    MPI_COMM_WORLD);
 
     if (myRank == 0) {
       test_output << "----- tested ParaPartKway, best cut = " << bestCut

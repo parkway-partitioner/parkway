@@ -15,7 +15,7 @@
 #include <cstdio>
 #include "hypergraph/parallel/hypergraph.hpp"
 
-namespace parallel = parkway::hypergraph::parallel;
+namespace parallel = parkway::parallel;
 
 using namespace std;
 

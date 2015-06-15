@@ -17,7 +17,7 @@
 #include "data_structures/dynamic_array.hpp"
 
 using parkway::data_structures::dynamic_array;
-namespace parallel = parkway::hypergraph::parallel;
+namespace parallel = parkway::parallel;
 
 class parallel_coarsener : public parallel::loader {
 
@@ -44,7 +44,7 @@ public:
   virtual parallel::hypergraph *coarsen(parallel::hypergraph &h, MPI_Comm comm) = 0;
   virtual void set_cluster_indices(MPI_Comm comm) = 0;
   virtual void release_memory() = 0;
-  virtual void display_coarsening_options() const = 0;
+  virtual void display_options() const = 0;
   virtual void build_auxiliary_structures(int numTotPins, double aveVertDeg,
                                           double aveHedgeSize) = 0;
 

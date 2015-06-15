@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "Config.h"
+#include "configurtion.h"
 #ifdef LINK_HMETIS
 #include "KHMetisController.hpp"
 
@@ -34,7 +34,7 @@ KHMetisController::KHMetisController(GreedyKwayRefiner *k, int rank, int nProcs,
 }
 
 KHMetisController::~KHMetisController() {
-  DynaMem::deletePtr<GreedyKwayRefiner>(kWayRefiner);
+  DynaMem::delete_pointer<GreedyKwayRefiner>(kWayRefiner);
 }
 
 void KHMetisController::dispSeqControllerOptions() const {
@@ -118,7 +118,7 @@ void KHMetisController::runSeqPartitioner(ParaHypergraph &hgraph,
   hgraph.checkPartitions(numParts, maxPartWt, comm);
 #endif
 
-  DynaMem::deletePtr<Hypergraph>(h);
+  DynaMem::delete_pointer<Hypergraph>(h);
 }
 
 #endif

@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "Config.h"
+#include "configurtion.h"
 #ifdef LINK_PATOH
 #include "PaToHController.hpp"
 
@@ -44,7 +44,7 @@ PaToHController::PaToHController(GreedyKwayRefiner *k, int rank, int nProcs,
 }
 
 PaToHController::~PaToHController() {
-  DynaMem::deletePtr<GreedyKwayRefiner>(kWayRefiner);
+  DynaMem::delete_pointer<GreedyKwayRefiner>(kWayRefiner);
 }
 
 void PaToHController::dispSeqControllerOptions() const {
@@ -198,7 +198,7 @@ void PaToHController::runSeqPartitioner(ParaHypergraph &hgraph, MPI_Comm comm) {
   hgraph.checkPartitions(numParts, maxPartWt, comm);
 #endif
 
-  DynaMem::deletePtr<Hypergraph>(h);
+  DynaMem::delete_pointer<Hypergraph>(h);
 }
 
 #endif

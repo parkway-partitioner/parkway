@@ -17,14 +17,14 @@
 #include "mpi.h"
 #include "Log.h"
 #include "hypergraph/parallel/hypergraph.hpp"
-#include "BasicParaController.hpp"
-#include "ParaVCycleFinalController.hpp"
-#include "ParaVCycleAllController.hpp"
-#include "RecurBisectController.hpp"
+#include "basic_parallel_controller.hpp"
+#include "parallel_v_cycle_final_controller.hpp"
+#include "parallel_v_cycle_all_controller.hpp"
+#include "recursive_bisection_contoller.hpp"
 #include "KHMetisController.hpp"
 #include "PaToHController.hpp"
 
-namespace parallel = parkway::hypergraph::parallel;
+namespace parallel = parkway::parallel;
 
 namespace Utils {
 parallel_coarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
@@ -32,23 +32,23 @@ parallel_coarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
                                   ostream &out, const int *options,
                                   MPI_Comm comm);
 
-ParaRestrCoarsener *buildParaRestrCoarsener(int myRank, int numProc,
+parallel_restrictive_coarsening *buildParaRestrCoarsener(int myRank, int numProc,
                                             int numParts, double constraint,
                                             parallel::hypergraph *h, ostream &out,
                                             const int *options, MPI_Comm comm);
 
-ParaRefiner *buildParaRefiner(int myRank, int numProc, int numParts,
+parallel_refiner *buildParaRefiner(int myRank, int numProc, int numParts,
                               double constraint, parallel::hypergraph *h,
                               ostream &out, const int *options, MPI_Comm comm);
 
-SeqController *buildSeqController(int myRank, int numProc, int numParts,
+sequential_controller *buildSeqController(int myRank, int numProc, int numParts,
                                   double constraint, ostream &out,
                                   const int *options);
 
-ParaController *buildParaController(int myRank, int numProcs, int numParts,
+parallel_controller *buildParaController(int myRank, int numProcs, int numParts,
                                     int num_tot_verts, double constraint,
-                                    parallel_coarsener *c, ParaRestrCoarsener *rc,
-                                    ParaRefiner *r, SeqController *s,
+                                    parallel_coarsener *c, parallel_restrictive_coarsening *rc,
+                                    parallel_refiner *r, sequential_controller *s,
                                     ostream &out, const int *options,
                                     MPI_Comm comm);
 

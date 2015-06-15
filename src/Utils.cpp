@@ -56,7 +56,7 @@ parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
       break;
     }
 
-    c = new ParaFCCoarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
+    c = new parallel_first_choice_coarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
                             matchReqVisitOrder, divByCluWt, divByHedgeLen, out);
 
     c->set_minimum_number_of_nodes(min_nodes * num_parts);
@@ -92,7 +92,7 @@ parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
       break;
     }
 
-    c = new Para2DModelCoarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
+    c = new parallel_2d_model_coarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
                                  matchReqVisitOrder, divByCluWt, divByHedgeLen,
                                  out);
 
@@ -104,12 +104,12 @@ parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
   }
 
   if (c && my_rank == 0)
-    c->display_coarsening_options();
+    c->display_options();
 
   return c;
 }
 
-ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
+parallel_restrictive_coarsening *Utils::buildParaRestrCoarsener(
     int my_rank, int num_proc, int num_parts, double constraint,
     parallel::hypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
   int coarsener_type = ParaRestFCC;
@@ -118,7 +118,7 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
 
   double r = static_cast<double>(options[9]) / options[10];
 
-  ParaRestrCoarsener *c = nullptr;
+  parallel_restrictive_coarsening *c = nullptr;
 
   if (coarsener_type == ParaRestFCC) {
     int vertexVisitOrder = options[11];
@@ -145,22 +145,22 @@ ParaRestrCoarsener *Utils::buildParaRestrCoarsener(
       break;
     }
 
-    c = new ParaRestrFCCoarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
+    c = new parallel_restrictive_first_choice_coarsening(my_rank, num_proc, num_parts, vertexVisitOrder,
                                  divByCluWt, divByHedgeLen, out);
 
-    c->setMinNodes(min_nodes * num_parts);
+    c->set_minimum_nodes(min_nodes * num_parts);
     c->set_display_option(disp_option);
-    c->setBalConstraint(constraint);
-    c->setReductionRatio(r);
+    c->set_balance_constraint(constraint);
+    c->set_reduction_ratio(r);
   }
 
   if (c && my_rank == 0)
-    c->dispCoarseningOptions();
+    c->display_options();
 
   return c;
 }
 
-ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
+parallel_refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
                                      double constraint, parallel::hypergraph *h,
                                      std::ostream &out, const int *options,
                                      MPI_Comm comm) {
@@ -168,7 +168,7 @@ ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
   int disp_option = options[2];
   int numTotPins = h->total_number_of_pins(comm);
 
-  ParaRefiner *r = nullptr;
+  parallel_refiner *r = nullptr;
 
   if (refiner_type == ParaGreedyKway) {
     double eeLimit = static_cast<double>(options[27]) / 100;
@@ -177,28 +177,28 @@ ParaRefiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
     if (options[28] == 2 || options[28] == 3)
       earlyExit = 1;
 
-    r = new ParaGreedyKwayRefiner(my_rank, num_proc, num_parts,
+    r = new parallel_k_way_greedy_refiner(my_rank, num_proc, num_parts,
                                   numTotPins / num_proc, earlyExit, eeLimit,
                                   out);
 
     r->set_display_option(disp_option);
-    r->setBalConstraint(constraint);
+    r->set_balance_constraint(constraint);
   }
 
   if (r && my_rank == 0)
-    r->dispRefinementOptions();
+    r->display_options();
 
   return r;
 }
 
-SeqController *Utils::buildSeqController(int my_rank, int num_proc,
+sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
                                          int num_parts, double constraint,
                                          ostream &out, const int *options) {
   int numSeqRuns = options[14];
   int seqControllerType = options[15];
   int disp_option = options[2];
 
-  SeqController *seqC = nullptr;
+  sequential_controller *seqC = nullptr;
 
   if (seqControllerType == RecurBisect) {
     int numBisectRuns = options[17];
@@ -209,8 +209,8 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    BisectionController *bC =
-        new BisectionController(numBisectRuns, keepT, redFactor, eeParam,
+    bisection_controller *bC =
+        new bisection_controller(numBisectRuns, keepT, redFactor, eeParam,
                                 startPercentile, inc, disp_option, out);
 
     // ###
@@ -221,7 +221,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
     int minSeqNodes = MIN_VERT_MULTIPLIER;
     double bRedRatio = DEF_BIS_RATIO;
 
-    bC->buildCoarsener(bRedRatio, seqCoarsener, minSeqNodes);
+    bC->build_coarsener(bRedRatio, seqCoarsener, minSeqNodes);
 
     // ###
     // build the seq initial partitioner
@@ -229,7 +229,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int numInitRuns = options[18];
 
-    bC->buildInitBisector(numInitRuns);
+    bC->build_initial_bisector(numInitRuns);
 
     // ###
     // build the seq refiner (FM refiner)
@@ -237,7 +237,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int queueDiscipline = LIFO;
 
-    bC->buildRefiner(queueDiscipline);
+    bC->build_refiner(queueDiscipline);
 
     // ###
     // build the seq GreedyKwayRefiner
@@ -245,8 +245,8 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
-    GreedyKwayRefiner *k =
-        new GreedyKwayRefiner(-1, num_parts, -1, kWayLimit, disp_option);
+    greedy_k_way_refiner *k =
+        new greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
 
     // ###
     // build the seq controller
@@ -254,13 +254,13 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     double paraKeepT = DEF_KEEP_THRESHOLD;
 
-    seqC = new RecurBisectController(bC, k, my_rank, num_proc, num_parts,
+    seqC = new recursive_bisection_contoller(bC, k, my_rank, num_proc, num_parts,
                                      numBisectRuns, out);
 
-    seqC->setAcceptProp(paraKeepT);
-    seqC->setNumSeqRuns(numSeqRuns);
-    seqC->setDispOption(disp_option);
-    seqC->setKwayConstraint(constraint);
+    seqC->set_accept_proportion(paraKeepT);
+    seqC->set_number_of_runs(numSeqRuns);
+    seqC->set_display_option(disp_option);
+    seqC->set_k_way_constraint(constraint);
   }
 
   if (seqControllerType == VCycleAllRecurBisect) {
@@ -272,7 +272,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    VCycleAllBisectionController *bC = new VCycleAllBisectionController(
+    v_cycle_all_bisection_controller *bC = new v_cycle_all_bisection_controller(
         numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
         disp_option, out);
 
@@ -284,7 +284,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
     int minSeqNodes = MIN_VERT_MULTIPLIER;
     double bRedRatio = DEF_BIS_RATIO;
 
-    bC->buildCoarsener(bRedRatio, seqCoarsener, minSeqNodes);
+    bC->build_coarsener(bRedRatio, seqCoarsener, minSeqNodes);
 
     // ###
     // build the restr coarsener
@@ -292,7 +292,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int restrSeqCoarsener = options[17];
 
-    bC->buildRestrCoarsener(bRedRatio, restrSeqCoarsener, minSeqNodes);
+    bC->build_restrictive_coarsener(bRedRatio, restrSeqCoarsener, minSeqNodes);
 
     // ###
     // build the seq initial partitioner
@@ -300,7 +300,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int numInitRuns = options[18];
 
-    bC->buildInitBisector(numInitRuns);
+    bC->build_initial_bisector(numInitRuns);
 
     // ###
     // build the seq refiner (FM refiner)
@@ -308,7 +308,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int queueDiscipline = LIFO;
 
-    bC->buildRefiner(queueDiscipline);
+    bC->build_refiner(queueDiscipline);
 
     // ###
     // build the seq GreedyKwayRefiner
@@ -316,8 +316,8 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
-    GreedyKwayRefiner *k =
-        new GreedyKwayRefiner(-1, num_parts, -1, kWayLimit, disp_option);
+    greedy_k_way_refiner *k =
+        new greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
 
     // ###
     // build the seq controller
@@ -325,13 +325,13 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     double paraKeepT = DEF_KEEP_THRESHOLD;
 
-    seqC = new RecurBisectController(bC, k, my_rank, num_proc, num_parts,
+    seqC = new recursive_bisection_contoller(bC, k, my_rank, num_proc, num_parts,
                                      numBisectRuns, out);
 
-    seqC->setAcceptProp(paraKeepT);
-    seqC->setNumSeqRuns(numSeqRuns);
-    seqC->setDispOption(disp_option);
-    seqC->setKwayConstraint(constraint);
+    seqC->set_accept_proportion(paraKeepT);
+    seqC->set_number_of_runs(numSeqRuns);
+    seqC->set_display_option(disp_option);
+    seqC->set_k_way_constraint(constraint);
   }
 
   if (seqControllerType == VCycleFinalRecurBisect) {
@@ -343,7 +343,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    VCycleFinalBisectionController *bC = new VCycleFinalBisectionController(
+    v_cycle_final_bisection_controller *bC = new v_cycle_final_bisection_controller(
         numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
         disp_option, out);
 
@@ -355,7 +355,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
     int minSeqNodes = MIN_VERT_MULTIPLIER;
     double bRedRatio = DEF_BIS_RATIO;
 
-    bC->buildCoarsener(bRedRatio, seqCoarsener, minSeqNodes);
+    bC->build_coarsener(bRedRatio, seqCoarsener, minSeqNodes);
 
     // ###
     // build the restr coarsener
@@ -363,7 +363,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int restrSeqCoarsener = options[16];
 
-    bC->buildRestrCoarsener(bRedRatio, restrSeqCoarsener, minSeqNodes);
+    bC->build_restrictive_coarsener(bRedRatio, restrSeqCoarsener, minSeqNodes);
 
     // ###
     // build the seq initial partitioner
@@ -371,7 +371,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int numInitRuns = options[18];
 
-    bC->buildInitBisector(numInitRuns);
+    bC->build_initial_bisector(numInitRuns);
 
     // ###
     // build the seq refiner (FM refiner)
@@ -379,7 +379,7 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     int queueDiscipline = LIFO;
 
-    bC->buildRefiner(queueDiscipline);
+    bC->build_refiner(queueDiscipline);
 
     // ###
     // build the seq GreedyKwayRefiner
@@ -387,8 +387,8 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
-    GreedyKwayRefiner *k =
-        new GreedyKwayRefiner(-1, num_parts, -1, kWayLimit, disp_option);
+    greedy_k_way_refiner *k =
+        new greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
 
     // ###
     // build the seq controller
@@ -396,13 +396,13 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 
     double paraKeepT = DEF_KEEP_THRESHOLD;
 
-    seqC = new RecurBisectController(bC, k, my_rank, num_proc, num_parts,
+    seqC = new recursive_bisection_contoller(bC, k, my_rank, num_proc, num_parts,
                                      numBisectRuns, out);
 
-    seqC->setAcceptProp(paraKeepT);
-    seqC->setNumSeqRuns(numSeqRuns);
-    seqC->setDispOption(disp_option);
-    seqC->setKwayConstraint(constraint);
+    seqC->set_accept_proportion(paraKeepT);
+    seqC->set_number_of_runs(numSeqRuns);
+    seqC->set_display_option(disp_option);
+    seqC->set_k_way_constraint(constraint);
   }
 
 #ifdef LINK_HMETIS
@@ -470,15 +470,15 @@ SeqController *Utils::buildSeqController(int my_rank, int num_proc,
 #endif
 
   if (seqC && my_rank == 0)
-    seqC->dispSeqControllerOptions();
+    seqC->display_options();
 
   return seqC;
 }
 
-ParaController *Utils::buildParaController(
+parallel_controller *Utils::buildParaController(
     int my_rank, int num_proc, int num_parts, int num_tot_verts,
-    double constraint, parallel_coarsener *c, ParaRestrCoarsener *rc, ParaRefiner *r,
-    SeqController *s, ostream &out, const int *options, MPI_Comm comm) {
+    double constraint, parallel_coarsener *c, parallel_restrictive_coarsening *rc, parallel_refiner *r,
+    sequential_controller *s, ostream &out, const int *options, MPI_Comm comm) {
   int paraControllerType = options[22];
   int numParaRuns = options[4];
   int disp_option = options[2];
@@ -490,10 +490,10 @@ ParaController *Utils::buildParaController(
   double paraKeepT = static_cast<double>(options[25]) / 100;
   double redFactor = static_cast<double>(options[26]) / 100;
 
-  ParaController *paraC = nullptr;
+  parallel_controller *paraC = nullptr;
 
   if (paraControllerType == BasicParaC) {
-    paraC = new BasicParaController(*c, *r, *s, my_rank, num_proc, percentile,
+    paraC = new basic_parallel_controller(*c, *r, *s, my_rank, num_proc, percentile,
                                     perCentInc, approxRef, out);
   }
 
@@ -518,13 +518,13 @@ ParaController *Utils::buildParaController(
         cout << message;
       }
 
-      paraC = new BasicParaController(*c, *r, *s, my_rank, num_proc, percentile,
+      paraC = new basic_parallel_controller(*c, *r, *s, my_rank, num_proc, percentile,
                                       perCentInc, approxRef, out);
     } else {
       int limitOnCycles = options[23];
       double limitAsPercent = static_cast<double>(options[24]) / 100;
 
-      paraC = new ParaVCycleFinalController(*rc, *c, *r, *s, my_rank, num_proc,
+      paraC = new parallel_v_cycle_final_controller(*rc, *c, *r, *s, my_rank, num_proc,
                                             percentile, perCentInc, approxRef,
                                             limitOnCycles, limitAsPercent, out);
     }
@@ -551,33 +551,33 @@ ParaController *Utils::buildParaController(
         out << message;
       }
 
-      paraC = new BasicParaController(*c, *r, *s, my_rank, num_proc, percentile,
+      paraC = new basic_parallel_controller(*c, *r, *s, my_rank, num_proc, percentile,
                                       perCentInc, approxRef, out);
     } else {
       int limitOnCycles = options[23];
       double limitAsPercent = static_cast<double>(options[24]) / 100;
 
-      paraC = new ParaVCycleAllController(*rc, *c, *r, *s, my_rank, num_proc,
+      paraC = new parallel_v_cycle_all_controller(*rc, *c, *r, *s, my_rank, num_proc,
                                           percentile, perCentInc, approxRef,
                                           limitOnCycles, limitAsPercent, out);
     }
   }
 
   if (paraC) {
-    paraC->setNumParts(num_parts);
-    paraC->setNumParaRuns(numParaRuns);
-    paraC->setBalConstraint(constraint);
-    paraC->setKTFactor(paraKeepT);
-    paraC->setReduction(redFactor);
-    paraC->setDispOpt(disp_option);
-    paraC->setShuffleVertices(shuffleVertices);
+    paraC->set_number_of_parts(num_parts);
+    paraC->set_number_of_runs(numParaRuns);
+    paraC->set_balance_constraint(constraint);
+    paraC->set_kt_factor(paraKeepT);
+    paraC->set_reduction_in_keep_threshold(redFactor);
+    paraC->set_display_option(disp_option);
+    paraC->set_shuffle_vertices(shuffleVertices);
 
     /* random vertex shuffle before each k-way refinement */
 
-    paraC->setRandShuffBefRef(0);
+    paraC->set_random_shuffle_before_refine(0);
 
     if (my_rank == 0)
-      paraC->dispParaControllerOptions();
+      paraC->display_options();
   }
 
   return paraC;

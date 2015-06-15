@@ -1,4 +1,3 @@
-
 #ifndef _REFINER_HPP
 #define _REFINER_HPP
 
@@ -18,36 +17,36 @@
 #include "hypergraph/serial/hypergraph.hpp"
 #include "hypergraph/serial/loader.hpp"
 
-namespace serial = parkway::hypergraph::serial;
+namespace serial = parkway::serial;
 using parkway::data_structures::dynamic_array;
 
-class Refiner : public serial::loader {
+class refiner : public serial::loader {
  protected:
-  int maxPartWt;
-  int numParts;
-  int *partitionVector;
+  int maximum_part_weight_;
+  int number_of_parts_;
+  int *partition_vector_;
 
-  double acceptProp;
-  double avePartWt;
+  double accept_proportion_;
+  double average_part_weight_;
 
-  dynamic_array<int> partWeights;
+  dynamic_array<int> part_weights_;
 
  public:
-  Refiner(int dispL);
+  refiner(int dispL);
 
-  virtual ~Refiner();
+  virtual ~refiner();
   virtual void refine(serial::hypergraph &h) = 0;
-  virtual void dispRefinerOptions(std::ostream &out) const = 0;
+  virtual void display_options(std::ostream &out) const = 0;
 
-  inline int getMaxPartWt() const { return maxPartWt; }
+  inline int maximum_part_weight() const { return maximum_part_weight_; }
 
-  inline void setMaxPartWt(int max) { maxPartWt = max; }
-  inline void setAvePartWt(double ave) { avePartWt = ave; }
-  inline void setPartitionVector(int nP) {
-    partitionVector = &partitionVectors[partitionOffsets[nP]];
+  inline void set_maximum_part_weight(int max) { maximum_part_weight_ = max; }
+  inline void set_average_part_weight(double ave) { average_part_weight_ = ave; }
+  inline void set_partition_vector(int nP) {
+    partition_vector_ = &partitionVectors[partitionOffsets[nP]];
   }
 
-  int calcCutsize() const;
+  int calculate_cut_size() const;
 };
 
 #endif

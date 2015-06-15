@@ -1,4 +1,3 @@
-
 #ifndef _PARA_APPROX_FCCOARSENER_HPP
 #define _PARA_APPROX_FCCOARSENER_HPP
 
@@ -17,7 +16,7 @@
 #include "data_structures/match_request_table.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 
-using parkway::hypergraph::parallel::hypergraph;
+namespace parallel = parkway::parallel;
 
 class parallel_approximate_first_choice_coarsener : public parallel_approximate_coarsener {
  protected:
@@ -40,7 +39,7 @@ class parallel_approximate_first_choice_coarsener : public parallel_approximate_
                              double aveHedgeSize);
   void release_memory();
 
-  hypergraph *coarsen(hypergraph &h, MPI_Comm comm);
+  parallel::hypergraph *coarsen(parallel::hypergraph &h, MPI_Comm comm);
 
   void setRequestArrays(int highToLow);
   void setReplyArrays(int highToLow, int maxVertexWt);

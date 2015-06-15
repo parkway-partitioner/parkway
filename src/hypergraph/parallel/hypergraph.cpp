@@ -29,7 +29,6 @@
 
 
 namespace parkway {
-namespace hypergraph {
 namespace parallel {
 
 namespace ds = data_structures;
@@ -1792,7 +1791,7 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
   }
 
   for (i = 0; i < processors_; ++i)
-    DynaMem::deletePtr<dynamic_array<int> >(askingVertices[i]);
+    dynamic_memory::delete_pointer<dynamic_array<int> >(askingVertices[i]);
 }
 
 void hypergraph::prescribed_vertex_shuffle(int *prescribedAssignment,
@@ -4084,5 +4083,4 @@ double hypergraph::average_hyperedge_size(MPI_Comm comm) {
 }
 
 }  // namespace parallel
-}  // namespace hypergraph
 }  // namespace parkway

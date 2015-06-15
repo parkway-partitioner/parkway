@@ -11,13 +11,12 @@
 #include "hypergraph/parallel/loader.hpp"
 
 namespace parkway {
-namespace hypergraph {
 namespace parallel {
 
 loader::loader(int rank, int nProcs, int nParts,
                                            std::ostream &o)
     : global_communicator(rank, nProcs), out_stream(o) {
-  number_of_partitions_ = nParts;
+  number_of_parts_ = nParts;
   vertex_weights_ = nullptr;
   match_vector_ = nullptr;
 
@@ -114,5 +113,4 @@ void loader::compute_hyperedges_to_load(bit_field &toLoad,
 }
 
 }  // namespace parallel
-}  // namespace hypergraph
-}  // namespace parallel
+}  // namespace parkway

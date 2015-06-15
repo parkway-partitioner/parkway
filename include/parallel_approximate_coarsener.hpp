@@ -16,7 +16,7 @@
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "parallel_coarsener.hpp"
 
-using parkway::hypergraph::parallel::hypergraph;
+namespace parallel = parkway::parallel;
 using namespace parkway::data_structures;
 
 class parallel_approximate_coarsener : public parallel_coarsener {
@@ -31,14 +31,14 @@ public:
                                  int percentile, int inc, std::ostream &out);
 
   virtual ~parallel_approximate_coarsener();
-  virtual hypergraph *coarsen(hypergraph &h, MPI_Comm comm) = 0;
+  virtual parallel::hypergraph *coarsen(parallel::hypergraph &h, MPI_Comm comm) = 0;
   virtual void set_cluster_indices(MPI_Comm comm) = 0;
   virtual void release_memory() = 0;
   virtual void display_coarsening_options() const = 0;
   virtual void build_auxiliary_structures(int numTotPins, double aveVertDeg,
                                           double aveHedgeSize) = 0;
 
-  void load(const hypergraph &h, MPI_Comm comm);
+  void load(const parallel::hypergraph &h, MPI_Comm comm);
   void compute_hyperedges_to_load(bit_field &toLoad, int numH, int *hEdgeWts,
                                   int *hEdgeOffsets, MPI_Comm comm);
 };

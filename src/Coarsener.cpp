@@ -11,22 +11,23 @@
 //
 // ###
 
-#include "Coarsener.hpp"
+#include "coarsener.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 
-namespace serial = parkway::hypergraph::serial;
+namespace serial = parkway::serial;
 
-Coarsener::Coarsener(int min, int maxwt, double ratio, int dispL)
+coarsener::coarsener(int min, int maxwt, double ratio, int dispL)
     : serial::loader(dispL) {
-  minNodes = min;
-  maxVertexWt = maxwt;
-  reductionRatio = ratio;
+  minimum_number_of_nodes_ = min;
+  maximum_vertex_weight_ = maxwt;
+  reduction_ratio_ = ratio;
 }
 
-Coarsener::~Coarsener() {}
+coarsener::~coarsener() {}
 
-serial::hypergraph *Coarsener::buildCoarseHypergraph(int *coarseWts, int numCoarseVerts,
-                                             int totWt) const {
+serial::hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
+                                                       int numCoarseVerts,
+                                                       int totWt) const {
 
   int numNewHedges = 0;
   int numNewPins = 0;

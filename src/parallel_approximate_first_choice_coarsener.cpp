@@ -34,7 +34,7 @@ parallel_approximate_first_choice_coarsener::parallel_approximate_first_choice_c
 }
 
 parallel_approximate_first_choice_coarsener::~parallel_approximate_first_choice_coarsener() {
-  DynaMem::deletePtr<ds::match_request_table>(table);
+  dynamic_memory::delete_pointer<ds::match_request_table>(table);
 }
 
 void parallel_approximate_first_choice_coarsener::dispCoarseningOptions() const {
@@ -95,8 +95,8 @@ void parallel_approximate_first_choice_coarsener::release_memory() {
     free_memory();
 }
 
-hypergraph *parallel_approximate_first_choice_coarsener::coarsen(hypergraph &h,
-                                               MPI_Comm comm) {
+parallel::hypergraph *parallel_approximate_first_choice_coarsener::coarsen(
+    parallel::hypergraph &h, MPI_Comm comm) {
   load(h, comm);
 
   if (number_of_vertices_ < minimum_number_of_nodes_ || h.dont_coarsen()) {
@@ -322,7 +322,7 @@ pairWt = vData->getPairWt();
            {
            metric = vData->getConNetWt();
 
-           if(divByCluWt)
+           if(divide_by_cluster_weight_)
            metric /= pairWt;
 
            if(metric > maxMatchMetric)

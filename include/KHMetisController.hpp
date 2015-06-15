@@ -12,7 +12,7 @@
 //
 // ###
 
-#include "Config.h"
+#include "configurtion.h"
 #ifdef LINK_HMETIS
 
 // ## hMeTiS library function declaration ##

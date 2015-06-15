@@ -11,18 +11,18 @@
 //
 // ###
 
-#include "Parkway.h"
+#include "parkway.h"
 #include <fstream>
 #include <iostream>
 #include "data_structures/internal/table_utils.hpp"
-#include "hypergraph/parallel/hypergraph.hpp"
+#include "hypergraph/hypergraph.hpp"
 
-namespace parallel = parkway::hypergraph::parallel;
+namespace parallel = parkway::parallel;
 namespace ds = parkway::data_structures;
 
-void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
-                  double constraint, int &k_1cut, const int *options,
-                  MPI_Comm comm) {
+void k_way_partition(const char *file_name, const char *out_file, int num_parts,
+                     double constraint, int &k_1cut, const int *options,
+                     MPI_Comm comm) {
 #ifdef MEM_CHECK
   MemoryTracker::start();
 #endif
@@ -45,10 +45,10 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 
   parallel::hypergraph *hgraph = nullptr;
   parallel_coarsener *coarsener = nullptr;
-  ParaRestrCoarsener *restrC = nullptr;
-  ParaRefiner *refiner = nullptr;
-  SeqController *seqController = nullptr;
-  ParaController *controller = nullptr;
+  parallel_restrictive_coarsening *restrC = nullptr;
+  parallel_refiner *refiner = nullptr;
+  sequential_controller *seqController = nullptr;
+  parallel_controller *controller = nullptr;
 
   ds::internal::table_utils tableUtils;
 
@@ -168,26 +168,26 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 
   hgraph->compute_balance_warnings(num_parts, constraint, *output, comm);
 
-  controller->setGraph(hgraph);
-  controller->setPrescribedPartition(shuffle_file, comm);
-  controller->setWeightConstraints(comm);
-  controller->runPartitioner(comm);
+  controller->set_hypergraph(hgraph);
+  controller->set_prescribed_partition(shuffle_file, comm);
+  controller->set_weight_constraints(comm);
+  controller->run(comm);
 
   if (output_partition_tofile) {
-    controller->partitionToFile(part_file, comm);
+    controller->partition_to_file(part_file, comm);
   }
 
-  k_1cut = controller->getBestCutsize();
+  k_1cut = controller->best_cut_size();
 
-  DynaMem::deletePtr<ParaController>(controller);
-  DynaMem::deletePtr<SeqController>(seqController);
-  DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
-  DynaMem::deletePtr<parallel_coarsener>(coarsener);
-  DynaMem::deletePtr<ParaRefiner>(refiner);
-  DynaMem::deletePtr<parallel::hypergraph>(hgraph);
+  dynamic_memory::delete_pointer<parallel_controller>(controller);
+  dynamic_memory::delete_pointer<sequential_controller>(seqController);
+  dynamic_memory::delete_pointer<parallel_restrictive_coarsening>(restrC);
+  dynamic_memory::delete_pointer<parallel_coarsener>(coarsener);
+  dynamic_memory::delete_pointer<parallel_refiner>(refiner);
+  dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
 
   if (out_file) {
-    DynaMem::deletePtr<std::ostream>(output);
+    dynamic_memory::delete_pointer<std::ostream>(output);
   }
 
 #ifdef MEM_CHECK
@@ -195,11 +195,12 @@ void ParaPartKway(const char *file_name, const char *out_file, int num_parts,
 #endif
 }
 
-void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
-                  const int *hEdgeWts, const int *offsets, const int *pinList,
-                  int numParts, double constraint, int &k_1cut,
-                  const int *options, int *pVector, const char *out_file,
-                  MPI_Comm comm) {
+void k_way_partition(int numVertices, int numHedges, const int *vWeights,
+                     const int *hEdgeWts, const int *offsets,
+                     const int *pinList,
+                     int numParts, double constraint, int &k_1cut,
+                     const int *options, int *pVector, const char *out_file,
+                     MPI_Comm comm) {
   int num_procs;
   int my_rank;
   int maxHedgeLen = 0;
@@ -219,10 +220,10 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
 
   parallel::hypergraph *hgraph = nullptr;
   parallel_coarsener *coarsener = nullptr;
-  ParaRestrCoarsener *restrC = nullptr;
-  ParaRefiner *refiner = nullptr;
-  SeqController *seqController = nullptr;
-  ParaController *controller = nullptr;
+  parallel_restrictive_coarsening *restrC = nullptr;
+  parallel_refiner *refiner = nullptr;
+  sequential_controller *seqController = nullptr;
+  parallel_controller *controller = nullptr;
 
   ds::internal::table_utils tableUtils;
 
@@ -343,22 +344,22 @@ void ParaPartKway(int numVertices, int numHedges, const int *vWeights,
 
   hgraph->compute_balance_warnings(numParts, constraint, *output, comm);
 
-  controller->setGraph(hgraph);
-  controller->setWeightConstraints(comm);
-  controller->runPartitioner(comm);
-  controller->copyOutPartition(numVertices, pVector);
+  controller->set_hypergraph(hgraph);
+  controller->set_weight_constraints(comm);
+  controller->run(comm);
+  controller->copy_out_partition(numVertices, pVector);
 
-  k_1cut = controller->getBestCutsize();
+  k_1cut = controller->best_cut_size();
 
-  DynaMem::deletePtr<ParaController>(controller);
-  DynaMem::deletePtr<SeqController>(seqController);
-  DynaMem::deletePtr<ParaRestrCoarsener>(restrC);
-  DynaMem::deletePtr<parallel_coarsener>(coarsener);
-  DynaMem::deletePtr<ParaRefiner>(refiner);
-  DynaMem::deletePtr<parallel::hypergraph>(hgraph);
+  dynamic_memory::delete_pointer<parallel_controller>(controller);
+  dynamic_memory::delete_pointer<sequential_controller>(seqController);
+  dynamic_memory::delete_pointer<parallel_restrictive_coarsening>(restrC);
+  dynamic_memory::delete_pointer<parallel_coarsener>(coarsener);
+  dynamic_memory::delete_pointer<parallel_refiner>(refiner);
+  dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
 
   if (out_file)
-    DynaMem::deletePtr<std::ostream>(output);
+    dynamic_memory::delete_pointer<std::ostream>(output);
 }
 
 #endif

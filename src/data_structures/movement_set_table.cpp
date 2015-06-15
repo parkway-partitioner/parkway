@@ -47,11 +47,11 @@ movement_set_table::movement_set_table(int number_of_parts,
 
 movement_set_table::~movement_set_table() {
   for (int i = 0; i < set_array_len_; ++i) {
-    DynaMem::deletePtr<dynamic_array<movement_set> >(sets_[i]);
+    dynamic_memory::delete_pointer<dynamic_array<movement_set> >(sets_[i]);
   }
 
   for (int i = 0; i < number_of_processors_; ++i) {
-    DynaMem::deletePtr<dynamic_array<int> >(restoring_moves_[i]);
+    dynamic_memory::delete_pointer<dynamic_array<int> >(restoring_moves_[i]);
   }
 }
 
