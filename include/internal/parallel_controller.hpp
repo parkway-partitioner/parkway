@@ -15,10 +15,10 @@
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "data_structures/dynamic_array.hpp"
 #include "data_structures/stack.hpp"
-#include "parallel_first_choice_coarsener.hpp"
-#include "parallel_2d_model_coarsener.hpp"
-#include "parallel_approximate_first_choice_coarsener.hpp"
-#include "parallel_restrictive_first_choice_coarsening.hpp"
+#include "coarseners/parallel/first_choice_coarsener.hpp"
+#include "coarseners/parallel/model_coarsener_2d.hpp"
+#include "coarseners/parallel/approximate_first_choice_coarsener.hpp"
+#include "coarseners/parallel/restrictive_first_choice_coarsening.hpp"
 #include "refiners/parallel/k_way_greedy_refiner.hpp"
 #include "internal/serial_controller.hpp"
 
@@ -74,13 +74,13 @@ class controller : public parkway::global_communicator {
 
   parallel::hypergraph *hypergraph_;
 
-  parallel_coarsener &coarsener_;
+  coarsener &coarsener_;
   refiner &refiner_;
   serial::controller &serial_controller_;
   ds::stack<parallel::hypergraph *> hypergraphs_;
 
  public:
-  controller(parallel_coarsener &c, refiner &r,
+  controller(coarsener &c, refiner &r,
              serial::controller &ref, int rank, int nP, int percentile,
              int inc, int approxRefine, std::ostream &out);
 

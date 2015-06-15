@@ -15,11 +15,11 @@
 
 using namespace std;
 
-parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
+parallel::coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                          int num_parts, double constraint,
                                          parallel::hypergraph *h, ostream &out,
                                          const int *options, MPI_Comm comm) {
-  parallel_coarsener *c = nullptr;
+  parallel::coarsener *c = nullptr;
 
   int coarsener_type = ParaFCC; // Para2DModel
   int min_nodes = options[8];
@@ -56,7 +56,7 @@ parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
       break;
     }
 
-    c = new parallel_first_choice_coarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
+    c = new parallel::first_choice_coarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
                             matchReqVisitOrder, divByCluWt, divByHedgeLen, out);
 
     c->set_minimum_number_of_nodes(min_nodes * num_parts);
@@ -92,7 +92,7 @@ parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
       break;
     }
 
-    c = new parallel_2d_model_coarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
+    c = new parallel::model_coarsener_2d(my_rank, num_proc, num_parts, vertexVisitOrder,
                                  matchReqVisitOrder, divByCluWt, divByHedgeLen,
                                  out);
 
@@ -109,7 +109,7 @@ parallel_coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
   return c;
 }
 
-parallel_restrictive_coarsening *Utils::buildParaRestrCoarsener(
+parallel::restrictive_coarsening *Utils::buildParaRestrCoarsener(
     int my_rank, int num_proc, int num_parts, double constraint,
     parallel::hypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
   int coarsener_type = ParaRestFCC;
@@ -118,7 +118,7 @@ parallel_restrictive_coarsening *Utils::buildParaRestrCoarsener(
 
   double r = static_cast<double>(options[9]) / options[10];
 
-  parallel_restrictive_coarsening *c = nullptr;
+  parallel::restrictive_coarsening *c = nullptr;
 
   if (coarsener_type == ParaRestFCC) {
     int vertexVisitOrder = options[11];
@@ -145,8 +145,9 @@ parallel_restrictive_coarsening *Utils::buildParaRestrCoarsener(
       break;
     }
 
-    c = new parallel_restrictive_first_choice_coarsening(my_rank, num_proc, num_parts, vertexVisitOrder,
-                                 divByCluWt, divByHedgeLen, out);
+    c = new parallel::restrictive_first_choice_coarsening(
+        my_rank, num_proc, num_parts, vertexVisitOrder, divByCluWt,
+        divByHedgeLen, out);
 
     c->set_minimum_nodes(min_nodes * num_parts);
     c->set_display_option(disp_option);
@@ -479,8 +480,8 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
 
 parallel::controller *Utils::buildParaController(
     int my_rank, int num_proc, int num_parts, int num_tot_verts,
-    double constraint, parallel_coarsener *c,
-    parallel_restrictive_coarsening *rc, parallel::refiner *r,
+    double constraint, parallel::coarsener *c,
+    parallel::restrictive_coarsening *rc, parallel::refiner *r,
     serial::controller *s, ostream &out, const int *options, MPI_Comm comm) {
   int paraControllerType = options[22];
   int numParaRuns = options[4];
@@ -496,8 +497,9 @@ parallel::controller *Utils::buildParaController(
   parallel::controller *paraC = nullptr;
 
   if (paraControllerType == BasicParaC) {
-    paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc, percentile,
-                                    perCentInc, approxRef, out);
+    paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc,
+                                          percentile, perCentInc, approxRef,
+                                          out);
   }
 
   if (paraControllerType == ParaVCycleBig) {
@@ -576,7 +578,6 @@ parallel::controller *Utils::buildParaController(
     paraC->set_shuffle_vertices(shuffleVertices);
 
     /* random vertex shuffle before each k-way refinement */
-
     paraC->set_random_shuffle_before_refine(0);
 
     if (my_rank == 0)

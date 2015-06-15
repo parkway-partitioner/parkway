@@ -42,8 +42,10 @@
 #define RANDOM(a, b)                                                           \
   ((a) == (b) ? (a) : (static_cast<int>((sprng()) * ((b) - (a))) + (a)))
 #else
-#define RANDOM(a, b)                                                           \
-  ((a) == (b) ? (a) : (static_cast<int>(drand48() * ((b) - (a))) + (a)))
+template <typename T>
+T RANDOM(T a, T b) {
+  return a == b ? a : (static_cast<int>(drand48() * ((b) - (a))) + (a));
+}
 #endif
 
 using parkway::data_structures::dynamic_array;

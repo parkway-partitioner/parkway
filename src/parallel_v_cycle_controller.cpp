@@ -13,8 +13,8 @@
 
 namespace ds = parkway::data_structures;
 
-parallel_v_cycle_controller::parallel_v_cycle_controller(parallel_restrictive_coarsening &rc,
-                                           parallel_coarsener &c, parallel::refiner &r,
+parallel_v_cycle_controller::parallel_v_cycle_controller(parallel::restrictive_coarsening &rc,
+                                                         parallel::coarsener &c, parallel::refiner &r,
                                            parkway::serial::controller &ref, int rank, int nP,
                                            int percentile, int inc,
                                            int approxRef, int limit,

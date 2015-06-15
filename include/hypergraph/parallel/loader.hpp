@@ -1,7 +1,5 @@
-
 #ifndef _PARA_HYPO_LOADER_HPP
 #define _PARA_HYPO_LOADER_HPP
-
 // ### ParaHypergraphLoader.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -11,7 +9,6 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "hypergraph/parallel/hypergraph.hpp"
 #include <iostream>
 #include "data_structures/bit_field.hpp"
@@ -58,7 +55,8 @@ class loader : public global_communicator {
   dynamic_array<int> allocated_hyperedges_;
 
  public:
-  loader(int rank, int nProcs, int nParts, std::ostream &o);
+  loader(int rank, int number_of_processors, int number_of_parts,
+         std::ostream &out_stream, int display_option = 0);
 
   virtual ~loader();
   virtual void release_memory() = 0;

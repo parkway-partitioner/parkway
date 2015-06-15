@@ -11,7 +11,7 @@
 #include "parallel_v_cycle_final_controller.hpp"
 
 parallel_v_cycle_final_controller::parallel_v_cycle_final_controller(
-    parallel_restrictive_coarsening &rc, parallel_coarsener &c, parallel::refiner &r,
+    parallel::restrictive_coarsening &rc, parallel::coarsener &c, parallel::refiner &r,
     parkway::serial::controller &ref, int rank, int nP, int percentile, int inc,
     int approxRef, int limit, double limitAsPercent, std::ostream &out)
     : parallel_v_cycle_controller(rc, c, r, ref, rank, nP, percentile, inc, approxRef,
@@ -36,7 +36,7 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
 
   double totStartTime;
 
-  stack<int> hEdgePercentiles;
+  ds::stack<int> hEdgePercentiles;
 
   parallel::hypergraph *coarseGraph;
   parallel::hypergraph *finerGraph;

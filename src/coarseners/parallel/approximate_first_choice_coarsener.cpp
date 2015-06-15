@@ -1,41 +1,39 @@
-
-#ifndef _PARA_FCCOARSENER_CPP
-#define _PARA_FCCOARSENER_CPP
-
-// ### ParaFCCoarsener.cpp ###
+// ### ParaApproxFCCoarsener.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
 // HISTORY:
 //
-// 3/2/2005: Last Modified
+// 31/12/2004: Last Modified
 //
 // ###
 
-#include "parallel_first_choice_coarsener.hpp"
-#include <iostream>
-#include "data_structures/internal/table_utils.hpp"
-#include "data_structures/match_request_table.hpp"
+#include "coarseners/parallel/approximate_first_choice_coarsener.hpp"
 #include "data_structures/map_to_pos_int.hpp"
+#include "data_structures/internal/table_utils.hpp"
+#include <iostream>
 
-parallel_first_choice_coarsener::parallel_first_choice_coarsener(int rank, int nProcs, int nParts,
-                                 int vertVisOrder, int matchReqOrder,
-                                 int divByWt, int divByLen, std::ostream &out)
-    : parallel_coarsener(rank, nProcs, nParts, out) {
-  vertex_visit_order_ = vertVisOrder;
-  match_request_visit_order_ = matchReqOrder;
-  divide_by_cluster_weight_ = divByWt;
-  divide_by_hyperedge_length_ = divByLen;
-  limit_on_index_during_coarsening_ = 0;
+namespace parkway {
+namespace parallel {
 
-  table_ = nullptr;
+approximate_first_choice_coarsener::approximate_first_choice_coarsener(
+    int rank, int nProcs, int nParts, int percentile, int inc, int vertVisOrder,
+    int matchReqOrder, int divByWt, int divByLen, std::ostream &out)
+    : approximate_coarsener(rank, nProcs, nParts, percentile, inc, out) {
+  vertexVisitOrder = vertVisOrder;
+  matchRequestVisitOrder = matchReqOrder;
+  divByCluWt = divByWt;
+  divByHedgeLen = divByLen;
+  limitOnIndexDuringCoarsening = 0;
+
+  table = nullptr;
 }
 
-parallel_first_choice_coarsener::~parallel_first_choice_coarsener() {
-  dynamic_memory::delete_pointer<ds::match_request_table>(table_);
+approximate_first_choice_coarsener::~approximate_first_choice_coarsener() {
+  dynamic_memory::delete_pointer<ds::match_request_table>(table);
 }
 
-void parallel_first_choice_coarsener::display_options() const {
+void approximate_first_choice_coarsener::dispCoarseningOptions() const {
   switch (display_options_) {
   case SILENT:
 
@@ -44,35 +42,42 @@ void parallel_first_choice_coarsener::display_options() const {
   default:
 
     out_stream << "|--- PARA_C:" << std::endl
-               << "|- PFC:"
+               << "|- ApproxPFC:"
                << " r = " << reduction_ratio_ << " min = " <<
                                                  minimum_number_of_nodes_
                << " vvo = ";
-      print_visit_order(vertex_visit_order_);
+    printVisitOrder(vertexVisitOrder);
     out_stream << " mvo = ";
-      print_visit_order(match_request_visit_order_);
-    out_stream << " divWt = " << divide_by_cluster_weight_ << " divLen = " <<
-                                                              divide_by_hyperedge_length_
+    printVisitOrder(matchRequestVisitOrder);
+    out_stream << " divWt = " << divByCluWt << " divLen = " << divByHedgeLen
+               << " %ile = " << startPercentile << " inc = " << increment
                << std::endl
                << "|" << std::endl;
     break;
   }
 }
 
-void parallel_first_choice_coarsener::build_auxiliary_structures(int numTotPins,
-                                                 double aveVertDeg,
-                                                 double aveHedgeSize) {
+void approximate_first_choice_coarsener::buildAuxiliaryStructs(int numTotPins,
+                                                  double aveVertDeg,
+                                                  double aveHedgeSize) {
   // ###
   // build the ds::match_request_table
   // ###
 
-  int i =
-      static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
+  int i = static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
 
-  table_ = new ds::match_request_table(ds::internal::table_utils::table_size(i / processors_));
+  // table = new ds::match_request_table(Funct::setTableSize(i/processors_));
+  table = new ds::match_request_table(ds::internal::table_utils::table_size(i / processors_));
+  // i = Shiftl(static_cast<int>(ceil(aveVertDeg*aveHedgeSize)),4);
+
+  // ###
+  // build the ConnVertTable
+  // ###
+
+  // connTable = new ConnVertTable(Funct::setTableSize(i));
 }
 
-void parallel_first_choice_coarsener::release_memory() {
+void approximate_first_choice_coarsener::release_memory() {
   hyperedge_weights_.reserve(0);
   hyperedge_offsets_.reserve(0);
   local_pin_list_.reserve(0);
@@ -85,17 +90,12 @@ void parallel_first_choice_coarsener::release_memory() {
     free_memory();
 }
 
-parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
+parallel::hypergraph *approximate_first_choice_coarsener::coarsen(
     parallel::hypergraph &h, MPI_Comm comm) {
   load(h, comm);
 
-#ifdef MEM_CHECK
-  MPI_Barrier(comm);
-  write_log(rank_, "[begin PFCC]: usage: %f", MemoryTracker::usage());
-  Funct::printMemUse(rank_, "[begin PFCC]");
-#endif
-
   if (number_of_vertices_ < minimum_number_of_nodes_ || h.dont_coarsen()) {
+    currPercentile = startPercentile;
     return nullptr;
   }
 
@@ -121,7 +121,6 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
   int candidatV;
   int hEdgeLen;
   int pairWt;
-  int neighbourLoc;
 
   int hEdge;
   int vertex;
@@ -136,13 +135,15 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
     matchInfoLoc.create(number_of_local_pins_, 1);
   else
     matchInfoLoc.create(number_of_vertices_, 0);
+  // ConnVertData *vData;
+  // ConnVertData **vDataArray;
 
   dynamic_array<int> neighVerts;
   dynamic_array<int> neighCluWts;
   dynamic_array<double> connectVals;
   dynamic_array<int> vertices(number_of_local_vertices_);
 
-  permute_vertices_arrays(vertices.data(), number_of_local_vertices_);
+  permuteVerticesArray(vertices.data(), number_of_local_vertices_);
 
   if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
@@ -153,14 +154,13 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
     if (rank_ == 0) {
-      out_stream << " " << maximum_vertex_weight_ << " " << maxWt << " " << aveVertexWt
-                 << " ";
-      out_stream.flush();
+      out_stream << "[PFCC] " << maximum_vertex_weight_ << " " << maxWt << " "
+                 << aveVertexWt << " ";
     }
   }
 
   metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
-  limit_on_index_during_coarsening_ =
+  limitOnIndexDuringCoarsening =
       number_of_local_vertices_ - static_cast<int>(floor(metric - 1.0));
   cluster_index_ = 0;
   stop_coarsening_ = 0;
@@ -189,12 +189,15 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
           assert(candidatV >= 0 && candidatV < totalVertices);
 #endif
           if (candidatV != globalVertexIndex) {
-            /* now try not to check the weight before checking the vertex */
+            // ###
+            // now try not to check the weight before checking the vertex
+            // ###
 
-            neighbourLoc = matchInfoLoc.get_careful(candidatV);
+            auto neighbourLoc = matchInfoLoc.get_careful(candidatV);
+            // vData = connTable->getDataStruct(candidatV);
 
             if (neighbourLoc >= 0) {
-              if (divide_by_hyperedge_length_)
+              if (divByHedgeLen)
                 connectVals[neighbourLoc] +=
                     (static_cast<double>(hyperedge_weights_[hEdge]) / (hEdgeLen - 1));
               else
@@ -220,7 +223,7 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
                   nonLocV =
                       match_vector_[candidatV - minimum_vertex_index_] - NON_LOCAL_MATCH;
                   cluWeight = vertex_weights_[vertex] +
-                              table_->cluster_weight(nonLocV) + aveVertexWt;
+                              table->cluster_weight(nonLocV) + aveVertexWt;
                 } else
                   cluWeight =
                       vertex_weights_[vertex] +
@@ -232,7 +235,7 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
                 // vertex matched with a non-local one
                 // ###
 
-                candVwt = table_->cluster_weight(candidatV);
+                candVwt = table->cluster_weight(candidatV);
 
                 if (candVwt != -1)
                   cluWeight = vertex_weights_[vertex] + candVwt + aveVertexWt;
@@ -257,7 +260,7 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
               neighVerts.assign(numVisited, candidatV);
               neighCluWts.assign(numVisited, cluWeight);
 
-              if (divide_by_hyperedge_length_)
+              if (divByHedgeLen)
                 connectVals.assign(numVisited++,
                                    static_cast<double>(hyperedge_weights_[hEdge]) /
                                        (hEdgeLen - 1));
@@ -274,14 +277,29 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
       // visited above
       // ###
 
+      // numVisited = connTable->getNumEntries();
+      // vDataArray = connTable->getDataArray();
+
+      // ###
+      // pick best match
+      // ###
+
       for (i = 0; i < numVisited; ++i) {
+        /*
+#  ifdef DEBUG_COARSENER
+assert(vDataArray[i]);
+#  endif
+vData = vDataArray[i];
+pairWt = vData->getPairWt();
+*/
+
         pairWt = neighCluWts[i];
         candidatV = neighVerts[i];
 
         if (pairWt <= maximum_vertex_weight_) {
           metric = connectVals[i];
 
-          if (divide_by_cluster_weight_)
+          if (divByCluWt)
             metric /= pairWt;
 
           if (metric > maxMatchMetric) {
@@ -294,10 +312,31 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
 #endif
           }
         }
+        /*
+           if(pairWt <= maxVertexWt)
+           {
+           metric = vData->getConNetWt();
+
+           if(divide_by_cluster_weight_)
+           metric /= pairWt;
+
+           if(metric > maxMatchMetric)
+           {
+           maxMatchMetric = metric;
+           bestMatch = vData->getVertex();
+           bestMatchWt = pairWt;
+
+#  ifdef DEBUG_COARSENER
+assert(bestMatch >= 0);
+#  endif
+}
+}
+*/
       }
 
       matchInfoLoc.clear();
       numVisited = 0;
+      // connTable->clearTable();
 
       if (bestMatch == -1) {
         // ###
@@ -327,7 +366,7 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
             if (match_vector_[bestMatch - minimum_vertex_index_] >= NON_LOCAL_MATCH) {
               nonLocV =
                   match_vector_[bestMatch - minimum_vertex_index_] - NON_LOCAL_MATCH;
-              table_->add_local(nonLocV, vertex + minimum_vertex_index_,
+              table->add_local(nonLocV, vertex + minimum_vertex_index_,
                                vertex_weights_[vertex],
                                std::min(nonLocV / vPerProc, processors_ - 1));
 #ifdef DEBUG_COARSENER
@@ -348,7 +387,7 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
           // best match is not a local vertex
           // ###
 
-          table_->add_local(bestMatch, vertex + minimum_vertex_index_, vertex_weights_[vertex],
+          table->add_local(bestMatch, vertex + minimum_vertex_index_, vertex_weights_[vertex],
                            std::min(bestMatch / vPerProc, processors_ - 1));
 #ifdef DEBUG_COARSENER
           assert(std::min(bestMatch / vPerProc, processors_ - 1) != rank_);
@@ -362,15 +401,13 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
       // check the amount that the hypergraph has shrunk by
       // ###
 
-      if (index > limit_on_index_during_coarsening_) {
+      if (index > limitOnIndexDuringCoarsening) {
         reducedBy = static_cast<double>(number_of_local_vertices_) /
-                    (numNotMatched + cluster_index_ + table_->size());
+                    (numNotMatched + cluster_index_ + table->size());
         break;
       }
     }
   }
-
-  matchInfoLoc.destroy();
 
   // ###
   // now carry over all the unmatched vertices as singletons
@@ -390,11 +427,11 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
   // ###
 
   for (i = 0; i < 2; ++i) {
-    set_request_arrays(i);
+    setRequestArrays(i);
       send_from_data_out(comm); // actually sending requests
-    set_reply_arrays(i, maximum_vertex_weight_);
+    setReplyArrays(i, maximum_vertex_weight_);
       send_from_data_out(comm); // actually sending replies
-    process_request_replies();
+    processReqReplies();
   }
 
   set_cluster_indices(comm);
@@ -404,60 +441,53 @@ parallel::hypergraph *parallel_first_choice_coarsener::coarsen(
     stop_coarsening_ = 1;
   }
 
-  table_->clear();
+  table->clear();
 
   // ###
   // now construct the coarse hypergraph using the matching vector
   // ###
 
-  /*
-  if(rank_ == 0) {
-    std::cout << "about to contract hyperedges" << std::endl;
-  }
-  MPI_Barrier(comm);
-  */
-  return (constract_hyperedges(h, comm));
+  return (contract_hyperedges(h, comm));
 }
 
-void parallel_first_choice_coarsener::set_request_arrays(int highToLow) {
-  int numRequests = table_->size();
+void approximate_first_choice_coarsener::setRequestArrays(int highToLow) {
+  int numRequests = table->size();
   int nonLocVertex;
   int cluWt;
 
   int i;
   int procRank;
 
-  ds::match_request_table::entry *entry_;
-  ds::match_request_table::entry **entryArray = table_->get_entries();
+  ds::match_request_table::entry *entry;
+  ds::match_request_table::entry **entryArray = table->get_entries();
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
 
   for (i = 0; i < numRequests; ++i) {
-    entry_ = entryArray[i];
+    entry = entryArray[i];
 
 #ifdef DEBUG_COARSENER
-    assert(entry_);
+    assert(entry);
 #endif
 
-    nonLocVertex = entry_->non_local_vertex();
-    cluWt = entry_->cluster_weight();
-    procRank = entry_->non_local_process();
+    nonLocVertex = entry->non_local_vertex();
+    cluWt = entry->cluster_weight();
+    procRank = entry->non_local_process();
 
 #ifdef DEBUG_COARSENER
     assert(procRank < processors_);
 #endif
 
-    if ((cluWt >= 0) && ((highToLow && procRank < rank_) ||
-                         (!highToLow && procRank > rank_))) {
+    if ((cluWt > 0) && ((highToLow && procRank < rank_) ||
+                        (!highToLow && procRank > rank_))) {
       data_out_sets_[procRank]->assign(send_lens_[procRank]++, nonLocVertex);
       data_out_sets_[procRank]->assign(send_lens_[procRank]++, cluWt);
     }
   }
 }
 
-void parallel_first_choice_coarsener::set_reply_arrays(int highToLow,
-                                                       int maxVWt) {
+void approximate_first_choice_coarsener::setReplyArrays(int highToLow, int maxVWt) {
   int j;
   int i;
   int l;
@@ -478,7 +508,7 @@ void parallel_first_choice_coarsener::set_reply_arrays(int highToLow,
     assert(And(receive_lens_[i], 0x1) == 0);
 #endif
 
-    if (match_request_visit_order_ == RANDOM_ORDER) {
+    if (matchRequestVisitOrder == RANDOM_ORDER) {
       visitOrderLen = Shiftr(receive_lens_[i], 1);
       visitOrder.reserve(visitOrderLen);
 
@@ -554,7 +584,7 @@ void parallel_first_choice_coarsener::set_reply_arrays(int highToLow,
   }
 }
 
-void parallel_first_choice_coarsener::process_request_replies() {
+void approximate_first_choice_coarsener::processReqReplies() {
   int i;
   int j;
   int index;
@@ -566,7 +596,7 @@ void parallel_first_choice_coarsener::process_request_replies() {
   int numLocals;
   int *locals;
 
-  ds::match_request_table::entry *entry_;
+  ds::match_request_table::entry *entry;
 
   for (i = 0; i < processors_; ++i) {
     j = 0;
@@ -580,40 +610,39 @@ void parallel_first_choice_coarsener::process_request_replies() {
         // ###
 
         cluWt = receive_array_[startOffset + (j++)];
-        entry_ = table_->get_entry(vNonLocReq);
+        entry = table->get_entry(vNonLocReq);
 
 #ifdef DEBUG_COARSENER
-        assert(entry_);
+        assert(entry);
 #endif
 
-        entry_->set_cluster_index(matchIndex);
-        entry_->set_cluster_weight(cluWt);
+        entry->set_cluster_index(matchIndex);
+        entry->set_cluster_weight(cluWt);
       } else {
         // ###
         // match not successful - match requesting
         // vertices into a cluster
         // ###
 
-        entry_ = table_->get_entry(vNonLocReq);
-        locals = entry_->local_vertices_array();
-        numLocals = entry_->number_local();
-        entry_->set_cluster_index(MATCHED_LOCALLY);
+        entry = table->get_entry(vNonLocReq);
+        locals = entry->local_vertices_array();
+        numLocals = entry->number_local();
+        entry->set_cluster_index(MATCHED_LOCALLY);
 
         for (index = 0; index < numLocals; ++index)
           match_vector_[locals[index] - minimum_vertex_index_] = cluster_index_;
 
-        cluster_weights_.assign(cluster_index_++, entry_->cluster_weight());
+        cluster_weights_.assign(cluster_index_++, entry->cluster_weight());
       }
     }
     startOffset += receive_lens_[i];
   }
 }
 
-void parallel_first_choice_coarsener::permute_vertices_arrays(int *verts,
-                                                              int nLocVerts) {
+void approximate_first_choice_coarsener::permuteVerticesArray(int *verts, int nLocVerts) {
   int i;
 
-  switch (vertex_visit_order_) {
+  switch (vertexVisitOrder) {
   case INCREASING_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
@@ -656,7 +685,7 @@ void parallel_first_choice_coarsener::permute_vertices_arrays(int *verts,
   }
 }
 
-void parallel_first_choice_coarsener::set_cluster_indices(MPI_Comm comm) {
+void approximate_first_choice_coarsener::setClusterIndices(MPI_Comm comm) {
   dynamic_array<int> numClusters(processors_);
   dynamic_array<int> startIndex(processors_);
 
@@ -666,12 +695,12 @@ void parallel_first_choice_coarsener::set_cluster_indices(MPI_Comm comm) {
   int index = 0;
   int i;
 
-  ds::match_request_table::entry *entry_;
+  ds::match_request_table::entry *entry;
   ds::match_request_table::entry **entryArray;
 
   int numLocals;
   int cluIndex;
-  int numEntries = table_->size();
+  int numEntries = table->size();
   int *locals;
 
   i = 0;
@@ -696,29 +725,25 @@ void parallel_first_choice_coarsener::set_cluster_indices(MPI_Comm comm) {
   // now set the non-local matches' cluster indices
   // ###
 
-  entryArray = table_->get_entries();
+  entryArray = table->get_entries();
 
   for (index = 0; index < numEntries; ++index) {
-    entry_ = entryArray[index];
+    entry = entryArray[index];
 
 #ifdef DEBUG_COARSENER
-    assert(entry_);
+    assert(entry);
 #endif
 
-    cluIndex = entry_->cluster_index();
+    cluIndex = entry->cluster_index();
 
-#ifdef DEBUG_COARSENER
-    assert(cluIndex >= 0);
-#endif
-
-    if (cluIndex != MATCHED_LOCALLY) {
-      numLocals = entry_->number_local();
-      locals = entry_->local_vertices_array();
+    if (cluIndex >= 0 && cluIndex != MATCHED_LOCALLY) {
+      numLocals = entry->number_local();
+      locals = entry->local_vertices_array();
 
 #ifdef DEBUG_COARSENER
       assert(locals);
 #endif
-      cluIndex += startIndex[entry_->non_local_process()];
+      cluIndex += startIndex[entry->non_local_process()];
 
       // indicate - there is no reason now why a vertex may not
       // match non-locally with a vertex that was matched non-locally
@@ -733,15 +758,12 @@ void parallel_first_choice_coarsener::set_cluster_indices(MPI_Comm comm) {
 
 #ifdef DEBUG_COARSENER
   for (index = 0; index < numLocalVertices; ++index)
-    if (matchVector[index] < 0 || matchVector[index] >= totalVertices) {
-      std::cout << "matchVector[" << index << "]  = " << matchVector[index] << std::endl;
-      assert(0);
-    }
+    assert(matchVector[index] >= 0 && matchVector[index] < totalVertices);
 #endif
 }
 
-int parallel_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
-                            int maxWt) {
+int approximate_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
+                                  int maxWt) {
   int locVertexIndex = locVertex - minimum_vertex_index_;
   int matchValue = match_vector_[locVertexIndex];
 
@@ -769,7 +791,7 @@ int parallel_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, int 
     // here think about allowing more than one cross-processor match
     // ###
 
-    if (table_->cluster_index(nonLocReq) != -1)
+    if (table->cluster_index(nonLocReq) != -1)
       return 0;
 
     int cluWt = vertex_weights_[locVertexIndex] + nonLocCluWt;
@@ -784,7 +806,7 @@ int parallel_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, int 
       // remove locVertex from the request table
       // ###
 
-      table_->remove_local(nonLocReq, locVertex, vertex_weights_[locVertexIndex]);
+      table->remove_local(nonLocReq, locVertex, vertex_weights_[locVertexIndex]);
       match_vector_[locVertexIndex] = cluster_index_;
       cluster_weights_.assign(cluster_index_++, cluWt);
 
@@ -793,7 +815,7 @@ int parallel_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, int 
   }
 }
 
-void parallel_first_choice_coarsener::print_visit_order(int variable) const {
+void approximate_first_choice_coarsener::printVisitOrder(int variable) const {
   switch (variable) {
   case INCREASING_ORDER:
     out_stream << "inc-idx";
@@ -817,4 +839,5 @@ void parallel_first_choice_coarsener::print_visit_order(int variable) const {
   }
 }
 
-#endif
+}  // namespace parallel
+}  // namespace parkway

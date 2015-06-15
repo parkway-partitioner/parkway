@@ -15,10 +15,8 @@
 #include "parallel_v_cycle_controller.hpp"
 
 class parallel_v_cycle_all_controller : public parallel_v_cycle_controller {
-
-protected:
-public:
-  parallel_v_cycle_all_controller(parallel_restrictive_coarsening &rc, parallel_coarsener &c,
+ public:
+  parallel_v_cycle_all_controller(parallel::restrictive_coarsening &rc, parallel::coarsener &c,
                                   parallel::refiner &r, parkway::serial::controller &ref, int rank, int nP,
                           int percentile, int inc, int approxRef, int limit,
                           double limitAsPercent, std::ostream &out);

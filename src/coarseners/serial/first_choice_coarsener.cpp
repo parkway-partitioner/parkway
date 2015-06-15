@@ -1,8 +1,4 @@
-
-#ifndef _RESTR_FCCOARSENER_CPP
-#define _RESTR_FCCOARSENER_CPP
-
-// ### RestrFCCoarsener.cpp ###
+// ### FCCoarsener.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
@@ -11,41 +7,44 @@
 // 4/1/2005: Last Modified
 //
 // ###
+#include "coarseners/serial/first_choice_coarsener.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
 
-#include "restrictive_first_choice_coarsener.hpp"
+namespace parkway {
+namespace serial {
 
-restrictive_first_choice_coarsener::restrictive_first_choice_coarsener(int _min, int _maxwt, double r, int fanOut,
-                                   int dbWt, int dL)
-    : restrictive_coarsener(_min, _maxwt, r, dL) {
+first_choice_coarsener::first_choice_coarsener(int _min, int _maxwt, double r,
+                                               int fanOut, int dbWt, int dL)
+    : coarsener(_min, _maxwt, r, dL) {
   util_fan_out_ = fanOut;
   divide_by_cluster_weight_ = dbWt;
 }
 
-restrictive_first_choice_coarsener::~restrictive_first_choice_coarsener() {}
+first_choice_coarsener::~first_choice_coarsener() {}
 
-void restrictive_first_choice_coarsener::display_options(std::ostream &out) const {
+void first_choice_coarsener::display_options(std::ostream &out) const {
   switch (dispOption) {
   case SILENT:
     break;
 
   default:
 
-    out << "|- RestrFCC:"
-        << " r = " << reduction_ratio_ << " min = " << minimum_nodes_
+    out << "|- FCC:"
+        << " r = " << reduction_ratio_ << " min = " << minimum_number_of_nodes_
         << " util = " << util_fan_out_ << std::endl
         << "|" << std::endl;
     break;
   }
 }
 
-serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hypergraph &h) {
-  loadHypergraphForRestrCoarsening(h);
+hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
+  load_for_coarsening(h);
 
   // ###
   // back off if the hypergraph too small
   // ###
 
-  if (numVertices < minimum_nodes_)
+  if (numVertices < minimum_number_of_nodes_)
     return nullptr;
 
   int numNotMatched = numVertices;
@@ -62,7 +61,6 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
   int ij;
 
   int v;
-  int vPart;
   int coarseIndex;
 
   int endVerOffset;
@@ -78,7 +76,6 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
   dynamic_array<int> vertices(numVertices);
   dynamic_array<int> vertexAdjEntry(numVertices);
   dynamic_array<int> *coarseWts = new dynamic_array<int>;
-  dynamic_array<int> *coarsePVector = new dynamic_array<int>;
 
   dynamic_array<double> connectVals;
 
@@ -108,7 +105,6 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
   for (; i < numVertices; ++i) {
     if (matchVector[vertices[i]] == -1) {
       v = vertices[i];
-      vPart = partitionVectors[v];
       bestMatch = -1;
       maxMatchMetric = 0;
       numNeighbours = 0;
@@ -124,7 +120,7 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
           for (ij = hEdgeOffsets[hEdge]; ij < endHedgeOffset; ++ij) {
             candVertex = pinList[ij];
 
-            if (candVertex != v && partitionVectors[candVertex] == vPart) {
+            if (candVertex != v) {
               candVertexEntry = vertexAdjEntry[candVertex];
 
               if (candVertexEntry == -1) {
@@ -167,7 +163,6 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
         // match vertex v as singleton as not connected
 
         matchVector[v] = coarseIndex;
-        coarsePVector->assign(coarseIndex, vPart);
         coarseWts->assign(coarseIndex++, vWeight[v]);
         --numNotMatched;
       } else {
@@ -195,7 +190,6 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
           // vertex weight - match as singleton
 
           matchVector[v] = coarseIndex;
-          coarsePVector->assign(coarseIndex, vPart);
           coarseWts->assign(coarseIndex++, vWeight[v]);
           --numNotMatched;
         } else {
@@ -204,7 +198,6 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
 
             matchVector[v] = coarseIndex;
             matchVector[bestMatch] = coarseIndex;
-            coarsePVector->assign(coarseIndex, vPart);
             coarseWts->assign(coarseIndex++, bestMatchWt);
             numNotMatched -= 2;
           } else {
@@ -244,7 +237,6 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
 
     if (matchVector[v] == -1) {
       matchVector[v] = coarseIndex;
-      coarsePVector->assign(coarseIndex, partitionVectors[v]);
       coarseWts->assign(coarseIndex++, vWeight[v]);
     }
   }
@@ -255,11 +247,10 @@ serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hy
 #endif
 
   coarseWts->reserve(coarseIndex);
-  coarsePVector->reserve(coarseIndex);
 
-  return (build_coarse_hypergraph(coarseWts->data(),
-                                  coarsePVector->data(), coarseIndex,
+  return (build_coarse_hypergraph(coarseWts->data(), coarseIndex,
                                   h.total_weight()));
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

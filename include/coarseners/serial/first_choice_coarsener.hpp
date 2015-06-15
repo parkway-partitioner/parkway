@@ -1,6 +1,5 @@
 #ifndef _FCCOARSENER_HPP
 #define _FCCOARSENER_HPP
-
 // ### FCCoarsener.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -12,27 +11,35 @@
 // ###
 
 #include <iostream>
-#include "coarsener.hpp"
+#include "coarseners/serial/coarsener.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 
-namespace serial = parkway::serial;
+namespace parkway {
+namespace serial {
 
 class first_choice_coarsener : public coarsener {
-
-protected:
-  int util_fan_out_;
-  int divide_by_cluster_weight_;
-
-public:
+ public:
   first_choice_coarsener(int _min, int _maxwt, double r, int fanOut, int dbWt, int dL);
   ~first_choice_coarsener();
 
-  serial::hypergraph *coarsen(const serial::hypergraph &h);
+  hypergraph *coarsen(const hypergraph &h);
 
   void display_options(std::ostream &out) const;
 
-  inline void set_util_fan_out(int f) { util_fan_out_ = f; }
-  inline int util_fan_out() const { return util_fan_out_; }
+  inline void set_util_fan_out(int f) {
+    util_fan_out_ = f;
+  }
+
+  inline int util_fan_out() const {
+    return util_fan_out_;
+  }
+
+ protected:
+  int util_fan_out_;
+  int divide_by_cluster_weight_;
 };
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

@@ -1,6 +1,5 @@
 #ifndef _VCYCLE_BISECTION_HPP
 #define _VCYCLE_BISECTION_HPP
-
 // ### VCycleBisectionController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,9 +9,8 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "bisection_controller.hpp"
-#include "restrictive_first_choice_coarsener.hpp"
+#include "coarseners/serial/restrictive_first_choice_coarsener.hpp"
 
 namespace parkway {
 namespace serial {

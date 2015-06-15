@@ -1,6 +1,3 @@
-#ifndef _PARA_RESTR_FCC_CPP
-#define _PARA_RESTR_FCC_CPP
-
 // ### ParaRestrFCCoarsener.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -11,21 +8,24 @@
 //
 // ###
 
-#include "parallel_restrictive_first_choice_coarsening.hpp"
+#include "coarseners/parallel/restrictive_first_choice_coarsening.hpp"
 
-parallel_restrictive_first_choice_coarsening::parallel_restrictive_first_choice_coarsening(int rank, int nProcs, int nParts,
-                                           int verVisOrder, int divByWt,
-                                           int divByLen, std::ostream &out)
-    : parallel_restrictive_coarsening(rank, nProcs, nParts, out) {
+namespace parkway {
+namespace parallel {
+
+restrictive_first_choice_coarsening::restrictive_first_choice_coarsening(
+    int rank, int nProcs, int nParts, int verVisOrder, int divByWt,
+    int divByLen, std::ostream &out)
+    : restrictive_coarsening(rank, nProcs, nParts, out) {
   vertex_visit_order_ = verVisOrder;
   divide_by_cluster_weight_ = divByWt;
   divide_by_hyperedge_length_ = divByLen;
   limit_on_index_during_corasening_ = 0;
 }
 
-parallel_restrictive_first_choice_coarsening::~parallel_restrictive_first_choice_coarsening() {}
+restrictive_first_choice_coarsening::~restrictive_first_choice_coarsening() {}
 
-void parallel_restrictive_first_choice_coarsening::display_options() const {
+void restrictive_first_choice_coarsening::display_options() const {
   switch (display_options_) {
   case SILENT:
 
@@ -46,11 +46,11 @@ void parallel_restrictive_first_choice_coarsening::display_options() const {
   }
 }
 
-void parallel_restrictive_first_choice_coarsening::build_auxiliary_structures(int numPins,
+void restrictive_first_choice_coarsening::build_auxiliary_structures(int numPins,
                                                       double aveVertDeg,
                                                       double aveHedgeSize) {}
 
-void parallel_restrictive_first_choice_coarsening::release_memory() {
+void restrictive_first_choice_coarsening::release_memory() {
   hyperedge_weights_.reserve(0);
   hyperedge_offsets_.reserve(0);
   local_pin_list_.reserve(0);
@@ -62,8 +62,8 @@ void parallel_restrictive_first_choice_coarsening::release_memory() {
   free_memory();
 }
 
-parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
-    parallel::hypergraph &h, MPI_Comm comm) {
+hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
+                                                         MPI_Comm comm) {
   load(h, comm);
 
   if (number_of_vertices_ < minimum_nodes_ || h.dont_coarsen()) {
@@ -97,11 +97,11 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
   double maxMatchMetric;
   double reducedBy = 1;
 
-  dynamic_array<int> neighVerts;
-  dynamic_array<int> neighPairWts;
-  dynamic_array<double> connectVals;
-  dynamic_array<int> vertexAdjEntry(number_of_local_vertices_);
-  dynamic_array<int> vertices(number_of_local_vertices_);
+  ds::dynamic_array<int> neighVerts;
+  ds::dynamic_array<int> neighPairWts;
+  ds::dynamic_array<double> connectVals;
+  ds::dynamic_array<int> vertexAdjEntry(number_of_local_vertices_);
+  ds::dynamic_array<int> vertices(number_of_local_vertices_);
 
   permute_vertices_array(vertices.data(), number_of_local_vertices_);
 
@@ -124,12 +124,8 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
 
   metricVal = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
 
-#ifdef DEBUG_COARSENER
-  assert(clusterWeights == nullptr);
-#endif
-
-  cluster_weights_ = new dynamic_array<int>(1024);
-  oartition_vector_ = new dynamic_array<int>(1024);
+  cluster_weights_.reserve(1024);
+  part_vector_ = new dynamic_array<int>(1024);
 
   limit_on_index_during_corasening_ =
       number_of_local_vertices_ - static_cast<int>(floor(metricVal - 1.0));
@@ -173,7 +169,7 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
                 neighPairWts.assign(
                     numNeighbours,
                     vertex_weights_[vertex] +
-                        (*cluster_weights_)[match_vector_[neighVertex]]);
+                        cluster_weights_[match_vector_[neighVertex]]);
 
               neighVerts.assign(numNeighbours, neighVertex);
 
@@ -208,8 +204,8 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
         // match vertex v as singleton as not connected
 
         match_vector_[vertex] = cluster_index_;
-        oartition_vector_->assign(cluster_index_, partition_vector_[vertex]);
-        cluster_weights_->assign(cluster_index_++, vertex_weights_[vertex]);
+        part_vector_->assign(cluster_index_, partition_vector_[vertex]);
+        cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
         --numNotMatched;
       } else {
         // ###
@@ -241,8 +237,8 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
           // vertex weight - match as singleton
 
           match_vector_[vertex] = cluster_index_;
-          oartition_vector_->assign(cluster_index_, partition_vector_[vertex]);
-          cluster_weights_->assign(cluster_index_++, vertex_weights_[vertex]);
+          part_vector_->assign(cluster_index_, partition_vector_[vertex]);
+          cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
           --numNotMatched;
         } else {
 #ifdef DEBUG_COARSENER
@@ -253,14 +249,14 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
 
             match_vector_[vertex] = cluster_index_;
             match_vector_[bestMatch] = cluster_index_;
-            oartition_vector_->assign(cluster_index_, partition_vector_[vertex]);
-            cluster_weights_->assign(cluster_index_++, bestMatchWt);
+            part_vector_->assign(cluster_index_, partition_vector_[vertex]);
+            cluster_weights_.assign(cluster_index_++, bestMatchWt);
             numNotMatched -= 2;
           } else {
             // match with existing cluster of coarse vertices
 
             match_vector_[vertex] = match_vector_[bestMatch];
-            (*cluster_weights_)[match_vector_[vertex]] += vertex_weights_[vertex];
+            cluster_weights_[match_vector_[vertex]] += vertex_weights_[vertex];
             --numNotMatched;
           }
         }
@@ -283,8 +279,8 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
 
     if (match_vector_[vertex] == -1) {
       match_vector_[vertex] = cluster_index_;
-      oartition_vector_->assign(cluster_index_, partition_vector_[vertex]);
-      cluster_weights_->assign(cluster_index_++, vertex_weights_[vertex]);
+      part_vector_->assign(cluster_index_, partition_vector_[vertex]);
+      cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
     }
   }
 
@@ -310,7 +306,7 @@ parallel::hypergraph *parallel_restrictive_first_choice_coarsening::coarsen(
   return (contract_hyperedges(h, comm));
 }
 
-void parallel_restrictive_first_choice_coarsening::permute_vertices_array(
+void restrictive_first_choice_coarsening::permute_vertices_array(
     int *verts, int nLocVerts) {
   int i;
 
@@ -357,7 +353,7 @@ void parallel_restrictive_first_choice_coarsening::permute_vertices_array(
   }
 }
 
-void parallel_restrictive_first_choice_coarsening::set_cluster_indices(MPI_Comm comm) {
+void restrictive_first_choice_coarsening::set_cluster_indices(MPI_Comm comm) {
   int i;
 
   MPI_Scan(&cluster_index_, &minimum_cluster_index_, 1, MPI_INT, MPI_SUM, comm);
@@ -377,7 +373,7 @@ void parallel_restrictive_first_choice_coarsening::set_cluster_indices(MPI_Comm 
   }
 }
 
-void parallel_restrictive_first_choice_coarsening::print_visit_order(
+void restrictive_first_choice_coarsening::print_visit_order(
     int variable) const {
   switch (variable) {
   case INCREASING_ORDER:
@@ -402,4 +398,5 @@ void parallel_restrictive_first_choice_coarsening::print_visit_order(
   }
 }
 
-#endif
+}  // namespace parallel
+}  // namespace parkway

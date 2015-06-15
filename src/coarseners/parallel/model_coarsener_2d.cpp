@@ -1,6 +1,3 @@
-#ifndef _PARA_2DMODEL_COARSENER_CPP
-#define _PARA_2DMODEL_COARSENER_CPP
-
 // ### Para2DModelCoarsener.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,16 +7,18 @@
 // 19/04/2005: Last Modified
 //
 // ###
-
-#include "parallel_2d_model_coarsener.hpp"
+#include "coarseners/parallel/model_coarsener_2d.hpp"
 #include "data_structures/map_to_pos_int.hpp"
 #include "data_structures/internal/table_utils.hpp"
 
-parallel_2d_model_coarsener::parallel_2d_model_coarsener(int rank, int nProcs, int nParts,
-                                           int vertVisOrder, int matchReqOrder,
-                                           int divByWt, int divByLen,
-                                           std::ostream &out)
-    : parallel_coarsener(rank, nProcs, nParts, out) {
+namespace parkway {
+namespace parallel {
+
+model_coarsener_2d::model_coarsener_2d(int rank, int nProcs, int nParts,
+                                       int vertVisOrder, int matchReqOrder,
+                                       int divByWt, int divByLen,
+                                       std::ostream &out)
+    : coarsener(rank, nProcs, nParts, out) {
   vertex_visit_order_ = vertVisOrder;
   match_request_visit_order_ = matchReqOrder;
   divide_by_cluster_weight_ = divByWt;
@@ -29,18 +28,16 @@ parallel_2d_model_coarsener::parallel_2d_model_coarsener(int rank, int nProcs, i
   table_ = nullptr;
 }
 
-parallel_2d_model_coarsener::~parallel_2d_model_coarsener() {
+model_coarsener_2d::~model_coarsener_2d() {
   dynamic_memory::delete_pointer<ds::match_request_table>(table_);
 }
 
-void parallel_2d_model_coarsener::display_options() const {
+void model_coarsener_2d::display_options() const {
   switch (display_options_) {
   case SILENT:
-
     break;
 
   default:
-
     out_stream << "|--- PARA_C:" << std::endl
                << "|- 2DModel:"
                << " r = " << reduction_ratio_ << " min = " <<
@@ -53,25 +50,22 @@ void parallel_2d_model_coarsener::display_options() const {
                                                               divide_by_hyperedge_length_
                << " threshold = " << 1e6 << std::endl
                << "|" << std::endl;
-    break;
   }
 }
 
-void parallel_2d_model_coarsener::build_auxiliary_structures(int numTotPins,
+void model_coarsener_2d::build_auxiliary_structures(int numTotPins,
                                                       double aveVertDeg,
                                                       double aveHedgeSize) {
   // ###
   // build the ds::match_request_table
   // ###
-
-  int i =
-      static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
+  int i = static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
 
   table_ = new ds::match_request_table(
       ds::internal::table_utils::table_size(i / processors_));
 }
 
-void parallel_2d_model_coarsener::release_memory() {
+void model_coarsener_2d::release_memory() {
   hyperedge_weights_.reserve(0);
   hyperedge_offsets_.reserve(0);
   local_pin_list_.reserve(0);
@@ -84,7 +78,7 @@ void parallel_2d_model_coarsener::release_memory() {
     free_memory();
 }
 
-parallel::hypergraph *parallel_2d_model_coarsener::coarsen(
+parallel::hypergraph *model_coarsener_2d::coarsen(
     parallel::hypergraph &h, MPI_Comm comm) {
   load(h, comm);
 
@@ -104,7 +98,7 @@ parallel::hypergraph *parallel_2d_model_coarsener::coarsen(
   }
 }
 
-parallel::hypergraph *parallel_2d_model_coarsener::parallel_first_choice_coarsen(
+parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
     parallel::hypergraph &h, MPI_Comm comm) {
 #ifdef MEM_CHECK
   MPI_Barrier(comm);
@@ -436,10 +430,10 @@ parallel::hypergraph *parallel_2d_model_coarsener::parallel_first_choice_coarsen
   // if(rank_ == 0)
   // std::cout << "about to contract hyperedges" << std::endl;
   // MPI_Barrier(comm);
-  return (constract_hyperedges(h, comm));
+  return (contract_hyperedges(h, comm));
 }
 
-parallel::hypergraph *parallel_2d_model_coarsener::parallel_hyperedge_coarsen(
+parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
     parallel::hypergraph &h, MPI_Comm comm) {
 #ifdef MEM_CHECK
   MPI_Barrier(comm);
@@ -679,10 +673,10 @@ parallel::hypergraph *parallel_2d_model_coarsener::parallel_hyperedge_coarsen(
   // std::cout << "about to contract hyperedges" << std::endl;
   // MPI_Barrier(comm);
 
-  return (constract_hyperedges(h, comm));
+  return (contract_hyperedges(h, comm));
 }
 
-void parallel_2d_model_coarsener::set_request_arrays(int highToLow) {
+void model_coarsener_2d::set_request_arrays(int highToLow) {
   int numRequests = table_->size();
   int nonLocVertex;
   int cluWt;
@@ -719,7 +713,7 @@ void parallel_2d_model_coarsener::set_request_arrays(int highToLow) {
   }
 }
 
-void parallel_2d_model_coarsener::set_reply_arrays(int highToLow, int maxVWt) {
+void model_coarsener_2d::set_reply_arrays(int highToLow, int maxVWt) {
   int j;
   int i;
   int l;
@@ -816,7 +810,7 @@ void parallel_2d_model_coarsener::set_reply_arrays(int highToLow, int maxVWt) {
   }
 }
 
-void parallel_2d_model_coarsener::process_request_replies() {
+void model_coarsener_2d::process_request_replies() {
   int i;
   int j;
   int index;
@@ -871,7 +865,7 @@ void parallel_2d_model_coarsener::process_request_replies() {
   }
 }
 
-void parallel_2d_model_coarsener::set_cluster_indices(MPI_Comm comm) {
+void model_coarsener_2d::set_cluster_indices(MPI_Comm comm) {
   dynamic_array<int> numClusters(processors_);
   dynamic_array<int> startIndex(processors_);
 
@@ -954,7 +948,7 @@ void parallel_2d_model_coarsener::set_cluster_indices(MPI_Comm comm) {
 #endif
 }
 
-int parallel_2d_model_coarsener::accept(int locVertex, int nonLocCluWt, int highToLow,
+int model_coarsener_2d::accept(int locVertex, int nonLocCluWt, int highToLow,
                                  int maxWt) {
   int locVertexIndex = locVertex - minimum_vertex_index_;
   int matchValue = match_vector_[locVertexIndex];
@@ -1007,7 +1001,7 @@ int parallel_2d_model_coarsener::accept(int locVertex, int nonLocCluWt, int high
   }
 }
 
-void parallel_2d_model_coarsener::permute_vertices_arrays(int *verts,
+void model_coarsener_2d::permute_vertices_arrays(int *verts,
                                                           int nLocVerts) {
   int i;
 
@@ -1054,7 +1048,7 @@ void parallel_2d_model_coarsener::permute_vertices_arrays(int *verts,
   }
 }
 
-void parallel_2d_model_coarsener::print_visit_order(int variable) const {
+void model_coarsener_2d::print_visit_order(int variable) const {
   switch (variable) {
   case INCREASING_ORDER:
     out_stream << "inc-idx";
@@ -1078,4 +1072,5 @@ void parallel_2d_model_coarsener::print_visit_order(int variable) const {
   }
 }
 
-#endif
+}  // namespace parallel
+}  // namespace parkway

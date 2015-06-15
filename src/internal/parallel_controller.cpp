@@ -13,7 +13,7 @@
 namespace parkway {
 namespace parallel {
 
-controller::controller(parallel_coarsener &c, refiner &r,
+controller::controller(coarsener &c, refiner &r,
                        serial::controller &con, int rank, int nP,
                        int percentile, int inc, int approxRef,
                        std::ostream &out)

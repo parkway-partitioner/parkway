@@ -28,12 +28,12 @@ namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
 
 namespace Utils {
-parallel_coarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
+parallel::coarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
                                   double constraint, parallel::hypergraph *h,
                                   std::ostream &out, const int *options,
                                   MPI_Comm comm);
 
-parallel_restrictive_coarsening *buildParaRestrCoarsener(int myRank, int numProc,
+parallel::restrictive_coarsening *buildParaRestrCoarsener(int myRank, int numProc,
                                             int numParts, double constraint,
                                             parallel::hypergraph *h, std::ostream &out,
                                             const int *options, MPI_Comm comm);
@@ -48,7 +48,7 @@ serial::controller *buildSeqController(int myRank, int numProc, int numParts,
 
 parallel::controller *buildParaController(int myRank, int numProcs, int numParts,
                                     int num_tot_verts, double constraint,
-                                    parallel_coarsener *c, parallel_restrictive_coarsening *rc,
+                                    parallel::coarsener *c, parallel::restrictive_coarsening *rc,
                                     parallel::refiner *r, serial::controller *s,
                                     std::ostream &out, const int *options,
                                     MPI_Comm comm);

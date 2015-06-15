@@ -1,7 +1,4 @@
-#ifndef _RESTR_COARSENER_CPP
-#define _RESTR_COARSENER_CPP
-
-// ### RestrCoarsener.cpp ###
+// ### Coarsener.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
@@ -10,23 +7,27 @@
 // 4/1/2005: Last Modified
 //
 // ###
+#include "coarseners/serial/coarsener.hpp"
+#include "hypergraph/serial/hypergraph.hpp"
+#include "data_structures/dynamic_array.hpp"
 
-#include "restrictive_coarsener.hpp"
+namespace parkway {
+namespace serial {
+namespace ds = parkway::data_structures;
 
-restrictive_coarsener::restrictive_coarsener(int min, int maxWt, double ratio, int dispL)
-    : serial::loader(dispL) {
-  minimum_nodes_ = min;
-  maximum_vertex_weight_ = maxWt;
-  reduction_ratio_ = ratio;
+coarsener::coarsener(int minimum_number_of_nodes, int max_weight, double ratio,
+                     int display_option, std::string object_name)
+    : loader(display_option),
+      parkway::coarsener::base_coarsener(object_name, max_weight,
+                                         minimum_number_of_nodes, ratio) {
 }
 
-restrictive_coarsener::~restrictive_coarsener() {}
+coarsener::~coarsener() {}
 
-serial::hypergraph *restrictive_coarsener::build_coarse_hypergraph(
-    int *coarseWts,
-    int *coarsePartVector,
-    int numCoarseVerts,
-    int totWt) const {
+hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
+                                               int numCoarseVerts,
+                                               int totWt) const {
+
   int numNewHedges = 0;
   int numNewPins = 0;
   int startOff;
@@ -46,21 +47,19 @@ serial::hypergraph *restrictive_coarsener::build_coarse_hypergraph(
   int j;
   int ij;
 
-  serial::hypergraph *newHypergraph = new serial::hypergraph(
-      coarseWts, coarsePartVector, numCoarseVerts, partitionCutsizes[0]);
+  serial::hypergraph *newHypergraph = new serial::hypergraph(coarseWts, numCoarseVerts);
 
-  dynamic_array<int> *newHedgeOffsets = new dynamic_array<int>(1024);
-  dynamic_array<int> *newPinList = new dynamic_array<int>(1024);
-  dynamic_array<int> *newHedgeWt = new dynamic_array<int>(1024);
-  dynamic_array<int> *newVerOffsets =
-      new dynamic_array<int>(numCoarseVerts + 1);
-  dynamic_array<int> *newVtoHedges = new dynamic_array<int>(1024);
+  ds::dynamic_array<int> *newHedgeOffsets = new ds::dynamic_array<int>(1024);
+  ds::dynamic_array<int> *newPinList = new ds::dynamic_array<int>(1024);
+  ds::dynamic_array<int> *newHedgeWt = new ds::dynamic_array<int>(1024);
+  ds::dynamic_array<int> *newVerOffsets = new ds::dynamic_array<int>(numCoarseVerts + 1);
+  ds::dynamic_array<int> *newVtoHedges = new ds::dynamic_array<int>(1024);
 
-  dynamic_array<int> tempPinList(numPins);
-  dynamic_array<int> vDegs(numCoarseVerts);
-  dynamic_array<int> duplDegs(numCoarseVerts);
-  dynamic_array<int> vHedgOffsets(numCoarseVerts + 1);
-  dynamic_array<int> vHedges;
+  ds::dynamic_array<int> tempPinList(numPins);
+  ds::dynamic_array<int> vDegs(numCoarseVerts);
+  ds::dynamic_array<int> duplDegs(numCoarseVerts);
+  ds::dynamic_array<int> vHedgOffsets(numCoarseVerts + 1);
+  ds::dynamic_array<int> vHedges;
 
   for (i = 0; i < numCoarseVerts; ++i) {
     vDegs[i] = 0;
@@ -212,4 +211,5 @@ serial::hypergraph *restrictive_coarsener::build_coarse_hypergraph(
   return newHypergraph;
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

@@ -89,7 +89,11 @@ class bit_field {
     }
   }
 
-  inline bool test_all() {
+  inline bool test(int index) const {
+    return static_cast<bool>(this->operator()(index));
+  }
+
+  inline bool test_all() const {
     bool all_set = true;
     for (int i = 0; i < capacity_; ++i)
       if (data_[i] != UINT32_MAX) {

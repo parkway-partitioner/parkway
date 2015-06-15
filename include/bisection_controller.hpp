@@ -14,7 +14,7 @@
 #include <ostream>
 #include "data_structures/stack.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
-#include "first_choice_coarsener.hpp"
+#include "coarseners/serial/first_choice_coarsener.hpp"
 #include "initial_bisector.hpp"
 
 namespace parkway {

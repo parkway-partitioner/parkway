@@ -1,6 +1,5 @@
 #ifndef _RESTR_COARSENER_HPP
 #define _RESTR_COARSENER_HPP
-
 // ### RestrCoarsener.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -15,15 +14,10 @@
 #include "hypergraph/serial/hypergraph.hpp"
 #include "hypergraph/serial/loader.hpp"
 
-namespace serial = parkway::serial;
+namespace parkway {
+namespace serial {
 
-class restrictive_coarsener : public serial::loader {
- protected:
-  int minimum_nodes_;
-  int maximum_vertex_weight_;
-
-  double reduction_ratio_;
-
+class restrictive_coarsener : public loader {
  public:
   restrictive_coarsener(int min, int maxwt, double ratio, int dispL);
 
@@ -37,6 +31,14 @@ class restrictive_coarsener : public serial::loader {
   inline void set_maximum_vertex_weight(int maxWt) {
     maximum_vertex_weight_ = maxWt;
   }
+
+ protected:
+  int minimum_nodes_;
+  int maximum_vertex_weight_;
+  double reduction_ratio_;
 };
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

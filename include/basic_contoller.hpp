@@ -20,7 +20,7 @@ namespace parallel {
 class basic_contoller : public controller {
 protected:
  public:
-  basic_contoller(parallel_coarsener &c, refiner &r,
+  basic_contoller(coarsener &c, refiner &r,
                   serial::controller &ref, int rank, int nP, int percentile,
                   int inc, int approxRef, std::ostream &out);
   ~basic_contoller();

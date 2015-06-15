@@ -1,6 +1,3 @@
-#ifndef _BASIC_PARA_CONTROLLER_CPP
-#define _BASIC_PARA_CONTROLLER_CPP
-
 // ### BasicParaController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -23,7 +20,7 @@
 namespace parkway {
 namespace parallel {
 
-basic_contoller::basic_contoller(parallel_coarsener &c, refiner &r,
+basic_contoller::basic_contoller(coarsener &c, refiner &r,
                                  serial::controller &ref, int rank, int nP, int
                                  percentile, int inc, int approxRef,
                                  std::ostream &out)
@@ -68,7 +65,7 @@ void basic_contoller::run(MPI_Comm comm) {
   int checkCutsize;
 #endif
 
-  stack<int> hEdgePercentiles;
+  ds::stack<int> hEdgePercentiles;
 
   number_of_orig_local_vertices_ = hypergraph_->number_of_vertices();
 
@@ -120,7 +117,7 @@ void basic_contoller::run(MPI_Comm comm) {
       coarsener_.set_percentile(hEdgePercentile);
 
       coarseGraph = coarsener_.coarsen(*finerGraph, comm);
-        finerGraph->free_memory();
+      finerGraph->free_memory();
 
       if (coarseGraph) {
         hEdgePercentiles.push(std::min(hEdgePercentile + percentile_increment_, 100));
@@ -300,5 +297,3 @@ void basic_contoller::reset_structures() {
 
 }  // namespace parallel
 }  // namespace parkway
-
-#endif

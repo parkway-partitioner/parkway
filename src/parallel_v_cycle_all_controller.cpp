@@ -1,6 +1,3 @@
-#ifndef _VCYCLEALL_CONTROLLER_CPP
-#define _VCYCLEALL_CONTROLLER_CPP
-
 // ### ParaVCycleAllController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -14,7 +11,7 @@
 #include "parallel_v_cycle_all_controller.hpp"
 
 parallel_v_cycle_all_controller::parallel_v_cycle_all_controller(
-    parallel_restrictive_coarsening &rc, parallel_coarsener &c, parallel::refiner &r,
+    parallel::restrictive_coarsening &rc, parallel::coarsener &c, parallel::refiner &r,
     parkway::serial::controller &ref, int rank, int nP, int percentile, int inc,
     int approxRef, int limit, double limitAsPercent, std::ostream &out)
     : parallel_v_cycle_controller(rc, c, r, ref, rank, nP, percentile, inc, approxRef,
@@ -46,7 +43,7 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
   double othAccumulator;
   double totStartTime;
 
-  stack<int> hEdgePercentiles;
+  ds::stack<int> hEdgePercentiles;
 
   parallel::hypergraph *coarseGraph;
   parallel::hypergraph *interMedGraph;
@@ -402,5 +399,3 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
 void parallel_v_cycle_all_controller::print_type() const {
   out_stream_ << " type = ALL";
 }
-
-#endif

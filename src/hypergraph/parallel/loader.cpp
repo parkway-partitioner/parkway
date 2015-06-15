@@ -13,23 +13,23 @@
 namespace parkway {
 namespace parallel {
 
-loader::loader(int rank, int nProcs, int nParts,
-                                           std::ostream &o)
-    : global_communicator(rank, nProcs), out_stream(o) {
-  number_of_parts_ = nParts;
-  vertex_weights_ = nullptr;
-  match_vector_ = nullptr;
-
-  number_of_hyperedges_ = 0;
-  number_of_local_pins_ = 0;
-  number_of_local_vertices_ = 0;
-  number_of_vertices_ = 0;
-  minimum_vertex_index_ = 0;
-  local_vertex_weight_ = 0;
-  number_of_allocated_hyperedges_ = 0;
-
-  percentile_ = 100;
-
+loader::loader(int rank, int number_of_processors, int number_of_parts,
+               std::ostream &out_stream, int display_option)
+    : global_communicator(rank, number_of_processors),
+      out_stream(out_stream),
+      number_of_parts_(number_of_parts),
+      number_of_hyperedges_(0),
+      number_of_local_pins_(0),
+      number_of_local_vertices_(0),
+      number_of_vertices_(0),
+      minimum_vertex_index_(0),
+      maximum_vertex_index_(0),
+      local_vertex_weight_(0),
+      number_of_allocated_hyperedges_(0),
+      display_options_(display_option),
+      percentile_(100),
+      vertex_weights_(nullptr),
+      match_vector_(nullptr) {
   hyperedge_weights_.reserve(0);
   hyperedge_offsets_.reserve(0);
   local_pin_list_.reserve(0);
@@ -38,14 +38,12 @@ loader::loader(int rank, int nProcs, int nParts,
   allocated_hyperedges_.reserve(0);
 }
 
-loader::~loader() {}
+loader::~loader() {
+}
 
-void loader::compute_hyperedges_to_load(bit_field &toLoad,
-                                                            int numH,
-                                                            int numLocalPins,
-                                                            int *hEdgeWts,
-                                                            int *hEdgeOffsets,
-                                                            MPI_Comm comm) {
+void loader::compute_hyperedges_to_load(bit_field &toLoad, int numH,
+                                        int numLocalPins, int *hEdgeWts,
+                                        int *hEdgeOffsets, MPI_Comm comm) {
   int i;
   int j;
 

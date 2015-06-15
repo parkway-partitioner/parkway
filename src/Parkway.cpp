@@ -45,8 +45,8 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
   std::ostream *output;
 
   parallel::hypergraph *hgraph = nullptr;
-  parallel_coarsener *coarsener = nullptr;
-  parallel_restrictive_coarsening *restrC = nullptr;
+  parallel::coarsener *coarsener = nullptr;
+  parallel::restrictive_coarsening *restrC = nullptr;
   parallel::refiner *refiner = nullptr;
   serial::controller *seqController = nullptr;
   parallel::controller *controller = nullptr;
@@ -121,12 +121,12 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
 
   ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
 
-  coarsener =
-      Utils::buildParaCoarsener(my_rank, num_procs, num_parts, constraint,
-                                hgraph, *output, init_options, comm);
-  restrC =
-      Utils::buildParaRestrCoarsener(my_rank, num_procs, num_parts, constraint,
-                                     hgraph, *output, init_options, comm);
+  coarsener = Utils::buildParaCoarsener(my_rank, num_procs, num_parts,
+                                        constraint, hgraph, *output,
+                                        init_options, comm);
+  restrC = Utils::buildParaRestrCoarsener(my_rank, num_procs, num_parts,
+                                          constraint, hgraph, *output,
+                                          init_options, comm);
   refiner = Utils::buildParaRefiner(my_rank, num_procs, num_parts, constraint,
                                     hgraph, *output, init_options, comm);
   seqController = Utils::buildSeqController(my_rank, num_procs, num_parts,
@@ -182,8 +182,8 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
 
   dynamic_memory::delete_pointer<parallel::controller>(controller);
   dynamic_memory::delete_pointer<serial::controller>(seqController);
-  dynamic_memory::delete_pointer<parallel_restrictive_coarsening>(restrC);
-  dynamic_memory::delete_pointer<parallel_coarsener>(coarsener);
+  dynamic_memory::delete_pointer<parallel::restrictive_coarsening>(restrC);
+  dynamic_memory::delete_pointer<parallel::coarsener>(coarsener);
   dynamic_memory::delete_pointer<parallel::refiner>(refiner);
   dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
 
@@ -220,8 +220,8 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
   int j;
 
   parallel::hypergraph *hgraph = nullptr;
-  parallel_coarsener *coarsener = nullptr;
-  parallel_restrictive_coarsening *restrC = nullptr;
+  parallel::coarsener *coarsener = nullptr;
+  parallel::restrictive_coarsening *restrC = nullptr;
   parallel::refiner *refiner = nullptr;
   serial::controller *seqController = nullptr;
   parallel::controller *controller = nullptr;
@@ -354,8 +354,8 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
 
   dynamic_memory::delete_pointer<parallel::controller>(controller);
   dynamic_memory::delete_pointer<serial::controller>(seqController);
-  dynamic_memory::delete_pointer<parallel_restrictive_coarsening>(restrC);
-  dynamic_memory::delete_pointer<parallel_coarsener>(coarsener);
+  dynamic_memory::delete_pointer<parallel::restrictive_coarsening>(restrC);
+  dynamic_memory::delete_pointer<parallel::coarsener>(coarsener);
   dynamic_memory::delete_pointer<parallel::refiner>(refiner);
   dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
 

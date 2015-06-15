@@ -1,6 +1,5 @@
 #ifndef _PARA_APPROX_FCCOARSENER_HPP
 #define _PARA_APPROX_FCCOARSENER_HPP
-
 // ### ParaApproxFCCoarsener.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,29 +9,30 @@
 // 31/12/2004: Last Modified
 //
 // ###
-
-#include "parallel_approximate_coarsener.hpp"
 #include <iostream>
+#include "coarseners/parallel/approximate_coarsener.hpp"
 #include "data_structures/match_request_table.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 
-namespace parallel = parkway::parallel;
+namespace parkway {
+namespace parallel {
+namespace ds = parkway::data_structures;
 
-class parallel_approximate_first_choice_coarsener : public parallel_approximate_coarsener {
+class approximate_first_choice_coarsener : public approximate_coarsener {
  protected:
   int vertexVisitOrder;
   int matchRequestVisitOrder;
   int divByCluWt;
   int divByHedgeLen;
   int limitOnIndexDuringCoarsening;
-
-  parkway::data_structures::match_request_table *table;
+  ds::match_request_table *table;
 
  public:
-  parallel_approximate_first_choice_coarsener(int rank, int nProcs, int nParts, int percentile,
-                        int inc, int vertVisOrder, int matchReqOrder,
-                        int divByWt, int divByLen, std::ostream &out);
-  ~parallel_approximate_first_choice_coarsener();
+  approximate_first_choice_coarsener(int rank, int nProcs, int nParts,
+                                     int percentile, int inc, int vertVisOrder,
+                                     int matchReqOrder, int divByWt,
+                                     int divByLen, std::ostream &out);
+  ~approximate_first_choice_coarsener();
 
   void dispCoarseningOptions() const;
   void buildAuxiliaryStructs(int numPins, double aveVertDeg,
@@ -51,11 +51,20 @@ class parallel_approximate_first_choice_coarsener : public parallel_approximate_
 
   void printVisitOrder(int variable) const;
 
-  inline void setVertexVisitOrder(int vO) { vertexVisitOrder = vO; }
+  inline void setVertexVisitOrder(int vO) {
+    vertexVisitOrder = vO;
+  }
+
   inline void setMatchRequestVisitOrder(int mvO) {
     matchRequestVisitOrder = mvO;
   }
-  inline void setDivByCluWt(int divBy) { divByCluWt = divBy; }
+
+  inline void setDivByCluWt(int divBy) {
+    divByCluWt = divBy;
+  }
 };
+
+}  // namespace parallel
+}  // namespace parkway
 
 #endif
