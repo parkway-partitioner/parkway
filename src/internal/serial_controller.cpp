@@ -11,9 +11,13 @@
 //
 // ###
 
-#include "sequential_controller.hpp"
+#include "internal/serial_controller.hpp"
 
-sequential_controller::sequential_controller(int rank, int nProcs, int nParts, ostream &out)
+namespace parkway {
+namespace serial {
+
+
+controller::controller(int rank, int nProcs, int nParts, std::ostream &out)
     : out_stream_(out) {
   rank_ = rank;
   number_of_processors_ = nProcs;
@@ -31,10 +35,10 @@ sequential_controller::sequential_controller(int rank, int nProcs, int nParts, o
   partition_vector_offsets_.reserve(0);
 }
 
-sequential_controller::~sequential_controller() { dynamic_memory::delete_pointer<serial::hypergraph>(
+controller::~controller() { dynamic_memory::delete_pointer<serial::hypergraph>(
       hypergraph_); }
 
-void sequential_controller::initialize_coarsest_hypergraph(
+void controller::initialize_coarsest_hypergraph(
     parallel::hypergraph &hgraph,
     MPI_Comm comm) {
   int i;
@@ -160,7 +164,7 @@ void sequential_controller::initialize_coarsest_hypergraph(
     hypergraph_->print_characteristics(out_stream_);
 }
 
-void sequential_controller::initialize_sequential_partitions(
+void controller::initialize_serial_partitions(
     parallel::hypergraph &hgraph, MPI_Comm comm) {
   int i;
   int j;
@@ -322,11 +326,11 @@ void sequential_controller::initialize_sequential_partitions(
     for (i = 0; i < numKept; ++i)
       out_stream_ << hPartCuts[i] << " ";
 
-    out_stream_ << endl;
+    out_stream_ << std::endl;
   }
 }
 
-int sequential_controller::choose_best_partition() const {
+int controller::choose_best_partition() const {
 #ifdef DEBUG_CONTROLLER
   assert(numSeqRuns > 0);
   assert(partitionCuts.getLength() > 0);
@@ -342,7 +346,7 @@ int sequential_controller::choose_best_partition() const {
   return j;
 }
 
-int sequential_controller::accept_cut() const {
+int controller::accept_cut() const {
   int i;
   int bestCut;
 
@@ -367,5 +371,8 @@ int sequential_controller::accept_cut() const {
   return (static_cast<int>(
       floor(static_cast<double>(bestCut) + bestCut * accept_proportion_)));
 }
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

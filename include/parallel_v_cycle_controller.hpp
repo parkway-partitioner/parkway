@@ -11,14 +11,14 @@
 //
 // ###
 
-#include "parallel_controller.hpp"
-#include "parallel_restrictive_first_choice_coarsening.hpp"
+#include "internal/parallel_controller.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
+#include "parallel_restrictive_first_choice_coarsening.hpp"
 
 namespace parallel = parkway::parallel;
 typedef dynamic_array<int> IntArray;
 
-class parallel_v_cycle_controller : public parallel_controller {
+class parallel_v_cycle_controller : public parallel::controller {
  protected:
   int limit_on_cycles_;
   int minimum_inter_vertex_index_;
@@ -35,8 +35,8 @@ class parallel_v_cycle_controller : public parallel_controller {
 
  public:
   parallel_v_cycle_controller(parallel_restrictive_coarsening &rc,
-                              parallel_coarsener &c, parallel_refiner &r,
-                              sequential_controller &ref, int rank, int nP,
+                              parallel_coarsener &c, parallel::refiner &r,
+                              parkway::serial::controller &ref, int rank, int nP,
                               int percentile, int inc, int approxRef, int limit,
                               double limitAsPercent, std::ostream &out);
 

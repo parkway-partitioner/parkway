@@ -7,12 +7,12 @@
 // 4/1/2005: Last Modified
 //
 // ###
+#include "internal/global_communicator.hpp"
 
-#include "global_communicator.hpp"
+namespace parkway {
 
 global_communicator::global_communicator(const int rank, const int nProcs)
     : rank_(rank), processors_(nProcs) {
-
   data_out_sets_.reserve(processors_);
   send_lens_.reserve(processors_);
   receive_lens_.reserve(processors_);
@@ -20,13 +20,13 @@ global_communicator::global_communicator(const int rank, const int nProcs)
   receive_displs_.reserve(processors_);
 
   for (int i = 0; i < processors_; ++i) {
-    data_out_sets_[i] = new dynamic_array<int>(1024);
+    data_out_sets_[i] = new ds::dynamic_array<int>(1024);
   }
 }
 
 global_communicator::~global_communicator() {
   for (int i = 0; i < processors_; ++i) {
-    dynamic_memory::delete_pointer<dynamic_array<int> >(data_out_sets_[i]);
+    dynamic_memory::delete_pointer<ds::dynamic_array<int> >(data_out_sets_[i]);
   }
 }
 
@@ -75,3 +75,5 @@ void global_communicator::send_from_data_out(MPI_Comm comm) {
                 send_displs_.data(), MPI_INT, receive_array_.data(),
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 }
+
+}  // namespace parkway

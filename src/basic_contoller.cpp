@@ -17,18 +17,22 @@
 //
 // ###
 
-#include "basic_parallel_controller.hpp"
+#include "basic_contoller.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 
-basic_parallel_controller::basic_parallel_controller(parallel_coarsener &c, parallel_refiner &r,
-                                         sequential_controller &ref, int rank, int nP,
-                                         int percentile, int inc, int approxRef,
-                                         ostream &out)
-    : parallel_controller(c, r, ref, rank, nP, percentile, inc, approxRef, out) {}
+namespace parkway {
+namespace parallel {
 
-basic_parallel_controller::~basic_parallel_controller() {}
+basic_contoller::basic_contoller(parallel_coarsener &c, refiner &r,
+                                 serial::controller &ref, int rank, int nP, int
+                                 percentile, int inc, int approxRef,
+                                 std::ostream &out)
+    : controller(c, r, ref, rank, nP, percentile, inc, approxRef, out) {
+}
 
-void basic_parallel_controller::display_options() const {
+basic_contoller::~basic_contoller() {}
+
+void basic_contoller::display_options() const {
   switch (display_option_) {
   case SILENT:
     break;
@@ -36,24 +40,24 @@ void basic_parallel_controller::display_options() const {
   default:
 
     out_stream_ << "|--- PARA_CONTR (# parts = " << total_number_of_parts_
-               << "): " << endl
+               << "): " << std::endl
                << "|- BASIC:"
                << " pRuns = " << number_of_runs_ << " kT = " <<
                                                     keep_partitions_within_
                << " rKT = " << reduction_in_keep_threshold_
                << " appRef = " << approximate_refine_
                << " wTF = " << write_partition_to_file_ << " start %le "
-               << start_percentile_ << " %le inc " << percentile_increment_ << endl
-               << "|" << endl;
+               << start_percentile_ << " %le inc " << percentile_increment_ << std::endl
+               << "|" << std::endl;
     break;
   }
 }
 
-void basic_parallel_controller::run(MPI_Comm comm) {
+void basic_contoller::run(MPI_Comm comm) {
   int hEdgePercentile;
   int cutSize;
   int percentCoarsening;
-  int percentSequential;
+  int percentserial;
   int percentRefinement;
   int percentOther;
   int i;
@@ -78,7 +82,7 @@ void basic_parallel_controller::run(MPI_Comm comm) {
   total_cutsize_ = 0;
 
   total_coarsening_time_ = 0;
-  total_sequential_time_ = 0;
+  total_serial_time_ = 0;
   total_refinement_time_ = 0;
 
   MPI_Barrier(comm);
@@ -119,7 +123,7 @@ void basic_parallel_controller::run(MPI_Comm comm) {
         finerGraph->free_memory();
 
       if (coarseGraph) {
-        hEdgePercentiles.push(min(hEdgePercentile + percentile_increment_, 100));
+        hEdgePercentiles.push(std::min(hEdgePercentile + percentile_increment_, 100));
         hypergraphs_.push(coarseGraph);
         finerGraph = coarseGraph;
       }
@@ -146,10 +150,10 @@ void basic_parallel_controller::run(MPI_Comm comm) {
     start_time_ = MPI_Wtime();
 
     coarseGraph = hypergraphs_.pop();
-    sequential_controller_.run(*coarseGraph, comm);
+    serial_controller_.run(*coarseGraph, comm);
 
     MPI_Barrier(comm);
-    total_sequential_time_ += (MPI_Wtime() - start_time_);
+    total_serial_time_ += (MPI_Wtime() - start_time_);
 
 // ###
 // uncoarsen the initial partition
@@ -248,7 +252,7 @@ void basic_parallel_controller::run(MPI_Comm comm) {
 #endif
 
     if (rank_ == 0 && display_option_ > 0) {
-      out_stream_ << "\nPRUN[" << i << "] = " << cutSize << endl << endl;
+      out_stream_ << "\nPRUN[" << i << "] = " << cutSize << std::endl << std::endl;
     }
   }
 
@@ -257,41 +261,44 @@ void basic_parallel_controller::run(MPI_Comm comm) {
 
   percentCoarsening = static_cast<int>(floor((total_coarsening_time_ /
                                               total_time_) * 100));
-  percentSequential = static_cast<int>(floor((total_sequential_time_ /
+  percentserial = static_cast<int>(floor((total_serial_time_ /
                                               total_time_) * 100));
   percentRefinement = static_cast<int>(floor((total_refinement_time_ /
                                               total_time_) * 100));
   percentOther =
-      100 - (percentCoarsening + percentSequential + percentRefinement);
+      100 - (percentCoarsening + percentserial + percentRefinement);
 
   average_cutsize_ = static_cast<double>(total_cutsize_) / number_of_runs_;
 
   if (rank_ == 0 && display_option_ > 0) {
-    out_stream_ << endl
-               << " --- PARTITIONING SUMMARY ---" << endl
-               << "|" << endl
-               << "|--- Cutsizes statistics:" << endl
-               << "|" << endl
-               << "|-- BEST = " << best_cutsize_ << endl
-               << "|-- WORST = " << worst_cutsize_ << endl
-               << "|-- AVE = " << average_cutsize_ << endl
-               << "|" << endl
-               << "|--- Time usage:" << endl
-               << "|" << endl
-               << "|-- TOTAL TIME = " << total_time_ << endl
-               << "|-- AVE TIME = " << total_time_ / number_of_runs_ << endl
-               << "|-- PARACOARSENING% = " << percentCoarsening << endl
-               << "|-- SEQPARTITIONING% = " << percentSequential << endl
-               << "|-- PARAREFINEMENT% = " << percentRefinement << endl
-               << "|-- OTHER% = " << percentOther << endl
-               << "|" << endl
-               << " ----------------------------" << endl;
+    out_stream_ << std::endl
+               << " --- PARTITIONING SUMMARY ---" << std::endl
+               << "|" << std::endl
+               << "|--- Cutsizes statistics:" << std::endl
+               << "|" << std::endl
+               << "|-- BEST = " << best_cutsize_ << std::endl
+               << "|-- WORST = " << worst_cutsize_ << std::endl
+               << "|-- AVE = " << average_cutsize_ << std::endl
+               << "|" << std::endl
+               << "|--- Time usage:" << std::endl
+               << "|" << std::endl
+               << "|-- TOTAL TIME = " << total_time_ << std::endl
+               << "|-- AVE TIME = " << total_time_ / number_of_runs_ << std::endl
+               << "|-- PARACOARSENING% = " << percentCoarsening << std::endl
+               << "|-- SEQPARTITIONING% = " << percentserial << std::endl
+               << "|-- PARAREFINEMENT% = " << percentRefinement << std::endl
+               << "|-- OTHER% = " << percentOther << std::endl
+               << "|" << std::endl
+               << " ----------------------------" << std::endl;
   }
 }
 
-void basic_parallel_controller::reset_structures() {
+void basic_contoller::reset_structures() {
     hypergraph_->reset_vectors();
     free_memory();
 }
+
+}  // namespace parallel
+}  // namespace parkway
 
 #endif

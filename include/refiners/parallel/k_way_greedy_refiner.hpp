@@ -16,13 +16,14 @@
 #include "data_structures/bit_field.hpp"
 #include "data_structures/movement_set_table.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
-#include "parallel_refiner.hpp"
+#include "refiners/parallel/refiner.hpp"
 
-namespace parallel = parkway::parallel;
+namespace parkway {
+namespace parallel {
 namespace ds = parkway::data_structures;
 
-class parallel_k_way_greedy_refiner : public parallel_refiner {
-protected:
+class k_way_greedy_refiner : public refiner {
+ protected:
   int total_number_of_vertices_moved_;
   int early_exit_;
 
@@ -59,10 +60,10 @@ protected:
 
   ds::movement_set_table *movement_sets_;
 
-public:
-  parallel_k_way_greedy_refiner(int rank, int nProcs, int nParts, int numVperP,
-                        int eExit, double lim, std::ostream &out);
-  ~parallel_k_way_greedy_refiner();
+ public:
+  k_way_greedy_refiner(int rank, int nProcs, int nParts, int numVperP,
+                       int eExit, double lim, std::ostream &out);
+  ~k_way_greedy_refiner();
 
   void display_options() const;
   void release_memory();
@@ -86,5 +87,8 @@ public:
   void sanity_hyperedge_check() const;
   void non_local_vertices_check() const;
 };
+
+}  // namespace parallel
+}  // namespace parkway
 
 #endif

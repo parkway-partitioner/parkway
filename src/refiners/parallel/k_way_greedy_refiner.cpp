@@ -1,6 +1,3 @@
-#ifndef _PARA_GREEDYKWAY_REFINER_CPP
-#define _PARA_GREEDYKWAY_REFINER_CPP
-
 // ### ParaGreedyKwayRefiner.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -11,13 +8,16 @@
 //
 // ###
 
-#include "parallel_k_way_greedy_refiner.hpp"
+#include "refiners/parallel/k_way_greedy_refiner.hpp"
 #include <iostream>
 
-parallel_k_way_greedy_refiner::parallel_k_way_greedy_refiner(int rank, int nProcs, int nParts,
-                                             int numVperP, int eExit,
-                                             double lim, std::ostream &out)
-    : parallel_refiner(rank, nProcs, nParts, out) {
+namespace parkway {
+namespace parallel {
+
+k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
+                                           numVperP, int eExit, double lim,
+                                           std::ostream &out)
+    : refiner(rank, nProcs, nParts, out) {
   int i;
   int j;
   int ij;
@@ -70,7 +70,7 @@ parallel_k_way_greedy_refiner::parallel_k_way_greedy_refiner(int rank, int nProc
   vertices_seen_.reserve(0);
 }
 
-parallel_k_way_greedy_refiner::~parallel_k_way_greedy_refiner() {
+k_way_greedy_refiner::~k_way_greedy_refiner() {
   int i;
   int j;
   int ij;
@@ -85,7 +85,7 @@ parallel_k_way_greedy_refiner::~parallel_k_way_greedy_refiner() {
   }
 }
 
-void parallel_k_way_greedy_refiner::display_options() const {
+void k_way_greedy_refiner::display_options() const {
   switch (display_options_) {
   case SILENT:
 
@@ -101,7 +101,7 @@ void parallel_k_way_greedy_refiner::display_options() const {
   }
 }
 
-void parallel_k_way_greedy_refiner::release_memory() {
+void k_way_greedy_refiner::release_memory() {
   hyperedge_weights_.reserve(0);
   hyperedge_offsets_.reserve(0);
   local_pin_list_.reserve(0);
@@ -132,7 +132,7 @@ void parallel_k_way_greedy_refiner::release_memory() {
   free_memory();
 }
 
-void parallel_k_way_greedy_refiner::initialize_data_structures(
+void k_way_greedy_refiner::initialize_data_structures(
     const parallel::hypergraph &h, MPI_Comm comm) {
   int i;
   int j;
@@ -177,12 +177,12 @@ void parallel_k_way_greedy_refiner::initialize_data_structures(
   }
 }
 
-void parallel_k_way_greedy_refiner::reset_data_structures() {
+void k_way_greedy_refiner::reset_data_structures() {
   to_non_local_vertices_.destroy();
   free_memory();
 }
 
-void parallel_k_way_greedy_refiner::set_partitioning_structures(int pNo, MPI_Comm comm) {
+void k_way_greedy_refiner::set_partitioning_structures(int pNo, MPI_Comm comm) {
 #ifdef DEBUG_REFINER
   assert(pNo >= 0 && pNo < number_of_partitions_);
 #endif
@@ -331,7 +331,7 @@ void parallel_k_way_greedy_refiner::set_partitioning_structures(int pNo, MPI_Com
 #endif
 }
 
-void parallel_k_way_greedy_refiner::refine(parallel::hypergraph &h,
+void k_way_greedy_refiner::refine(parallel::hypergraph &h,
                                            MPI_Comm comm) {
   initialize_data_structures(h, comm);
 
@@ -384,7 +384,7 @@ void parallel_k_way_greedy_refiner::refine(parallel::hypergraph &h,
   reset_data_structures();
 }
 
-int parallel_k_way_greedy_refiner::greedy_k_way_refinement(parallel::hypergraph &h,
+int k_way_greedy_refiner::greedy_k_way_refinement(parallel::hypergraph &h,
                                                            int pNo,
                                                            MPI_Comm comm) {
   int i;
@@ -417,7 +417,7 @@ int parallel_k_way_greedy_refiner::greedy_k_way_refinement(parallel::hypergraph 
   }
 }
 
-int parallel_k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
+int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
   int i;
   int j;
   int ij;
@@ -645,7 +645,7 @@ int parallel_k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
   return gain;
 }
 
-int parallel_k_way_greedy_refiner::compute_cutsize(MPI_Comm comm) {
+int k_way_greedy_refiner::compute_cutsize(MPI_Comm comm) {
   int i;
   int ij;
   int locCut = 0;
@@ -666,7 +666,7 @@ int parallel_k_way_greedy_refiner::compute_cutsize(MPI_Comm comm) {
   return totalCut;
 }
 
-void parallel_k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
+void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
 
   int i;
   int j;
@@ -823,7 +823,7 @@ void parallel_k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
 #endif
 }
 
-void parallel_k_way_greedy_refiner::undo_pass_moves() {
+void k_way_greedy_refiner::undo_pass_moves() {
 #ifdef DEBUG_REFINER
   assert(And(numTotVerticesMoved, 0x1) == 0);
 #endif
@@ -844,7 +844,7 @@ void parallel_k_way_greedy_refiner::undo_pass_moves() {
   }
 }
 
-void parallel_k_way_greedy_refiner::update_vertex_move_info(MPI_Comm comm) {
+void k_way_greedy_refiner::update_vertex_move_info(MPI_Comm comm) {
 #ifdef DEBUG_REFINER
   sanityHedgeCheck();
 #endif
@@ -1226,7 +1226,7 @@ void parallel_k_way_greedy_refiner::update_vertex_move_info(MPI_Comm comm) {
 #endif
 }
 
-void parallel_k_way_greedy_refiner::update_adjacent_vertex_status(int v, int sP,
+void k_way_greedy_refiner::update_adjacent_vertex_status(int v, int sP,
                                                                   int bestMove) {
   int i;
   int j;
@@ -1313,7 +1313,7 @@ void parallel_k_way_greedy_refiner::update_adjacent_vertex_status(int v, int sP,
     vertices_seen_.unset(seen_vertices_[i]);
 }
 
-void parallel_k_way_greedy_refiner::undo_move(int indexIntoMoveSets, int from,
+void k_way_greedy_refiner::undo_move(int indexIntoMoveSets, int from,
                                               int to) {
 #ifdef DEBUG_REFINER
   sanityHedgeCheck();
@@ -1417,7 +1417,7 @@ void parallel_k_way_greedy_refiner::undo_move(int indexIntoMoveSets, int from,
   number_of_vertices_moved_[indexIntoMoveSets] = 0;
 }
 
-void parallel_k_way_greedy_refiner::non_local_vertices_check() const {
+void k_way_greedy_refiner::non_local_vertices_check() const {
   int i;
   int j;
   int ij;
@@ -1440,7 +1440,7 @@ void parallel_k_way_greedy_refiner::non_local_vertices_check() const {
   }
 }
 
-void parallel_k_way_greedy_refiner::sanity_hyperedge_check() const {
+void k_way_greedy_refiner::sanity_hyperedge_check() const {
   int i;
   int j;
   int ij;
@@ -1462,4 +1462,5 @@ void parallel_k_way_greedy_refiner::sanity_hyperedge_check() const {
   }
 }
 
-#endif
+}  // namespace parallel
+}  // namespace parkway

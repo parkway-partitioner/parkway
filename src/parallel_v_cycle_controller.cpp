@@ -1,7 +1,3 @@
-
-#ifndef _VCYCLE_CONTROLLER_CPP
-#define _VCYCLE_CONTROLLER_CPP
-
 // ### ParaVCycleController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -18,12 +14,12 @@
 namespace ds = parkway::data_structures;
 
 parallel_v_cycle_controller::parallel_v_cycle_controller(parallel_restrictive_coarsening &rc,
-                                           parallel_coarsener &c, parallel_refiner &r,
-                                           sequential_controller &ref, int rank, int nP,
+                                           parallel_coarsener &c, parallel::refiner &r,
+                                           parkway::serial::controller &ref, int rank, int nP,
                                            int percentile, int inc,
                                            int approxRef, int limit,
-                                           double limitAsPercent, ostream &out)
-    : parallel_controller(c, r, ref, rank, nP, percentile, inc, approxRef, out),
+                                           double limitAsPercent, std::ostream &out)
+    : parallel::controller(c, r, ref, rank, nP, percentile, inc, approxRef, out),
       restrictive_coarsening_(rc) {
   if (limit)
     limit_on_cycles_ = limit;
@@ -51,7 +47,7 @@ void parallel_v_cycle_controller::display_options() const {
   default:
 
     out_stream_ << "|--- PARA_CONTR (# parts = " << total_number_of_parts_
-               << "): " << endl
+               << "): " << std::endl
                << "|- VCYCLE:"
                << " pRuns = " << number_of_runs_ << " kT = " <<
                                                     keep_partitions_within_
@@ -62,8 +58,8 @@ void parallel_v_cycle_controller::display_options() const {
     out_stream_ << " lim = " << limit_on_cycles_ << " %min = " <<
                                                    limit_as_percent_of_cut_
                << " start %le = " << start_percentile_
-               << " %le inc = " << percentile_increment_ << endl
-               << "|" << endl;
+               << " %le inc = " << percentile_increment_ << std::endl
+               << "|" << std::endl;
     break;
   }
 }
@@ -96,7 +92,7 @@ void parallel_v_cycle_controller::set_weight_constraints(MPI_Comm comm) {
   coarsener_.set_total_hypergraph_weight(totGraphWt);
   restrictive_coarsening_.set_total_graph_weight(totGraphWt);
 
-  sequential_controller_.set_maximum_vertex_weight(maxVertWt);
+  serial_controller_.set_maximum_vertex_weight(maxVertWt);
 }
 
 void parallel_v_cycle_controller::record_v_cycle_partition(
@@ -381,7 +377,7 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
       assert(vPart >= 0 && vPart < numTotalParts);
 #endif
 
-      ij = min(cVertex / cVertPerProc, processors_ - 1);
+      ij = std::min(cVertex / cVertPerProc, processors_ - 1);
 
       if (ij == rank_) {
         interGraphPVector[cVertex - minCoarseVertexId] = vPart;
@@ -475,7 +471,7 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
              fineMatVector[i] < numTotalCoarseVertices);
 #endif
       cVertex = fineMatVector[i];
-      ij = min(cVertex / cVertPerProc, processors_ - 1);
+      ij = std::min(cVertex / cVertPerProc, processors_ - 1);
 
       if (ij == rank_) {
         finePartVector[i] = interGraphPVector[cVertex - minCoarseVertexId];
@@ -654,7 +650,7 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
 
   for (i = 0; i < numLocVertAftShuff; ++i) {
     j = vToOrigV[i];
-    ij = min(j / numVBefPerProc, processors_ - 1);
+    ij = std::min(j / numVBefPerProc, processors_ - 1);
 
     if (ij == rank_) {
       array[i] = map_to_inter_vertices_[j - minimum_inter_vertex_index_];
@@ -818,7 +814,7 @@ ParaHypergraph &fineH, MPI_Comm comm)
   for (i=0;i<numLocVertices;++i)
     {
       j = vToOrigV[i];
-      ij = min(j / numVPerProc, processors_-1);
+      ij = std::min(j / numVPerProc, processors_-1);
 
       if(ij == rank_)
         {
@@ -998,8 +994,8 @@ void parallel_v_cycle_controller::shift_v_cycle_vertices_to_balance(
       send_displs_[i] = send_displs_[i - 1] + send_lens_[i - 1];
 
     send_lens_[i] =
-        max(numLocalVertices - (max(maxVertexIndex - maxNewIndex[i], 0) +
-                                max(minNewIndex[i] - minVertexIndex, 0)),
+        std::max(numLocalVertices - (std::max(maxVertexIndex - maxNewIndex[i], 0) +
+                                std::max(minNewIndex[i] - minVertexIndex, 0)),
             0);
   }
 
@@ -1064,7 +1060,7 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
     assert(vertex >= 0 && vertex < numTotalVertices);
 #endif
 
-    ij = min(vertex / vertPerProc, processors_ - 1);
+    ij = std::min(vertex / vertPerProc, processors_ - 1);
 
     if (ij == rank_) {
       auxArray[i] = map_to_orig_vertices_[vertex - minLocVertIndex];
@@ -1179,5 +1175,3 @@ void parallel_v_cycle_controller::reset_structures() {
   assert(bestVCyclePartition.getNumElem() == 0);
 #endif
 }
-
-#endif

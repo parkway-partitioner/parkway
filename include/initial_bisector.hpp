@@ -12,17 +12,17 @@
 // ###
 
 #include <iostream>
-#include "fm_refiner.hpp"
+#include "refiners/serial/fm_refiner.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 
-namespace serial = parkway::serial;
+namespace parkway {
+namespace serial {
 
 class initial_bisector : public fm_refiner {
-
-protected:
+ protected:
   int number_of_initial_runs_;
 
-public:
+ public:
   initial_bisector(int nRuns, int insMethod, int ee, int dL);
   ~initial_bisector();
 
@@ -33,7 +33,12 @@ public:
   int choose_best_vertex_1_to_0();
   int greedy_pass();
 
-  inline void set_number_of_runs(int nR) { number_of_initial_runs_ = nR; }
+  inline void set_number_of_runs(int nR) {
+    number_of_initial_runs_ = nR;
+  }
 };
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

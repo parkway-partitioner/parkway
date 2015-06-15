@@ -13,22 +13,25 @@
 
 #include <iostream>
 #include "hypergraph/parallel/hypergraph.hpp"
+#include "data_structures/dynamic_array.hpp"
 #include "data_structures/stack.hpp"
 #include "parallel_first_choice_coarsener.hpp"
 #include "parallel_2d_model_coarsener.hpp"
 #include "parallel_approximate_first_choice_coarsener.hpp"
 #include "parallel_restrictive_first_choice_coarsening.hpp"
-#include "parallel_k_way_greedy_refiner.hpp"
-#include "sequential_controller.hpp"
+#include "refiners/parallel/k_way_greedy_refiner.hpp"
+#include "internal/serial_controller.hpp"
 
-namespace parallel = parkway::parallel;
+namespace parkway {
+namespace parallel {
 
-class parallel_controller : public global_communicator {
+namespace ds = parkway::data_structures;
+
+class controller : public parkway::global_communicator {
  protected:
   std::ostream &out_stream_;
 
   /* Parallel partitioning options */
-
   int random_shuffle_before_refine_;
   int shuffled_;
   int number_of_runs_;
@@ -40,24 +43,20 @@ class parallel_controller : public global_communicator {
   double reduction_in_keep_threshold_;
 
   /* partition used to assign vertices to processors */
-
-  dynamic_array<int> shuffle_partition_;
+  ds::dynamic_array<int> shuffle_partition_;
 
   /* Approx coarsening and refinement options */
-
   int start_percentile_;
   int percentile_increment_;
   int approximate_refine_;
 
   /* Other options */
-
   int write_partition_to_file_;
   int display_option_;
 
   double balance_constraint_;
 
   /* auxiliary variables */
-
   int best_cutsize_;
   int worst_cutsize_;
   int total_cutsize_;
@@ -65,28 +64,27 @@ class parallel_controller : public global_communicator {
   double average_cutsize_;
   double start_time_;
   double total_coarsening_time_;
-  double total_sequential_time_;
+  double total_serial_time_;
   double total_refinement_time_;
   double total_time_;
   double accumulator_;
 
-  dynamic_array<int> best_partition_;
-  dynamic_array<int> map_to_orig_vertices_;
+  ds::dynamic_array<int> best_partition_;
+  ds::dynamic_array<int> map_to_orig_vertices_;
 
   parallel::hypergraph *hypergraph_;
 
   parallel_coarsener &coarsener_;
-  parallel_refiner &refiner_;
-  sequential_controller &sequential_controller_;
-  parkway::data_structures::stack<parallel::hypergraph *> hypergraphs_;
+  refiner &refiner_;
+  serial::controller &serial_controller_;
+  ds::stack<parallel::hypergraph *> hypergraphs_;
 
  public:
-  parallel_controller(parallel_coarsener &c, parallel_refiner &r,
-                      sequential_controller &ref, int rank, int nP,
-                      int percentile, int inc, int approxRefine,
-                      std::ostream &out);
+  controller(parallel_coarsener &c, refiner &r,
+             serial::controller &ref, int rank, int nP, int percentile,
+             int inc, int approxRefine, std::ostream &out);
 
-  virtual ~parallel_controller();
+  virtual ~controller();
   virtual void display_options() const = 0;
   virtual void reset_structures() = 0;
   virtual void run(MPI_Comm comm) = 0;
@@ -122,5 +120,8 @@ class parallel_controller : public global_communicator {
   void printHashMemUse();
 #endif
 };
+
+}  // namespace parallel
+}  // namespace parkway
 
 #endif

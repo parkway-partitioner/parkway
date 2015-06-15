@@ -1,8 +1,3 @@
-
-
-#ifndef _INIT_BISECTOR_CPP
-#define _INIT_BISECTOR_CPP
-
 // ### InitBisector.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -14,6 +9,9 @@
 // ###
 
 #include "initial_bisector.hpp"
+
+namespace parkway {
+namespace serial {
 
 initial_bisector::initial_bisector(int nRuns, int insMethod, int ee, int dL)
     : fm_refiner(-1, insMethod, ee, dL) {
@@ -136,4 +134,5 @@ int initial_bisector::greedy_pass() {
   return gain;
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

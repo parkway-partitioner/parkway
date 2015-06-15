@@ -18,16 +18,16 @@
 //
 // ###
 
-#include "sequential_controller.hpp"
+#include "internal/serial_controller.hpp"
 #include "v_cycle_final_bisection_controller.hpp"
 #include "v_cycle_all_bisection_controller.hpp"
-#include "greedy_k_way_refiner.hpp"
+#include "refiners/serial/greedy_k_way_refiner.hpp"
 #include "bisection.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 
 namespace parallel = parkway::parallel;
 
-class recursive_bisection_contoller : public sequential_controller {
+class recursive_bisection_contoller : public parkway::serial::controller {
  protected:
   int number_of_bisections_;
   int log_k_;
@@ -41,22 +41,24 @@ class recursive_bisection_contoller : public sequential_controller {
   double average_part_weight_;
   double average_initial_bisection_weight_;
 
-  bisection_controller *bisector_;
-  greedy_k_way_refiner *refiner_;
+  parkway::serial::bisection_controller *bisector_;
+  parkway::serial::greedy_k_way_refiner *refiner_;
 
   dynamic_array<int> local_vertex_partition_info_;
   dynamic_array<int> all_partition_info_;
 
  public:
-  recursive_bisection_contoller(bisection_controller *b, greedy_k_way_refiner *k, int rank,
-                        int nProcs, int nParts, int nBisectRuns, ostream &out);
+  recursive_bisection_contoller(parkway::serial::bisection_controller *b,
+                                parkway::serial::greedy_k_way_refiner *k,
+                                int rank, int nProcs, int nParts,
+                                int nBisectRuns, std::ostream &out);
   ~recursive_bisection_contoller();
 
   void display_options() const;
   void convToBisectionConstraints();
 
   void run(parallel::hypergraph &hgraph, MPI_Comm comm);
-  void initialize_sequential_partitions(parallel::hypergraph &hgraph,
+  void initialize_serial_partitions(parallel::hypergraph &hgraph,
                                         MPI_Comm comm);
   void recursively_bisect(const bisection &b, MPI_Comm comm);
 

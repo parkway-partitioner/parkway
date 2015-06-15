@@ -1,6 +1,5 @@
 #ifndef _SEQ_CONTROLLER_HPP
 #define _SEQ_CONTROLLER_HPP
-
 // ### SeqController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -11,17 +10,22 @@
 //
 // ###
 
+#include <iostream>
+#include "data_structures/dynamic_array.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 
 namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
 
-using namespace std;
+namespace parkway {
+namespace serial {
 
-class sequential_controller {
-protected:
-  ostream &out_stream_;
+namespace ds = parkway::data_structures;
+
+class controller {
+ protected:
+  std::ostream &out_stream_;
   int display_option_;
   int rank_;
   int number_of_processors_;
@@ -34,17 +38,17 @@ protected:
 
   serial::hypergraph *hypergraph_;
 
-  dynamic_array<int> partition_vector_;
-  dynamic_array<int> partition_vector_cuts_;
-  dynamic_array<int> partition_vector_offsets_;
+  ds::dynamic_array<int> partition_vector_;
+  ds::dynamic_array<int> partition_vector_cuts_;
+  ds::dynamic_array<int> partition_vector_offsets_;
 
-public:
-  sequential_controller(int rank, int nProcs, int nParts, ostream &out);
+ public:
+  controller(int rank, int nProcs, int nParts, std::ostream &out);
 
-  virtual ~sequential_controller();
+  virtual ~controller();
   virtual void display_options() const = 0;
   virtual void run(parallel::hypergraph &hgraph, MPI_Comm comm) = 0;
-  virtual void initialize_sequential_partitions(parallel::hypergraph &h,
+  virtual void initialize_serial_partitions(parallel::hypergraph &h,
                                                 MPI_Comm comm);
   virtual void initialize_coarsest_hypergraph(parallel::hypergraph &hgraph,
                                               MPI_Comm comm);
@@ -59,5 +63,8 @@ public:
   inline void set_k_way_constraint(double c) { k_way_constraint_ = c; }
   inline void set_accept_proportion(double p) { accept_proportion_ = p; }
 };
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

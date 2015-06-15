@@ -1,7 +1,5 @@
-
 #ifndef _FM_REFINER_HPP
 #define _FM_REFINER_HPP
-
 // ### FMRefiner.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -26,7 +24,9 @@
 #include "data_structures/bucket_node.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 
-namespace serial = parkway::serial;
+namespace parkway {
+namespace serial {
+
 namespace ds = parkway::data_structures;
 
 class fm_refiner : public refiner {
@@ -116,5 +116,8 @@ public:
     }
   }
 };
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

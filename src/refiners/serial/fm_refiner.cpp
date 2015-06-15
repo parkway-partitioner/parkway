@@ -1,6 +1,3 @@
-#ifndef _FM_REFINER_CPP
-#define _FM_REFINER_CPP
-
 // ### FMRefiner.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -11,7 +8,10 @@
 //
 // ###
 
-#include "fm_refiner.hpp"
+#include "refiners/serial/fm_refiner.hpp"
+
+namespace parkway {
+namespace serial {
 
 fm_refiner::fm_refiner(int max, int insMethod, int ee, int dL) : refiner(dL) {
   bucket_arrays_length_ = 0;
@@ -1171,4 +1171,5 @@ int fm_refiner::choose_legal_move(int sP) {
   return v;
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

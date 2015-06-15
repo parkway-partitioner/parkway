@@ -1,7 +1,3 @@
-
-#ifndef _VCYCLE_BISECTION_CPP
-#define _VCYCLE_BISECTION_CPP
-
 // ### VCycleBisectionController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -14,9 +10,12 @@
 
 #include "v_cycle_bisection_controller.hpp"
 
+namespace parkway {
+namespace serial {
+
 v_cycle_bisection_controller::v_cycle_bisection_controller(
     const int nRuns, const double kT, const double redFactor, int eeParam,
-    int percentile, int inc, int dispL, ostream &out)
+    int percentile, int inc, int dispL, std::ostream &out)
     : bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc, dispL,
                           out) {
   restrictive_coarsener_ = nullptr;
@@ -43,7 +42,7 @@ void v_cycle_bisection_controller::display_options() const {
                << " %le = " << start_percentile_
                << " %inc = " << percentile_increment_;
       print_type();
-    out_stream << endl << "|" << endl;
+    out_stream << std::endl << "|" << std::endl;
       coarsener_->display_options(out_stream);
       restrictive_coarsener_->display_options(out_stream);
       initial_bisector_->display_options(out_stream);
@@ -108,4 +107,5 @@ void v_cycle_bisection_controller::store_best_partition(const int *pVector,
   }
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

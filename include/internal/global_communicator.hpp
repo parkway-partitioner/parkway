@@ -15,7 +15,8 @@
 #include "Funct.hpp"
 #include "data_structures/dynamic_array.hpp"
 
-using parkway::data_structures::dynamic_array;
+namespace parkway {
+namespace ds = data_structures;
 
 class global_communicator {
  public:
@@ -37,14 +38,16 @@ protected:
   const int rank_;
   const int processors_;
 
-  dynamic_array<dynamic_array<int> *> data_out_sets_;
+  ds::dynamic_array<ds::dynamic_array<int> *> data_out_sets_;
 
-  dynamic_array<int> send_lens_;
-  dynamic_array<int> receive_lens_;
-  dynamic_array<int> send_displs_;
-  dynamic_array<int> receive_displs_;
-  dynamic_array<int> send_array_;
-  dynamic_array<int> receive_array_;
+  ds::dynamic_array<int> send_lens_;
+  ds::dynamic_array<int> receive_lens_;
+  ds::dynamic_array<int> send_displs_;
+  ds::dynamic_array<int> receive_displs_;
+  ds::dynamic_array<int> send_array_;
+  ds::dynamic_array<int> receive_array_;
 };
+
+}  // namespace parkway
 
 #endif

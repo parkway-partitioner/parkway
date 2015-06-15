@@ -1,7 +1,3 @@
-
-#ifndef _KWAY_GREEDY_REFINER_CPP
-#define _KWAY_GREEDY_REFINER_CPP
-
 // ### GreedyKwayRefiner.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -12,10 +8,13 @@
 //
 // ###
 
-#include "greedy_k_way_refiner.hpp"
+#include "refiners/serial/greedy_k_way_refiner.hpp"
+
+namespace parkway {
+namespace serial {
 
 greedy_k_way_refiner::greedy_k_way_refiner(int max, int nparts, double ave,
-                                     double lim, int dL)
+                                           double lim, int dL)
     : refiner(dL) {
   maximum_part_weight_ = max;
   number_of_parts_ = nparts;
@@ -632,4 +631,5 @@ int greedy_k_way_refiner::rebalancing_pass() {
   return gain;
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

@@ -18,11 +18,10 @@
 namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
 
-recursive_bisection_contoller::recursive_bisection_contoller(bisection_controller *b,
-                                             greedy_k_way_refiner *k, int rank,
-                                             int nProcs, int nParts,
-                                             int nBisectRuns, ostream &out)
-    : sequential_controller(rank, nProcs, nParts, out) {
+recursive_bisection_contoller::recursive_bisection_contoller(
+    serial::bisection_controller *b, serial::greedy_k_way_refiner *k, int rank,
+    int nProcs, int nParts, int nBisectRuns, std::ostream &out)
+    : parkway::serial::controller(rank, nProcs, nParts, out) {
   bisector_ = b;
   refiner_ = k;
   number_of_bisections_ = nBisectRuns;
@@ -44,8 +43,8 @@ recursive_bisection_contoller::recursive_bisection_contoller(bisection_controlle
 }
 
 recursive_bisection_contoller::~recursive_bisection_contoller() {
-  dynamic_memory::delete_pointer<bisection_controller>(bisector_);
-  dynamic_memory::delete_pointer<greedy_k_way_refiner>(refiner_);
+  dynamic_memory::delete_pointer<serial::bisection_controller>(bisector_);
+  dynamic_memory::delete_pointer<serial::greedy_k_way_refiner>(refiner_);
 }
 
 void recursive_bisection_contoller::display_options() const {
@@ -55,12 +54,12 @@ void recursive_bisection_contoller::display_options() const {
 
   default:
 
-    out_stream_ << "|--- SEQ_CON:" << endl
+    out_stream_ << "|--- SEQ_CON:" << std::endl
                << "|- RBis:"
                << " seqR = " << number_of_runs_ << " bisR = " <<
                                                    number_of_bisections_
-               << " pkT = " << accept_proportion_ << endl
-               << "|" << endl;
+               << " pkT = " << accept_proportion_ << std::endl
+               << "|" << std::endl;
 #ifdef DEBUG_CONTROLLER
     assert(bisector);
 #endif
@@ -105,7 +104,7 @@ void recursive_bisection_contoller::convToBisectionConstraints() {
 #endif
 
   // ###
-  // now determine how many of the sequential
+  // now determine how many of the serial
   // runs' partitions  the processor should
   // k-way refine
   // ###
@@ -245,7 +244,7 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
   // project partitions
   // ###
 
-  initialize_sequential_partitions(hgraph, comm);
+  initialize_serial_partitions(hgraph, comm);
 
 #ifdef DEBUG_CONTROLLER
   hgraph.checkPartitions(numParts, maxPartWt, comm);
@@ -254,7 +253,7 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
   dynamic_memory::delete_pointer<serial::hypergraph>(hypergraph_);
 }
 
-void recursive_bisection_contoller::initialize_sequential_partitions(
+void recursive_bisection_contoller::initialize_serial_partitions(
     parallel::hypergraph &hgraph,
     MPI_Comm comm) {
   int i;
@@ -371,7 +370,7 @@ void recursive_bisection_contoller::initialize_sequential_partitions(
     for (i = 0; i < number_of_runs_; ++i)
       out_stream_ << hGraphPartCuts[i] << " ";
 
-    out_stream_ << endl;
+    out_stream_ << std::endl;
   }
 }
 
@@ -394,7 +393,7 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
     bisection *left = nullptr;
     bisection *right = nullptr;
 
-    bisector_->set_number_of_sequential_runs(number_of_bisections_);
+    bisector_->set_number_of_serial_runs(number_of_bisections_);
 
     if (bisectAgain == 1)
       bisector_->bisect(h, maximum_part_weight_);
@@ -443,7 +442,7 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
     bisection *newB;
     int bestCutProc;
 
-    bisector_->set_number_of_sequential_runs(max(1, number_of_bisections_ / nProcs));
+    bisector_->set_number_of_serial_runs(std::max(1, number_of_bisections_ / nProcs));
 
     if (bisectAgain == 1)
       bisector_->bisect(h, maximum_part_weight_);

@@ -160,7 +160,7 @@ parallel_restrictive_coarsening *Utils::buildParaRestrCoarsener(
   return c;
 }
 
-parallel_refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
+parallel::refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
                                      double constraint, parallel::hypergraph *h,
                                      std::ostream &out, const int *options,
                                      MPI_Comm comm) {
@@ -168,7 +168,7 @@ parallel_refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_par
   int disp_option = options[2];
   int numTotPins = h->total_number_of_pins(comm);
 
-  parallel_refiner *r = nullptr;
+  parallel::refiner *r = nullptr;
 
   if (refiner_type == ParaGreedyKway) {
     double eeLimit = static_cast<double>(options[27]) / 100;
@@ -177,7 +177,7 @@ parallel_refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_par
     if (options[28] == 2 || options[28] == 3)
       earlyExit = 1;
 
-    r = new parallel_k_way_greedy_refiner(my_rank, num_proc, num_parts,
+    r = new parallel::k_way_greedy_refiner(my_rank, num_proc, num_parts,
                                   numTotPins / num_proc, earlyExit, eeLimit,
                                   out);
 
@@ -191,14 +191,14 @@ parallel_refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_par
   return r;
 }
 
-sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
+serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
                                          int num_parts, double constraint,
                                          ostream &out, const int *options) {
   int numSeqRuns = options[14];
   int seqControllerType = options[15];
   int disp_option = options[2];
 
-  sequential_controller *seqC = nullptr;
+  serial::controller *seqC = nullptr;
 
   if (seqControllerType == RecurBisect) {
     int numBisectRuns = options[17];
@@ -209,12 +209,12 @@ sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    bisection_controller *bC =
-        new bisection_controller(numBisectRuns, keepT, redFactor, eeParam,
-                                startPercentile, inc, disp_option, out);
+    serial::bisection_controller *bC = new
+        serial::bisection_controller(numBisectRuns, keepT, redFactor, eeParam,
+                                     startPercentile, inc, disp_option, out);
 
     // ###
-    // build the sequential coarsener
+    // build the serial coarsener
     // ###
 
     int seqCoarsener = options[16];
@@ -245,8 +245,8 @@ sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
 
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
-    greedy_k_way_refiner *k =
-        new greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
+    serial::greedy_k_way_refiner *k =
+        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
 
     // ###
     // build the seq controller
@@ -272,12 +272,13 @@ sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    v_cycle_all_bisection_controller *bC = new v_cycle_all_bisection_controller(
-        numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
-        disp_option, out);
+    serial::v_cycle_all_bisection_controller *bC =
+        new serial::v_cycle_all_bisection_controller(
+            numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
+            disp_option, out);
 
     // ###
-    // build the sequential coarsener
+    // build the serial coarsener
     // ###
 
     int seqCoarsener = options[16];
@@ -316,8 +317,8 @@ sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
 
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
-    greedy_k_way_refiner *k =
-        new greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
+    serial::greedy_k_way_refiner *k =
+        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
 
     // ###
     // build the seq controller
@@ -343,12 +344,13 @@ sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    v_cycle_final_bisection_controller *bC = new v_cycle_final_bisection_controller(
-        numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
-        disp_option, out);
+    serial::v_cycle_final_bisection_controller *bC =
+        new serial::v_cycle_final_bisection_controller(
+            numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
+            disp_option, out);
 
     // ###
-    // build the sequential coarsener
+    // build the serial coarsener
     // ###
 
     int seqCoarsener = options[16];
@@ -387,8 +389,8 @@ sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
 
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
-    greedy_k_way_refiner *k =
-        new greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
+    serial::greedy_k_way_refiner *k =
+        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
 
     // ###
     // build the seq controller
@@ -475,10 +477,11 @@ sequential_controller *Utils::buildSeqController(int my_rank, int num_proc,
   return seqC;
 }
 
-parallel_controller *Utils::buildParaController(
+parallel::controller *Utils::buildParaController(
     int my_rank, int num_proc, int num_parts, int num_tot_verts,
-    double constraint, parallel_coarsener *c, parallel_restrictive_coarsening *rc, parallel_refiner *r,
-    sequential_controller *s, ostream &out, const int *options, MPI_Comm comm) {
+    double constraint, parallel_coarsener *c,
+    parallel_restrictive_coarsening *rc, parallel::refiner *r,
+    serial::controller *s, ostream &out, const int *options, MPI_Comm comm) {
   int paraControllerType = options[22];
   int numParaRuns = options[4];
   int disp_option = options[2];
@@ -490,10 +493,10 @@ parallel_controller *Utils::buildParaController(
   double paraKeepT = static_cast<double>(options[25]) / 100;
   double redFactor = static_cast<double>(options[26]) / 100;
 
-  parallel_controller *paraC = nullptr;
+  parallel::controller *paraC = nullptr;
 
   if (paraControllerType == BasicParaC) {
-    paraC = new basic_parallel_controller(*c, *r, *s, my_rank, num_proc, percentile,
+    paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc, percentile,
                                     perCentInc, approxRef, out);
   }
 
@@ -518,7 +521,7 @@ parallel_controller *Utils::buildParaController(
         cout << message;
       }
 
-      paraC = new basic_parallel_controller(*c, *r, *s, my_rank, num_proc, percentile,
+      paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc, percentile,
                                       perCentInc, approxRef, out);
     } else {
       int limitOnCycles = options[23];
@@ -551,7 +554,7 @@ parallel_controller *Utils::buildParaController(
         out << message;
       }
 
-      paraC = new basic_parallel_controller(*c, *r, *s, my_rank, num_proc, percentile,
+      paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc, percentile,
                                       perCentInc, approxRef, out);
     } else {
       int limitOnCycles = options[23];

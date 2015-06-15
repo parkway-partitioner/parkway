@@ -1,7 +1,3 @@
-
-#ifndef _PARA_CONTROLLER_CPP
-#define _PARA_CONTROLLER_CPP
-
 // ### ParaController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -12,14 +8,20 @@
 //
 // ###
 
-#include "parallel_controller.hpp"
+#include "internal/parallel_controller.hpp"
 
-parallel_controller::parallel_controller(parallel_coarsener &c, parallel_refiner &r,
-                               sequential_controller &con, int rank, int nP,
-                               int percentile, int inc, int approxRef,
-                               ostream &out)
-    : global_communicator(rank, nP), out_stream_(out), coarsener_(c), refiner_(r),
-      sequential_controller_(con) {
+namespace parkway {
+namespace parallel {
+
+controller::controller(parallel_coarsener &c, refiner &r,
+                       serial::controller &con, int rank, int nP,
+                       int percentile, int inc, int approxRef,
+                       std::ostream &out)
+    : global_communicator(rank, nP),
+      out_stream_(out),
+      coarsener_(c),
+      refiner_(r),
+      serial_controller_(con) {
   shuffled_ = 0;
   number_of_runs_ = -1;
   total_number_of_parts_ = -1;
@@ -40,7 +42,7 @@ parallel_controller::parallel_controller(parallel_coarsener &c, parallel_refiner
   average_cutsize_ = 0;
   start_time_ = 0;
   total_coarsening_time_ = 0;
-  total_sequential_time_ = 0;
+  total_serial_time_ = 0;
   total_refinement_time_ = 0;
   total_time_ = 0;
   accumulator_ = 0;
@@ -50,53 +52,31 @@ parallel_controller::parallel_controller(parallel_coarsener &c, parallel_refiner
   best_partition_.reserve(0);
 }
 
-parallel_controller::~parallel_controller() {}
-
-/*
-void ParaController::setShuffleFile(const char *filename)
-{
-  shuffleFile.reserve(strlen(filename)+1);
-  strcpy(shuffleFile.data_(),filename);
+controller::~controller() {
 }
-*/
 
-void parallel_controller::initialize_map_to_orig_verts() {
-  int i;
-  int j = hypergraph_->minimum_vertex_index();
-
+void controller::initialize_map_to_orig_verts() {
+  int min_vertex_index = hypergraph_->minimum_vertex_index();
   map_to_orig_vertices_.reserve(number_of_orig_local_vertices_);
 
-  for (i = 0; i < number_of_orig_local_vertices_; ++i)
-    map_to_orig_vertices_[i] = j + i;
-
-  /*
-  if(shuffled)
-    {
-      int *mapToOrig = hgraph->getToOrigVArray();
-
-      for (i=0;i<numOrigLocVerts;++i)
-        mapToOrigVerts[i] = mapToOrig[i];
-    }
-  else
-    {
-  */
+  for (int i = 0; i < number_of_orig_local_vertices_; ++i) {
+    map_to_orig_vertices_[i] = min_vertex_index + i;
+  }
 }
 
-void parallel_controller::set_prescribed_partition(const char *filename,
-                                                   MPI_Comm comm) {
+void controller::set_prescribed_partition(const char *filename, MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
   assert(hgraph);
 #endif
-
   if (shuffled_ == 2) {
     int len;
     int numVPerProc = hypergraph_->total_number_of_vertices() / processors_;
     int myOffset = rank_ * numVPerProc;
 
     char message[512];
-    ifstream in_stream;
+    std::ifstream in_stream;
 
-    in_stream.open(filename, ifstream::in | ifstream::binary);
+    in_stream.open(filename, std::ifstream::in | std::ifstream::binary);
 
     if (!in_stream.is_open()) {
       sprintf(message, "p[%d] could not open partition file %s\n", rank_,
@@ -107,7 +87,7 @@ void parallel_controller::set_prescribed_partition(const char *filename,
 
     shuffle_partition_.reserve(number_of_orig_local_vertices_);
 
-    in_stream.seekg(myOffset * sizeof(int), ifstream::beg);
+    in_stream.seekg(myOffset * sizeof(int), std::ifstream::beg);
     len = number_of_orig_local_vertices_ * sizeof(int);
     in_stream.read((char *)(shuffle_partition_.data()), len);
 
@@ -122,7 +102,7 @@ void parallel_controller::set_prescribed_partition(const char *filename,
   }
 }
 
-void parallel_controller::store_best_partition(int numV, const int *array,
+void controller::store_best_partition(int numV, const int *array,
                                                MPI_Comm comm) {
 
 #ifdef DEBUG_CONTROLLER
@@ -166,7 +146,7 @@ void parallel_controller::store_best_partition(int numV, const int *array,
     assert(vPart >= 0 && vPart < numTotalParts);
 #endif
 
-    ij = min(vertex / vertPerProc, processors_ - 1);
+    ij = std::min(vertex / vertPerProc, processors_ - 1);
     assert(ij < processors_);
     if (ij == rank_) {
       best_partition_[vertex - minLocVertIndex] = vPart;
@@ -245,21 +225,19 @@ void parallel_controller::store_best_partition(int numV, const int *array,
 #endif
 }
 
-void parallel_controller::partition_to_file(const char *filename,
-                                            MPI_Comm comm) const {
-  int i;
-
+void controller::partition_to_file(const char *filename, MPI_Comm comm) const {
   char message[512];
-  ofstream out;
+  std::ofstream out;
 
   if (rank_ == 0)
     remove(filename);
 
   MPI_Barrier(comm);
 
-  for (i = 0; i < processors_; ++i) {
+  for (int i = 0; i < processors_; ++i) {
     if (rank_ == i) {
-      out.open(filename, ofstream::out | ofstream::app | ofstream::binary);
+      out.open(filename, std::ofstream::out | std::ofstream::app |
+               std::ofstream::binary);
 
       if (!out.is_open()) {
         sprintf(message, "p[%d] cannot open %s\n", rank_, filename);
@@ -274,15 +252,12 @@ void parallel_controller::partition_to_file(const char *filename,
   }
 }
 
-void parallel_controller::copy_out_partition(int numVertices,
-                                             int *pVector) const {
-  int i;
-
-  for (i = 0; i < numVertices; ++i)
+void controller::copy_out_partition(int numVertices, int *pVector) const {
+  for (int i = 0; i < numVertices; ++i)
     pVector[i] = best_partition_[i];
 }
 
-void parallel_controller::set_weight_constraints(MPI_Comm comm) {
+void controller::set_weight_constraints(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
   assert(hgraph);
   assert(numTotalParts != -1);
@@ -306,29 +281,8 @@ void parallel_controller::set_weight_constraints(MPI_Comm comm) {
 
   coarsener_.set_maximum_vertex_weight(maxVertWt);
   coarsener_.set_total_hypergraph_weight(totGraphWt);
-  sequential_controller_.set_maximum_vertex_weight(maxVertWt);
+  serial_controller_.set_maximum_vertex_weight(maxVertWt);
 }
 
-#ifdef DEBUG_TABLES
-void ParaController::printHashMemUse() {
-  // write_log(rank_, "HedgeIndex diff: %d",
-  // HedgeIndexEntry::getNumAllocated()-HedgeIndexEntry::getNumDeleted());
-  // write_log(rank_, "MatchEntry diff: %d",
-  // MatchEntry::getNumAllocated()-MatchEntry::getNumDeleted());
-  write_log(rank_, "MatchRequestEntry diff: %d",
-            MatchRequestEntry::getNumAllocated() -
-                MatchRequestEntry::getNumDeleted());
-  // write_log(rank_, "IndexEntry diff: %d",
-  // IndexEntry::getNumAllocated()-IndexEntry::getNumDeleted());
-  // write_log(rank_, "ConnVertData diff: %d",
-  // ConnVertData::getNumAllocated()-ConnVertData::getNumDeleted());
-  // write_log(rank_, "VertexPartEntry diff: %d",
-  // VertexPartEntry::getNumAllocated()-VertexPartEntry::getNumDeleted());
-  // write_log(rank_, "DuplRemEntry diff: %d",
-  // DuplRemEntry::getNumAllocated()-DuplRemEntry::getNumDeleted());
-  // write_log(rank_, "PVectorEntry diff: %d",
-  // PVectorEntry::getNumAllocated()-PVectorEntry::getNumDeleted());
-}
-#endif
-
-#endif
+}  // namespace parallel
+}  // namespace parkway

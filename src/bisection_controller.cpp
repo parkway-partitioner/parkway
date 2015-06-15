@@ -1,6 +1,3 @@
-#ifndef _BISECTION_CONTROLLER_CPP
-#define _BISECTION_CONTROLLER_CPP
-
 // ### BisectionController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -13,11 +10,14 @@
 
 #include "bisection_controller.hpp"
 
+namespace parkway {
+namespace serial {
+
 bisection_controller::bisection_controller(int nRuns, double kT, double redFactor,
                                          int eeP, int percentile, int inc,
                                          int dispL, std::ostream &out)
     : out_stream(out) {
-  number_of_sequential_runs_ = nRuns;
+  number_of_serial_runs_ = nRuns;
   ee_parameter_ = eeP;
   display_level_ = dispL;
   start_percentile_ = percentile;
@@ -114,7 +114,7 @@ void bisection_controller::compute_bisection() {
   number_of_orig_vertices_ = origGraph->number_of_vertices();
   best_partition_.reserve(number_of_orig_vertices_);
 
-  for (i = 0; i < number_of_sequential_runs_; ++i) {
+  for (i = 0; i < number_of_serial_runs_; ++i) {
     serial::hypergraph *coarseGraph;
     serial::hypergraph *finerGraph = origGraph;
     hEdgePercentiles.push(start_percentile_);
@@ -201,4 +201,5 @@ void bisection_controller::bisect(serial::hypergraph *h, int _maxPartWt) {
 #endif
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

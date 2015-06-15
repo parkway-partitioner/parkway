@@ -1,7 +1,3 @@
-
-#ifndef _PARA_REFINER_CPP
-#define _PARA_REFINER_CPP
-
 // ### ParaRefiner.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -11,18 +7,20 @@
 // 3/2/2005: Last Modified
 //
 // ###
-
-#include "parallel_refiner.hpp"
+#include "refiners/parallel/refiner.hpp"
 #include <iostream>
 
-parallel_refiner::parallel_refiner(int rank, int nProcs, int nParts, std::ostream &out)
+namespace parkway {
+namespace parallel {
+
+refiner::refiner(int rank, int nProcs, int nParts, std::ostream &out)
     : loader(rank, nProcs, nParts, out) {
   part_weights_.reserve(nParts);
 }
 
-parallel_refiner::~parallel_refiner() {}
+refiner::~refiner() {}
 
-void parallel_refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
+void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   int i;
   int ij;
   int vertsPerProc;
@@ -474,7 +472,7 @@ void parallel_refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   }
 }
 
-void parallel_refiner::initialize_partition_structures(
+void refiner::initialize_partition_structures(
     const parallel::hypergraph &h, MPI_Comm comm) {
   load(h, comm);
 
@@ -665,4 +663,5 @@ void parallel_refiner::initialize_partition_structures(
   }
 }
 
-#endif
+}  // namespace parallel
+}  // namespace parkway

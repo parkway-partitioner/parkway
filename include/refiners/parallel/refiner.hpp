@@ -1,6 +1,5 @@
 #ifndef _PARA_REFINER_HPP
 #define _PARA_REFINER_HPP
-
 // ### ParaRefiner.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -16,11 +15,12 @@
 #include "data_structures/dynamic_array.hpp"
 #include "data_structures/map_to_pos_int.hpp"
 
-namespace parallel = parkway::parallel;
+namespace parkway {
+namespace parallel {
 namespace ds = parkway::data_structures;
 
-class parallel_refiner : public parallel::loader {
-protected:
+class refiner : public loader {
+ protected:
   int maximum_part_weight_;
   int number_of_partitions_;
 
@@ -37,7 +37,6 @@ protected:
   ds::dynamic_array<int> part_weights_;
 
   /* newly added structures */
-
   int number_of_non_local_vertices_;
   int number_of_non_local_vertices_to_hyperedges_;
   int *current_non_local_partition_vector_;
@@ -51,10 +50,10 @@ protected:
 
   ds::map_to_pos_int to_non_local_vertices_;
 
-public:
-  parallel_refiner(int rank, int nProcs, int nParts, std::ostream &out);
+ public:
+  refiner(int rank, int nProcs, int nParts, std::ostream &out);
 
-  virtual ~parallel_refiner();
+  virtual ~refiner();
   virtual void display_options() const = 0;
   virtual void release_memory() = 0;
   virtual void initialize_data_structures(const parallel::hypergraph &h,
@@ -68,8 +67,16 @@ public:
   void initialize_partition_structures(const parallel::hypergraph &h,
                                        MPI_Comm comm);
 
-  inline void set_balance_constraint(double b) { balance_constraint_ = b; }
-  inline int maximum_part_weight() const { return maximum_part_weight_; }
+  inline void set_balance_constraint(double b) {
+    balance_constraint_ = b;
+  }
+
+  inline int maximum_part_weight() const {
+    return maximum_part_weight_;
+  }
 };
+
+}  // namespace parallel
+}  // namespace parkway
 
 #endif

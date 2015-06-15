@@ -17,14 +17,15 @@
 #include "first_choice_coarsener.hpp"
 #include "initial_bisector.hpp"
 
-namespace serial = parkway::serial;
+namespace parkway {
+namespace serial {
 namespace ds = parkway::data_structures;
 
 class bisection_controller {
-protected:
+ protected:
   std::ostream &out_stream;
 
-  int number_of_sequential_runs_;
+  int number_of_serial_runs_;
   int ee_parameter_;
   int display_level_;
 
@@ -43,9 +44,9 @@ protected:
   ds::stack<serial::hypergraph *> hypergraphs_;
   ds::dynamic_array<int> best_partition_;
 
-public:
+ public:
   bisection_controller(int nRuns, double kT, double redFactor, int eeParam,
-                      int percentile, int inc, int dispL, std::ostream &out);
+                       int percentile, int inc, int dispL, std::ostream &out);
 
   virtual ~bisection_controller();
   virtual void display_options() const;
@@ -58,7 +59,10 @@ public:
 
   void bisect(serial::hypergraph *h, int maxPartWt);
 
-  inline void set_number_of_sequential_runs(int r) { number_of_sequential_runs_ = r; }
+  inline void set_number_of_serial_runs(int r) { number_of_serial_runs_ = r; }
 };
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

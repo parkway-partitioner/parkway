@@ -1,7 +1,3 @@
-
-#ifndef _VCYCLEALL_BISECTION_CPP
-#define _VCYCLEALL_BISECTION_CPP
-
 // ### VCycleAllBisectionController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -14,9 +10,12 @@
 
 #include "v_cycle_all_bisection_controller.hpp"
 
+namespace parkway {
+namespace serial {
+
 v_cycle_all_bisection_controller::v_cycle_all_bisection_controller(
     int nRuns, double kT, double redFactor, int eeParam, int percentile,
-    int inc, int dispL, ostream &out)
+    int inc, int dispL, std::ostream &out)
     : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc,
                                 dispL, out) {}
 
@@ -52,7 +51,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
 
   restrictive_coarsener_->set_maximum_vertex_weight(coarsener_->maximum_vertex_weight());
 
-  for (i = 0; i < number_of_sequential_runs_; ++i) {
+  for (i = 0; i < number_of_serial_runs_; ++i) {
     finerGraph = origGraph;
     hEdgePercentiles.push(start_percentile_);
 
@@ -66,7 +65,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
       coarseGraph = coarsener_->coarsen(*finerGraph);
 
       if (coarseGraph) {
-        hEdgePercentiles.push(min(hEdgePercentile + percentile_increment_, 100));
+        hEdgePercentiles.push(std::min(hEdgePercentile + percentile_increment_, 100));
         hypergraphs_.push(coarseGraph);
         finerGraph = coarseGraph;
       }
@@ -122,7 +121,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
 
           if (coarseGraph) {
             hEdgePercentiles.push(
-                min(hEdgePercentile + percentile_increment_, 100));
+                std::min(hEdgePercentile + percentile_increment_, 100));
             hypergraphs_.push(coarseGraph);
             finerGraph = coarseGraph;
           }
@@ -198,4 +197,5 @@ void v_cycle_all_bisection_controller::compute_bisection() {
                                  bestCut);
 }
 
-#endif
+}  // namespace serial
+}  // namespace parkway

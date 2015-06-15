@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cassert>
 
-#include "global_communicator.hpp"
+#include "internal/global_communicator.hpp"
 #include "data_structures/dynamic_array.hpp"
 #include "hypergraph/base_hypergraph.hpp"
 
@@ -33,7 +33,7 @@ namespace parallel {
 
 using parkway::hypergraph::base_hypergraph;
 
-class hypergraph : public global_communicator, public base_hypergraph {
+class hypergraph : public parkway::global_communicator, public base_hypergraph {
 public:
   hypergraph(int myRank, int nProcs, int _numLocVerts, int _totVerts,
                  int _minVertIndex, int coarsen, int *wtArray);

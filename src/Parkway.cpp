@@ -18,6 +18,7 @@
 #include "hypergraph/hypergraph.hpp"
 
 namespace parallel = parkway::parallel;
+namespace serial = parkway::serial;
 namespace ds = parkway::data_structures;
 
 void k_way_partition(const char *file_name, const char *out_file, int num_parts,
@@ -46,9 +47,9 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
   parallel::hypergraph *hgraph = nullptr;
   parallel_coarsener *coarsener = nullptr;
   parallel_restrictive_coarsening *restrC = nullptr;
-  parallel_refiner *refiner = nullptr;
-  sequential_controller *seqController = nullptr;
-  parallel_controller *controller = nullptr;
+  parallel::refiner *refiner = nullptr;
+  serial::controller *seqController = nullptr;
+  parallel::controller *controller = nullptr;
 
   ds::internal::table_utils tableUtils;
 
@@ -62,7 +63,7 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
     if (!output->good()) {
       sprintf(message, "p[%d] could not open file %s - abort\n", my_rank,
               out_file);
-      cout << message;
+      std::cout << message;
       MPI_Abort(comm, 0);
     }
   } else {
@@ -179,11 +180,11 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
 
   k_1cut = controller->best_cut_size();
 
-  dynamic_memory::delete_pointer<parallel_controller>(controller);
-  dynamic_memory::delete_pointer<sequential_controller>(seqController);
+  dynamic_memory::delete_pointer<parallel::controller>(controller);
+  dynamic_memory::delete_pointer<serial::controller>(seqController);
   dynamic_memory::delete_pointer<parallel_restrictive_coarsening>(restrC);
   dynamic_memory::delete_pointer<parallel_coarsener>(coarsener);
-  dynamic_memory::delete_pointer<parallel_refiner>(refiner);
+  dynamic_memory::delete_pointer<parallel::refiner>(refiner);
   dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
 
   if (out_file) {
@@ -221,9 +222,9 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
   parallel::hypergraph *hgraph = nullptr;
   parallel_coarsener *coarsener = nullptr;
   parallel_restrictive_coarsening *restrC = nullptr;
-  parallel_refiner *refiner = nullptr;
-  sequential_controller *seqController = nullptr;
-  parallel_controller *controller = nullptr;
+  parallel::refiner *refiner = nullptr;
+  serial::controller *seqController = nullptr;
+  parallel::controller *controller = nullptr;
 
   ds::internal::table_utils tableUtils;
 
@@ -351,11 +352,11 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
 
   k_1cut = controller->best_cut_size();
 
-  dynamic_memory::delete_pointer<parallel_controller>(controller);
-  dynamic_memory::delete_pointer<sequential_controller>(seqController);
+  dynamic_memory::delete_pointer<parallel::controller>(controller);
+  dynamic_memory::delete_pointer<serial::controller>(seqController);
   dynamic_memory::delete_pointer<parallel_restrictive_coarsening>(restrC);
   dynamic_memory::delete_pointer<parallel_coarsener>(coarsener);
-  dynamic_memory::delete_pointer<parallel_refiner>(refiner);
+  dynamic_memory::delete_pointer<parallel::refiner>(refiner);
   dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
 
   if (out_file)

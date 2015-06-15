@@ -17,7 +17,7 @@
 #include "mpi.h"
 #include "Log.h"
 #include "hypergraph/parallel/hypergraph.hpp"
-#include "basic_parallel_controller.hpp"
+#include "basic_contoller.hpp"
 #include "parallel_v_cycle_final_controller.hpp"
 #include "parallel_v_cycle_all_controller.hpp"
 #include "recursive_bisection_contoller.hpp"
@@ -25,37 +25,38 @@
 #include "PaToHController.hpp"
 
 namespace parallel = parkway::parallel;
+namespace serial = parkway::serial;
 
 namespace Utils {
 parallel_coarsener *buildParaCoarsener(int myRank, int numProc, int numParts,
                                   double constraint, parallel::hypergraph *h,
-                                  ostream &out, const int *options,
+                                  std::ostream &out, const int *options,
                                   MPI_Comm comm);
 
 parallel_restrictive_coarsening *buildParaRestrCoarsener(int myRank, int numProc,
                                             int numParts, double constraint,
-                                            parallel::hypergraph *h, ostream &out,
+                                            parallel::hypergraph *h, std::ostream &out,
                                             const int *options, MPI_Comm comm);
 
-parallel_refiner *buildParaRefiner(int myRank, int numProc, int numParts,
+parallel::refiner *buildParaRefiner(int myRank, int numProc, int numParts,
                               double constraint, parallel::hypergraph *h,
-                              ostream &out, const int *options, MPI_Comm comm);
+                              std::ostream &out, const int *options, MPI_Comm comm);
 
-sequential_controller *buildSeqController(int myRank, int numProc, int numParts,
-                                  double constraint, ostream &out,
+serial::controller *buildSeqController(int myRank, int numProc, int numParts,
+                                  double constraint, std::ostream &out,
                                   const int *options);
 
-parallel_controller *buildParaController(int myRank, int numProcs, int numParts,
+parallel::controller *buildParaController(int myRank, int numProcs, int numParts,
                                     int num_tot_verts, double constraint,
                                     parallel_coarsener *c, parallel_restrictive_coarsening *rc,
-                                    parallel_refiner *r, sequential_controller *s,
-                                    ostream &out, const int *options,
+                                    parallel::refiner *r, serial::controller *s,
+                                    std::ostream &out, const int *options,
                                     MPI_Comm comm);
 
 void initDefaultValues(const int *userOptions, int *programOptions);
 
 void checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
-                        int paraOption, ostream &out, MPI_Comm comm);
+                        int paraOption, std::ostream &out, MPI_Comm comm);
 }
 
 #endif

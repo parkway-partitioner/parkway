@@ -14,17 +14,20 @@
 #include "bisection_controller.hpp"
 #include "restrictive_first_choice_coarsener.hpp"
 
-using namespace std;
+namespace parkway {
+namespace serial {
+namespace ds = parkway::data_structures;
 
 class v_cycle_bisection_controller : public bisection_controller {
-protected:
-  dynamic_array<int> v_cycle_partition_;
+ protected:
+  ds::dynamic_array<int> v_cycle_partition_;
   restrictive_coarsener *restrictive_coarsener_;
 
-public:
+ public:
   v_cycle_bisection_controller(const int nRuns, const double kT,
-                            const double redFactor, int eeParam, int percentile,
-                            int inc, int dispL, ostream &out);
+                               const double redFactor, int eeParam,
+                               int percentile, int inc, int dispL,
+                               std::ostream &out);
   virtual ~v_cycle_bisection_controller();
 
   void display_options() const;
@@ -35,5 +38,8 @@ public:
   virtual void print_type() const = 0;
   virtual void compute_bisection() = 0;
 };
+
+}  // namespace serial
+}  // namespace parkway
 
 #endif

@@ -11,15 +11,15 @@
 //
 // ###
 
-#include "web_graph_sequential_controller.hpp"
+#include "web_graph_serial_controller.hpp"
 
-web_graph_sequential_controller::web_graph_sequential_controller(int rank, int nProcs, int nParts,
-                                             ostream &out)
-    : sequential_controller(rank, nProcs, nParts, out) {}
+web_graph_serial_controller::web_graph_serial_controller(
+    int rank, int nProcs, int nParts, std::ostream &out)
+    : parkway::serial::controller(rank, nProcs, nParts, out) {}
 
-web_graph_sequential_controller::~web_graph_sequential_controller() {}
+web_graph_serial_controller::~web_graph_serial_controller() {}
 
-void web_graph_sequential_controller::initialize_coarsest_hypergraph(
+void web_graph_serial_controller::initialize_coarsest_hypergraph(
     parallel::hypergraph &hgraph,
     MPI_Comm comm) {
   /***********************
@@ -170,7 +170,7 @@ vertices.
     hypergraph_->print_characteristics(out_stream_);
 }
 
-void web_graph_sequential_controller::initialize_sequential_partitions(
+void web_graph_serial_controller::initialize_serial_partitions(
     parallel::hypergraph &hgraph,
     MPI_Comm comm) {
   int i;
@@ -333,7 +333,7 @@ void web_graph_sequential_controller::initialize_sequential_partitions(
     for (i = 0; i < numKept; ++i)
       out_stream_ << hPartCuts[i] << " ";
 
-    out_stream_ << endl;
+    out_stream_ << std::endl;
   }
 }
 
