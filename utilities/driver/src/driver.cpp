@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
   options[21] = 2;
   // parallel uncoarsening algorithm, 1 simple, 2 only final V-Cycle, 3 all
   // V-Cycle
-  options[22] = 2;
+  options[22] = 1;
   // limit on number of V-Cycle iterations (only if [22] = 2/3)
   options[23] = 5;
   // min allowed gain for V-Cycle (percentage, see manual, only if [21] = 2/3)
