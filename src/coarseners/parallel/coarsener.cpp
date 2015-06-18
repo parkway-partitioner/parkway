@@ -30,7 +30,6 @@ coarsener::coarsener(int rank, int number_of_processors, int number_of_parts,
       total_number_of_clusters_(0),
       minimum_cluster_index_(0),
       balance_constraint_(0) {
-  cluster_weights_.reserve(0);
 }
 
 coarsener::~coarsener() {
@@ -53,18 +52,16 @@ void coarsener::update_hypergraph_information(const hypergraph &h) {
 void coarsener::load(const hypergraph &h, MPI_Comm comm) {
   int number_of_local_pins = h.number_of_pins();
   int number_of_local_hedges = h.number_of_hyperedges();
-  int *local_pins = h.pin_list();
-  int *local_hyperedge_offsets = h.hyperedge_offsets();
-  int *local_hyperedge_weights = h.hyperedge_weights();
+  ds::dynamic_array<int> local_pins = h.pin_list();
+  ds::dynamic_array<int> local_hyperedge_offsets = h.hyperedge_offsets();
+  ds::dynamic_array<int> local_hyperedge_weights = h.hyperedge_weights();
 
   update_hypergraph_information(h);
 
   // Prepare data structures
   int vertices_per_processor = number_of_vertices_ / processors_;
 
-  vertex_to_hyperedges_offset_.reserve(number_of_local_vertices_ + 1);
-  utility::set_to_zero<int>(vertex_to_hyperedges_offset_.data(),
-                            number_of_local_vertices_);
+  vertex_to_hyperedges_offset_.assign(number_of_local_vertices_ + 1, 0);
 
   if (display_options_ > 1 && rank_ == 0) {
     print_name(out_stream);
@@ -72,7 +69,6 @@ void coarsener::load(const hypergraph &h, MPI_Comm comm) {
 
   // Use the request sets to send local hyperedges to other processors and to
   // receive hyperedges from processors.
-
   int limit = INT_MAX;
   bool check_limit = percentile_ <= 0;
   if (check_limit) {
@@ -110,69 +106,68 @@ void coarsener::load(const hypergraph &h, MPI_Comm comm) {
 
 
 hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
-  int i;
-  int totalToRecv = 0;
-  int numMyClusters;
-  int clustersPerProc = total_number_of_clusters_ / processors_;
+  int clusters_per_proc = total_number_of_clusters_ / processors_;
+  int clusters_on_this_rank;
 
-  if (rank_ != processors_ - 1)
-    numMyClusters = clustersPerProc;
-  else
-    numMyClusters = clustersPerProc + Mod(total_number_of_clusters_, processors_);
+  if (rank_ != processors_ - 1) {
+    clusters_on_this_rank = clusters_per_proc;
+  } else {
+    clusters_on_this_rank = clusters_per_proc +
+        (total_number_of_clusters_ % processors_);
+  }
 
-  ds::dynamic_array<int> minClusterIndex(processors_);
-  ds::dynamic_array<int> maxClusterIndex(processors_);
-  ds::dynamic_array<int> *clusterWts = new ds::dynamic_array<int>(numMyClusters);
+  ds::dynamic_array<int> min_cluster_index(processors_);
+  ds::dynamic_array<int> max_cluster_index(processors_);
+  ds::dynamic_array<int> *cluster_weights =
+      new ds::dynamic_array<int>(clusters_on_this_rank);
 
-  for (i = 0; i < processors_; ++i) {
+  for (int i = 0; i < processors_; ++i) {
     if (i == 0) {
-      minClusterIndex[i] = 0;
-      maxClusterIndex[i] = clustersPerProc;
+      min_cluster_index[i] = 0;
+      max_cluster_index[i] = clusters_per_proc;
     } else {
-      minClusterIndex[i] = maxClusterIndex[i - 1];
-      if (i == processors_ - 1)
-        maxClusterIndex[i] = total_number_of_clusters_;
-      else
-        maxClusterIndex[i] = minClusterIndex[i] + clustersPerProc;
+      min_cluster_index[i] = max_cluster_index[i - 1];
+      if (i == processors_ - 1) {
+        max_cluster_index[i] = total_number_of_clusters_;
+      } else {
+        max_cluster_index[i] = min_cluster_index[i] + clusters_per_proc;
+      }
     }
   }
 
-  for (i = 0; i < processors_; ++i) {
-    if (i == 0)
+  for (int i = 0; i < processors_; ++i) {
+    if (i == 0) {
       send_displs_[i] = 0;
-    else
+    } else {
       send_displs_[i] = send_displs_[i - 1] + send_lens_[i - 1];
+    }
 
-    send_lens_[i] =
-        std::max(cluster_index_ -
-                (std::max(cluster_index_ + minimum_cluster_index_ - maxClusterIndex[i], 0) +
-                 std::max(minClusterIndex[i] - minimum_cluster_index_, 0)),
-            0);
+    int temp1 = cluster_index_ + minimum_cluster_index_ - max_cluster_index[i];
+    int temp2 = min_cluster_index[i] - minimum_cluster_index_;
+    int temp3 = cluster_index_ - std::max(temp1, 0) + std::max(temp2, 0);
+    send_lens_[i] = std::max(temp3, 0);
   }
 
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  for (i = 0; i < processors_; ++i) {
-    receive_displs_[i] = totalToRecv;
-    totalToRecv += receive_lens_[i];
+  int total_to_recv = 0;
+  for (int i = 0; i < processors_; ++i) {
+    receive_displs_[i] = total_to_recv;
+    total_to_recv += receive_lens_[i];
   }
 
-#ifdef DEBUG_COARSENER
-  assert(totalToRecv == numMyClusters);
-#endif
-
   MPI_Alltoallv(cluster_weights_.data(), send_lens_.data(),
-                send_displs_.data(), MPI_INT, clusterWts->data(),
+                send_displs_.data(), MPI_INT, cluster_weights->data(),
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
-  minimum_cluster_index_ = minClusterIndex[rank_];
+  minimum_cluster_index_ = min_cluster_index[rank_];
 
-  parallel::hypergraph *coarseGraph = new parallel::hypergraph(rank_, processors_, numMyClusters,
-                                           total_number_of_clusters_,
-                                           minimum_cluster_index_,
-                                           stop_coarsening_,
-                                           clusterWts->data());
+  parallel::hypergraph *coarseGraph =
+      new parallel::hypergraph(rank_, processors_, clusters_on_this_rank,
+                               total_number_of_clusters_,
+                               minimum_cluster_index_, stop_coarsening_,
+                               cluster_weights->data());
 
     h.contract_hyperedges(*coarseGraph, comm);
 
@@ -240,14 +235,13 @@ void coarsener::load_non_local_hyperedges() {
     int end_offset = i + receive_array_[i];
     ++i;
 
-    hyperedge_weights_.assign(number_of_hyperedges_, receive_array_[i]);
-    hyperedge_offsets_.assign(number_of_hyperedges_, number_of_local_pins_);
+    hyperedge_weights_[number_of_hyperedges_] = receive_array_[i];
+    hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
     ++i;
     ++number_of_hyperedges_;
 
     while (i < end_offset) {
-      local_pin_list_.assign(number_of_local_pins_, receive_array_[i]);
-      ++number_of_local_pins_;
+      local_pin_list_[number_of_local_pins_++] = receive_array_[i];
       int local_vertex = receive_array_[i] - minimum_vertex_index_;
       if (0 <= local_vertex && local_vertex < number_of_local_vertices_) {
         ++vertex_to_hyperedges_offset_[local_vertex];
@@ -255,16 +249,16 @@ void coarsener::load_non_local_hyperedges() {
       ++i;
     }
   }
-  hyperedge_offsets_.assign(number_of_hyperedges_, number_of_local_pins_);
+  hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
 }
 
 
-void coarsener::prepare_data_to_send(int n_local_hyperedges, int n_local_pins,
-                                     int vertices_per_processor,
-                                     int *local_hyperedge_weights,
-                                     int *local_hyperedge_offsets,
-                                     int *local_pins, MPI_Comm comm,
-                                     bool check_limit, int limit) {
+void coarsener::prepare_data_to_send(
+    int n_local_hyperedges, int n_local_pins, int vertices_per_processor,
+    dynamic_array<int> &local_hyperedge_weights,
+    dynamic_array<int> &local_hyperedge_offsets,
+    dynamic_array<int> &local_pins,
+    MPI_Comm comm, bool check_limit, int limit) {
   ds::bit_field to_load(n_local_hyperedges);
   if (percentile_ == 100 || check_limit) {
     to_load.set();
@@ -274,9 +268,9 @@ void coarsener::prepare_data_to_send(int n_local_hyperedges, int n_local_pins,
                                local_hyperedge_offsets, comm);
   }
 
-  ds::dynamic_array<bool> sent_to_processor(processors_);
-  utility::set_to<bool>(sent_to_processor.data(), processors_, false);
-  utility::set_to_zero<int>(send_lens_.data(), processors_);
+  ds::bit_field sent_to_processor(processors_);
+  sent_to_processor.unset();
+  send_lens_.assign(processors_, 0);
 
   for (int i = 0; i < n_local_hyperedges; ++i) {
     if (to_load.test(i)) {
@@ -291,35 +285,28 @@ void coarsener::prepare_data_to_send(int n_local_hyperedges, int n_local_pins,
 
           if (!sent_to_processor[proc]) {
             if (proc == rank_) {
-              hyperedge_weights_.assign(number_of_hyperedges_,
-                                        local_hyperedge_weights[i]);
-              hyperedge_offsets_.assign(number_of_hyperedges_,
-                                        number_of_local_pins_);
-              number_of_hyperedges_++;
+              hyperedge_weights_[number_of_hyperedges_] = local_hyperedge_weights[i];
+              hyperedge_offsets_[number_of_hyperedges_++] = number_of_local_pins_;
 
               for (int l = start_offset; l < end_offset; ++l) {
-                local_pin_list_.assign(number_of_local_pins_, local_pins[l]);
-                number_of_local_pins_++;
+                local_pin_list_[number_of_local_pins_++] = local_pins[l];
                 if (within_vertex_index_range(local_pins[l])) {
                   int index = local_pins[l] - minimum_vertex_index_;
                   ++vertex_to_hyperedges_offset_[index];
                 }
               }
             } else {
-              data_out_sets_[proc]->assign(send_lens_[proc]++,
-                                           hyperedge_length + 2);
-              data_out_sets_[proc]->assign(send_lens_[proc]++,
-                                           local_hyperedge_weights[i]);
-
+              data_out_sets_[proc][send_lens_[proc]++] = hyperedge_length + 2;
+              data_out_sets_[proc][send_lens_[proc]++] = local_hyperedge_weights[i];
               for (int l = start_offset; l < end_offset; ++l) {
-                data_out_sets_[proc]->assign(send_lens_[proc]++, local_pins[l]);
+                data_out_sets_[proc][send_lens_[proc]++] = local_pins[l];
               }
             }
-            sent_to_processor[proc] = true;
+            sent_to_processor.set(proc);
           }
         }
       }
-      utility::set_to<bool>(sent_to_processor.data(), processors_, false);
+      sent_to_processor.unset();
     }
   }
 }

@@ -11,69 +11,65 @@
 
 namespace parkway {
 
-global_communicator::global_communicator(const int rank, const int nProcs)
-    : rank_(rank), processors_(nProcs) {
-  data_out_sets_.reserve(processors_);
-  send_lens_.reserve(processors_);
-  receive_lens_.reserve(processors_);
-  send_displs_.reserve(processors_);
-  receive_displs_.reserve(processors_);
-
-  for (int i = 0; i < processors_; ++i) {
-    data_out_sets_[i] = new ds::dynamic_array<int>(1024);
+global_communicator::global_communicator(const int rank, const int processors,
+                                         const int display_option)
+    : rank_(rank),
+      processors_(processors),
+      display_option_(display_option),
+      data_out_sets_(processors_),
+      send_lens_(processors_),
+      receive_lens_(processors_),
+      send_displs_(processors_),
+      receive_displs_(processors_) {
+  for (auto &item : data_out_sets_) {
+    item.reserve(1024);
   }
 }
 
 global_communicator::~global_communicator() {
-  for (int i = 0; i < processors_; ++i) {
-    dynamic_memory::delete_pointer<ds::dynamic_array<int> >(data_out_sets_[i]);
-  }
 }
 
 void global_communicator::free_memory() {
-  for (int i = 0; i < processors_; ++i) {
-    data_out_sets_[i]->reserve(0);
+  for (auto &out_set : data_out_sets_) {
+    out_set.clear_and_shrink();
   }
-
-  send_array_.reserve(0);
-  receive_array_.reserve(0);
+  send_array_.clear_and_shrink();
+  receive_array_.clear_and_shrink();
 }
 
 void global_communicator::send_from_data_out(MPI_Comm comm) {
-  int j = 0;
+  int capacity = 0;
   for (int i = 0; i < processors_; ++i) {
-    send_displs_[i] = j;
-#ifdef DEBUG_BASICS
-    assert(send_lens_[i] >= 0);
-#endif
-    j += send_lens_[i];
+    send_displs_[i] = capacity;
+    capacity += send_lens_[i];
   }
-
-  send_array_.reserve(j);
+  send_array_.reserve(capacity);
 
   int ij = 0;
-  int *array;
   for (int i = 0; i < processors_; ++i) {
-    array = data_out_sets_[i]->data();
-    for (j = 0; j < send_lens_[i]; ++j) {
-      send_array_[ij++] = array[j];
+    for (int j = 0; j < send_lens_[i]; ++j) {
+      send_array_[ij++] = data_out_sets_[i][j];
     }
   }
 
-  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
+  // Send data from all to all processes.
+  // Send 1 int from send_lens_,
+  // Receive 1 into into receive_lens_
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT,
+               receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  j = 0;
+  capacity = 0;
   for (int i = 0; i < processors_; ++i) {
-    receive_displs_[i] = j;
-    j += receive_lens_[i];
+    receive_displs_[i] = capacity;
+    capacity += receive_lens_[i];
   }
+  receive_array_.reserve(capacity);
 
-  receive_array_.reserve(j);
-
-  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
-                send_displs_.data(), MPI_INT, receive_array_.data(),
-                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
+  MPI_Alltoallv(
+      send_array_.data(), send_lens_.data(), send_displs_.data(), MPI_INT,
+      receive_array_.data(), receive_lens_.data(), receive_displs_.data(),
+      MPI_INT, comm);
 }
 
 }  // namespace parkway

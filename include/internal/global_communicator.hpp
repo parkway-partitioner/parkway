@@ -1,6 +1,5 @@
 #ifndef _GLOBAL_COMMUNICATOR_HPP
 #define _GLOBAL_COMMUNICATOR_HPP
-
 // ### GlobalCommunicator.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -20,7 +19,7 @@ namespace ds = data_structures;
 
 class global_communicator {
  public:
-  global_communicator(int rank, int nProcs);
+  global_communicator(int rank, int processors, int display_option = 0);
   ~global_communicator();
 
   void free_memory();
@@ -37,9 +36,9 @@ class global_communicator {
 protected:
   const int rank_;
   const int processors_;
+  const int display_option_;
 
-  ds::dynamic_array<ds::dynamic_array<int> *> data_out_sets_;
-
+  ds::dynamic_array<ds::dynamic_array<int> > data_out_sets_;
   ds::dynamic_array<int> send_lens_;
   ds::dynamic_array<int> receive_lens_;
   ds::dynamic_array<int> send_displs_;

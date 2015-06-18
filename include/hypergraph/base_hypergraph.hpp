@@ -47,29 +47,37 @@ class base_hypergraph {
   }
 
 
-  inline int *vertex_weights() const {
-    return vertex_weights_.data();
+  inline dynamic_array<int> vertex_weights() const {
+    return vertex_weights_;
   }
 
   inline void set_vertex_weights(int *weights, int length) {
     vertex_weights_.set_data(weights, length);
   }
 
+  inline void set_vertex_weights(dynamic_array<int> &weights) {
+    vertex_weights_ = weights;
+  }
 
-  inline int *hyperedge_weights() const {
-    return hyperedge_weights_.data();
+
+  inline dynamic_array<int> hyperedge_weights() const {
+    return hyperedge_weights_;
   }
 
   inline void set_hyperedge_weights(int *array, int len) {
     hyperedge_weights_.set_data(array, len);
   }
 
-
-  inline int *partition_vector() const {
-    return partition_vector_.data();
+  inline void set_hyperedge_weights(dynamic_array<int> &weights) {
+    hyperedge_weights_ = weights;
   }
 
-  inline int *partition_vector(int partition_number) const {
+
+  inline dynamic_array<int> partition_vector() const {
+    return partition_vector_;
+  }
+
+  inline dynamic_array<int> partition_vector(int partition_number) const {
     return (&partition_vector_[partition_vector_offsets_[partition_number]]);
   }
 
@@ -77,41 +85,57 @@ class base_hypergraph {
     partition_vector_.set_data(array, length);
   }
 
-
-  inline int *partition_offsets() const {
-    return partition_vector_offsets_.data();
+  inline void set_partition_vector(dynamic_array<int> &partition_vector) {
+    partition_vector_ = partition_vector;
   }
 
 
-  inline int *partition_cuts() const {
-    return partition_cuts_.data();
+  inline dynamic_array<int> partition_offsets() const {
+    return partition_vector_offsets_;
+  }
+
+
+  inline dynamic_array<int> partition_cuts() const {
+    return partition_cuts_;
   }
 
   inline void set_partition_cuts(int *array, int len) {
     partition_cuts_.set_data(array, len);
   }
 
-
-  inline int *match_vector() const {
-    return match_vector_.data();
+  inline void set_partition_cuts(dynamic_array<int> &cuts) {
+    partition_cuts_ = cuts;
   }
 
 
-  inline int *pin_list() const {
-    return pin_list_.data();
+  inline dynamic_array<int> match_vector() const {
+    return match_vector_;
+  }
+
+
+  inline dynamic_array<int> pin_list() const {
+    return pin_list_;
   }
 
   inline void set_pin_list(int *array, int len) {
     pin_list_.set_data(array, len);
   }
 
+  inline void set_pin_list(dynamic_array<int> &pin_list) {
+    pin_list_ = pin_list;
+  }
 
-  inline int *hyperedge_offsets() const {
-    return hyperedge_offsets_.data();
+
+  inline dynamic_array<int> hyperedge_offsets() const {
+    return hyperedge_offsets_;
   }
 
   inline void set_hyperedge_offsets(int *array, int len) {
     hyperedge_offsets_.set_data(array, len);
+  }
+
+  inline void set_hyperedge_offsets(dynamic_array<int> &offsets) {
+    hyperedge_offsets_ = offsets;
   }
 
  protected:

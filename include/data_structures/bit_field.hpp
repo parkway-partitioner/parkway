@@ -44,7 +44,7 @@ class bit_field {
     int bits = bit + 1;
     int target = (bits >> 5) + ((bits & 31) ? 1 : 0);
 
-    data_.check(target);
+    data_.reserve(target);
     capacity_ = data_.capacity();
 
     if (capacity_ > old) {
@@ -63,8 +63,8 @@ class bit_field {
     return capacity_;
   }
 
-  inline uint32_t *data() const {
-    return data_.data();
+  inline dynamic_array<uint32_t> data() const {
+    return data_;
   }
 
   inline uint32_t chunk(int i) const {
@@ -107,7 +107,7 @@ class bit_field {
   }
 
   inline bool operator[](int index) const {
-    return (data_(index >> 5) & (1 << (index & 31)));
+    return (data_[index >> 5] & (1 << (index & 31)));
   }
 
   inline void set(int index) {

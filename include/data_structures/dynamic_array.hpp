@@ -1,197 +1,274 @@
-#ifndef _DYNA_HPP
-#define _DYNA_HPP
-
-// ### Dyna.hpp ###
-//
-// Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-// Modified from code by William Knottenbelt
-//
-// HISTORY:
-//
-// 20/12/2004: Last Modified
-//
-// ###
-
-#include <iostream>
-#include <cstdlib>
-#include <cassert>
-#include <cstring>
-#include <cstdio>
-#include "Macros.h"
-#include "dynamic_memory.hpp"
+#ifndef DATA_STRUCTURES_DYNAMIC_ARRAY_HPP_
+#define DATA_STRUCTURES_DYNAMIC_ARRAY_HPP_
+#include <vector>
+#include <memory>
+#include "utility/sorting.hpp"
 
 namespace parkway {
 namespace data_structures {
 
-template <class T> class dynamic_array {
+template <typename T> class dynamic_array {
+ private:
+  typedef T value_type;
+  typedef std::vector<value_type> data_type;
+  typedef typename data_type::size_type size_type;
+  typedef value_type& reference;
+  typedef const value_type& const_reference;
+  typedef value_type&& move_reference;
+  typedef typename data_type::iterator iterator;
+  typedef typename data_type::const_iterator const_iterator;
+  typedef typename data_type::reverse_iterator reverse_iterator;
+  typedef typename data_type::const_reverse_iterator const_reverse_iterator;
+
+  // Shared point to Underlying data.
+  std::shared_ptr<data_type> data_;
+
  public:
-  inline dynamic_array() : dynamic_array(0) {
+  // Constructors
+  dynamic_array() : data_(new data_type) {
   }
 
-  inline dynamic_array(int capacity) : capacity_(capacity), data_(nullptr) {
-    if (capacity_ <= 0) {
-      capacity_ = 0;
-      return;
+  explicit dynamic_array(size_type capacity, const_reference value)
+      : data_(new data_type(capacity, value)) {
+  }
+
+  explicit dynamic_array(size_type capacity)
+      : data_(new data_type(capacity)) {
+  }
+
+  dynamic_array(dynamic_array& other) {
+    data_ = other.data_;
+  }
+
+  dynamic_array(const dynamic_array& other) {
+    data_ = other.data_;
+  }
+
+  dynamic_array& operator=(const dynamic_array& other) {
+    data_ = other.data_;
+    return *this;
+  }
+
+  dynamic_array& operator=(dynamic_array&& other) {
+    data_ = other.data_;
+    return *this;
+  }
+
+  inline void assign(size_type count, const_reference value) {
+    data_->assign(count, value);
+  }
+
+
+  // Access
+  inline reference at(size_type position) {
+    return data_->at(position);
+  }
+
+  inline const_reference at(size_type position) const {
+    return data_->at(position);
+  }
+
+  inline reference operator[](size_type position) {
+    if (this->size() <= position) {
+      this->resize(position + 1);
     }
-
-    data_ = new T[capacity_];
-    assert(data_);
+    return data_->operator[](position);
   }
 
-  // Remove auto generated assignment methods as this can cause issues with
-  // memory management.
-  // TODO(gb610): consider switching to shared_ptr internally as dangling
-  // pointers cause problems for DynaMem.
-  dynamic_array &operator=(const dynamic_array&) = delete;
-  dynamic_array(const dynamic_array&) = delete;
-
-  inline ~dynamic_array() {
-    dynamic_memory::delete_array<T>(data_);
-    capacity_ = 0;
+  inline const_reference operator[](size_type position) const {
+    return data_->operator[](position);
   }
 
-  inline int capacity() const {
-    return capacity_;
+  inline reference front() {
+    return data_->front();
   }
 
-  inline bool reserve(int size) {
-    if (size == capacity_) {
-      return true;
-    } else  if (!adjust(size - capacity_)) {
-      return false;
-    }
-    capacity_ = size;
-    return true;
+  inline const_reference front() const {
+    return data_->front();
   }
 
-  inline int find(T target) const {
-    for (int n = 0; n < capacity_; ++n) {
-      if (data_[n] == target) {
-        return n;
+  inline reference back() {
+    return data_->back();
+  }
+
+  inline const_reference back() const {
+    return data_->back();
+  }
+
+  inline value_type* data() {
+    return data_->data();
+  }
+
+  inline const value_type* data() const {
+    return data_->data();
+  }
+
+
+  // Iterators
+  inline iterator begin() {
+    return data_->begin();
+  }
+
+  inline const_iterator begin() const {
+    return data_->begin();
+  }
+
+  inline const_iterator cbegin() const {
+    return data_->cbegin();
+  }
+
+  inline iterator end() {
+    return data_->end();
+  }
+
+  inline const_iterator end() const {
+    return data_->end();
+  }
+
+  inline const_iterator cend() const {
+    return data_->cend();
+  }
+
+  inline reverse_iterator rbegin() {
+    return data_->rbegin();
+  }
+
+  inline const_reverse_iterator rbegin() const {
+    return data_->rbegin();
+  }
+
+  inline const_reverse_iterator crbegin() const {
+    return data_->crbegin();
+  }
+
+  inline reverse_iterator rend() {
+    return data_->rend();
+  }
+
+  inline const_reverse_iterator rend() const {
+    return data_->rend();
+  }
+
+  inline const_reverse_iterator crend() const {
+    return data_->crend();
+  }
+
+
+  // Capacity
+  inline bool empty() const {
+    return data_->empty();
+  }
+
+  inline size_type size() const {
+    return data_->size();
+  }
+
+  inline size_type capacity() const {
+    return data_->capacity();
+  }
+
+  inline void reserve(size_type new_capacity) {
+    data_->reserve(new_capacity);
+  }
+
+  inline size_type max_size() const {
+    return data_->max_size();
+  }
+
+  inline void shrink_to_fit() {
+    data_->shrink_to_fit();
+  }
+
+
+  // Modifiers
+  inline void clear() {
+    data_->clear();
+  }
+
+  inline void clear_and_shrink() {
+    this->clear();
+    this->shrink_to_fit();
+  }
+
+  inline iterator insert(const_iterator position, const_reference value) {
+    return data_->insert(position, value);
+  }
+
+  inline iterator insert(const_iterator position, move_reference value) {
+    return data_->insert(position, value);
+  }
+
+  inline iterator insert(const_iterator position, size_type count,
+                         const_reference value) {
+    return data_->insert(position, count, value);
+  }
+
+  template <class InputIt>
+  inline iterator insert(const_iterator position, InputIt first, InputIt last) {
+    return data_->insert(position, first, last);
+  }
+
+  inline iterator insert(const_iterator position,
+                         std::initializer_list<value_type> initializer_list) {
+    return data_->insert(position, initializer_list);
+  }
+
+  inline iterator set_data(value_type *array, size_type length) {
+    this->clear();
+    return insert(this->begin(), array, array + length);
+  }
+
+  inline iterator erase(const_iterator position) {
+    return data_->erase(position);
+  }
+
+  inline iterator erase(const_iterator first, const_iterator last) {
+    return data_->erase(first, last);
+  }
+
+  inline void push_back(const_reference value) {
+    data_->push_back(value);
+  }
+
+  inline void push_back(move_reference value) {
+    data_->push_back(value);
+  }
+
+  inline void pop_back() {
+    data_->pop_back();
+  }
+
+  inline void resize(size_type count) {
+    data_->resize(count);
+  }
+
+  inline void resize(size_type count, const_reference value) {
+    data_->resize(count, value);
+  }
+
+
+  inline bool read_from(std::istream &stream, const std::size_t length) {
+    if (stream.good()) {
+      if (this->size() < length) {
+        this->resize(length);
       }
+      std::size_t buffer_size = sizeof(value_type) * length;
+      stream.read((char *) this->data(), buffer_size);
+      return stream.gcount() == buffer_size;
     }
-    return not_found();
+    return false;
   }
 
-  inline T *data() const {
-    return data_;
+  inline void sort() {
+    this->sort_between(0, this->size());
   }
 
-  inline void set_data(T *new_data, int size) {
-    dynamic_memory::delete_array<T>(data_);
-    data_ = new_data;
-    capacity_ = size;
-  }
-
-  inline T &operator[](int index) const {
-#ifdef DEBUG_BASICS
-    if ((index >= capacity_) || (index < 0)) {
-#ifdef DEBUG_BASICS
-      char message[512];
-      sprintf(message,
-              "dynamic_array (%d): Array subscript [%d] out of range (Valid "
-              "range is 0 to %d)",
-              (int)this, index, capacity_ - 1);
-      std::cout << message;
-      delayT();
-#endif
-      abort();
-    }
-#endif
-
-    return data_[index];
-  }
-
-  inline T &operator()(int index) const {
-#ifdef DEBUG_BASICS
-    if ((index >= capacity_) || (index < 0)) {
-      char message[512];
-      sprintf(message,
-              "dynamic_array: (%d) Array subscript [%d] out of range (Valid "
-              "range is 0 to %d)",
-              (int)this, index, capacity_ - 1);
-      std::cout << message;
-      abort();
-    }
-#endif
-
-    return data_[index];
-  }
-
-  inline void check(int index) {
-    if (index >= capacity_) {
-      expand(index);
-    }
-  }
-
-  inline void assign(int index, const T value) {
-    if (index >= capacity_)
-      expand(index);
-    data_[index] = value;
-  }
-
-  inline bool adjust(int size) {
-    if (size == 0) {
-      return true;
-    }
-
-    int newLength = capacity_ + size;
-    if (newLength <= 0) {
-      if (capacity_ > 0) {
-        dynamic_memory::delete_array<T>(data_);
-      }
-      capacity_ = 0;
-      return true;
-    }
-
-    T *extendedArray = new T[newLength];
-
-    if (size > 0) {
-      for (int i = 0; i < capacity_; ++i) {
-        extendedArray[i] = data_[i];
-      }
-    } else {
-      for (int i = 0; i < newLength; ++i) {
-        extendedArray[i] = data_[i];
-      }
-    }
-
-    if (capacity_ > 0) {
-      dynamic_memory::delete_array<T>(data_);
-    }
-
-    capacity_ = newLength;
-    data_ = extendedArray;
-
-    return true;
-  }
-
-  static int constexpr not_found() {
-    return -1;
-  }
-
-
- protected:
-  int capacity_;
-  T *data_;
-
-  inline bool expand(int index) {
-    int targetLength = 1;
-    while (index >= targetLength) {
-      targetLength <<= 1;
-    }
-    return !adjust(targetLength - capacity_);
-  }
-
-  inline void delay_time() const {
-    for (int i = 0; i < 0xFFFFFFA; i++) {
-      int *a = new int;
-      delete a;
-    }
+  inline void sort_between(std::size_t start, std::size_t end) {
+    parkway::utility::quick_sort(start, end, this->data());
   }
 };
 
 }  // namespace data_structures
 }  // namespace parkway
 
-#endif
+#endif  // DATA_STRUCTURES_DYNAMIC_ARRAY_HPP_

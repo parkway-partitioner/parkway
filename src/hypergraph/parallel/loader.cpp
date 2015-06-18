@@ -27,87 +27,75 @@ loader::loader(int rank, int number_of_processors, int number_of_parts,
       local_vertex_weight_(0),
       number_of_allocated_hyperedges_(0),
       display_options_(display_option),
-      percentile_(100),
-      vertex_weights_(nullptr),
-      match_vector_(nullptr) {
-  hyperedge_weights_.reserve(0);
-  hyperedge_offsets_.reserve(0);
-  local_pin_list_.reserve(0);
-  vertex_to_hyperedges_offset_.reserve(0);
-  vertex_to_hyperedges_.reserve(0);
-  allocated_hyperedges_.reserve(0);
+      percentile_(100) {
 }
 
 loader::~loader() {
 }
 
-void loader::compute_hyperedges_to_load(bit_field &toLoad, int numH,
-                                        int numLocalPins, int *hEdgeWts,
-                                        int *hEdgeOffsets, MPI_Comm comm) {
-  int i;
-  int j;
+void loader::compute_hyperedges_to_load(ds::bit_field &to_load,
+                                        int number_of_hyperedges,
+                                        int num_local_pins,
+                                        dynamic_array<int> &hyperedge_weights,
+                                        dynamic_array<int> &hyperedge_offsets,
+                                        MPI_Comm comm) {
 
-  double percentileThreshold;
-  double aveLen;
-
-  int maxLen;
-  int myMaxLen = 0;
-  int myPercentileLen;
-  int percentileLen;
-
-  /* 0 = pinNumber, 1 = numH */
-
-  int myData[2];
-  int hGraphData[2];
-
-  dynamic_array<int> hEdges(numH);
-  dynamic_array<int> hEdgeLens(numH);
+  dynamic_array<int> hyperedges(number_of_hyperedges);
+  dynamic_array<int> hyperedge_lengths(number_of_hyperedges);
 
   /* compute the hyperedges that will not be communicated */
-
-  for (i = 0; i < numH; ++i) {
-    hEdgeLens[i] = hEdgeOffsets[i + 1] - hEdgeOffsets[i];
-    hEdges[i] = i;
-
-    if (hEdgeLens[i] > myMaxLen)
-      myMaxLen = hEdgeLens[i];
+  int max_length_on_this_rank = 0;
+  for (int i = 0; i < number_of_hyperedges; ++i) {
+    hyperedge_lengths[i] = hyperedge_offsets[i + 1] - hyperedge_offsets[i];
+    hyperedges[i] = i;
+    if (hyperedge_lengths[i] > max_length_on_this_rank)
+      max_length_on_this_rank = hyperedge_lengths[i];
   }
 
-  myData[0] = numLocalPins;
-  myData[1] = numH;
+  int data_on_this_rank[2] = {number_of_local_pins_, number_of_hyperedges};
+  int hypergraph_data[2];
+  int max_length;
+  MPI_Allreduce(&data_on_this_rank[0], &hypergraph_data[0], 2, MPI_INT,
+                MPI_SUM, comm);
+  MPI_Allreduce(&max_length_on_this_rank, &max_length, 1, MPI_INT,
+                MPI_MAX, comm);
 
-  MPI_Allreduce(&myData[0], &hGraphData[0], 2, MPI_INT, MPI_SUM, comm);
-  MPI_Allreduce(&myMaxLen, &maxLen, 1, MPI_INT, MPI_MAX, comm);
+  double average_length =
+      static_cast<double>(hypergraph_data[0]) / hypergraph_data[1];
 
-  aveLen = static_cast<double>(hGraphData[0]) / hGraphData[1];
+  int total_weigtht = 0;
+  for (const int &weight : hyperedge_weights) {
+    total_weigtht += weight;
+  }
 
-  j = 0;
-  for (i = 0; i < numH; ++i)
-    j += hEdgeWts[i];
+  double percentile_threshold =
+      (static_cast<double>(total_weigtht) * percentile_) / 100;
 
-  percentileThreshold = (static_cast<double>(j) * percentile_) / 100;
-  Funct::qsortByAnotherArray(0, numH - 1, hEdges.data(),
-                             hEdgeLens.data(), INC);
-  toLoad.set();
+  Funct::qsortByAnotherArray(0, number_of_hyperedges - 1, hyperedges.data(),
+                             hyperedge_lengths.data(), INC);
+  to_load.set();
 
-  j = 0;
-  i = 0;
+  int i = 0;
+  int j = 0;
+  while (i < number_of_hyperedges && j < percentile_threshold) {
+    j += hyperedge_weights[hyperedges[i++]];
+  }
 
-  for (; i < numH && j < percentileThreshold;)
-    j += hEdgeWts[hEdges[i++]];
-
-  myPercentileLen = hEdgeLens[hEdges[i]];
-
-  MPI_Allreduce(&myPercentileLen, &percentileLen, 1, MPI_INT, MPI_MAX, comm);
+  int percentile_length_this_rank = hyperedge_lengths[hyperedges[i]];
+  int percentile_length;
+  MPI_Allreduce(&percentile_length_this_rank, &percentile_length, 1, MPI_INT,
+                MPI_MAX, comm);
 
   if (display_options_ > 1 && rank_ == 0) {
-    out_stream << " " << percentile_ << " " << maxLen << " " << aveLen << " "
-               << percentileLen;
+    out_stream << " " << percentile_ << " " << max_length << " "
+        << average_length << " " << percentile_length;
   }
 
-  for (; i < numH; ++i)
-    if (hEdgeLens[hEdges[i]] > percentileLen)
-      toLoad.unset(hEdges[i]);
+  for (; i < number_of_hyperedges; ++i) {
+    if (hyperedge_lengths[hyperedges[i]] > percentile_length) {
+      to_load.unset(hyperedges[i]);
+    }
+  }
 }
 
 }  // namespace parallel

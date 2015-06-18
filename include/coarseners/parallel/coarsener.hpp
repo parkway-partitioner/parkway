@@ -26,6 +26,7 @@ class coarsener : public loader, public parkway::coarsener::base_coarsener {
             std::ostream &out, std::string object_name = "Parallel Coarsener");
 
   virtual ~coarsener();
+
   virtual hypergraph *coarsen(hypergraph &h, MPI_Comm comm) = 0;
   virtual void set_cluster_indices(MPI_Comm comm) = 0;
   virtual void release_memory() = 0;
@@ -58,11 +59,13 @@ class coarsener : public loader, public parkway::coarsener::base_coarsener {
   void update_hypergraph_information(const hypergraph &h);
   void initialize_vertex_to_hyperedges();
   void load_non_local_hyperedges();
-  void prepare_data_to_send(int n_local_hyperedges, int n_local_pins,
+  void prepare_data_to_send(int n_local_hyperedges,
+                            int n_local_pins,
                             int vertices_per_processor,
-                            int *local_hyperedge_weights,
-                            int *local_hyperedge_offsets,
-                            int *local_pins, MPI_Comm comm,
+                            dynamic_array<int> &local_hyperedge_weights,
+                            dynamic_array<int> &local_hyperedge_offsets,
+                            dynamic_array<int> &local_pins,
+                            MPI_Comm comm,
                             bool check_limit = false,
                             int limit = INT_MAX);
 

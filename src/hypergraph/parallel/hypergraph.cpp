@@ -25,47 +25,48 @@
 #include "data_structures/complete_binary_tree.hpp"
 #include "data_structures/map_from_pos_int.hpp"
 #include "data_structures/new_hyperedge_index_table.hpp"
+#include "utility/sorting.hpp"
 #include "Log.h"
 
+#include <bitset>
 
 namespace parkway {
 namespace parallel {
-
-namespace ds = data_structures;
-
-hypergraph::hypergraph(int rank_, int nProcs, int _numLocVerts, int _totVerts,
-                       int _minVertIndex, int coarsen, int *wtArray)
-    : global_communicator(rank_, nProcs),
-      base_hypergraph(_numLocVerts),
+namespace ds = parkway::data_structures;
+hypergraph::hypergraph(int rank, int number_of_processors,
+                       int number_of_local_vertices, int total_vertices,
+                       int minimum_vertex_index, int coarsen,
+                       ds::dynamic_array<int> weights,
+                       int display_option)
+    : global_communicator(rank, number_of_processors, display_option),
+      base_hypergraph(number_of_local_vertices),
       do_not_coarsen(coarsen),
-      total_number_of_vertices_(_totVerts),
-      minimum_vertex_index_(_minVertIndex),
+      total_number_of_vertices_(total_vertices),
+      minimum_vertex_index_(minimum_vertex_index),
       vertex_weight_(0) {
-
-  vertex_weights_.set_data(wtArray, number_of_vertices_);
-  match_vector_.reserve(number_of_vertices_);
-  to_origin_vertex_.reserve(0);
-
+  vertex_weights_ = weights;
+  match_vector_.assign(number_of_vertices_, -1);
   for (int i = 0; i < number_of_vertices_; ++i) {
-    match_vector_[i] = -1;
     vertex_weight_ += vertex_weights_[i];
   }
 }
 
-hypergraph::hypergraph(int rank_, int nProcs, int _numLocVerts,
-                               int _totVerts, int _minVertIndex, int coarsen,
-                               int cut, int *wtArray, int *partArray)
-    : global_communicator(rank_, nProcs),
-      base_hypergraph(_numLocVerts, 1),
-      do_not_coarsen(coarsen),
-      total_number_of_vertices_(_totVerts),
-      minimum_vertex_index_(_minVertIndex),
-      vertex_weight_(0) {
 
-  to_origin_vertex_.reserve(0);
-  vertex_weights_.set_data(wtArray, number_of_vertices_);
-  partition_vector_.set_data(partArray, number_of_vertices_);
-  match_vector_.reserve(number_of_vertices_);
+hypergraph::hypergraph(int rank, int number_of_processors,
+                       int number_of_local_vertices, int total_vertices,
+                       int minimum_vertex_index, int coarsen, int cut,
+                       ds::dynamic_array<int> weight,
+                       ds::dynamic_array<int> part_array,
+                       int display_option)
+    : global_communicator(rank, number_of_processors, display_option),
+      base_hypergraph(number_of_local_vertices, 1),
+      do_not_coarsen(coarsen),
+      total_number_of_vertices_(total_vertices),
+      minimum_vertex_index_(minimum_vertex_index),
+      vertex_weight_(0) {
+  vertex_weights_ = weight;
+  partition_vector_ = part_array;
+  match_vector_.assign(number_of_vertices_, -1);
   partition_vector_offsets_.reserve(number_of_partitions_ + 1);
   partition_cuts_.reserve(number_of_partitions_);
 
@@ -73,79 +74,71 @@ hypergraph::hypergraph(int rank_, int nProcs, int _numLocVerts,
   partition_vector_offsets_[0] = 0;
   partition_vector_offsets_[1] = number_of_vertices_;
 
-  for (int i = 0; i < number_of_vertices_; ++i) {
-    match_vector_[i] = -1;
-    vertex_weight_ += vertex_weights_[i];
+  for (const int &weight : vertex_weights_) {
+    vertex_weight_ += weight;
   }
 }
 
-hypergraph::hypergraph(int rank_, int nProcs, const char *filename,
-                               int dispOption, std::ostream &out, MPI_Comm comm)
-    : global_communicator(rank_, nProcs) {
-  load_from_file(filename, dispOption, out, comm);
+hypergraph::hypergraph(int rank, int number_of_processors, const char *filename,
+                       int dispOption, std::ostream &out, MPI_Comm comm)
+    : global_communicator(rank, number_of_processors, dispOption) {
+  load_from_file(filename, out, comm);
 }
 
-hypergraph::hypergraph(int rank_, int nProcs, int numLocVerts,
-                               int numLocHedges, int maxHedgeLen,
-                               const int *vWeights, const int *hEdgeWts,
-                               const int *locPinList, const int *offsets,
-                               int dispOption, std::ostream &out, MPI_Comm comm)
-    : global_communicator(rank_, nProcs) {
+hypergraph::hypergraph(int rank, int number_of_processors,
+                       int number_of_local_vertices, int number_of_local_hedges,
+                       int max_hyperedge_length,
+                       ds::dynamic_array<int> vertex_weights,
+                       ds::dynamic_array<int> hyperedge_weights,
+                       ds::dynamic_array<int> loc_pin_list,
+                       ds::dynamic_array<int> hyperedge_offsets,
+                       int display_option, std::ostream &out, MPI_Comm comm)
+    : global_communicator(rank_, number_of_processors, display_option) {
+  MPI_Allreduce(&number_of_local_vertices, &total_number_of_vertices_, 1,
+                MPI_INT, MPI_SUM, comm);
+  MPI_Scan(&number_of_local_vertices, &minimum_vertex_index_, 1, MPI_INT,
+           MPI_SUM, comm);
 
-  MPI_Allreduce(&numLocVerts, &total_number_of_vertices_, 1, MPI_INT, MPI_SUM, comm);
-  MPI_Scan(&numLocVerts, &minimum_vertex_index_, 1, MPI_INT, MPI_SUM, comm);
-
-  number_of_vertices_ = numLocVerts;
+  number_of_vertices_ = number_of_local_vertices;
   minimum_vertex_index_ -= number_of_vertices_;
   vertex_weight_ = 0;
 
   vertex_weights_.reserve(number_of_vertices_);
-  to_origin_vertex_.reserve(0);
   match_vector_.reserve(number_of_vertices_);
 
   for (int i = 0; i < number_of_vertices_; ++i) {
-    vertex_weights_[i] = vWeights[i];
+    vertex_weights_[i] = vertex_weights[i];
     vertex_weight_ += vertex_weights_[i];
     match_vector_[i] = -1;
   }
 
   /* hyperedges stored in pinlist */
+  int hyperedge_index = 0;
+  int pin_counter = 0;
+  for (int i = 0; i < number_of_local_hedges; ++i) {
+    int start_offset = hyperedge_offsets[i];
+    int end_offset = hyperedge_offsets[i + 1];
+    int length = end_offset - start_offset;
 
-  int hEdgeIndex = 0;
-  int pinCounter = 0;
-
-  int startOffset;
-  int endOffset;
-  int hEdgeLength;
-  for (int i = 0; i < numLocHedges; ++i) {
-    startOffset = offsets[i];
-    endOffset = offsets[i + 1];
-    hEdgeLength = endOffset - startOffset;
-
-    if (hEdgeLength > 1) {
-      hyperedge_weights_.assign(hEdgeIndex, hEdgeWts[i]);
-      hyperedge_offsets_.assign(hEdgeIndex++, pinCounter);
-
-      for (int j = startOffset; j < endOffset; ++j) {
-#ifdef DEBUG_HYPERGRAPH
-        assert(locPinList[j] >= 0 && locPinList[j] < numTotalVertices);
-#endif
-        pin_list_.assign(pinCounter++, locPinList[j]);
+    if (length > 1) {
+      hyperedge_weights_[hyperedge_index] = hyperedge_weights[i];
+      hyperedge_offsets_[hyperedge_index++] = pin_counter;
+      for (int j = start_offset; j < end_offset; ++j) {
+        pin_list_[pin_counter++] = loc_pin_list[j];
       }
     }
   }
 
-  hyperedge_offsets_.assign(hEdgeIndex, pinCounter);
+  hyperedge_offsets_[hyperedge_index] = pin_counter;
 
-  number_of_pins_ = pinCounter;
-  number_of_hyperedges_ = hEdgeIndex;
+  number_of_pins_ = pin_counter;
+  number_of_hyperedges_ = hyperedge_index;
   do_not_coarsen = 0;
   number_of_partitions_ = 0;
 
-  int i;
-  int j;
-
-  if (dispOption > 0) {
+  if (display_option > 0) {
+    int i;
+    int j;
     MPI_Reduce(&number_of_pins_, &i, 1, MPI_INT, MPI_SUM, 0, comm);
     MPI_Reduce(&number_of_hyperedges_, &j, 1, MPI_INT, MPI_SUM, 0, comm);
 
@@ -157,1073 +150,244 @@ hypergraph::hypergraph(int rank_, int nProcs, int numLocVerts,
       out << "|" << std::endl;
     }
   }
-
-#ifdef MEM_OPT
-  hyperedge_offsets_.reserve(number_of_hyperedges_ + 1);
-  hyperedge_weights_.reserve(number_of_hyperedges_);
-  pin_list_.reserve(number_of_pins_);
-#endif
 }
 
-hypergraph::~hypergraph() {}
+hypergraph::~hypergraph() {
+}
 
-void hypergraph::load_from_file(const char *filename, int dispOption,
-                                         std::ostream &out, MPI_Comm comm) {
-  int buffer[3];
-  int numHedgesInFile;
-  int hEdgeDataLength;
-  int hEdgeLength;
-  int hEdgeChunk;
-  int index;
-  int maxHedgeLen;
-
-  int i;
-  int j;
-  int hEdgeIndex;
-  int pinCounter;
-
+void hypergraph::load_from_file(const char *filename, std::ostream &out,
+                                MPI_Comm comm) {
+  // Format filename so that each processor loads the correct part.
   char my_file[512];
-  char message[512];
-
-  std::ifstream in_stream;
-
-  dynamic_array<int> hEdgeData;
-
   sprintf(my_file, "%s-%d", filename, rank_);
+  std::ifstream in_stream(my_file, std::ifstream::in | std::ifstream::binary);
 
-  in_stream.open(my_file, std::ifstream::in | std::ifstream::binary);
-
+  // Print message if the file could not be opened.
+  char message[512];
   if (!in_stream.is_open()) {
-    sprintf(message, "p[%d] could not open file %s\n", rank_, my_file);
-    out << message;
+    out << "p[" << rank_ << "] could not open " << my_file << std::endl;
     MPI_Abort(comm, 0);
   }
 
-  i = sizeof(int) * 3;
-  in_stream.read((char *)(&buffer[0]), i);
-  if (in_stream.gcount() != i) {
-    sprintf(message, "p[%d] could not read in int buffer[3]\n", rank_);
-    out << message;
+  // Read the hypergraph metadata -- total number of vertices, vertices in this
+  // part and number of hyperedges.
+  int buffer[3];
+  int buffer_size = sizeof(int) * 3;
+  in_stream.read((char *)(&buffer[0]), buffer_size);
+  if (in_stream.gcount() != buffer_size) {
+    out << "p[" << rank_ << "] could not read in metadata (three integers)"
+        << std::endl;
     in_stream.close();
     MPI_Abort(comm, 0);
   }
 
   total_number_of_vertices_ = buffer[0];
   number_of_vertices_ = buffer[1];
-  hEdgeDataLength = buffer[2];
+  int hyperedge_data_length = buffer[2];
 
   minimum_vertex_index_ = (total_number_of_vertices_ / processors_) * rank_;
 
-  to_origin_vertex_.reserve(0);
-  vertex_weights_.reserve(number_of_vertices_);
-  match_vector_.reserve(number_of_vertices_);
-  hEdgeData.reserve(hEdgeDataLength);
-
-  i = sizeof(int) * number_of_vertices_;
-  in_stream.read((char *)(vertex_weights_.data()), i);
-  if (in_stream.gcount() != i) {
-    sprintf(message, "p[%d] could not read in %d vertex elements\n", rank_,
-            number_of_vertices_);
-    out << message;
+  // Read in vertex weights and hyperedge data
+  if (!vertex_weights_.read_from(in_stream, number_of_vertices_)) {
+    out << "p[" << rank_ << "] could not read in " << number_of_vertices_
+        << " vertex elements" << std::endl;
     in_stream.close();
     MPI_Abort(comm, 0);
   }
 
-  // write_log(rank_, "read in vertex weights");
-
-  i = sizeof(int) * hEdgeDataLength;
-  in_stream.read((char *)(hEdgeData.data()), i);
-  if (in_stream.gcount() != i) {
-    sprintf(message, "p[%d] could not read in %d hyperedge data_ elements\n",
-            rank_, hEdgeDataLength);
-    out << message;
+  dynamic_array<int> hyperedge_data(hyperedge_data_length);
+  if (!hyperedge_data.read_from(in_stream, hyperedge_data_length)) {
+    out << "p[" << rank_ << "] could not read in " << hyperedge_data_length
+        << " hyperedge elements" << std::endl;
     in_stream.close();
     MPI_Abort(comm, 0);
   }
-
   in_stream.close();
 
-  numHedgesInFile = 0;
-  j = 0;
 
-  for (i = 0; i < hEdgeDataLength; i += hEdgeData[i]) {
-    hEdgeIndex = hEdgeData[i] - 2;
+  check_vertex_and_hyperedge_lengths(hyperedge_data_length, hyperedge_data,
+                                     comm);
 
-    if (hEdgeIndex > j)
-      j = hEdgeIndex;
-
-    ++numHedgesInFile;
-  }
-
-  MPI_Allreduce(&j, &maxHedgeLen, 1, MPI_INT, MPI_MAX, comm);
-  MPI_Reduce(&numHedgesInFile, &i, 1, MPI_INT, MPI_SUM, 0, comm);
-
-  Funct::setMaxHedgeLen(maxHedgeLen);
-
-  if (rank_ == 0 && dispOption > 0) {
-    out << "|--- Hypergraph " << filename << " (on file):" << std::endl
-        << "| |V| = " << total_number_of_vertices_ << " |E| = " << i << std::endl;
-  }
-
+  match_vector_.assign(number_of_vertices_, -1);
   vertex_weight_ = 0;
-  for (i = 0; i < number_of_vertices_; ++i) {
-    vertex_weight_ += vertex_weights_[i];
-    match_vector_[i] = -1;
+  for (const auto &weight : vertex_weights_) {
+    vertex_weight_ += weight;
   }
 
-  // ### hyperedges stored on file in blocks:
-  // [0]  =  block capacity_
-  // [1]  =  hyperedge weight
-  // [2]-[block capacity_-1] = hyperedge vertices
-  // ###
-
-  i = 0;
-  index = 0;
-  hEdgeIndex = 0;
-  pinCounter = 0;
-
-  while (i < hEdgeDataLength) {
-    hEdgeChunk = hEdgeData[i];
-    hEdgeLength = hEdgeChunk - 2;
-
-    if (hEdgeLength > 1) {
-      hyperedge_weights_.assign(hEdgeIndex, hEdgeData[i + 1]);
-      hyperedge_offsets_.assign(hEdgeIndex++, pinCounter);
-
-      for (j = 2; j < hEdgeChunk; ++j) {
-#ifdef DEBUG_HYPERGRAPH
-        assert(hEdgeData[i + j] >= 0 && hEdgeData[i + j] < numTotalVertices);
-#endif
-        pin_list_.assign(pinCounter++, hEdgeData[i + j]);
-      }
-    }
-
-    i += hEdgeChunk;
-  }
-
-  hyperedge_offsets_.assign(hEdgeIndex, pinCounter);
-
-  number_of_pins_ = pinCounter;
-  number_of_hyperedges_ = hEdgeIndex;
-  do_not_coarsen = 0;
-  number_of_partitions_ = 0;
-
-#ifdef DEBUG_HYPERGRAPH
-  for (i = 0; i < numLocalHedges; ++i)
-    assert(hEdgeWeights[i] > 0);
-#endif
-
-  if (dispOption > 0) {
-    MPI_Reduce(&number_of_pins_, &i, 1, MPI_INT, MPI_SUM, 0, comm);
-    MPI_Reduce(&number_of_hyperedges_, &j, 1, MPI_INT, MPI_SUM, 0, comm);
-
-    if (rank_ == 0) {
-      out << "|--- Hypergraph " << filename << " (as loaded):" << std::endl
-          << "| |V| = " << total_number_of_vertices_ << " |E| = " << j
-          << " |Pins| = " << i << std::endl
-          << "| # Processors = " << processors_ << std::endl
-          << "| " << std::endl;
-    }
-  }
-
-#ifdef MEM_OPT
-  hyperedge_offsets_.reserve(number_of_hyperedges_ + 1);
-  hyperedge_weights_.reserve(number_of_hyperedges_);
-  pin_list_.reserve(number_of_pins_);
-#endif
+  load_data_from_blocks(hyperedge_data_length, hyperedge_data);
+  check_loaded_vertex_and_hyperedge_lengths();
 }
 
-void hypergraph::initalize_partition_from_file(const char *filename, int numParts,
-                                                        std::ostream &out, MPI_Comm comm) {
+void hypergraph::initalize_partition_from_file(const char *filename,
+                                               int numParts, std::ostream &out,
+                                               MPI_Comm comm) {
   int i;
-  int myOffset;
-  int numVPerProc = total_number_of_vertices_ / processors_;
+  int vertices_per_processor = total_number_of_vertices_ / processors_;
 
   char message[512];
 
-  std::ifstream in_stream;
-
   number_of_partitions_ = 1;
 
-  partition_vector_.reserve(number_of_vertices_);
-  partition_vector_offsets_.reserve(2);
-  partition_cuts_.reserve(1);
+  partition_vector_.resize(number_of_vertices_);
+  partition_cuts_.resize(1);
 
+  partition_vector_offsets_.resize(2);
   partition_vector_offsets_[0] = 0;
   partition_vector_offsets_[1] = number_of_vertices_;
 
-  myOffset = 0;
-  for (i = 0; i < rank_; ++i)
-    myOffset += numVPerProc;
 
-  in_stream.open(filename, std::ifstream::in | std::ifstream::binary);
-
+  std::ifstream in_stream(filename, std::ios::in | std::ios::binary);
   if (!in_stream.is_open()) {
-    sprintf(message, "p[%d] could not open partition file %s\n", rank_,
-            filename);
-    out << message;
+    out << "p[" << rank_ << "] could not open partition file '" << filename
+        << "'" << std::endl;
     MPI_Abort(comm, 0);
   }
 
-  in_stream.seekg(myOffset * sizeof(int), std::ifstream::beg);
+  int offset_on_this_rank = rank_ * vertices_per_processor;
+  in_stream.seekg(offset_on_this_rank * sizeof(int), std::ifstream::beg);
 
-  i = number_of_vertices_ * sizeof(int);
-
-  in_stream.read((char *)(partition_vector_.data()), i);
-  if (in_stream.gcount() != i) {
-    sprintf(message, "p[%d] could not read in %d elements\n", rank_,
-            number_of_vertices_);
-    out << message;
+  if (!partition_vector_.read_from(in_stream, number_of_vertices_)) {
+    out << "p[" << rank_ << "] could not read in " << number_of_vertices_
+        << " elements" << std::endl;
     MPI_Abort(comm, 0);
   }
 
   in_stream.close();
-
   partition_cuts_[0] = calculate_cut_size(numParts, 0, comm);
 }
 
 void hypergraph::allocate_hyperedge_memory(int numHedges, int numLocPins) {
-#ifdef DEBUG_HYPERGRAPH
-  assert(numLocalHedges == numHedges);
-  assert(numLocalPins == numLocPins);
-#endif
-
   hyperedge_offsets_.reserve(numHedges + 1);
   hyperedge_weights_.reserve(numHedges);
   pin_list_.reserve(numLocPins);
 }
 
 void hypergraph::contract_hyperedges(hypergraph &coarse, MPI_Comm comm) {
-  int vFinePerProc;
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
-  int totalToSend;
-  int totalToRecv;
-  int arrayLen;
-  int p;
-  int vertex;
-  int startOffset;
-  int endOffset;
-  int contractedPinListLen;
-  int contractedHedgeLen;
-  int numContractedHedges;
-  int maxLocalCoarseHedgeLen = 0;
-  int maxCoarseHedgeLen;
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
+  int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
 
-  int *array;
+  dynamic_array<int> original_contracted_pin_list(number_of_pins_, -1);
+  compute_requests_for_remote_vertex_matches(vertices_per_proc_fine);
 
-  int i;
-  int j;
-
-#ifdef DEBUG_HYPERGRAPH
-  int numTotCoarseVerts = coarse.getNumTotalVertices();
-  for (i = 0; i < numLocalVertices; ++i)
-    assert(matchVector[i] >= 0 && matchVector[i] < numTotCoarseVerts);
-#endif
-
-  vFinePerProc = total_number_of_vertices_ / processors_;
-
-  dynamic_array<int> contractedPinList;
-  dynamic_array<int> contractedHedgeOffsets;
-  dynamic_array<int> contractedHedgeWts;
-  dynamic_array<int> origContractedPinList(number_of_pins_);
-  dynamic_array<int> copyOfReq;
-
-  for (i = 0; i < processors_; ++i)
-    send_lens_[i] = 0;
-
-  ds::bit_field sentRequests(total_number_of_vertices_);
-  sentRequests.unset();
-
-  // ###
-  // compute all the requests for remote vertex matches
-  // ###
-
-  for (i = 0; i < number_of_pins_; ++i) {
-    vertex = pin_list_[i];
-
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
-      if (!sentRequests(vertex)) {
-        p = std::min(vertex / vFinePerProc, processors_ - 1);
-        data_out_sets_[p]->assign(send_lens_[p]++, vertex);
-        sentRequests.set(vertex);
-      }
-
-      origContractedPinList[i] = -1;
-    } else {
-      origContractedPinList[i] = match_vector_[vertex - minimum_vertex_index_];
-    }
-  }
-
-  // ###
-  // compute number of elements to send to other procs
-  // ###
-
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    send_displs_[i] = j;
-    j += send_lens_[i];
-  }
-
-  send_array_.reserve(j);
-  copyOfReq.reserve(j);
-  totalToSend = j;
-
-  j = 0;
-  for (p = 0; p < processors_; ++p) {
-    array = data_out_sets_[p]->data();
-    arrayLen = send_lens_[p];
-
-    for (i = 0; i < arrayLen; ++i) {
-      vertex = array[i];
-      send_array_[j] = vertex;
-      copyOfReq[j++] = vertex;
-    }
-  }
-
+  // compute number of elements to send to other processors
+  ds::dynamic_array<int> copy_of_requests;
+  int total_to_send = compute_number_of_elements_to_send(copy_of_requests);
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  // ###
-  // compute number of elements to receive from other procs
-  // ###
-
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    receive_displs_[i] = j;
-    j += receive_lens_[i];
-  }
-
-  receive_array_.reserve(j);
-  totalToRecv = j;
-
+  // compute number of elements to receive from other processors
+  int total_to_receive = compute_number_of_elements_to_receive();
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
-  // ###
-  // now have received all requests and sent out our requests
-  // the reply communication will have the dual dimensions
-  // ###
-
-  send_array_.reserve(totalToRecv);
-
-  for (i = 0; i < totalToRecv; ++i) {
-#ifdef DEBUG_HYPERGRAPH
-    assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
-#endif
+  // now have received all requests and sent out our requests the reply
+  // communication will have the dual dimensions
+  send_array_.resize(total_to_receive);
+  for (int i = 0; i < total_to_receive; ++i) {
     send_array_[i] = match_vector_[receive_array_[i] - minimum_vertex_index_];
   }
 
-  receive_array_.reserve(totalToSend);
-
+  receive_array_.resize(total_to_send);
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
-  // ###
-  // now the requested vertices are in the copyOfReq data_
-  // while their corresponding matchVector values are in
-  // the corresponding location in the receive_array_
-  // ###
+  // Requested vertices are in the copy_of_requests while their corresponding
+  // match_vector values are in the corresponding location in the receive_array_
+  //
+  // Depending on number of local pins, choose format for storing non-local
+  // vertices
+  choose_non_local_vertices_format(original_contracted_pin_list);
 
-  /* depending on number of local pins, choose format for
-     storing non-local vertices */
+  // send coarse hyperedges to appropriate processors via hash function
+  send_coarse_hyperedges(original_contracted_pin_list, total_to_send,
+                         total_to_receive);
 
-  if (number_of_pins_ < total_number_of_vertices_ / 2) {
-    ds::map_from_pos_int<int> storedRequests(number_of_pins_);
+  // Should have received all hyperedges destined for processor now build the
+  // coarse hypergraph pin-list
+  int table_size = static_cast<int>(
+      ceil(static_cast<double>(number_of_hyperedges_) * 1.5));
+  ds::new_hyperedge_index_table table(table_size);
 
-    for (i = 0; i < totalToSend; ++i)
-      storedRequests.insert(copyOfReq[i], receive_array_[i]);
-
-    /* contract remaining local pins */
-
-    for (i = 0; i < number_of_pins_; ++i)
-      if (origContractedPinList[i] == -1)
-        origContractedPinList[i] = storedRequests.get(pin_list_[i]);
-  } else {
-    dynamic_array<int> nonLocalMatches(total_number_of_vertices_);
-
-    for (i = 0; i < totalToSend; ++i)
-      nonLocalMatches[copyOfReq[i]] = receive_array_[i];
-
-    /* contract remaining local pins */
-
-    for (i = 0; i < number_of_pins_; ++i)
-      if (origContractedPinList[i] == -1)
-        origContractedPinList[i] = nonLocalMatches[pin_list_[i]];
-  }
-
-  /* send coarse hyperedges to appropriate processors via hash function */
-
-  for (i = 0; i < number_of_hyperedges_; ++i) {
-    j = hyperedge_offsets_[i + 1] - hyperedge_offsets_[i];
-    Funct::qsort(0, j - 1, &origContractedPinList[hyperedge_offsets_[i]]);
-  }
-
-  contractedPinListLen = 0;
-  numContractedHedges = 0;
-
-  for (i = 0; i < number_of_hyperedges_; ++i) {
-    contractedHedgeOffsets.assign(numContractedHedges, contractedPinListLen);
-    endOffset = hyperedge_offsets_[i + 1];
-    startOffset = hyperedge_offsets_[i];
-
-    contractedPinList.assign(contractedPinListLen,
-                             origContractedPinList[startOffset]);
-    contractedHedgeLen = 1;
-
-    for (j = startOffset + 1; j < endOffset; ++j) {
-      if (origContractedPinList[j] !=
-          contractedPinList[contractedPinListLen + contractedHedgeLen - 1]) {
-        contractedPinList.assign(contractedPinListLen + (contractedHedgeLen++),
-                                 origContractedPinList[j]);
-      }
-    }
-
-    if (contractedHedgeLen > 1) {
-      contractedPinListLen += contractedHedgeLen;
-      contractedHedgeWts.assign(numContractedHedges++, hyperedge_weights_[i]);
-
-      if (contractedHedgeLen > maxLocalCoarseHedgeLen)
-        maxLocalCoarseHedgeLen = contractedHedgeLen;
-    }
-  }
-
-  contractedHedgeOffsets.assign(numContractedHedges, contractedPinListLen);
-
-  // ###
-  // - compute maxCoarseHedgeLen and set in Funct
-  // - compute hash-keys for each hyperedge
-  // - send hyperedges to processor determined by
-  //   corresponding hash key
-  // ###
-
-  MPI_Allreduce(&maxLocalCoarseHedgeLen, &maxCoarseHedgeLen, 1, MPI_INT,
-                MPI_MAX, comm);
-
-  Funct::setMaxHedgeLen(maxCoarseHedgeLen);
-
-  for (i = 0; i < processors_; ++i)
-    send_lens_[i] = 0;
-
-  for (i = 0; i < numContractedHedges; ++i) {
-    startOffset = contractedHedgeOffsets[i];
-    endOffset = contractedHedgeOffsets[i + 1];
-    contractedHedgeLen = endOffset - startOffset;
-
-    p = Mod(
-        Funct::computeHash(&contractedPinList[startOffset], contractedHedgeLen),
-        processors_);
-
-    data_out_sets_[p]->assign(send_lens_[p]++, contractedHedgeLen + 2);
-    data_out_sets_[p]->assign(send_lens_[p]++, contractedHedgeWts[i]);
-
-    for (j = startOffset; j < endOffset; ++j) {
-      data_out_sets_[p]->assign(send_lens_[p]++, contractedPinList[j]);
-    }
-  }
-
-  // ###
-  // compute number of elements to send to other procs
-  // ###
-
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    send_displs_[i] = j;
-    j += send_lens_[i];
-  }
-
-  send_array_.reserve(j);
-  totalToSend = j;
-
-  j = 0;
-  for (p = 0; p < processors_; ++p) {
-    array = data_out_sets_[p]->data();
-    arrayLen = send_lens_[p];
-
-    for (i = 0; i < arrayLen; ++i) {
-      send_array_[j++] = array[i];
-    }
-  }
-
-  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
-               comm);
-
-  // ###
-  // compute number of elements to receive from other procs
-  // ###
-
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    receive_displs_[i] = j;
-    j += receive_lens_[i];
-  }
-
-  receive_array_.reserve(j);
-  totalToRecv = j;
-
-  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
-                send_displs_.data(), MPI_INT, receive_array_.data(),
-                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
-
-  // ###
-  // now should have received all hyperedges destined for processor
-  // now build the coarse hypergraph pin-list
-  // ###
-
-  dynamic_array<int> coarseLocalPins;
-  dynamic_array<int> coarseHedgeOffsets;
-  dynamic_array<int> coarseHedgeWts;
-
-  int numCoarsePins = 0;
-  int numCoarseHedges = 0;
-  int coarseHedgeLen;
-  int numSeen;
-  int duplHedge;
-  int length;
-  int tryHedge;
-
-  HashKey hashKey;
-
-  ds::new_hyperedge_index_table table((int)(ceil((double) number_of_hyperedges_ * 1.5)));
-
-  // ###
   // run through the recv data_
   // for each encountered hyperedge:
   // - compute hash-key
   // - check for duplicates in the hash table
   // - if duplicate not found, add to list
   // - if duplicate found, increment its weight
-  // ###
-
-  i = 0;
-  coarseHedgeOffsets.assign(numCoarseHedges, numCoarsePins);
-
-  // write_log(rank_, "entering hyperedges into table, totalToRecv = %d",
-  // totalToRecv);
-
-  while (i < totalToRecv) {
-    /// if(rank_ == 10 && i > 645915)
-    // write_log(rank_, "i = %d", i);
-
-    coarseHedgeLen = receive_array_[i] - 2;
-    hashKey = Funct::computeHash(&receive_array_[i + 2], coarseHedgeLen);
-
-    /* find duplicate hyperedge (if exists) */
-
-    numSeen = -1;
-    duplHedge = -1;
-
-#ifdef DEBUG_HYPERGRAPH
-    int numSearches = 0;
-#endif
-
-    do {
-      // if(rank_ == 10 && i > 645915)
-      // write_log(rank_, "i = %d, [loop]", i);
-
-      tryHedge = table.getHedgeIndex(hashKey, numSeen);
-
-      // if(rank_ == 10 && i > 645915)
-      // write_log(rank_, "i = %d, tryHedge = %d", i, tryHedge);
-
-      if (tryHedge >= 0) {
-#ifdef DEBUG_HYPERGRAPH
-        assert(tryHedge < numCoarseHedges);
-#endif
-        startOffset = coarseHedgeOffsets[tryHedge];
-        endOffset = coarseHedgeOffsets[tryHedge + 1];
-        length = endOffset - startOffset;
-#ifdef DEBUG_HYPERGRAPH
-        assert(capacity_ > 0 && capacity_ < 0xFFFFFFF);
-#endif
-        if (length == coarseHedgeLen) {
-          for (j = 0; j < length; ++j) {
-#ifdef DEBUG_HYPERGRAPH
-            assert(i + 2 + j < totalToRecv);
-            assert(startOffset + j < numCoarsePins);
-#endif
-            if (receive_array_[i + 2 + j] != coarseLocalPins[startOffset + j])
-              break;
-          }
-          if (j == length) {
-            duplHedge = tryHedge;
-            break;
-          }
-        }
-      }
-
-#ifdef DEBUG_HYPERGRAPH
-      numSearches++;
-      // if((numSearches % 100 == 0) && rank_ == 10)
-      // write_log(rank_, "numSearches = %d", numSearches);
-      assert(numSearches < 0xFFF);
-#endif
-    } while (numSeen >= 0);
-
-    // if(rank_ == 10 && i > 645915)
-    // write_log(rank_, "i = %d, duplHedge = %d", i, duplHedge);
-
-    if (duplHedge == -1) {
-      table.insertKey(hashKey, numCoarseHedges);
-      coarseHedgeWts.assign(numCoarseHedges++, receive_array_[i + 1]);
-
-      for (j = 0; j < coarseHedgeLen; ++j)
-        coarseLocalPins.assign(numCoarsePins + j, receive_array_[i + 2 + j]);
-
-      numCoarsePins += coarseHedgeLen;
-      coarseHedgeOffsets.assign(numCoarseHedges, numCoarsePins);
-    } else {
-#ifdef DEBUG_HYPERGRAPH
-      assert(duplHedge >= 0);
-      assert(duplHedge < numCoarseHedges);
-      assert(i + 1 < totalToRecv);
-#endif
-      coarseHedgeWts[duplHedge] += receive_array_[i + 1];
-    }
-#ifdef DEBUG_HYPERGRAPH
-    assert(receive_array_[i] > 0);
-#endif
-
-    // if(i > 645915 && rank_ == 10)
-    // write_log(rank_, "i = %d, receive_array_[i] = %d",i,receive_array_[i]);
-
-    i += receive_array_[i];
-  }
-
-// write_log(rank_, "entered hyperedges into table");
-
-#ifdef MEM_OPT
-  coarseHedgeOffsets.reserve(numCoarseHedges + 1);
-  coarseLocalPins.reserve(numCoarsePins);
-  coarseHedgeWts.reserve(numCoarseHedges);
-#endif
-
-  /* now set the coarse hypergraph */
-
-  coarse.set_number_of_hyperedges(numCoarseHedges);
-  coarse.set_number_of_pins(numCoarsePins);
-  coarse.allocate_hyperedge_memory(numCoarseHedges, numCoarsePins);
-
-  int *cHedgeOffsets = coarse.hyperedge_offsets();
-  int *cPins = coarse.pin_list();
-  int *cHedgeWeights = coarse.hyperedge_weights();
-
-  for (i = 0; i < numCoarseHedges; ++i) {
-    cHedgeWeights[i] = coarseHedgeWts[i];
-    cHedgeOffsets[i] = coarseHedgeOffsets[i];
-  }
-
-  cHedgeOffsets[i] = coarseHedgeOffsets[i];
-
-  for (i = 0; i < numCoarsePins; ++i)
-    cPins[i] = coarseLocalPins[i];
+  process_new_hyperedges(coarse, table);
 }
 
-void hypergraph::contractRestrHyperedges(hypergraph &coarse,
-                                             MPI_Comm comm) {
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
-  int totalToSend;
-  int totalToRecv;
-  int arrayLen;
-  int p;
-  int vertex;
-  int startOffset;
-  int endOffset;
-  int contractedPinListLen;
-  int contractedHedgeLen;
-  int numContractedHedges;
-  int maxLocalCoarseHedgeLen = 0;
-  int maxCoarseHedgeLen;
 
-  int *array;
+void hypergraph::contractRestrHyperedges(hypergraph &coarse, MPI_Comm comm) {
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
 
-  int i;
-  int j;
+  dynamic_array<int> min_fine_index_on_processor(processors_);
+  dynamic_array<int> original_contracted_pin_list(number_of_pins_);
 
-#ifdef DEBUG_HYPERGRAPH
-  int numTotCoarseVerts = coarse.getNumTotalVertices();
-  for (i = 0; i < numLocalVertices; ++i)
-    assert(matchVector[i] >= 0 && matchVector[i] < numTotCoarseVerts);
-#endif
+  MPI_Allgather(&minimum_vertex_index_, 1, MPI_INT,
+                min_fine_index_on_processor.data(), 1, MPI_INT, comm);
 
-  dynamic_array<int> minFineIdxOnProc(processors_);
-  dynamic_array<int> procs(processors_);
-  dynamic_array<int> contractedPinList;
-  dynamic_array<int> contractedHedgeOffsets;
-  dynamic_array<int> contractedHedgeWts;
-  dynamic_array<int> origContractedPinList(number_of_pins_);
-  dynamic_array<int> copyOfReq;
-
-  MPI_Allgather(&minimum_vertex_index_, 1, MPI_INT, minFineIdxOnProc.data(), 1,
-                MPI_INT, comm);
-
-  for (i = 0; i < processors_; ++i)
-    procs[i] = i;
-
-  ds::complete_binary_tree <int> vFineToProc(procs.data(),
-                                             minFineIdxOnProc.data(), processors_);
-
-  for (i = 0; i < processors_; ++i)
-    send_lens_[i] = 0;
-
-  ds::bit_field sentRequests(total_number_of_vertices_);
-  sentRequests.unset();
-
-  // ###
-  // compute all the requests for remote vertex matches
-  // ###
-
-  for (i = 0; i < number_of_pins_; ++i) {
-    vertex = pin_list_[i];
-
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
-      if (!sentRequests(vertex)) {
-        p = vFineToProc.root_value(vertex);
-        data_out_sets_[p]->assign(send_lens_[p]++, vertex);
-        sentRequests.set(vertex);
-      }
-
-      origContractedPinList[i] = -1;
-    } else {
-      origContractedPinList[i] = match_vector_[vertex - minimum_vertex_index_];
-    }
+  dynamic_array<int> processors(processors_);
+  for (int i = 0; i < processors_; ++i) {
+    processors[i] = i;
   }
 
-  // ###
-  // compute number of elements to send to other procs
-  // ###
+  ds::complete_binary_tree <int> fine_vertex_to_processor(
+      processors.data(), min_fine_index_on_processor.data(), processors_);
 
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    send_displs_[i] = j;
-    j += send_lens_[i];
-  }
+  compute_requests_for_remote_vertex_matches(0, &fine_vertex_to_processor);
 
-  send_array_.reserve(j);
-  copyOfReq.reserve(j);
-  totalToSend = j;
-
-  j = 0;
-  for (p = 0; p < processors_; ++p) {
-    array = data_out_sets_[p]->data();
-    arrayLen = send_lens_[p];
-
-    for (i = 0; i < arrayLen; ++i) {
-      vertex = array[i];
-      send_array_[j] = vertex;
-      copyOfReq[j++] = vertex;
-    }
-  }
-
+  // Compute number of elements to send to other processors
+  ds::dynamic_array<int> copy_of_requests;
+  int total_to_send = compute_number_of_elements_to_send(copy_of_requests);
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  // ###
-  // compute number of elements to receive from other procs
-  // ###
-
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    receive_displs_[i] = j;
-    j += receive_lens_[i];
-  }
-
-  receive_array_.reserve(j);
-  totalToRecv = j;
-
+  // Compute number of elements to receive from other processors
+  int total_to_receive = compute_number_of_elements_to_receive();
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
-  // ###
-  // now have received all requests and sent out our requests
-  // the reply communication will have the dual dimensions
-  // ###
-
-  send_array_.reserve(totalToRecv);
-
-  for (i = 0; i < totalToRecv; ++i) {
-#ifdef DEBUG_HYPERGRAPH
-    assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
-#endif
+  // now have received all requests and sent out our requests the reply
+  // communication will have the dual dimensions
+  send_array_.resize(total_to_receive);
+  for (int i = 0; i < total_to_receive; ++i) {
     send_array_[i] = match_vector_[receive_array_[i] - minimum_vertex_index_];
   }
 
-  receive_array_.reserve(totalToSend);
-
+  receive_array_.resize(total_to_send);
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
-  // ###
-  // now the requested vertices are in the copyOfReq data_
-  // while their corresponding matchVector values are in
-  // the corresponding location in the recvArray
-  // ###
+  // Requested vertices are in the copy_of_requests data while their
+  // corresponding matchVector values are in the corresponding location in the
+  // receieve_array_
+  choose_non_local_vertices_format(original_contracted_pin_list);
 
-  if (number_of_pins_ < total_number_of_vertices_ / 2) {
-    ds::map_from_pos_int<int> storedRequests(number_of_pins_);
+  send_coarse_hyperedges(original_contracted_pin_list, total_to_send,
+                         total_to_receive);
 
-    for (i = 0; i < totalToSend; ++i)
-      storedRequests.insert(copyOfReq[i], receive_array_[i]);
+  // Should have received all hyperedges destined for processor now build the
+  // coarse hypergraph pin-list
+  int table_size = static_cast<int>(
+      ceil(static_cast<double>(number_of_hyperedges_) * 1.1));
+  ds::new_hyperedge_index_table table(table_size);
 
-    /* contract remaining local pins */
-
-    for (i = 0; i < number_of_pins_; ++i)
-      if (origContractedPinList[i] == -1)
-        origContractedPinList[i] = storedRequests.get(pin_list_[i]);
-  } else {
-    dynamic_array<int> nonLocalMatches(total_number_of_vertices_);
-
-    for (i = 0; i < totalToSend; ++i)
-      nonLocalMatches[copyOfReq[i]] = receive_array_[i];
-
-    /* contract remaining local pins */
-
-    for (i = 0; i < number_of_pins_; ++i)
-      if (origContractedPinList[i] == -1)
-        origContractedPinList[i] = nonLocalMatches[pin_list_[i]];
-  }
-
-  /* send coarse hyperedges to appropriate processors via hash function */
-
-  for (i = 0; i < number_of_hyperedges_; ++i) {
-    j = hyperedge_offsets_[i + 1] - hyperedge_offsets_[i];
-    Funct::qsort(0, j - 1, &origContractedPinList[hyperedge_offsets_[i]]);
-  }
-
-  contractedPinListLen = 0;
-  numContractedHedges = 0;
-
-  for (i = 0; i < number_of_hyperedges_; ++i) {
-    contractedHedgeOffsets.assign(numContractedHedges, contractedPinListLen);
-    endOffset = hyperedge_offsets_[i + 1];
-    startOffset = hyperedge_offsets_[i];
-
-    contractedPinList.assign(contractedPinListLen,
-                             origContractedPinList[startOffset]);
-    contractedHedgeLen = 1;
-
-    for (j = startOffset + 1; j < endOffset; ++j) {
-      if (origContractedPinList[j] !=
-          contractedPinList[contractedPinListLen + contractedHedgeLen - 1]) {
-        contractedPinList.assign(contractedPinListLen + (contractedHedgeLen++),
-                                 origContractedPinList[j]);
-      }
-    }
-
-    if (contractedHedgeLen > 1) {
-      contractedPinListLen += contractedHedgeLen;
-      contractedHedgeWts.assign(numContractedHedges++, hyperedge_weights_[i]);
-
-      if (contractedHedgeLen > maxLocalCoarseHedgeLen)
-        maxLocalCoarseHedgeLen = contractedHedgeLen;
-    }
-  }
-
-  contractedHedgeOffsets.assign(numContractedHedges, contractedPinListLen);
-
-  // ###
-  // - compute maxCoarseHedgeLen and set in Funct
-  // - compute hash-keys for each hyperedge
-  // - send hyperedges to processor determined by
-  //   corresponding hash key
-  // ###
-
-  MPI_Allreduce(&maxLocalCoarseHedgeLen, &maxCoarseHedgeLen, 1, MPI_INT,
-                MPI_MAX, comm);
-
-  Funct::setMaxHedgeLen(maxCoarseHedgeLen);
-
-  for (i = 0; i < processors_; ++i)
-    send_lens_[i] = 0;
-
-  for (i = 0; i < numContractedHedges; ++i) {
-    startOffset = contractedHedgeOffsets[i];
-    endOffset = contractedHedgeOffsets[i + 1];
-    contractedHedgeLen = endOffset - startOffset;
-
-    p = Mod(
-        Funct::computeHash(&contractedPinList[startOffset], contractedHedgeLen),
-        processors_);
-
-    data_out_sets_[p]->assign(send_lens_[p]++, contractedHedgeLen + 2);
-    data_out_sets_[p]->assign(send_lens_[p]++, contractedHedgeWts[i]);
-
-    for (j = startOffset; j < endOffset; ++j) {
-      data_out_sets_[p]->assign(send_lens_[p]++, contractedPinList[j]);
-    }
-  }
-
-  // ###
-  // compute number of elements to send to other procs
-  // ###
-
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    send_displs_[i] = j;
-    j += send_lens_[i];
-  }
-
-  send_array_.reserve(j);
-  totalToSend = j;
-
-  j = 0;
-  for (p = 0; p < processors_; ++p) {
-    array = data_out_sets_[p]->data();
-    arrayLen = send_lens_[p];
-
-    for (i = 0; i < arrayLen; ++i) {
-      send_array_[j++] = array[i];
-    }
-  }
-
-  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
-               comm);
-
-  // ###
-  // compute number of elements to receive from other procs
-  // ###
-
-  j = 0;
-  for (i = 0; i < processors_; ++i) {
-    receive_displs_[i] = j;
-    j += receive_lens_[i];
-  }
-
-  receive_array_.reserve(j);
-  totalToRecv = j;
-
-  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
-                send_displs_.data(), MPI_INT, receive_array_.data(),
-                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
-
-  // ###
-  // now should have received all hyperedges destined for processor
-  // now build the coarse hypergraph pin-list
-  // ###
-
-  dynamic_array<int> coarseLocalPins;    // = new dynamic_array<int>(2048);
-  dynamic_array<int> coarseHedgeOffsets; // = new dynamic_array<int>(1024);
-  dynamic_array<int> coarseHedgeWts;     // = new dynamic_array<int>(1024);
-
-  int numCoarsePins = 0;
-  int numCoarseHedges = 0;
-  int coarseHedgeLen;
-  int numSeen;
-  int duplHedge;
-  int length;
-  int tryHedge;
-
-  HashKey hashKey;
-
-  ds::new_hyperedge_index_table table((int)(ceil((double) number_of_hyperedges_ * 1.1)));
-
-  // ###
   // run through the recv data_
   // for each encountered hyperedge:
   // - compute hash-key
   // - check for duplicates in the hash table
   // - if duplicate not found, add to list
   // - if duplicate found, increment its weight
-  // ###
 
-  /* NEED TO MODIFY THE RESTR HEDGE CONTRACTION TO CORRESPOND WITH NORMAL */
-
-  i = 0;
-  coarseHedgeOffsets.assign(numCoarseHedges, numCoarsePins);
-
-  while (i < totalToRecv) {
-    coarseHedgeLen = receive_array_[i] - 2;
-    hashKey = Funct::computeHash(&receive_array_[i + 2], coarseHedgeLen);
-
-    // ###
-    // find duplicate hyperedge (if exists)
-    // ###
-
-    numSeen = -1;
-    duplHedge = -1;
-
-    do {
-      tryHedge = table.getHedgeIndex(hashKey, numSeen);
-
-      if (tryHedge >= 0) {
-#ifdef DEBUG_HYPERGRAPH
-        assert(tryHedge < numCoarseHedges);
-#endif
-        startOffset = coarseHedgeOffsets[tryHedge];
-        endOffset = coarseHedgeOffsets[tryHedge + 1];
-        length = endOffset - startOffset;
-
-        if (length == coarseHedgeLen) {
-          for (j = 0; j < length; ++j) {
-#ifdef DEBUG_HYPERGRAPH
-            assert(i + 2 + j < totalToRecv);
-            assert(startOffset + j < numCoarsePins);
-#endif
-            if (receive_array_[i + 2 + j] != coarseLocalPins[startOffset + j])
-              break;
-          }
-          if (j == length) {
-            duplHedge = tryHedge;
-            break;
-          }
-        }
-      }
-    } while (numSeen >= 0);
-
-    if (duplHedge == -1) {
-      table.insertKey(hashKey, numCoarseHedges);
-      coarseHedgeWts.assign(numCoarseHedges++, receive_array_[i + 1]);
-
-      for (j = 0; j < coarseHedgeLen; ++j)
-        coarseLocalPins.assign(numCoarsePins + j, receive_array_[i + 2 + j]);
-
-      numCoarsePins += coarseHedgeLen;
-      coarseHedgeOffsets.assign(numCoarseHedges, numCoarsePins);
-    } else {
-#ifdef DEBUG_HYPERGRAPH
-      assert(duplHedge >= 0);
-      assert(duplHedge < numCoarseHedges);
-      assert(i + 1 < totalToRecv);
-#endif
-      coarseHedgeWts[duplHedge] += receive_array_[i + 1];
-    }
-
-    i += receive_array_[i];
-  }
-
-#ifdef MEM_OPT
-  coarseHedgeOffsets.reserve(numCoarseHedges + 1);
-  coarseLocalPins.reserve(numCoarsePins);
-  coarseHedgeWts.reserve(numCoarseHedges);
-#endif
-
-  // ###
-  // now set the coarse hypergraph
-  // ###
-
-  coarse.set_number_of_hyperedges(numCoarseHedges);
-  coarse.set_number_of_pins(numCoarsePins);
-  coarse.allocate_hyperedge_memory(numCoarseHedges, numCoarsePins);
-
-  int *cHedgeOffsets = coarse.hyperedge_offsets();
-  int *cPins = coarse.pin_list();
-  int *cHedgeWeights = coarse.hyperedge_weights();
-
-  for (i = 0; i < numCoarseHedges; ++i) {
-    cHedgeWeights[i] = coarseHedgeWts[i];
-    cHedgeOffsets[i] = coarseHedgeOffsets[i];
-  }
-
-  cHedgeOffsets[i] = coarseHedgeOffsets[i];
-
-  for (i = 0; i < numCoarsePins; ++i)
-    cPins[i] = coarseLocalPins[i];
+  // NEED TO MODIFY THE RESTR HEDGE CONTRACTION TO CORRESPOND WITH NORMAL.
+  process_new_hyperedges(coarse, table);
 }
+
 
 void hypergraph::project_partitions(hypergraph &coarse, MPI_Comm comm) {
   int totCoarseV = coarse.total_number_of_vertices();
@@ -1473,7 +637,7 @@ void hypergraph::remove_bad_partitions(double cutThreshold) {
   int indexIntoOld;
   int indexIntoNew;
   int pSeenBefore;
-  int endOffset;
+  int end_offset;
   int numNewPartitions = 0;
 
   for (i = 1; i < number_of_partitions_; ++i) {
@@ -1500,9 +664,9 @@ void hypergraph::remove_bad_partitions(double cutThreshold) {
       }
       if (pSeenBefore == 0) {
         if (indexIntoOld > indexIntoNew) {
-          endOffset = partition_vector_offsets_[i + 1];
+          end_offset = partition_vector_offsets_[i + 1];
 
-          for (; indexIntoOld < endOffset; ++indexIntoOld) {
+          for (; indexIntoOld < end_offset; ++indexIntoOld) {
             partition_vector_[indexIntoNew++] = partition_vector_[indexIntoOld];
           }
         } else {
@@ -1609,11 +773,11 @@ void hypergraph::copy_in_partition(const int *partition, int numV,
 
   int i;
 
-  int endOffset = partition_vector_offsets_[nP + 1];
-  int startOffset = partition_vector_offsets_[nP];
+  int end_offset = partition_vector_offsets_[nP + 1];
+  int start_offset = partition_vector_offsets_[nP];
 
-  for (i = startOffset; i < endOffset; ++i)
-    partition_vector_[i] = partition[i - startOffset];
+  for (i = start_offset; i < end_offset; ++i)
+    partition_vector_[i] = partition[i - start_offset];
 }
 
 void hypergraph::copy_out_partition(int *partition, int numV,
@@ -1625,11 +789,11 @@ void hypergraph::copy_out_partition(int *partition, int numV,
 
   int i;
 
-  int startOffset = partition_vector_offsets_[nP];
-  int endOffset = partition_vector_offsets_[nP + 1];
+  int start_offset = partition_vector_offsets_[nP];
+  int end_offset = partition_vector_offsets_[nP + 1];
 
-  for (i = startOffset; i < endOffset; ++i)
-    partition[i] = partition_vector_[i - startOffset];
+  for (i = start_offset; i < end_offset; ++i)
+    partition[i] = partition_vector_[i - start_offset];
 }
 
 int hypergraph::keep_best_partition() {
@@ -1666,9 +830,9 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
   shift_vertices_to_balance(comm);
 
   int vPerProc = total_number_of_vertices_ / processors_;
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
-  int totalToRecv;
-  int totalToSend;
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
+  int total_to_receive;
+  int total_to_send;
   int arrayLen;
   int vertex;
   int *array1;
@@ -1696,7 +860,7 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
   for (i = 0; i < number_of_vertices_; ++i) {
     vertex = to_origin_vertex_[i];
 
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
+    if (vertex < minimum_vertex_index_ || vertex >= max_local_vertex) {
       j = std::min(vertex / vPerProc, processors_ - 1);
 
       askingVertices[j]->assign(send_lens_[j], i);
@@ -1706,7 +870,7 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
     }
   }
 
-  /* compute number of elements to send to other procs */
+  /* compute number of elements to send to other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -1716,7 +880,7 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
 
   send_array_.reserve(j);
   askingVertex.reserve(j);
-  totalToSend = j;
+  total_to_send = j;
 
   j = 0;
   for (ij = 0; ij < processors_; ++ij) {
@@ -1732,13 +896,13 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
   }
 
 #ifdef DEBUG_HYPERGRAPH
-  assert(j == totalToSend);
+  assert(j == total_to_send);
 #endif
 
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  /* compute number of elements to receive from other procs */
+  /* compute number of elements to receive from other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -1747,7 +911,7 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
   }
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -1758,12 +922,12 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
     the reply communication will have the dual dimensions
   */
 
-  send_array_.reserve(totalToRecv);
+  send_array_.reserve(total_to_receive);
 
-  for (i = 0; i < totalToRecv; ++i) {
+  for (i = 0; i < total_to_receive; ++i) {
 #ifdef DEBUG_HYPERGRAPH
     assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
+           receive_array_[i] < max_local_vertex);
 #endif
     send_array_[i] = copyOfMapToOrigV[receive_array_[i] - minimum_vertex_index_];
 #ifdef DEBUG_HYPERGRAPH
@@ -1771,19 +935,19 @@ void hypergraph::prescribed_vertex_shuffle(int *mapToOrigV, int *prescArray,
 #endif
   }
 
-  receive_array_.reserve(totalToSend);
+  receive_array_.reserve(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   /*
-     now the requested vertices are in the copyOfReq data_
+     now the requested vertices are in the copy_of_requests data_
      while their corresponding matchVector values are in
      the corresponding location in the receive_array_
   */
 
-  for (i = 0; i < totalToSend; ++i) {
+  for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
     assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
@@ -2082,12 +1246,12 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
   int j;
   int ij;
 
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
-  int vFinePerProc = total_number_of_vertices_ / processors_;
-  int totalToSend;
-  int totalToRecv;
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
+  int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
+  int total_to_send;
+  int total_to_receive;
   int vertex;
-  int startOffset;
+  int start_offset;
   int arrayLen;
   int *array;
 
@@ -2097,7 +1261,7 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
   dynamic_array<int> minNewIndexOnProc(processors_);
 
   dynamic_array<int> idxIntoSendArray(processors_);
-  dynamic_array<int> copyOfReq;
+  dynamic_array<int> copy_of_requests;
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
@@ -2142,24 +1306,24 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  ds::bit_field sentRequests(total_number_of_vertices_);
-  sentRequests.unset();
+  ds::bit_field sent_requests(total_number_of_vertices_);
+  sent_requests.unset();
 
   /* compute vertices required to transform pinlist */
 
   for (i = 0; i < number_of_pins_; ++i) {
     vertex = pin_list_[i];
 
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
-      if (!sentRequests(vertex)) {
-        j = std::min(vertex / vFinePerProc, processors_ - 1);
+    if (vertex < minimum_vertex_index_ || vertex >= max_local_vertex) {
+      if (!sent_requests(vertex)) {
+        j = std::min(vertex / vertices_per_proc_fine, processors_ - 1);
         data_out_sets_[j]->assign(send_lens_[j]++, vertex);
-        sentRequests.set(vertex);
+        sent_requests.set(vertex);
       }
     }
   }
 
-  /* compute number of elements to send to other procs */
+  /* compute number of elements to send to other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -2168,8 +1332,8 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
   }
 
   send_array_.reserve(j);
-  copyOfReq.reserve(j);
-  totalToSend = j;
+  copy_of_requests.reserve(j);
+  total_to_send = j;
 
   j = 0;
   for (ij = 0; ij < processors_; ++ij) {
@@ -2179,18 +1343,18 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
     for (i = 0; i < arrayLen; ++i) {
       vertex = array[i];
       send_array_[j] = vertex;
-      copyOfReq[j++] = vertex;
+      copy_of_requests[j++] = vertex;
     }
   }
 
 #ifdef DEBUG_HYPERGRAPH
-  assert(j == totalToSend);
+  assert(j == total_to_send);
 #endif
 
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  /* compute number of elements to receive from other procs */
+  /* compute number of elements to receive from other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -2199,7 +1363,7 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
   }
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -2210,12 +1374,12 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
     the reply communication will have the dual dimensions
   */
 
-  send_array_.reserve(totalToRecv);
+  send_array_.reserve(total_to_receive);
 
-  for (i = 0; i < totalToRecv; ++i) {
+  for (i = 0; i < total_to_receive; ++i) {
 #ifdef DEBUG_HYPERGRAPH
     assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
+           receive_array_[i] < max_local_vertex);
 #endif
     send_array_[i] = oldIndexToNew[receive_array_[i] - minimum_vertex_index_];
 #ifdef DEBUG_HYPERGRAPH
@@ -2223,26 +1387,26 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receive_array_.reserve(totalToSend);
+  receive_array_.reserve(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   /*
-   now the requested vertices are in the copyOfReq data_
+   now the requested vertices are in the copy_of_requests data_
    while their corresponding matchVector values are in
    the corresponding location in the receive_array_
   */
 
   if (number_of_pins_ < total_number_of_vertices_ / 2) {
-    ds::map_from_pos_int<int> storedRequests(number_of_pins_);
+    ds::map_from_pos_int<int> stored_requests(number_of_pins_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      storedRequests.insert(copyOfReq[i], receive_array_[i]);
+      stored_requests.insert(copy_of_requests[i], receive_array_[i]);
     }
 
 #ifdef DEBUG_HYPERGRAPH
@@ -2253,23 +1417,23 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = storedRequests.get(vertex);
+        pin_list_[i] = stored_requests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
       }
     }
   } else {
-    dynamic_array<int> nonLocalMatches(total_number_of_vertices_);
+    dynamic_array<int> non_local_matches(total_number_of_vertices_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      nonLocalMatches[copyOfReq[i]] = receive_array_[i];
+      non_local_matches[copy_of_requests[i]] = receive_array_[i];
     }
 
 #ifdef DEBUG_HYPERGRAPH
@@ -2280,10 +1444,10 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = nonLocalMatches[vertex];
+        pin_list_[i] = non_local_matches[vertex];
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -2302,7 +1466,7 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
   i = 0;
 
   if (number_of_partitions_ == 0) {
-    totalToSend = Shiftl(number_of_vertices_, 1);
+    total_to_send = Shiftl(number_of_vertices_, 1);
 
     for (; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -2311,7 +1475,7 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
       j += send_lens_[i];
     }
   } else {
-    totalToSend = number_of_vertices_ * 3;
+    total_to_send = number_of_vertices_ * 3;
 
     for (; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -2321,25 +1485,25 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
     }
   }
 
-  send_array_.reserve(totalToSend);
+  send_array_.reserve(total_to_send);
 
   /* compute the send data_ */
 
   if (number_of_partitions_ == 0) {
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset] = minimum_vertex_index_ + i;
-      send_array_[startOffset + 1] = vertex_weights_[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset] = minimum_vertex_index_ + i;
+      send_array_[start_offset + 1] = vertex_weights_[i];
       idxIntoSendArray[j] += 2;
     }
   } else {
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset] = minimum_vertex_index_ + i;
-      send_array_[startOffset + 1] = vertex_weights_[i];
-      send_array_[startOffset + 2] = partition_vector_[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset] = minimum_vertex_index_ + i;
+      send_array_[start_offset + 1] = vertex_weights_[i];
+      send_array_[start_offset + 2] = partition_vector_[i];
       idxIntoSendArray[j] += 3;
     }
   }
@@ -2366,7 +1530,7 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
 #endif
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -2397,13 +1561,13 @@ void hypergraph::shuffle_vertices(int *vToProc, int *localVPerProc,
   vertex_weight_ = 0;
 
   if (number_of_partitions_ == 0) {
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       to_origin_vertex_[j] = receive_array_[i++];
       vertex_weights_[j++] = receive_array_[i];
       vertex_weight_ += receive_array_[i++];
     }
   } else {
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       to_origin_vertex_[j] = receive_array_[i++];
       vertex_weights_[j] = receive_array_[i++];
       partition_vector_[j] = receive_array_[i++];
@@ -2420,13 +1584,13 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   int j;
   int ij;
 
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
-  int vFinePerProc = total_number_of_vertices_ / processors_;
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
+  int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
   int vToOrigVexist = to_origin_vertex_.capacity();
-  int totalToSend;
-  int totalToRecv;
+  int total_to_send;
+  int total_to_receive;
   int vertex;
-  int startOffset;
+  int start_offset;
   int arrayLen;
   int *array;
 
@@ -2434,7 +1598,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   dynamic_array<int> minIndexOfMyVerts(processors_);
   dynamic_array<int> minIndexOnProc(processors_);
   dynamic_array<int> idxIntoSendArray(processors_);
-  dynamic_array<int> copyOfReq;
+  dynamic_array<int> copy_of_requests;
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
@@ -2469,24 +1633,24 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  ds::bit_field sentRequests(total_number_of_vertices_);
-  sentRequests.unset();
+  ds::bit_field sent_requests(total_number_of_vertices_);
+  sent_requests.unset();
 
   /* compute all the requests for new indices of remote vertices */
 
   for (i = 0; i < number_of_pins_; ++i) {
     vertex = pin_list_[i];
 
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
-      if (!sentRequests(vertex)) {
-        j = std::min(vertex / vFinePerProc, processors_ - 1);
+    if (vertex < minimum_vertex_index_ || vertex >= max_local_vertex) {
+      if (!sent_requests(vertex)) {
+        j = std::min(vertex / vertices_per_proc_fine, processors_ - 1);
         data_out_sets_[j]->assign(send_lens_[j]++, vertex);
-        sentRequests.set(vertex);
+        sent_requests.set(vertex);
       }
     }
   }
 
-  /* compute number of elements to send to other procs */
+  /* compute number of elements to send to other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -2495,8 +1659,8 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
   send_array_.reserve(j);
-  copyOfReq.reserve(j);
-  totalToSend = j;
+  copy_of_requests.reserve(j);
+  total_to_send = j;
 
   j = 0;
   for (ij = 0; ij < processors_; ++ij) {
@@ -2506,18 +1670,18 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < arrayLen; ++i) {
       vertex = array[i];
       send_array_[j] = vertex;
-      copyOfReq[j++] = vertex;
+      copy_of_requests[j++] = vertex;
     }
   }
 
 #ifdef DEBUG_HYPERGRAPH
-  assert(j == totalToSend);
+  assert(j == total_to_send);
 #endif
 
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  /* compute number of elements to receive from other procs */
+  /* compute number of elements to receive from other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -2526,7 +1690,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -2537,12 +1701,12 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     the reply communication will have the dual dimensions
   */
 
-  send_array_.reserve(totalToRecv);
+  send_array_.reserve(total_to_receive);
 
-  for (i = 0; i < totalToRecv; ++i) {
+  for (i = 0; i < total_to_receive; ++i) {
 #ifdef DEBUG_HYPERGRAPH
     assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
+           receive_array_[i] < max_local_vertex);
 #endif
     send_array_[i] = oldIndexToNew[receive_array_[i] - minimum_vertex_index_];
 #ifdef DEBUG_HYPERGRAPH
@@ -2550,26 +1714,26 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receive_array_.reserve(totalToSend);
+  receive_array_.reserve(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   /*
-     now the requested vertices are in the copyOfReq data_
+     now the requested vertices are in the copy_of_requests data_
      while their corresponding matchVector values are in
      the corresponding location in the receive_array_
   */
 
   if (number_of_pins_ < total_number_of_vertices_ / 2) {
-    ds::map_from_pos_int<int> storedRequests(number_of_pins_);
+    ds::map_from_pos_int<int> stored_requests(number_of_pins_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      storedRequests.insert(copyOfReq[i], receive_array_[i]);
+      stored_requests.insert(copy_of_requests[i], receive_array_[i]);
     }
 
 #ifdef DEBUG_HYPERGRAPH
@@ -2582,23 +1746,23 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = storedRequests.get(vertex);
+        pin_list_[i] = stored_requests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
       }
     }
   } else {
-    dynamic_array<int> storedRequests(total_number_of_vertices_);
+    dynamic_array<int> stored_requests(total_number_of_vertices_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      storedRequests[copyOfReq[i]] = receive_array_[i];
+      stored_requests[copy_of_requests[i]] = receive_array_[i];
     }
 
 #ifdef DEBUG_HYPERGRAPH
@@ -2611,10 +1775,10 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = storedRequests[vertex];
+        pin_list_[i] = stored_requests[vertex];
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -2633,9 +1797,9 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   if (!vToOrigVexist) {
     ij = number_of_partitions_ + 2;
-    totalToSend = number_of_vertices_ * ij;
+    total_to_send = number_of_vertices_ * ij;
 #ifdef DEBUG_HYPERGRAPH
-    assert(totalToSend >= 0);
+    assert(total_to_send >= 0);
 #endif
     for (i = 0; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -2645,9 +1809,9 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     }
   } else {
     ij = number_of_partitions_ + 3;
-    totalToSend = number_of_vertices_ * ij;
+    total_to_send = number_of_vertices_ * ij;
 #ifdef DEBUG_HYPERGRAPH
-    assert(totalToSend >= 0);
+    assert(total_to_send >= 0);
 #endif
     for (i = 0; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -2658,23 +1822,23 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
 #ifdef DEBUG_HYPERGRAPH
-  assert(j == totalToSend);
-  assert(totalToSend >= 0);
+  assert(j == total_to_send);
+  assert(total_to_send >= 0);
 #endif
 
-  send_array_.reserve(totalToSend);
+  send_array_.reserve(total_to_send);
 
   /* compute the send data_ */
 
   if (!vToOrigVexist) {
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset++] = vertex_weights_[i];
-      send_array_[startOffset++] = mapToOrigV[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset++] = vertex_weights_[i];
+      send_array_[start_offset++] = mapToOrigV[i];
 
       for (ij = 0; ij < number_of_partitions_; ++ij)
-        send_array_[startOffset++] =
+        send_array_[start_offset++] =
             partition_vector_[partition_vector_offsets_[ij] + i];
 
       idxIntoSendArray[j] += (ij + 2);
@@ -2682,13 +1846,13 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   } else {
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset++] = to_origin_vertex_[i];
-      send_array_[startOffset++] = vertex_weights_[i];
-      send_array_[startOffset++] = mapToOrigV[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset++] = to_origin_vertex_[i];
+      send_array_[start_offset++] = vertex_weights_[i];
+      send_array_[start_offset++] = mapToOrigV[i];
 
       for (ij = 0; ij < number_of_partitions_; ++ij)
-        send_array_[startOffset++] =
+        send_array_[start_offset++] =
             partition_vector_[partition_vector_offsets_[ij] + i];
 
       idxIntoSendArray[j] += (ij + 3);
@@ -2717,7 +1881,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -2730,7 +1894,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   vertex_weight_ = 0;
 
   if (!vToOrigVexist) {
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       vertex_weights_[j] = receive_array_[i];
       vertex_weight_ += receive_array_[i++];
       mapToOrigV[j] = receive_array_[i++];
@@ -2743,7 +1907,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   } else {
     to_origin_vertex_.reserve(number_of_vertices_);
 
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       to_origin_vertex_[j] = receive_array_[i++];
       vertex_weights_[j] = receive_array_[i];
       vertex_weight_ += receive_array_[i++];
@@ -2766,13 +1930,13 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   int j;
   int ij;
 
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
-  int vFinePerProc = total_number_of_vertices_ / processors_;
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
+  int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
   int vToOrigVexist = to_origin_vertex_.capacity();
-  int totalToSend;
-  int totalToRecv;
+  int total_to_send;
+  int total_to_receive;
   int vertex;
-  int startOffset;
+  int start_offset;
   int arrayLen;
   int *array;
 
@@ -2780,7 +1944,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   dynamic_array<int> minIndexOfMyVerts(processors_);
   dynamic_array<int> minIndexOnProc(processors_);
   dynamic_array<int> idxIntoSendArray(processors_);
-  dynamic_array<int> copyOfReq;
+  dynamic_array<int> copy_of_requests;
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
@@ -2817,24 +1981,24 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   /* now need to convert the pinlist and the hyperedge hash keys */
 
-  ds::bit_field sentRequests(total_number_of_vertices_);
-  sentRequests.unset();
+  ds::bit_field sent_requests(total_number_of_vertices_);
+  sent_requests.unset();
 
   /* compute all the requests for new indices of remote vertices  */
 
   for (i = 0; i < number_of_pins_; ++i) {
     vertex = pin_list_[i];
 
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
-      if (!sentRequests(vertex)) {
-        j = std::min(vertex / vFinePerProc, processors_ - 1);
+    if (vertex < minimum_vertex_index_ || vertex >= max_local_vertex) {
+      if (!sent_requests(vertex)) {
+        j = std::min(vertex / vertices_per_proc_fine, processors_ - 1);
         data_out_sets_[j]->assign(send_lens_[j]++, vertex);
-        sentRequests.set(vertex);
+        sent_requests.set(vertex);
       }
     }
   }
 
-  /* compute number of elements to send to other procs */
+  /* compute number of elements to send to other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -2843,8 +2007,8 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
   send_array_.reserve(j);
-  copyOfReq.reserve(j);
-  totalToSend = j;
+  copy_of_requests.reserve(j);
+  total_to_send = j;
 
   j = 0;
   for (ij = 0; ij < processors_; ++ij) {
@@ -2854,18 +2018,18 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < arrayLen; ++i) {
       vertex = array[i];
       send_array_[j] = vertex;
-      copyOfReq[j++] = vertex;
+      copy_of_requests[j++] = vertex;
     }
   }
 
 #ifdef DEBUG_HYPERGRAPH
-  assert(j == totalToSend);
+  assert(j == total_to_send);
 #endif
 
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  /* compute number of elements to receive from other procs */
+  /* compute number of elements to receive from other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -2874,7 +2038,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -2885,12 +2049,12 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     the reply communication will have the dual dimensions
   */
 
-  send_array_.reserve(totalToRecv);
+  send_array_.reserve(total_to_receive);
 
-  for (i = 0; i < totalToRecv; ++i) {
+  for (i = 0; i < total_to_receive; ++i) {
 #ifdef DEBUG_HYPERGRAPH
     assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
+           receive_array_[i] < max_local_vertex);
 #endif
     send_array_[i] = oldIndexToNew[receive_array_[i] - minimum_vertex_index_];
 #ifdef DEBUG_HYPERGRAPH
@@ -2898,26 +2062,26 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receive_array_.reserve(totalToSend);
+  receive_array_.reserve(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   /*
-  now the requested vertices are in the copyOfReq data_
+  now the requested vertices are in the copy_of_requests data_
    while their corresponding matchVector values are in
    the corresponding location in the receive_array_
   */
 
   if (number_of_pins_ < total_number_of_vertices_ / 2) {
-    ds::map_from_pos_int<int> storedRequests(number_of_pins_);
+    ds::map_from_pos_int<int> stored_requests(number_of_pins_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      storedRequests.insert(copyOfReq[i], receive_array_[i]);
+      stored_requests.insert(copy_of_requests[i], receive_array_[i]);
     }
 
 /* now we will convert the local pin list and hash keys */
@@ -2930,23 +2094,23 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = storedRequests.get(vertex);
+        pin_list_[i] = stored_requests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
       }
     }
   } else {
-    dynamic_array<int> storedRequests(total_number_of_vertices_);
+    dynamic_array<int> stored_requests(total_number_of_vertices_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      storedRequests[copyOfReq[i]] = receive_array_[i];
+      stored_requests[copy_of_requests[i]] = receive_array_[i];
     }
 
 /* now we will convert the local pin list and hash keys */
@@ -2959,10 +2123,10 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = storedRequests[vertex];
+        pin_list_[i] = stored_requests[vertex];
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -2981,7 +2145,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   if (!vToOrigVexist) {
     ij = number_of_partitions_ + 3;
-    totalToSend = number_of_vertices_ * ij;
+    total_to_send = number_of_vertices_ * ij;
 
     for (i = 0; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -2991,7 +2155,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     }
   } else {
     ij = number_of_partitions_ + 4;
-    totalToSend = number_of_vertices_ * ij;
+    total_to_send = number_of_vertices_ * ij;
 
     for (i = 0; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -3001,20 +2165,20 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     }
   }
 
-  send_array_.reserve(totalToSend);
+  send_array_.reserve(total_to_send);
 
   /* compute the send data_ */
 
   if (!vToOrigVexist) {
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset++] = vertex_weights_[i];
-      send_array_[startOffset++] = mapToInterV[i];
-      send_array_[startOffset++] = mapToOrigV[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset++] = vertex_weights_[i];
+      send_array_[start_offset++] = mapToInterV[i];
+      send_array_[start_offset++] = mapToOrigV[i];
 
       for (ij = 0; ij < number_of_partitions_; ++ij)
-        send_array_[startOffset++] =
+        send_array_[start_offset++] =
             partition_vector_[partition_vector_offsets_[ij] + i];
 
       idxIntoSendArray[j] += (3 + ij);
@@ -3022,14 +2186,14 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   } else {
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset++] = to_origin_vertex_[i];
-      send_array_[startOffset++] = vertex_weights_[i];
-      send_array_[startOffset++] = mapToInterV[i];
-      send_array_[startOffset++] = mapToOrigV[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset++] = to_origin_vertex_[i];
+      send_array_[start_offset++] = vertex_weights_[i];
+      send_array_[start_offset++] = mapToInterV[i];
+      send_array_[start_offset++] = mapToOrigV[i];
 
       for (ij = 0; ij < number_of_partitions_; ++ij)
-        send_array_[startOffset++] =
+        send_array_[start_offset++] =
             partition_vector_[partition_vector_offsets_[ij] + i];
 
       idxIntoSendArray[j] += (4 + ij);
@@ -3058,7 +2222,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -3071,7 +2235,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   vertex_weight_ = 0;
 
   if (!vToOrigVexist) {
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       vertex_weights_[j] = receive_array_[i];
       vertex_weight_ += receive_array_[i++];
       mapToInterV[j] = receive_array_[i++];
@@ -3085,7 +2249,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   } else {
     to_origin_vertex_.reserve(number_of_vertices_);
 
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       to_origin_vertex_[j] = receive_array_[i++];
       vertex_weights_[j] = receive_array_[i];
       vertex_weight_ += receive_array_[i++];
@@ -3111,12 +2275,12 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   int j;
   int ij;
 
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
-  int vFinePerProc = total_number_of_vertices_ / processors_;
-  int totalToSend;
-  int totalToRecv;
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
+  int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
+  int total_to_send;
+  int total_to_receive;
   int vertex;
-  int startOffset;
+  int start_offset;
   int arrayLen;
   int vToOrigVexist = to_origin_vertex_.capacity();
   int *array;
@@ -3125,7 +2289,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   dynamic_array<int> minIndexOfMyVerts(processors_);
   dynamic_array<int> minIndexOnProc(processors_);
   dynamic_array<int> idxIntoSendArray(processors_);
-  dynamic_array<int> copyOfReq;
+  dynamic_array<int> copy_of_requests;
 
   /* finer graph structs */
 
@@ -3161,8 +2325,8 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   /* now need to convert the pinlist and the hyperedge hash keys */
 
-  ds::bit_field sentRequests(total_number_of_vertices_);
-  sentRequests.unset();
+  ds::bit_field sent_requests(total_number_of_vertices_);
+  sent_requests.unset();
 
   /*
      compute all the requests for new indices of remote vertices
@@ -3174,11 +2338,11 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   for (i = 0; i < number_of_pins_; ++i) {
     vertex = pin_list_[i];
 
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
-      if (!sentRequests(vertex)) {
-        j = std::min(vertex / vFinePerProc, processors_ - 1);
+    if (vertex < minimum_vertex_index_ || vertex >= max_local_vertex) {
+      if (!sent_requests(vertex)) {
+        j = std::min(vertex / vertices_per_proc_fine, processors_ - 1);
         data_out_sets_[j]->assign(send_lens_[j]++, vertex);
-        sentRequests.set(vertex);
+        sent_requests.set(vertex);
       }
     }
   }
@@ -3186,16 +2350,16 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   for (i = 0; i < numLocalFineVertices; ++i) {
     vertex = fineMatchVector[i];
 
-    if (vertex < minimum_vertex_index_ || vertex >= maxLocalVertex) {
-      if (!sentRequests(vertex)) {
-        j = std::min(vertex / vFinePerProc, processors_ - 1);
+    if (vertex < minimum_vertex_index_ || vertex >= max_local_vertex) {
+      if (!sent_requests(vertex)) {
+        j = std::min(vertex / vertices_per_proc_fine, processors_ - 1);
         data_out_sets_[j]->assign(send_lens_[j]++, vertex);
-        sentRequests.set(vertex);
+        sent_requests.set(vertex);
       }
     }
   }
 
-  /* compute number of elements to send to other procs */
+  /* compute number of elements to send to other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -3204,8 +2368,8 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
   send_array_.reserve(j);
-  copyOfReq.reserve(j);
-  totalToSend = j;
+  copy_of_requests.reserve(j);
+  total_to_send = j;
 
   j = 0;
   for (ij = 0; ij < processors_; ++ij) {
@@ -3215,18 +2379,18 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < arrayLen; ++i) {
       vertex = array[i];
       send_array_[j] = vertex;
-      copyOfReq[j++] = vertex;
+      copy_of_requests[j++] = vertex;
     }
   }
 
 #ifdef DEBUG_HYPERGRAPH
-  assert(j == totalToSend);
+  assert(j == total_to_send);
 #endif
 
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  /* compute number of elements to receive from other procs */
+  /* compute number of elements to receive from other processors */
 
   j = 0;
   for (i = 0; i < processors_; ++i) {
@@ -3235,7 +2399,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -3246,12 +2410,12 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     the reply communication will have the dual dimensions
   */
 
-  send_array_.reserve(totalToRecv);
+  send_array_.reserve(total_to_receive);
 
-  for (i = 0; i < totalToRecv; ++i) {
+  for (i = 0; i < total_to_receive; ++i) {
 #ifdef DEBUG_HYPERGRAPH
     assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
+           receive_array_[i] < max_local_vertex);
 #endif
     send_array_[i] = oldIndexToNew[receive_array_[i] - minimum_vertex_index_];
 #ifdef DEBUG_HYPERGRAPH
@@ -3259,25 +2423,25 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
   }
 
-  receive_array_.reserve(totalToSend);
+  receive_array_.reserve(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   /*
-    now the requested vertices are in the copyOfReq data_
+    now the requested vertices are in the copy_of_requests data_
     while their corresponding matchVector values are in
   */
 
   if (number_of_pins_ < total_number_of_vertices_ / 2) {
-    ds::map_from_pos_int<int> storedRequests(number_of_pins_);
+    ds::map_from_pos_int<int> stored_requests(number_of_pins_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      storedRequests.insert(copyOfReq[i], receive_array_[i]);
+      stored_requests.insert(copy_of_requests[i], receive_array_[i]);
     }
 
 /* now we will convert the local pin list and hash keys */
@@ -3290,10 +2454,10 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = storedRequests.get(vertex);
+        pin_list_[i] = stored_requests.get(vertex);
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -3305,23 +2469,23 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < numLocalFineVertices; ++i) {
       vertex = fineMatchVector[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         fineMatchVector[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        fineMatchVector[i] = storedRequests.get(vertex);
+        fineMatchVector[i] = stored_requests.get(vertex);
       }
 #ifdef DEBUG_HYPERGRAPH
       assert(fineMatchVector[i] >= 0 && fineMatchVector[i] < numTotalVertices);
 #endif
     }
   } else {
-    dynamic_array<int> storedRequests(total_number_of_vertices_);
+    dynamic_array<int> stored_requests(total_number_of_vertices_);
 
-    for (i = 0; i < totalToSend; ++i) {
+    for (i = 0; i < total_to_send; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
 #endif
-      storedRequests[copyOfReq[i]] = receive_array_[i];
+      stored_requests[copy_of_requests[i]] = receive_array_[i];
     }
 
 /* now we will convert the local pin list and hash keys */
@@ -3334,10 +2498,10 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_pins_; ++i) {
       vertex = pin_list_[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         pin_list_[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        pin_list_[i] = storedRequests[vertex];
+        pin_list_[i] = stored_requests[vertex];
 #ifdef DEBUG_HYPERGRAPH
         assert(localPins[i] >= 0 && localPins[i] < numTotalVertices);
 #endif
@@ -3349,10 +2513,10 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < numLocalFineVertices; ++i) {
       vertex = fineMatchVector[i];
 
-      if (vertex >= minimum_vertex_index_ && vertex < maxLocalVertex) {
+      if (vertex >= minimum_vertex_index_ && vertex < max_local_vertex) {
         fineMatchVector[i] = oldIndexToNew[vertex - minimum_vertex_index_];
       } else {
-        fineMatchVector[i] = storedRequests[vertex];
+        fineMatchVector[i] = stored_requests[vertex];
       }
 #ifdef DEBUG_HYPERGRAPH
       assert(fineMatchVector[i] >= 0 && fineMatchVector[i] < numTotalVertices);
@@ -3371,7 +2535,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 
   if (vToOrigVexist > 0) {
     ij = number_of_partitions_ + 2;
-    totalToSend = number_of_vertices_ * ij;
+    total_to_send = number_of_vertices_ * ij;
 
     for (i = 0; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -3381,7 +2545,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     }
   } else {
     ij = number_of_partitions_ + 1;
-    totalToSend = number_of_vertices_ * ij;
+    total_to_send = number_of_vertices_ * ij;
 
     for (i = 0; i < processors_; ++i) {
       send_displs_[i] = j;
@@ -3392,10 +2556,10 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   }
 
 #ifdef DEBUG_HYPERGRAPH
-  assert(j == totalToSend);
+  assert(j == total_to_send);
 #endif
 
-  send_array_.reserve(totalToSend);
+  send_array_.reserve(total_to_send);
 
   /* compute the send data_ */
 
@@ -3403,12 +2567,12 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
 
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset++] = to_origin_vertex_[i];
-      send_array_[startOffset++] = vertex_weights_[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset++] = to_origin_vertex_[i];
+      send_array_[start_offset++] = vertex_weights_[i];
 
       for (ij = 0; ij < number_of_partitions_; ++ij)
-        send_array_[startOffset++] =
+        send_array_[start_offset++] =
             partition_vector_[partition_vector_offsets_[ij] + i];
 
       idxIntoSendArray[j] += (ij + 2);
@@ -3417,11 +2581,11 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
     for (i = 0; i < number_of_vertices_; ++i) {
       j = vToProc[i];
 
-      startOffset = idxIntoSendArray[j];
-      send_array_[startOffset++] = vertex_weights_[i];
+      start_offset = idxIntoSendArray[j];
+      send_array_[start_offset++] = vertex_weights_[i];
 
       for (ij = 0; ij < number_of_partitions_; ++ij)
-        send_array_[startOffset++] =
+        send_array_[start_offset++] =
             partition_vector_[partition_vector_offsets_[ij] + i];
 
       idxIntoSendArray[j] += (ij + 1);
@@ -3450,7 +2614,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
 #endif
 
   receive_array_.reserve(j);
-  totalToRecv = j;
+  total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -3463,7 +2627,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
   vertex_weight_ = 0;
 
   if (vToOrigVexist > 0) {
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       to_origin_vertex_[j] = receive_array_[i++];
       vertex_weights_[j] = receive_array_[i];
       vertex_weight_ += receive_array_[i++];
@@ -3474,7 +2638,7 @@ void hypergraph::shuffleVerticesAftRandom(int *vToProc, int *localVPerProc,
       ++j;
     }
   } else {
-    while (i < totalToRecv) {
+    while (i < total_to_receive) {
       vertex_weights_[j] = receive_array_[i];
       vertex_weight_ += receive_array_[i++];
 
@@ -3622,92 +2786,67 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
 }
 
 int hypergraph::calculate_cut_size(int numParts, int pNum, MPI_Comm comm) {
-#ifdef DEBUG_HYPERGRAPH
-  assert(numPartitions > 0);
-  assert(pNum >= 0 && pNum < numPartitions);
-#endif
-
-  int maxLocalVertex = minimum_vertex_index_ + number_of_vertices_;
+  int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
   int vPerProc = total_number_of_vertices_ / processors_;
   int locCutsize = 0;
   int totCutsize;
   int numSpanned;
-  int arrayLen;
   int totToSend;
   int totToRecv;
   int vertex;
-  int endOffset;
+  int end_offset;
   int part;
 
   int *pVector = &partition_vector_[partition_vector_offsets_[pNum]];
   int *array;
 
-  int i;
-  int j;
-  int ij;
-
   dynamic_array<int> spannedPart(numParts);
-  dynamic_array<int> copyOfReq;
+  dynamic_array<int> copy_of_requests;
 
-  for (i = 0; i < processors_; ++i)
-    send_lens_[i] = 0;
+  send_lens_.assign(processors_, 0);
 
-  ds::bit_field sentRequests(total_number_of_vertices_);
-  sentRequests.unset();
+  ds::bit_field sent_requests(total_number_of_vertices_);
+  sent_requests.unset();
 
-  // ###
-  // compute all the requests for partition
-  // vector values of remote vertices
-  // ###
-
-  for (i = 0; i < number_of_pins_; ++i) {
-    ij = pin_list_[i];
-
-    if (ij < minimum_vertex_index_ || ij >= maxLocalVertex) {
-      if (!sentRequests(ij)) {
-        j = std::min(ij / vPerProc, processors_ - 1);
-        data_out_sets_[j]->assign(send_lens_[j]++, ij);
-        sentRequests.set(ij);
-      }
+  // Compute all the requests for partition vector values of remote vertices.
+  assert(number_of_pins_ == pin_list_.size());
+  for (const auto &pin : pin_list_) {
+    if ((pin < minimum_vertex_index_ || pin >= max_local_vertex)
+        && !sent_requests[pin]) {
+      int j = std::min(pin / vPerProc, processors_ - 1);
+      data_out_sets_[j][send_lens_[j]++] = pin;
+      sent_requests.set(pin);
     }
   }
 
-  // ###
-  // compute number of elements to send to other procs
-  // ###
-
-  ij = 0;
+  // Compute number of elements to send to other processors.
+  int total_to_send = 0;
   for (i = 0; i < processors_; ++i) {
-    send_displs_[i] = ij;
-    ij += send_lens_[i];
+    send_displs_[i] = total_to_send;
+    total_to_send += send_lens_[i];
   }
 
-  send_array_.reserve(ij);
-  copyOfReq.reserve(ij);
+  send_array_.assign(total_to_send, 0);
+  copy_of_requests.assign(total_to_send, 0;
 
-  totToSend = ij;
+  int ij = 0;
+  for (int i = 0; i < processors_; ++i) {
+    auto array = data_out_sets_[i];
+    int array_len = send_lens_[i];
 
-  ij = 0;
-  for (i = 0; i < processors_; ++i) {
-    array = data_out_sets_[i]->data();
-    arrayLen = send_lens_[i];
-
-    for (j = 0; j < arrayLen; ++j) {
+    for (int j = 0; j < array_len; ++j) {
       vertex = array[j];
       send_array_[ij] = vertex;
-      copyOfReq[ij++] = vertex;
+      copy_of_requests[ij++] = vertex;
     }
   }
 
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
                comm);
 
-  // ###
-  // compute number of elements to receive from other procs
-  // ###
-
+  // Compute number of elements to receive from other processors
   ij = 0;
-  for (i = 0; i < processors_; ++i) {
+  for (int i = 0; i < processors_; ++i) {
     receive_displs_[i] = ij;
     ij += receive_lens_[i];
   }
@@ -3729,7 +2868,7 @@ int hypergraph::calculate_cut_size(int numParts, int pNum, MPI_Comm comm) {
   for (i = 0; i < totToRecv; ++i) {
 #ifdef DEBUG_HYPERGRAPH
     assert(receive_array_[i] >= minVertexIndex &&
-           receive_array_[i] < maxLocalVertex);
+           receive_array_[i] < max_local_vertex);
 #endif
 
     send_array_[i] = pVector[receive_array_[i] - minimum_vertex_index_];
@@ -3746,19 +2885,19 @@ int hypergraph::calculate_cut_size(int numParts, int pNum, MPI_Comm comm) {
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
 
   // ###
-  // now the requested vertices are in the copyOfReq data_
+  // now the requested vertices are in the copy_of_requests data_
   // while their corresponding matchVector values are in
   // the corresponding location in the receive_array_
   // ###
 
   if (number_of_pins_ < total_number_of_vertices_ / 2) {
-    ds::map_from_pos_int<int> storedRequests(number_of_pins_);
+    ds::map_from_pos_int<int> stored_requests(number_of_pins_);
 
     for (i = 0; i < totToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numParts);
 #endif
-      storedRequests.insert(copyOfReq[i], receive_array_[i]);
+      stored_requests.insert(copy_of_requests[i], receive_array_[i]);
     }
 
     // ###
@@ -3771,13 +2910,13 @@ int hypergraph::calculate_cut_size(int numParts, int pNum, MPI_Comm comm) {
         spannedPart[j] = 0;
 
       numSpanned = 0;
-      endOffset = hyperedge_offsets_[i + 1];
+      end_offset = hyperedge_offsets_[i + 1];
 
-      for (j = hyperedge_offsets_[i]; j < endOffset; ++j) {
+      for (j = hyperedge_offsets_[i]; j < end_offset; ++j) {
         ij = pin_list_[j];
 
-        if (ij < minimum_vertex_index_ || ij >= maxLocalVertex) {
-          part = storedRequests.get(ij);
+        if (ij < minimum_vertex_index_ || ij >= max_local_vertex) {
+          part = stored_requests.get(ij);
         } else {
           part = pVector[ij - minimum_vertex_index_];
         }
@@ -3802,13 +2941,13 @@ int hypergraph::calculate_cut_size(int numParts, int pNum, MPI_Comm comm) {
       locCutsize += ((numSpanned - 1) * hyperedge_weights_[i]);
     }
   } else {
-    dynamic_array<int> storedRequests(total_number_of_vertices_);
+    dynamic_array<int> stored_requests(total_number_of_vertices_);
 
     for (i = 0; i < totToSend; ++i) {
 #ifdef DEBUG_HYPERGRAPH
       assert(receive_array_[i] >= 0 && receive_array_[i] < numParts);
 #endif
-      storedRequests[copyOfReq[i]] = receive_array_[i];
+      stored_requests[copy_of_requests[i]] = receive_array_[i];
     }
 
     // ###
@@ -3821,13 +2960,13 @@ int hypergraph::calculate_cut_size(int numParts, int pNum, MPI_Comm comm) {
         spannedPart[j] = 0;
 
       numSpanned = 0;
-      endOffset = hyperedge_offsets_[i + 1];
+      end_offset = hyperedge_offsets_[i + 1];
 
-      for (j = hyperedge_offsets_[i]; j < endOffset; ++j) {
+      for (j = hyperedge_offsets_[i]; j < end_offset; ++j) {
         ij = pin_list_[j];
 
-        if (ij < minimum_vertex_index_ || ij >= maxLocalVertex) {
-          part = storedRequests[ij];
+        if (ij < minimum_vertex_index_ || ij >= max_local_vertex) {
+          part = stored_requests[ij];
         } else {
           part = pVector[ij - minimum_vertex_index_];
         }
@@ -4080,6 +3219,326 @@ double hypergraph::average_hyperedge_size(MPI_Comm comm) {
   int totHedges = total_number_of_hyperedges(comm);
 
   return (static_cast<double>(totPins) / totHedges);
+}
+
+
+void hypergraph::check_vertex_and_hyperedge_lengths(
+    int hyperedge_data_length, const dynamic_array<int> &hyperedge_data,
+    MPI_Comm comm) {
+  int hyperedges_in_file = 0;
+  int j = 0;
+  for (int i = 0; i < hyperedge_data_length; i += hyperedge_data[i]) {
+    int hyperedge_index = hyperedge_data[i] - 2;
+    if (hyperedge_index > j) {
+      j = hyperedge_index;
+    }
+    ++hyperedges_in_file;
+  }
+
+  int max_hyperedge_length;
+  int number_of_edges;
+  MPI_Allreduce(&j, &max_hyperedge_length, 1, MPI_INT, MPI_MAX, comm);
+  MPI_Reduce(&hyperedges_in_file, &number_of_edges, 1, MPI_INT, MPI_SUM, 0,
+             comm);
+
+  Funct::setMaxHedgeLen(max_hyperedge_length);
+
+  if (rank_ == 0 && display_option_ > 0) {
+    out << "|--- Hypergraph " << filename << " (on file):" << std::endl
+        << "| |V| = " << total_number_of_vertices_  << std::endl;
+        << "| |E| = " << number_of_edges << std::endl;
+  }
+}
+
+
+void hypergraph::load_data_from_blocks(
+    const int data_length, const dynamic_array<int> &hypergraph_data) {
+  // Hyperedges stored on file in blocks:
+  // [0]  =  block capacity
+  // [1]  =  hyperedge weight
+  // [2]-[block capacity-1] = hyperedge vertices
+  //
+  int i = 0;
+  int hyperedge_index = 0;
+  int pin_counter = 0;
+  while (i < hyperedge_data_length) {
+    int chunk = hyperedge_data[i];
+    int length = chunk - 2;
+
+    if (length > 1) {
+      hyperedge_weights_[hyperedge_index] = hyperedge_data[i + 1];
+      hyperedge_offsets_[hyperedge_index++] = pin_counter;
+      for (int j = 2; j < chunk; ++j) {
+        pin_list_[pin_counter++] = hyperedge_data[i + j];
+      }
+    }
+    i += chunk;
+  }
+
+  hyperedge_offsets_[hyperedge_index] = pin_counter;
+
+  number_of_pins_ = pin_counter;
+  number_of_hyperedges_ = hyperedge_index;
+  do_not_coarsen = 0;
+  number_of_partitions_ = 0;
+}
+
+
+void hypergraph::check_loaded_vertex_and_hyperedge_lengths() const {
+  if (display_option_ > 0) {
+    int pins;
+    int edges;
+    MPI_Reduce(&number_of_pins_, &pins, 1, MPI_INT, MPI_SUM, 0, comm);
+    MPI_Reduce(&number_of_hyperedges_, &edges, 1, MPI_INT, MPI_SUM, 0, comm);
+    if (rank_ == 0) {
+      out << "|--- Hypergraph " << filename << " (as loaded):" << std::endl
+          << "| |V| = " << total_number_of_vertices_  << std::endl
+          << "| |E| = " << edges << std::endl
+          << "| |Pins| = " << pins << std::endl
+          << "| # Processors = " << processors_ << std::endl
+          << "| " << std::endl;
+    }
+  }
+}
+
+int hypergraph::compute_number_of_elements_to_send(
+    dynamic_array<int> &copy_of_requests) {
+  int total_to_send = 0;
+  for (int i = 0; i < processors_; ++i) {
+    send_displs_[i] = total_to_send;
+    total_to_send += send_lens_[i];
+  }
+
+  send_array_.resize(total_to_send);
+  copy_of_requests.resize(total_to_send);
+
+  int j = 0;
+  for (int p = 0; p < processors_; ++p) {
+    for (int i = 0; i < send_lens_[p]; ++i) {
+      vertex = data_out_sets_[p][i];
+      send_array_[j] = vertex;
+      copy_of_requests[j++] = vertex;
+    }
+  }
+
+  return total_to_send;
+}
+
+void hypergraph::compute_number_of_elements_to_receive() {
+  int to_receive = 0;
+  for (i = 0; i < processors_; ++i) {
+    receive_displs_[i] = to_receive;
+    to_receive += receive_lens_[i];
+  }
+
+  receive_array_.resize(total_to_receive);
+  return to_receive;
+}
+
+int hypergraph::get_processor(int vertex, int vertices_per_processor,
+                              ds::complete_binary_tree<int> *vertex_to_proc) {
+  if (vertex_to_proc == nullptr) {
+    return std::min(vertex / vertices_per_processor, processors_ - 1);
+  } else {
+    return vertex_to_proc->root_value(vertex);
+  }
+}
+
+
+void hypergraph::compute_requests_for_remote_vertex_matches(
+    int vertices_per_processor, ds::complete_binary_tree<int> *vertex_to_proc) {
+  send_lens_.assign(processors_, 0);
+  std::bitset<total_number_of_vertices_> sent_requests;
+
+  // Compute all the requests for remote vertex matches
+  for (int i = 0; i < number_of_pins_; ++i) {
+    int vertex = pin_list_[i];
+    if (vertex < minimum_vertex_index_ || vertex >= max_local_vertex) {
+      if (!sent_requests.test(vertex)) {
+        int p = get_processor(vertex, vertices_per_processor, vertex_to_proc);
+        data_out_sets_[p][send_lens_[p]++] = vertex;
+        sent_requests.set(vertex);
+      }
+      original_contracted_pin_list[i] = -1;
+    } else {
+      original_contracted_pin_list[i] =
+          match_vector_[vertex - minimum_vertex_index_];
+    }
+  }
+}
+
+void hypergraph::choose_non_local_vertices_format(
+    dynamic_array<int> &original_contracted_pin_list) {
+  if (number_of_pins_ < total_number_of_vertices_ / 2) {
+    ds::map_from_pos_int<int> stored_requests(number_of_pins_);
+    for (int i = 0; i < total_to_send; ++i) {
+      stored_requests.insert(copy_of_requests[i], receive_array_[i]);
+    }
+    // contract remaining local pins
+    for (int i = 0; i < number_of_pins_; ++i) {
+      if (original_contracted_pin_list[i] == -1) {
+        original_contracted_pin_list[i] = stored_requests.get(pin_list_[i]);
+      }
+    }
+  } else {
+    dynamic_array<int> non_local_matches(total_number_of_vertices_);
+    for (int i = 0; i < total_to_send; ++i) {
+      non_local_matches[copy_of_requests[i]] = receive_array_[i];
+    }
+    // contract remaining local pins
+    for (int i = 0; i < number_of_pins_; ++i) {
+      if (original_contracted_pin_list[i] == -1) {
+        original_contracted_pin_list[i] = non_local_matches[pin_list_[i]];
+      }
+    }
+  }
+}
+
+void hypergraph::send_coarse_hyperedges(
+    ds::dynamic_array<int> &original_contracted_pin_list,
+    int &total_to_send, int &total_to_receive) {
+  for (int i = 0; i < number_of_hyperedges_; ++i) {
+    int j = hyperedge_offsets_[i + 1] - hyperedge_offsets_[i];
+    int start = hyperedge_offsets_[i];
+    original_contracted_pin_list.sort_between(start, start + j - 1);
+  }
+
+  int contracted_pin_list_length = 0;
+  int max_local_coarse_hedge_length = 0;
+  int number_of_contracted_hedges = 0;
+  int contracted_hedge_length = 0;
+  dynamic_array<int> contracted_hedge_offsets(number_of_hyperedges_);
+  dynamic_array<int> contracted_hedge_weights(number_of_hyperedges_);
+  dynamic_array<int> contracted_pin_list;
+  for (int i = 0; i < number_of_hyperedges_; ++i) {
+    contracted_hedge_offsets[number_of_contracted_hedges] = contracted_pin_list_length;
+    int end_offset = hyperedge_offsets_[i + 1];
+    int start_offset = hyperedge_offsets_[i];
+
+    contracted_pin_list[contracted_pin_list_length] =
+        original_contracted_pin_list[start_offset];
+    contracted_hedge_length = 1;
+
+    for (int j = start_offset + 1; j < end_offset; ++j) {
+      int index = contracted_pin_list_length + contracted_hedge_length;
+      if (original_contracted_pin_list[j] != contracted_pin_list[index - 1]) {
+        contracted_pin_list[index] = original_contracted_pin_list[j];
+        contracted_hedge_length++;
+      }
+    }
+
+    if (contracted_hedge_length > 1) {
+      contracted_pin_list_length += contracted_hedge_length;
+      contracted_hedge_weights[number_of_contracted_hedges++] = hyperedge_weights_[i];
+      if (contracted_hedge_length > max_local_coarse_hedge_length) {
+        max_local_coarse_hedge_length = contracted_hedge_length;
+      }
+    }
+  }
+
+  contracted_hedge_offsets[number_of_contracted_hedges] = contracted_pin_list_length;
+
+  // - compute max_coarse_hedge_length and set in Funct
+  // - compute hash-keys for each hyperedge
+  // - send hyperedges to processor determined by corresponding hash key
+  int max_coarse_hedge_length;
+  MPI_Allreduce(&max_local_coarse_hedge_length, &max_coarse_hedge_length, 1,
+                MPI_INT, MPI_MAX, comm);
+
+  Funct::setMaxHedgeLen(max_coarse_hedge_length);
+
+  send_lens_.assign(processors_, 0);
+  for (int i = 0; i < number_of_contracted_hedges; ++i) {
+    int start_offset = contracted_hedge_offsets[i];
+    int end_offset = contracted_hedge_offsets[i + 1];
+    int contracted_hedge_length = end_offset - start_offset;
+
+    int p = Funct::computeHash(&contracted_pin_list[start_offset],
+                               contracted_hedge_length) % processors_;
+
+    data_out_sets_[p][send_lens_[p]++] = contracted_hedge_length + 2;
+    data_out_sets_[p][send_lens_[p]++] = contracted_hedge_weights[i];
+
+    for (int j = start_offset; j < end_offset; ++j) {
+      data_out_sets_[p][send_lens_[p]++] = contracted_pin_list[j];
+    }
+  }
+
+  // Compute number of elements to send to other processors
+  total_to_send = compute_number_of_elements_to_send(copy_of_requests);
+  MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
+               comm);
+
+  // Compute number of elements to receive from other processors.
+  total_to_receive = compute_number_of_elements_to_receive();
+  MPI_Alltoallv(send_array_.data(), send_lens_.data(),
+                send_displs_.data(), MPI_INT, receive_array_.data(),
+                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
+}
+
+void hypergraph::process_new_hyperedges(hypergraph &coarse,
+                                        ds::new_hyperedge_index_table &table) {
+  dynamic_array<int> coarse_local_pins;
+  dynamic_array<int> coarse_hedge_offsets;
+  dynamic_array<int> coarse_hedge_weights;
+  int number_coarse_pins = 0;
+  int number_course_hedges = 0;
+  coarse_hedge_offsets[number_course_hedges] = number_coarse_pins;
+
+  int i = 0;
+  while (i < total_to_receive) {
+    int coarse_hyperedge_length = receive_array_[i] - 2;
+    HashKey hash_key = Funct::computeHash(&receive_array_[i + 2],
+                                          coarse_hyperedge_length);
+
+    // See if a duplicate hyperedge exists
+    int number_seen = -1;
+    int duplicated_hyperedge = -1;
+    do {
+      int try_hyperedge = table.getHedgeIndex(hash_key, number_seen);
+      if (try_hyperedge >= 0) {
+        int start_offset = coarse_hedge_offsets[try_hyperedge];
+        int end_offset = coarse_hedge_offsets[try_hyperedge + 1];
+        int length = end_offset - start_offset;
+        if (length == coarse_hyperedge_length) {
+          int j = 0;
+          for (j = 0; j < length; ++j) {
+            if (receive_array_[i + 2 + j] != coarse_local_pins[start_offset + j]) {
+              break;
+            }
+          }
+          if (j == length) {
+            duplicated_hyperedge = try_hyperedge;
+            break;
+          }
+        }
+      }
+    } while (number_seen >= 0);
+
+    if (duplicated_hyperedge == -1) {
+      table.insertKey(hash_key, number_course_hedges);
+      coarse_hedge_weights[number_course_hedges++] = receive_array_[i + 1];
+
+      for (int j = 0; j < coarse_hyperedge_length; ++j) {
+        coarse_local_pins[number_coarse_pins + j] = receive_array_[i + 2 + j];
+      }
+
+      number_coarse_pins += coarse_hyperedge_length;
+      coarse_hedge_offsets[number_course_hedges] = number_coarse_pins;
+    } else {
+      coarse_hedge_weights[duplicated_hyperedge] += receive_array_[i + 1];
+    }
+    i += receive_array_[i];
+  }
+
+  // now set the coarse hypergraph
+  coarse.set_number_of_hyperedges(number_course_hedges);
+  coarse.set_number_of_pins(number_coarse_pins);
+  coarse.allocate_hyperedge_memory(number_course_hedges, number_coarse_pins);
+
+  coarse.hyperedge_offsets().set_data(coarse_hedge_offsets.data(), number_course_hedges);
+  coarse.hyperedge_weights().set_data(coarse_hedge_weights.data(), number_course_hedges);
+  coarse.pin_list().set_data(coarse_local_pins.data(), number_coarse_pins);
 }
 
 }  // namespace parallel

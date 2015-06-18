@@ -21,7 +21,6 @@
 #include "data_structures/dynamic_array.hpp"
 #include "hypergraph/base_hypergraph.hpp"
 
-
 namespace parkway {
 namespace serial {
 
@@ -54,9 +53,13 @@ class hypergraph : public hg::base_hypergraph {
   inline int total_weight() const { return total_weight_; }
   inline int cut(int pNo) const { return partition_cuts_[pNo]; }
 
-  inline int *vertex_to_hyperedges() const { return vertex_to_hyperedges_.data(); }
-  inline int *vertex_offsets() const { return vertex_offsets_.data(); }
+  inline dynamic_array<int> vertex_to_hyperedges() const {
+    return vertex_to_hyperedges_;
+  }
 
+  inline dynamic_array<int> vertex_offsets() const {
+    return vertex_offsets_;
+  }
 
   inline void set_total_weight(int newWt) { total_weight_ = newWt; }
 
@@ -64,8 +67,16 @@ class hypergraph : public hg::base_hypergraph {
    vertex_to_hyperedges_.set_data(array, len);
   }
 
+  inline void set_vertex_to_hyperedges(dynamic_array<int> &arr) {
+   vertex_to_hyperedges_ = arr;
+  }
+
   inline void set_vertex_offsets(int *array, int len) {
    vertex_offsets_.set_data(array, len);
+  }
+
+  inline void set_vertex_offsets(dynamic_array<int> &offsets) {
+   vertex_offsets_ = offsets;
   }
 
   int export_hyperedge_weight() const;
