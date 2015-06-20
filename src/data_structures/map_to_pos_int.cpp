@@ -16,14 +16,14 @@ map_to_pos_int::map_to_pos_int(int new_capacity, bool use_hash)
 void map_to_pos_int::create(int new_capacity, bool use_hash) {
   use_hash_ = use_hash;
   size_ = 0;
-  entries.reserve(2048);
+  entries.resize(2048);
 
   if (use_hash_) {
     capacity_ = internal::table_utils::table_size(new_capacity);
     assert(capacity_ >= new_capacity);
 
-    keys.reserve(capacity_);
-    table.reserve(capacity_);
+    keys.resize(capacity_);
+    table.resize(capacity_);
 
     for (int i = 0; i < capacity_; ++i) {
       keys[i] = -1;
@@ -31,8 +31,8 @@ void map_to_pos_int::create(int new_capacity, bool use_hash) {
     }
   } else {
     capacity_ = new_capacity;
-    keys.reserve(0);
-    table.reserve(capacity_);
+    keys.resize(0);
+    table.resize(capacity_);
 
     for (int i = 0; i < capacity_; ++i) {
       table[i] = -1;
@@ -42,28 +42,28 @@ void map_to_pos_int::create(int new_capacity, bool use_hash) {
 
 void map_to_pos_int::destroy() {
   size_ = 0;
-  entries.reserve(0);
-  table.reserve(0);
-  keys.reserve(0);
+  entries.resize(0);
+  table.resize(0);
+  keys.resize(0);
 }
 
 void map_to_pos_int::recover() {
   int i;
 
   size_ = 0;
-  entries.reserve(2048);
+  entries.resize(2048);
 
   if (use_hash_) {
-    table.reserve(capacity_);
-    keys.reserve(capacity_);
+    table.resize(capacity_);
+    keys.resize(capacity_);
 
     for (i = 0; i < capacity_; ++i) {
       keys[i] = -1;
       table[i] = -1;
     }
   } else {
-    table.reserve(capacity_);
-    keys.reserve(0);
+    table.resize(capacity_);
+    keys.resize(0);
 
     for (i = 0; i < capacity_; ++i)
       table[i] = -1;
@@ -90,7 +90,7 @@ int map_to_pos_int::insert(int key, int val) {
       #endif
       table[slot] = val;
       keys[slot] = independent_key;
-      entries.assign(size_++, slot);
+      entries[size_++] = slot;
       return false;
     } else {
       #ifdef DEBUG_TABLES
@@ -106,7 +106,7 @@ int map_to_pos_int::insert(int key, int val) {
     #endif
     if (table[key] == -1) {
       table[key] = val;
-      entries.assign(size_++, key);
+      entries[size_++] = key;
       return false;
     } else {
       table[key] = val;
@@ -131,7 +131,7 @@ int map_to_pos_int::insert_if_empty(int key, int val) {
     if (keys[slot] == -1) {
       table[slot] = val;
       keys[slot] = independent_key;
-      entries.assign(size_++, slot);
+      entries[size_++] = slot;
       return -1;
     } else {
       return table[slot];
@@ -143,7 +143,7 @@ int map_to_pos_int::insert_if_empty(int key, int val) {
 
     if (table[key] == -1) {
       table[key] = val;
-      entries.assign(size_++, key);
+      entries[size_++] = key;
       return -1;
     } else {
       return table[key];

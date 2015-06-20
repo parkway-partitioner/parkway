@@ -55,7 +55,7 @@ class base_hypergraph {
   //   vertex_weights_.set_data(weights, length);
   // }
 
-  inline void set_vertex_weights(dynamic_array<int> &weights) {
+  inline void set_vertex_weights(dynamic_array<int> weights) {
     vertex_weights_ = weights;
   }
 
@@ -68,7 +68,7 @@ class base_hypergraph {
   //   hyperedge_weights_.set_data(array, len);
   // }
 
-  inline void set_hyperedge_weights(dynamic_array<int> &weights) {
+  inline void set_hyperedge_weights(dynamic_array<int> weights) {
     hyperedge_weights_ = weights;
   }
 
@@ -81,7 +81,7 @@ class base_hypergraph {
   //   partition_vector_.set_data(array, length);
   // }
 
-  inline void set_partition_vector(dynamic_array<int> &partition_vector) {
+  inline void set_partition_vector(dynamic_array<int> partition_vector) {
     partition_vector_ = partition_vector;
   }
 
@@ -99,7 +99,7 @@ class base_hypergraph {
   //   partition_cuts_.set_data(array, len);
   // }
 
-  inline void set_partition_cuts(dynamic_array<int> &cuts) {
+  inline void set_partition_cuts(dynamic_array<int> cuts) {
     partition_cuts_ = cuts;
   }
 
@@ -117,7 +117,7 @@ class base_hypergraph {
   //   pin_list_.set_data(array, len);
   // }
 
-  inline void set_pin_list(dynamic_array<int> &pin_list) {
+  inline void set_pin_list(dynamic_array<int> pin_list) {
     pin_list_ = pin_list;
   }
 
@@ -130,7 +130,7 @@ class base_hypergraph {
   //   hyperedge_offsets_.set_data(array, len);
   // }
 
-  inline void set_hyperedge_offsets(dynamic_array<int> &offsets) {
+  inline void set_hyperedge_offsets(dynamic_array<int> offsets) {
     hyperedge_offsets_ = offsets;
   }
 

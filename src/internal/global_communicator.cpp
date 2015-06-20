@@ -22,7 +22,7 @@ global_communicator::global_communicator(const int rank, const int processors,
       send_displs_(processors_),
       receive_displs_(processors_) {
   for (auto &item : data_out_sets_) {
-    item.reserve(1024);
+    item.resize(1024);
   }
 }
 
@@ -43,7 +43,7 @@ void global_communicator::send_from_data_out(MPI_Comm comm) {
     send_displs_[i] = capacity;
     capacity += send_lens_[i];
   }
-  send_array_.reserve(capacity);
+  send_array_.resize(capacity);
 
   int ij = 0;
   for (int i = 0; i < processors_; ++i) {
@@ -64,7 +64,8 @@ void global_communicator::send_from_data_out(MPI_Comm comm) {
     receive_displs_[i] = capacity;
     capacity += receive_lens_[i];
   }
-  receive_array_.reserve(capacity);
+
+  receive_array_.resize(capacity);
 
   MPI_Alltoallv(
       send_array_.data(), send_lens_.data(), send_displs_.data(), MPI_INT,

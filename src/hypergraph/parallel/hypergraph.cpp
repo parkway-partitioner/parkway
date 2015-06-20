@@ -67,8 +67,8 @@ hypergraph::hypergraph(int rank, int number_of_processors,
   vertex_weights_ = weight;
   partition_vector_ = part_array;
   match_vector_.assign(number_of_vertices_, -1);
-  partition_vector_offsets_.reserve(number_of_partitions_ + 1);
-  partition_cuts_.reserve(number_of_partitions_);
+  partition_vector_offsets_.resize(number_of_partitions_ + 1);
+  partition_cuts_.resize(number_of_partitions_);
 
   partition_cuts_[0] = cut;
   partition_vector_offsets_[0] = 0;
@@ -103,8 +103,8 @@ hypergraph::hypergraph(int rank, int number_of_processors,
   minimum_vertex_index_ -= number_of_vertices_;
   vertex_weight_ = 0;
 
-  vertex_weights_.reserve(number_of_vertices_);
-  match_vector_.reserve(number_of_vertices_);
+  vertex_weights_.resize(number_of_vertices_);
+  match_vector_.resize(number_of_vertices_);
 
   for (int i = 0; i < number_of_vertices_; ++i) {
     vertex_weights_[i] = vertex_weights[i];
@@ -253,9 +253,9 @@ void hypergraph::initalize_partition_from_file(const char *filename,
 }
 
 void hypergraph::allocate_hyperedge_memory(int numHedges, int numLocPins) {
-  hyperedge_offsets_.reserve(numHedges + 1);
-  hyperedge_weights_.reserve(numHedges);
-  pin_list_.reserve(numLocPins);
+  hyperedge_offsets_.resize(numHedges + 1);
+  hyperedge_weights_.resize(numHedges);
+  pin_list_.resize(numLocPins);
 }
 
 void hypergraph::contract_hyperedges(hypergraph &coarse, MPI_Comm comm) {
@@ -273,6 +273,7 @@ void hypergraph::contract_hyperedges(hypergraph &coarse, MPI_Comm comm) {
 
   // compute number of elements to receive from other processors
   int total_to_receive = compute_number_of_elements_to_receive();
+
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
@@ -288,6 +289,8 @@ void hypergraph::contract_hyperedges(hypergraph &coarse, MPI_Comm comm) {
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
                 send_lens_.data(), send_displs_.data(), MPI_INT, comm);
+
+
 
   // Requested vertices are in the copy_of_requests while their corresponding
   // match_vector values are in the corresponding location in the receive_array_
@@ -708,8 +711,8 @@ void hypergraph::prescribed_vertex_shuffle(ds::dynamic_array<int> &mapToOrigV, d
     j += send_lens_[i];
   }
 
-  send_array_.reserve(j);
-  askingVertex.reserve(j);
+  send_array_.resize(j);
+  askingVertex.resize(j);
   total_to_send = j;
 
   j = 0;
@@ -844,7 +847,7 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
     indexIntoSpares[i] = j;
   }
 
-  vSpareToProc.reserve(totSpareVertices);
+  vSpareToProc.resize(totSpareVertices);
 
   j = totSpareVertices / processors_;
   ij = Mod(totSpareVertices, processors_);
@@ -922,7 +925,7 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
     indexIntoSpares[i] = j;
   }
 
-  vSpareToProc.reserve(totSpareVertices);
+  vSpareToProc.resize(totSpareVertices);
 
   j = totSpareVertices / processors_;
   ij = Mod(totSpareVertices, processors_);
@@ -1245,8 +1248,8 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     j += send_lens_[i];
   }
 
-  send_array_.reserve(j);
-  copy_of_requests.reserve(j);
+  send_array_.resize(j);
+  copy_of_requests.resize(j);
   total_to_send = j;
 
   j = 0;
@@ -1271,7 +1274,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     j += receive_lens_[i];
   }
 
-  receive_array_.reserve(j);
+  receive_array_.resize(j);
   total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
@@ -1283,13 +1286,13 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     the reply communication will have the dual dimensions
   */
 
-  send_array_.reserve(total_to_receive);
+  send_array_.resize(total_to_receive);
 
   for (int i = 0; i < total_to_receive; ++i) {
     send_array_[i] = old_to_new_index[receive_array_[i] - minimum_vertex_index_];
   }
 
-  receive_array_.reserve(total_to_send);
+  receive_array_.resize(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
@@ -1367,7 +1370,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     }
   }
 
-  send_array_.reserve(total_to_send);
+  send_array_.resize(total_to_send);
   /* compute the send data_ */
   if (!vToOrigVexist) {
     for (int i = 0; i < number_of_vertices_; ++i) {
@@ -1412,7 +1415,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     j += receive_lens_[i];
   }
 
-  receive_array_.reserve(j);
+  receive_array_.resize(j);
   total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
@@ -1437,7 +1440,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
       ++j;
     }
   } else {
-    to_origin_vertex_.reserve(number_of_vertices_);
+    to_origin_vertex_.resize(number_of_vertices_);
 
     while (i < total_to_receive) {
       to_origin_vertex_[j] = receive_array_[i++];
@@ -1548,8 +1551,8 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     j += send_lens_[i];
   }
 
-  send_array_.reserve(j);
-  copy_of_requests.reserve(j);
+  send_array_.resize(j);
+  copy_of_requests.resize(j);
   total_to_send = j;
 
   j = 0;
@@ -1577,7 +1580,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     j += receive_lens_[i];
   }
 
-  receive_array_.reserve(j);
+  receive_array_.resize(j);
   total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
@@ -1589,7 +1592,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     the reply communication will have the dual dimensions
   */
 
-  send_array_.reserve(total_to_receive);
+  send_array_.resize(total_to_receive);
 
   for (i = 0; i < total_to_receive; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -1602,7 +1605,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
 #endif
   }
 
-  receive_array_.reserve(total_to_send);
+  receive_array_.resize(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
@@ -1738,7 +1741,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
   assert(j == total_to_send);
 #endif
 
-  send_array_.reserve(total_to_send);
+  send_array_.resize(total_to_send);
 
   /* compute the send data_ */
 
@@ -1792,7 +1795,7 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
     assert(j == numLocalVertices * (numPartitions + 1));
 #endif
 
-  receive_array_.reserve(j);
+  receive_array_.resize(j);
   total_to_receive = j;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
@@ -1869,7 +1872,7 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
 
   if (to_origin_vertex_.capacity() > 0) {
     j = 0;
-    send_array_.reserve(number_of_vertices_ * 3);
+    send_array_.resize(number_of_vertices_ * 3);
 
     for (i = 0; i < number_of_vertices_; ++i) {
       send_array_[j++] = vertex_weights_[i];
@@ -1894,7 +1897,7 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
     }
   } else {
     j = 0;
-    send_array_.reserve(Shiftl(number_of_vertices_, 1));
+    send_array_.resize(Shiftl(number_of_vertices_, 1));
 
     for (i = 0; i < number_of_vertices_; ++i) {
       send_array_[j++] = vertex_weights_[i];
@@ -1934,7 +1937,7 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
     assert(j == Shiftl(numMyVertices, 1));
 #endif
 
-  receive_array_.reserve(j);
+  receive_array_.resize(j);
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -1943,11 +1946,11 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
   number_of_vertices_ = numMyVertices;
   minimum_vertex_index_ = minNewIndex[rank_];
 
-  vertex_weights_.reserve(number_of_vertices_);
-  match_vector_.reserve(number_of_vertices_);
+  vertex_weights_.resize(number_of_vertices_);
+  match_vector_.resize(number_of_vertices_);
 
   if (to_origin_vertex_.capacity() > 0) {
-    to_origin_vertex_.reserve(number_of_vertices_);
+    to_origin_vertex_.resize(number_of_vertices_);
 
     j = 0;
     for (i = 0; i < number_of_vertices_; ++i) {
@@ -2030,7 +2033,7 @@ int hypergraph::calculate_cut_size(int number_of_parts, int partition_number, MP
     ij += receive_lens_[i];
   }
 
-  receive_array_.reserve(ij);
+  receive_array_.resize(ij);
   total_to_receive = ij;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
@@ -2042,7 +2045,7 @@ int hypergraph::calculate_cut_size(int number_of_parts, int partition_number, MP
   // the reply communication will have the dual dimensions
   // ###
 
-  send_array_.reserve(total_to_receive);
+  send_array_.resize(total_to_receive);
 
   for (i = 0; i < total_to_receive; ++i) {
 #ifdef DEBUG_HYPERGRAPH
@@ -2057,7 +2060,7 @@ int hypergraph::calculate_cut_size(int number_of_parts, int partition_number, MP
 #endif
   }
 
-  receive_array_.reserve(total_to_send);
+  receive_array_.resize(total_to_send);
 
   MPI_Alltoallv(send_array_.data(), receive_lens_.data(),
                 receive_displs_.data(), MPI_INT, receive_array_.data(),
@@ -2436,6 +2439,7 @@ void hypergraph::compute_requests_for_remote_vertex_matches(
     ds::complete_binary_tree<int> *vertex_to_proc) {
   send_lens_.assign(processors_, 0);
   ds::bit_field sent_requests(total_number_of_vertices_);
+  sent_requests.unset();
   int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
 
   // Compute all the requests for remote vertex matches
@@ -2574,15 +2578,13 @@ void hypergraph::process_new_hyperedges(hypergraph &coarse,
   dynamic_array<int> coarse_hedge_offsets;
   dynamic_array<int> coarse_hedge_weights;
   int number_coarse_pins = 0;
-  int number_course_hedges = 0;
-  coarse_hedge_offsets[number_course_hedges] = number_coarse_pins;
+  int number_coarse_hedges = 0;
+  coarse_hedge_offsets[number_coarse_hedges] = number_coarse_pins;
 
   int i = 0;
   while (i < total_to_receive) {
     int coarse_hyperedge_length = receive_array_[i] - 2;
-    HashKey hash_key = Funct::computeHash(&receive_array_[i + 2],
-                                          coarse_hyperedge_length);
-
+    HashKey hash_key = Funct::computeHash(&receive_array_[i + 2], coarse_hyperedge_length);
     // See if a duplicate hyperedge exists
     int number_seen = -1;
     int duplicated_hyperedge = -1;
@@ -2608,15 +2610,15 @@ void hypergraph::process_new_hyperedges(hypergraph &coarse,
     } while (number_seen >= 0);
 
     if (duplicated_hyperedge == -1) {
-      table.insertKey(hash_key, number_course_hedges);
-      coarse_hedge_weights[number_course_hedges++] = receive_array_[i + 1];
+      table.insertKey(hash_key, number_coarse_hedges);
+      coarse_hedge_weights[number_coarse_hedges++] = receive_array_[i + 1];
 
       for (int j = 0; j < coarse_hyperedge_length; ++j) {
         coarse_local_pins[number_coarse_pins + j] = receive_array_[i + 2 + j];
       }
 
       number_coarse_pins += coarse_hyperedge_length;
-      coarse_hedge_offsets[number_course_hedges] = number_coarse_pins;
+      coarse_hedge_offsets[number_coarse_hedges] = number_coarse_pins;
     } else {
       coarse_hedge_weights[duplicated_hyperedge] += receive_array_[i + 1];
     }
@@ -2624,13 +2626,13 @@ void hypergraph::process_new_hyperedges(hypergraph &coarse,
   }
 
   // now set the coarse hypergraph
-  coarse.set_number_of_hyperedges(number_course_hedges);
+  coarse.set_number_of_hyperedges(number_coarse_hedges);
   coarse.set_number_of_pins(number_coarse_pins);
-  coarse.allocate_hyperedge_memory(number_course_hedges, number_coarse_pins);
+  coarse.allocate_hyperedge_memory(number_coarse_hedges, number_coarse_pins);
 
-  coarse.hyperedge_offsets() = coarse_hedge_offsets;
-  coarse.hyperedge_weights() = coarse_hedge_weights;
-  coarse.pin_list() = coarse_local_pins;
+  coarse.set_hyperedge_offsets(coarse_hedge_offsets);
+  coarse.set_hyperedge_weights(coarse_hedge_weights);
+  coarse.set_pin_list(coarse_local_pins);
 }
 
 }  // namespace parallel

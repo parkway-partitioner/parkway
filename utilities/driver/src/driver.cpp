@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
   options[10] = 4;
   // vertex visit order: 3 -> random, 1/2 inc/dec by vertex id, 4/5 inc/dec by
   // vertex wt
-  options[11] = 3;
+  options[11] = 1;
   // divide connectivity by cluster weight/hyperedge capacity_: 0-neither, 1-only
   // cluster, 2-only hedge len, 3-both
   options[12] = 3;

@@ -141,9 +141,10 @@ hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
       send_displs_[i] = send_displs_[i - 1] + send_lens_[i - 1];
     }
 
-    int temp1 = cluster_index_ + minimum_cluster_index_ - max_cluster_index[i];
-    int temp2 = min_cluster_index[i] - minimum_cluster_index_;
-    int temp3 = cluster_index_ - std::max(temp1, 0) + std::max(temp2, 0);
+    int temp1 = std::max(cluster_index_ + minimum_cluster_index_ -
+                         max_cluster_index[i], 0);
+    int temp2 = std::max(min_cluster_index[i] - minimum_cluster_index_, 0);
+    int temp3 = cluster_index_ - (temp1 + temp2);
     send_lens_[i] = std::max(temp3, 0);
   }
 
@@ -155,20 +156,25 @@ hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
     receive_displs_[i] = total_to_recv;
     total_to_recv += receive_lens_[i];
   }
+  MPI_Barrier(comm);
 
-  MPI_Alltoallv(cluster_weights_.data(), send_lens_.data(),
-                send_displs_.data(), MPI_INT, cluster_weights.data(),
-                receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
+  MPI_Alltoallv(cluster_weights_.data(), send_lens_.data(), send_displs_.data(),
+                MPI_INT, cluster_weights.data(), receive_lens_.data(),
+                receive_displs_.data(), MPI_INT, comm);
 
   minimum_cluster_index_ = min_cluster_index[rank_];
 
   parallel::hypergraph *coarseGraph =
-      new parallel::hypergraph(rank_, processors_, clusters_on_this_rank,
+      new parallel::hypergraph(rank_,
+                               processors_,
+                               clusters_on_this_rank,
                                total_number_of_clusters_,
-                               minimum_cluster_index_, stop_coarsening_,
-                               cluster_weights, h.display_option());
+                               minimum_cluster_index_,
+                               stop_coarsening_,
+                               cluster_weights,
+                               h.display_option());
 
-    h.contract_hyperedges(*coarseGraph, comm);
+  h.contract_hyperedges(*coarseGraph, comm);
 
   if (display_options_ > 1) {
     int numTotCoarseVerts = coarseGraph->total_number_of_vertices();
@@ -195,8 +201,7 @@ bool coarsener::within_vertex_index_range(int value) const {
 }
 
 void coarsener::initialize_vertex_to_hyperedges() {
-  ds::dynamic_array<int> vertex_degrees(number_of_local_vertices_);
-  utility::set_to_zero<int>(vertex_degrees.data(), number_of_local_vertices_);
+  ds::dynamic_array<int> vertex_degrees(number_of_local_vertices_, 0);
 
   int i = 0;
   int l = 0;
@@ -207,7 +212,8 @@ void coarsener::initialize_vertex_to_hyperedges() {
     ++i;
   }
   vertex_to_hyperedges_offset_[i] = l;
-  vertex_to_hyperedges_.reserve(l);
+  vertex_to_hyperedges_.resize(l);
+
 
   for (int j = 0; j < number_of_hyperedges_; ++j) {
     int end_offset = hyperedge_offsets_[j + 1];
@@ -234,18 +240,15 @@ void coarsener::load_non_local_hyperedges() {
     int end_offset = i + receive_array_[i];
     ++i;
 
-    hyperedge_weights_[number_of_hyperedges_] = receive_array_[i];
-    hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
-    ++i;
-    ++number_of_hyperedges_;
+    hyperedge_weights_[number_of_hyperedges_] = receive_array_[i++];
+    hyperedge_offsets_[number_of_hyperedges_++] = number_of_local_pins_;
 
-    while (i < end_offset) {
+    for (; i < end_offset; ++i) {
       local_pin_list_[number_of_local_pins_++] = receive_array_[i];
       int local_vertex = receive_array_[i] - minimum_vertex_index_;
       if (0 <= local_vertex && local_vertex < number_of_local_vertices_) {
         ++vertex_to_hyperedges_offset_[local_vertex];
       }
-      ++i;
     }
   }
   hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
@@ -279,8 +282,7 @@ void coarsener::prepare_data_to_send(
 
       if (!check_limit || (check_limit && hyperedge_length < limit)) {
         for (int j = start_offset; j < end_offset; ++j) {
-          int proc = std::min(local_pins[j] / vertices_per_processor,
-                              processors_ - 1);
+          int proc = std::min(local_pins[j] / vertices_per_processor, processors_ - 1);
 
           if (!sent_to_processor[proc]) {
             if (proc == rank_) {

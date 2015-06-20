@@ -6,10 +6,7 @@ namespace data_structures {
 match_request_table::match_request_table(int _size)
     : size_(0),
       capacity_(_size) {
-  table_.reserve(capacity_);
-  for (std::size_t i = 0; i < capacity_; ++i) {
-    table_[i] = nullptr;
-  }
+  table_.assign(capacity_, nullptr);
 }
 
 match_request_table::~match_request_table() {
@@ -73,7 +70,7 @@ void match_request_table::add_local(int _vertex, int _local, int locWt,
   } else {
     entry *newEntry = new entry(_vertex, _local, locWt, proc, table_[slot]);
     table_[slot] = newEntry;
-    entries_.assign(size_++, newEntry);
+    entries_[size_++] = newEntry;
   }
 }
 

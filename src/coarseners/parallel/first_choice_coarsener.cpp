@@ -34,11 +34,9 @@ first_choice_coarsener::~first_choice_coarsener() {
 void first_choice_coarsener::display_options() const {
   switch (display_options_) {
   case SILENT:
-
     break;
 
   default:
-
     out_stream << "|--- PARA_C:" << std::endl
                << "|- PFC:"
                << " r = " << reduction_ratio_ << " min = " <<
@@ -56,15 +54,13 @@ void first_choice_coarsener::display_options() const {
 }
 
 void first_choice_coarsener::build_auxiliary_structures(int numTotPins,
-                                                 double aveVertDeg,
-                                                 double aveHedgeSize) {
+                                                        double aveVertDeg,
+                                                        double aveHedgeSize) {
   // ###
   // build the ds::match_request_table
   // ###
 
-  int i =
-      static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
-
+  int i = static_cast<int>(ceil(static_cast<double>(numTotPins) / aveVertDeg));
   table_ = new ds::match_request_table(ds::internal::table_utils::table_size(i / processors_));
 }
 
@@ -84,11 +80,6 @@ void first_choice_coarsener::release_memory() {
 hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
   load(h, comm);
 
-#ifdef MEM_CHECK
-  MPI_Barrier(comm);
-  write_log(rank_, "[begin PFCC]: usage: %f", MemoryTracker::usage());
-  Funct::printMemUse(rank_, "[begin PFCC]");
-#endif
 
   if (number_of_vertices_ < minimum_number_of_nodes_ || h.dont_coarsen()) {
     return nullptr;
@@ -141,15 +132,17 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
 
   if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
-      if (vertex_weights_[i] > maxLocWt)
+      if (vertex_weights_[i] > maxLocWt) {
         maxLocWt = vertex_weights_[i];
+      }
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
     if (rank_ == 0) {
-      out_stream << " " << maximum_vertex_weight_ << " " << maxWt << " " << aveVertexWt
-                 << " ";
+      out_stream << " " << maximum_vertex_weight_
+                 << " " << maxWt
+                 << " " << aveVertexWt << " ";
       out_stream.flush();
     }
   }
@@ -168,6 +161,15 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
       bestMatch = -1;
       maxMatchMetric = 0.0;
       numVisited = 0;
+
+      //
+      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
+      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
+      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
+      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
+      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
+      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
+      //
 
       for (i = vertex_to_hyperedges_offset_[vertex]; i < endOffset1; ++i) {
         hEdge = vertex_to_hyperedges_[i];
@@ -360,9 +362,9 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
 
   for (i = 0; i < 2; ++i) {
     set_request_arrays(i);
-      send_from_data_out(comm); // actually sending requests
+    send_from_data_out(comm); // actually sending requests
     set_reply_arrays(i, maximum_vertex_weight_);
-      send_from_data_out(comm); // actually sending replies
+    send_from_data_out(comm); // actually sending replies
     process_request_replies();
   }
 
@@ -378,13 +380,6 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
   // ###
   // now construct the coarse hypergraph using the matching vector
   // ###
-
-  /*
-  if(rank_ == 0) {
-    std::cout << "about to contract hyperedges" << std::endl;
-  }
-  MPI_Barrier(comm);
-  */
   return (contract_hyperedges(h, comm));
 }
 
@@ -404,11 +399,7 @@ void first_choice_coarsener::set_request_arrays(int highToLow) {
 
   for (i = 0; i < numRequests; ++i) {
     entry_ = entryArray[i];
-
-    if (entry_ == nullptr) {
-      std::cout << "Entry " << i << " (of " << entryArray.size() - 1 << ")is a nullptr" << std::endl;
-      assert(entry_);
-    }
+    assert(entry_);
 
     nonLocVertex = entry_->non_local_vertex();
     cluWt = entry_->cluster_weight();
@@ -449,7 +440,7 @@ void first_choice_coarsener::set_reply_arrays(int highToLow, int maxVWt) {
 
     if (match_request_visit_order_ == RANDOM_ORDER) {
       visitOrderLen = Shiftr(receive_lens_[i], 1);
-      visitOrder.reserve(visitOrderLen);
+      visitOrder.resize(visitOrderLen);
 
       for (j = 0; j < visitOrderLen; ++j)
         visitOrder[j] = j;
@@ -631,8 +622,9 @@ void first_choice_coarsener::set_cluster_indices(MPI_Comm comm) {
   dynamic_array<int> numClusters(processors_);
   dynamic_array<int> startIndex(processors_);
 
-  MPI_Allgather(&cluster_index_, 1, MPI_INT, numClusters.data(), 1, MPI_INT,
-                comm);
+  MPI_Allgather(&cluster_index_, 1, MPI_INT,
+                numClusters.data(), 1, MPI_INT, comm);
+
 
   int index = 0;
   int i;

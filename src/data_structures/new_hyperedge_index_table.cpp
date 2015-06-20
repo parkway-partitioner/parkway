@@ -16,9 +16,9 @@ void new_hyperedge_index_table::createTable(unsigned int _size) {
   assert(size >= _size);
 #endif
 
-  keys.reserve(size);
-  table.reserve(size);
-  nextSameKey.reserve(size);
+  keys.resize(size);
+  table.resize(size);
+  nextSameKey.resize(size);
 
   for (int i = 0; i < size; ++i) {
     table[i] = -1;
@@ -28,15 +28,15 @@ void new_hyperedge_index_table::createTable(unsigned int _size) {
 
 void new_hyperedge_index_table::destroyTable() {
   numEntries = 0;
-  table.reserve(0);
-  keys.reserve(0);
-  nextSameKey.reserve(0);
+  table.resize(0);
+  keys.resize(0);
+  nextSameKey.resize(0);
 }
 
 void new_hyperedge_index_table::recoverTable() {
-  table.reserve(size);
-  keys.reserve(size);
-  nextSameKey.reserve(size);
+  table.resize(size);
+  keys.resize(size);
+  nextSameKey.resize(size);
   numEntries = 0;
 
   for (int i = 0; i < size; ++i) {
@@ -71,10 +71,6 @@ void new_hyperedge_index_table::insertKey(HashKey key, int index) {
 }
 
 int new_hyperedge_index_table::getHedgeIndex(HashKey key, int &numSeen) {
-#ifdef DEBUG_TABLES
-  assert(numSeen < size);
-#endif
-
   int slot;
   if (numSeen == -1) {
     slot = internal::hashes::primary(key, size);
@@ -93,9 +89,6 @@ int new_hyperedge_index_table::getHedgeIndex(HashKey key, int &numSeen) {
 
   slot = numSeen;
   numSeen = nextSameKey[slot];
-  #ifdef DEBUG_TABLES
-  assert(numSeen < size);
-  #endif
   return table[slot];
 }
 

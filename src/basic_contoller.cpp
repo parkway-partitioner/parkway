@@ -117,6 +117,9 @@ void basic_contoller::run(MPI_Comm comm) {
       coarsener_.set_percentile(hEdgePercentile);
 
       coarseGraph = coarsener_.coarsen(*finerGraph, comm);
+
+      // returns hgraph with zero offsets
+      // offsets calculated on next coarsen
       finerGraph->free_memory();
 
       if (coarseGraph) {
@@ -124,9 +127,7 @@ void basic_contoller::run(MPI_Comm comm) {
         hypergraphs_.push(coarseGraph);
         finerGraph = coarseGraph;
       }
-    }
-
-    while (coarseGraph);
+    } while (coarseGraph);
 
     MPI_Barrier(comm);
     total_coarsening_time_ += (MPI_Wtime() - start_time_);
