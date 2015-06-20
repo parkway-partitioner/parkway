@@ -60,11 +60,11 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
 
   for (i = 0; i < number_of_runs_; ++i) {
     if (shuffled_ == 1)
-        hypergraph_->shuffle_vertices_randomly(map_to_orig_vertices_.data(), comm);
+        hypergraph_->shuffle_vertices_randomly(map_to_orig_vertices_, comm);
 
     if (shuffled_ == 2)
-        hypergraph_->prescribed_vertex_shuffle(map_to_orig_vertices_.data(),
-                                          shuffle_partition_.data(), comm);
+        hypergraph_->prescribed_vertex_shuffle(map_to_orig_vertices_,
+                                          shuffle_partition_, comm);
 
     hypergraphs_.push(hypergraph_);
     hEdgePercentiles.push(start_percentile_);
@@ -142,8 +142,6 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
       finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-      dynamic_memory::delete_pointer<parallel::hypergraph>(coarseGraph);
-
       coarseGraph = finerGraph;
     }
 
@@ -257,7 +255,7 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
 #endif
         if (random_shuffle_before_refine_) {
           if (hypergraphs_.size() == 0)
-              finerGraph->shuffle_vertices_randomly(map_to_inter_vertices_.data(), comm);
+              finerGraph->shuffle_vertices_randomly(map_to_inter_vertices_, comm);
           else
               finerGraph->shuffle_vertices_randomly(*(hypergraphs_.top()), comm);
         }
@@ -270,8 +268,6 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
         finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
 #endif
-        dynamic_memory::delete_pointer<parallel::hypergraph>(coarseGraph);
-
         coarseGraph = finerGraph;
       }
 

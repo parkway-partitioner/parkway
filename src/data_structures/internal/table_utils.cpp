@@ -49,7 +49,11 @@ int table_utils::scatter_size_ = table_utils::SCATTER_ARRAY_NOT_SET;
 
 void table_utils::set_scatter_array(int size) {
   scatter_size_ = size;
-  scatter_array_.reserve(scatter_size_);
+  if (size == SCATTER_ARRAY_NOT_SET) {
+    scatter_array_.resize(0);
+    return;
+  }
+  scatter_array_.resize(scatter_size_);
 
   for (int i = 0; i < scatter_size_; ++i) {
     scatter_array_[i] = i;

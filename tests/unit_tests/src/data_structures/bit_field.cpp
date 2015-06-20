@@ -71,7 +71,7 @@ TEST(BitField, Data) {
   bit_field bf(64);
   bf.set();
 
-  bit_field::chunk_t *chunks = bf.data();
+  auto chunks = bf.data();
   chunks[0] = 0;
 
   ASSERT_EQ(bf.chunk(0), 0);

@@ -24,7 +24,7 @@ coarsener::coarsener(int minimum_number_of_nodes, int max_weight, double ratio,
 
 coarsener::~coarsener() {}
 
-hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
+hypergraph *coarsener::build_coarse_hypergraph(dynamic_array<int> coarseWts,
                                                int numCoarseVerts,
                                                int totWt) const {
 
@@ -49,11 +49,11 @@ hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
 
   serial::hypergraph *newHypergraph = new serial::hypergraph(coarseWts, numCoarseVerts);
 
-  ds::dynamic_array<int> *newHedgeOffsets = new ds::dynamic_array<int>(1024);
-  ds::dynamic_array<int> *newPinList = new ds::dynamic_array<int>(1024);
-  ds::dynamic_array<int> *newHedgeWt = new ds::dynamic_array<int>(1024);
-  ds::dynamic_array<int> *newVerOffsets = new ds::dynamic_array<int>(numCoarseVerts + 1);
-  ds::dynamic_array<int> *newVtoHedges = new ds::dynamic_array<int>(1024);
+  ds::dynamic_array<int> newHedgeOffsets(1024);
+  ds::dynamic_array<int> newPinList(1024);
+  ds::dynamic_array<int> newHedgeWt(1024);
+  ds::dynamic_array<int> newVerOffsets(1024);
+  ds::dynamic_array<int> newVtoHedges(1024);
 
   ds::dynamic_array<int> tempPinList(numPins);
   ds::dynamic_array<int> vDegs(numCoarseVerts);
@@ -90,7 +90,7 @@ hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
   for (i = 1; i <= numCoarseVerts; ++i)
     vHedgOffsets[i] = vHedgOffsets[i - 1] + vDegs[i - 1];
 
-  vHedges.reserve(vHedgOffsets[numCoarseVerts]);
+  vHedges.resize(vHedgOffsets[numCoarseVerts]);
 
   for (i = 0; i < numCoarseVerts; ++i)
     vDegs[i] = 0;
@@ -99,7 +99,7 @@ hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
   // build the new pin list
   // ###
 
-  newHedgeOffsets->assign(numNewHedges, numNewPins);
+  newHedgeOffsets[numNewHedges] = numNewPins;
   numDupls = 0;
 
   for (i = 0; i < numHedges; ++i) {
@@ -109,30 +109,30 @@ hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
     for (j = hEdgeOffsets[i]; j < endHedgeOffset; ++j) {
       v = tempPinList[j];
 
-      if ((*newHedgeOffsets)[numNewHedges] == numNewPins ||
-          v != (*newPinList)[numNewPins - 1]) {
-        newPinList->assign(numNewPins++, v);
+      if (newHedgeOffsets[numNewHedges] == numNewPins ||
+          v != newPinList[numNewPins - 1]) {
+        newPinList[numNewPins++] = v;
       }
     }
 
-    newHedgeLen = numNewPins - (*newHedgeOffsets)[numNewHedges];
+    newHedgeLen = numNewPins - newHedgeOffsets[numNewHedges];
 
     if (newHedgeLen > 1) {
-      startV = (*newPinList)[startHedgeOffset];
+      startV = newPinList[startHedgeOffset];
       duplHedge = -1;
       duplDeg = duplDegs[startV];
       startOff = vHedgOffsets[startV];
 
       for (j = 0; j < duplDeg; ++j) {
         hEdge = vHedges[startOff + j];
-        hEdgeEnd = (*newHedgeOffsets)[hEdge + 1];
-        hEdgeStart = (*newHedgeOffsets)[hEdge];
+        hEdgeEnd = newHedgeOffsets[hEdge + 1];
+        hEdgeStart = newHedgeOffsets[hEdge];
 
         if (hEdgeEnd - hEdgeStart == newHedgeLen) {
           duplHedge = hEdge;
           for (ij = 1; ij < newHedgeLen; ++ij)
-            if ((*newPinList)[hEdgeStart + ij] !=
-                (*newPinList)[startHedgeOffset + ij]) {
+            if (newPinList[hEdgeStart + ij] !=
+                newPinList[startHedgeOffset + ij]) {
               duplHedge = -1;
               break;
             }
@@ -146,46 +146,46 @@ hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
         vHedges[vHedgOffsets[startV] + duplDeg] = numNewHedges;
         ++duplDegs[startV];
 
-        for (j = (*newHedgeOffsets)[numNewHedges]; j < numNewPins; ++j) {
-          v = (*newPinList)[j];
+        for (j = newHedgeOffsets[numNewHedges]; j < numNewPins; ++j) {
+          v = newPinList[j];
           ++vDegs[v];
         }
 
-        newHedgeWt->assign(numNewHedges++, hEdgeWeight[i]);
-        newHedgeOffsets->assign(numNewHedges, numNewPins);
+        newHedgeWt[numNewHedges++] = hEdgeWeight[i];
+        newHedgeOffsets[numNewHedges] = numNewPins;
       } else {
         ++numDupls;
-        (*newHedgeWt)[duplHedge] += hEdgeWeight[i];
-        numNewPins = (*newHedgeOffsets)[numNewHedges];
+        newHedgeWt[duplHedge] += hEdgeWeight[i];
+        numNewPins = newHedgeOffsets[numNewHedges];
       }
     } else
-      numNewPins = (*newHedgeOffsets)[numNewHedges];
+      numNewPins = newHedgeOffsets[numNewHedges];
   }
 
   // ###
   // build the new vToHedges
   // ###
 
-  (*newVerOffsets)[0] = 0;
+  newVerOffsets[0] = 0;
 
   for (i = 1; i < numCoarseVerts + 1; ++i) {
     ij = i - 1;
-    (*newVerOffsets)[i] = (*newVerOffsets)[ij] + vDegs[ij];
+    newVerOffsets[i] = newVerOffsets[ij] + vDegs[ij];
     vDegs[ij] = 0;
   }
 
 #ifdef PRUDENT
-  assert((*newVerOffsets)[numCoarseVerts] == numNewPins);
+  assert(newVerOffsets[numCoarseVerts] == numNewPins);
 #endif
 
-  newVtoHedges->reserve(numNewPins);
+  newVtoHedges.resize(numNewPins);
 
   for (i = 0; i < numNewHedges; ++i) {
-    endHedgeOffset = (*newHedgeOffsets)[i + 1];
+    endHedgeOffset = newHedgeOffsets[i + 1];
 
-    for (j = (*newHedgeOffsets)[i]; j < endHedgeOffset; ++j) {
-      v = (*newPinList)[j];
-      (*newVtoHedges)[(*newVerOffsets)[v] + (vDegs[v]++)] = i;
+    for (j = newHedgeOffsets[i]; j < endHedgeOffset; ++j) {
+      v = newPinList[j];
+      newVtoHedges[newVerOffsets[v] + (vDegs[v]++)] = i;
     }
   }
 
@@ -193,20 +193,18 @@ hypergraph *coarsener::build_coarse_hypergraph(int *coarseWts,
   // init new hypergraph
   // ###
 
-  newHedgeWt->reserve(numNewHedges);
-  newPinList->reserve(numNewPins);
-  newHedgeOffsets->reserve(numNewHedges + 1);
+  newHedgeWt.resize(numNewHedges);
+  newPinList.resize(numNewPins);
+  newHedgeOffsets.resize(numNewHedges + 1);
 
   newHypergraph->set_number_of_hyperedges(numNewHedges);
   newHypergraph->set_number_of_pins(numNewPins);
   newHypergraph->set_total_weight(totWt);
-  newHypergraph->set_hyperedge_weights(newHedgeWt->data(), numNewHedges);
-  newHypergraph->set_pin_list(newPinList->data(), numNewPins);
-  newHypergraph->set_hyperedge_offsets(newHedgeOffsets->data(),
-                                       numNewHedges + 1);
-  newHypergraph->set_vertex_to_hyperedges(newVtoHedges->data(), numNewPins);
-  newHypergraph->set_vertex_offsets(newVerOffsets->data(),
-                                    numCoarseVerts + 1);
+  newHypergraph->set_hyperedge_weights(newHedgeWt);
+  newHypergraph->set_pin_list(newPinList);
+  newHypergraph->set_hyperedge_offsets(newHedgeOffsets);
+  newHypergraph->set_vertex_to_hyperedges(newVtoHedges);
+  newHypergraph->set_vertex_offsets(newVerOffsets);
 
   return newHypergraph;
 }

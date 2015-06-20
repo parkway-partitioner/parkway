@@ -48,8 +48,8 @@ class k_way_greedy_refiner : public refiner {
   ds::dynamic_array<int> number_of_parts_spanned_;
   ds::dynamic_array<int> spanned_parts_;
 
-  bit_field locked_;
-  bit_field vertices_seen_;
+  ds::bit_field locked_;
+  ds::bit_field vertices_seen_;
 
   // move set structures
 

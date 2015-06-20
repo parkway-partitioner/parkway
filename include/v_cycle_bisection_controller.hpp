@@ -30,8 +30,8 @@ class v_cycle_bisection_controller : public bisection_controller {
 
   void display_options() const;
   void build_restrictive_coarsener(double rRatio, int cType, int minV);
-  void record_v_cycle_partition(const int *pVector, int numV);
-  void store_best_partition(const int *pVector, int numV);
+  void record_v_cycle_partition(ds::dynamic_array<int> pVector,  int n);
+  void store_best_partition(ds::dynamic_array<int> pVector, int n);
 
   virtual void print_type() const = 0;
   virtual void compute_bisection() = 0;

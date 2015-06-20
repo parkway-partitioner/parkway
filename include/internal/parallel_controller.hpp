@@ -1,6 +1,5 @@
 #ifndef _PARA_CONTROLLER_HPP
 #define _PARA_CONTROLLER_HPP
-
 // ### ParaController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -112,13 +111,10 @@ class controller : public parkway::global_communicator {
 
   void initialize_map_to_orig_verts();
   void set_prescribed_partition(const char *filename, MPI_Comm comm);
-  void store_best_partition(int numV, const int *array, MPI_Comm comm);
+  void store_best_partition(int numV, const dynamic_array<int> array, MPI_Comm comm);
   void partition_to_file(const char *filename, MPI_Comm comm) const;
   void copy_out_partition(int numVertices, int *pVector) const;
   void display_partition_info(MPI_Comm comm) const;
-#ifdef DEBUG_TABLES
-  void printHashMemUse();
-#endif
 };
 
 }  // namespace parallel

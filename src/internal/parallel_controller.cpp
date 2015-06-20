@@ -102,8 +102,8 @@ void controller::set_prescribed_partition(const char *filename, MPI_Comm comm) {
   }
 }
 
-void controller::store_best_partition(int numV, const int *array,
-                                               MPI_Comm comm) {
+void controller::store_best_partition(int numV, const dynamic_array<int> array,
+                                      MPI_Comm comm) {
 
 #ifdef DEBUG_CONTROLLER
   int numLocalVertices = hgraph->getNumLocalVertices();
@@ -113,7 +113,6 @@ void controller::store_best_partition(int numV, const int *array,
   int numTotalVertices = hypergraph_->total_number_of_vertices();
   int vertPerProc = numTotalVertices / processors_;
   int totToRecv;
-  int totToSend;
   int sendLength;
   int vertex;
   int vPart;
@@ -130,7 +129,6 @@ void controller::store_best_partition(int numV, const int *array,
 #endif
 
   int *mapToHgraphVerts = map_to_orig_vertices_.data();
-  int *auxArray;
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
@@ -151,8 +149,8 @@ void controller::store_best_partition(int numV, const int *array,
     if (ij == rank_) {
       best_partition_[vertex - minLocVertIndex] = vPart;
     } else {
-      data_out_sets_[ij]->assign(send_lens_[ij]++, vertex);
-      data_out_sets_[ij]->assign(send_lens_[ij]++, vPart);
+      data_out_sets_[ij][send_lens_[ij]++] = vertex;
+      data_out_sets_[ij][send_lens_[ij]++] = vPart;
     }
   }
 
@@ -164,16 +162,13 @@ void controller::store_best_partition(int numV, const int *array,
   }
 
   send_array_.reserve(ij);
-  totToSend = ij;
   ij = 0;
 
   for (i = 0; i < processors_; ++i) {
     j = 0;
     sendLength = send_lens_[i];
-    auxArray = data_out_sets_[i]->data();
-
     while (j < sendLength) {
-      send_array_[ij++] = auxArray[j++];
+      send_array_[ij++] = data_out_sets_[i][j++];
     }
   }
 

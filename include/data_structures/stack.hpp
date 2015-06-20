@@ -10,7 +10,7 @@
 // 30/11/2004: Last Modified
 //
 // ###
-
+#include <assert.h>
 #include "data_structures/dynamic_array.hpp"
 
 namespace parkway {
@@ -25,7 +25,7 @@ template <class T> class stack {
   }
 
   inline void push(const T elem) {
-    data_.assign(size_++, elem);
+    data_[size_++] = elem;
   }
 
   inline int size() const {

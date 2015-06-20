@@ -58,20 +58,20 @@ vertices.
   int numLocalPins = hgraph.number_of_pins();
   int localVertexWt = hgraph.vertex_weight();
 
-  int *localVertWeight = hgraph.vertex_weights();
-  int *localHedgeOffsets = hgraph.hyperedge_offsets();
-  int *localHedgeWeights = hgraph.hyperedge_weights();
-  int *localPins = hgraph.pin_list();
+  auto localVertWeight = hgraph.vertex_weights();
+  auto localHedgeOffsets = hgraph.hyperedge_offsets();
+  auto localHedgeWeights = hgraph.hyperedge_weights();
+  auto localPins = hgraph.pin_list();
 
   int numVertices = hgraph.total_number_of_vertices();
   int numHedges;
   int numPins;
   int totVertexWt;
 
-  dynamic_array<int> *vWeights;
-  dynamic_array<int> *hEdgeWeights;
-  dynamic_array<int> *hEdgeOffsets;
-  dynamic_array<int> *pinList;
+  dynamic_array<int> vWeights;
+  dynamic_array<int> hEdgeWeights;
+  dynamic_array<int> hEdgeOffsets;
+  dynamic_array<int> pinList;
   dynamic_array<int> recvDispls(number_of_processors_);
   dynamic_array<int> recvLens(number_of_processors_);
   dynamic_array<int> recvArray;
@@ -89,11 +89,10 @@ vertices.
   assert(numVertices == ij);
 #endif
 
-  vWeights = new dynamic_array<int>(numVertices);
-
+  vWeights.resize(numVertices);
   MPI_Allreduce(&localVertexWt, &totVertexWt, 1, MPI_INT, MPI_SUM, comm);
-  MPI_Allgatherv(localVertWeight, numLocalVertices, MPI_INT,
-                 vWeights->data(), recvLens.data(),
+  MPI_Allgatherv(localVertWeight.data(), numLocalVertices, MPI_INT,
+                 vWeights.data(), recvLens.data(),
                  recvDispls.data(), MPI_INT, comm);
   MPI_Allgather(&numLocalHedges, 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                 comm);
@@ -105,10 +104,9 @@ vertices.
   }
 
   numHedges = ij;
-  hEdgeWeights = new dynamic_array<int>(numHedges);
-
-  MPI_Allgatherv(localHedgeWeights, numLocalHedges, MPI_INT,
-                 hEdgeWeights->data(), recvLens.data(),
+  hEdgeWeights.resize(numHedges);
+  MPI_Allgatherv(localHedgeWeights.data(), numLocalHedges, MPI_INT,
+                 hEdgeWeights.data(), recvLens.data(),
                  recvDispls.data(), MPI_INT, comm);
 
   ij = 0;
@@ -120,28 +118,24 @@ vertices.
 
   recvArrayLen = ij;
   recvArray.reserve(recvArrayLen);
-  MPI_Allgatherv(localHedgeOffsets, numLocalHedges + 1, MPI_INT,
+  MPI_Allgatherv(localHedgeOffsets.data(), numLocalHedges + 1, MPI_INT,
                  recvArray.data(), recvLens.data(),
                  recvDispls.data(), MPI_INT, comm);
-  hEdgeOffsets = new dynamic_array<int>(numHedges + 1);
+  hEdgeOffsets.resize(numHedges + 1);
 
   j = 1;
   index = 0;
-  (*hEdgeOffsets)[0] = 0;
+  hEdgeOffsets[0] = 0;
 
   for (i = 1; i < recvArrayLen; ++i) {
     if (recvArray[i] != 0) {
       ij = recvArray[i] - recvArray[i - 1];
-      (*hEdgeOffsets)[j] = (*hEdgeOffsets)[j - 1] + ij;
+      hEdgeOffsets[j] = hEdgeOffsets[j - 1] + ij;
       ++j;
     } else {
       recvLens[index++] = recvArray[i - 1];
     }
   }
-
-#ifdef DEBUG_CONTROLLER
-  assert(index == numProcs - 1);
-#endif
 
   recvLens[index] = recvArray[recvArrayLen - 1];
 
@@ -152,18 +146,18 @@ vertices.
   }
 
   numPins = ij;
-  pinList = new dynamic_array<int>(numPins);
-  MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->data(),
+  pinList.resize(numPins);
+  MPI_Allgatherv(localPins.data(), numLocalPins, MPI_INT, pinList.data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  hypergraph_ = new serial::hypergraph(vWeights->data(), numVertices);
+  hypergraph_ = new serial::hypergraph(vWeights, numVertices);
 
   hypergraph_->set_number_of_hyperedges(numHedges);
   hypergraph_->set_number_of_pins(numPins);
   hypergraph_->set_total_weight(totVertexWt);
-  hypergraph_->set_hyperedge_weights(hEdgeWeights->data(), hEdgeWeights->capacity());
-  hypergraph_->set_hyperedge_offsets(hEdgeOffsets->data(), hEdgeOffsets->capacity());
-  hypergraph_->set_pin_list(pinList->data(), pinList->capacity());
+  hypergraph_->set_hyperedge_weights(hEdgeWeights);
+  hypergraph_->set_hyperedge_offsets(hEdgeOffsets);
+  hypergraph_->set_pin_list(pinList);
   hypergraph_->buildVtoHedges();
 
   if (display_option_ > 0 && rank_ == 0)
@@ -186,13 +180,9 @@ void web_graph_serial_controller::initialize_serial_partitions(
   int endOffset;
   int totToSend;
 
-  int *hPartitionVector;
-  int *hPartVectorOffsets;
-  int *hPartCuts;
-
   int numTotVertices = hypergraph_->number_of_vertices();
-  int *pVector = hypergraph_->partition_vector();
-  int *pCuts = hypergraph_->partition_cuts();
+  auto pVector = hypergraph_->partition_vector();
+  auto pCuts = hypergraph_->partition_cuts();
 
   dynamic_array<int> numVperProc(number_of_processors_);
   dynamic_array<int> procDispls(number_of_processors_);
@@ -248,9 +238,9 @@ void web_graph_serial_controller::initialize_serial_partitions(
 
   hgraph.set_number_of_partitions(numKept);
 
-  hPartitionVector = hgraph.partition_vector();
-  hPartVectorOffsets = hgraph.partition_offsets();
-  hPartCuts = hgraph.partition_cuts();
+  auto hPartitionVector = hgraph.partition_vector();
+  auto hPartVectorOffsets = hgraph.partition_offsets();
+  auto hPartCuts = hgraph.partition_cuts();
 
   // ###
   // communicate partition vector values
@@ -309,7 +299,7 @@ void web_graph_serial_controller::initialize_serial_partitions(
 #endif
 
   MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, hPartitionVector,
+                sendDispls.data(), MPI_INT, hPartitionVector.data(),
                 recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
@@ -326,7 +316,7 @@ void web_graph_serial_controller::initialize_serial_partitions(
     ij += recvLens[i];
   }
 
-  MPI_Allgatherv(pCuts, keepMyPartition, MPI_INT, hPartCuts,
+  MPI_Allgatherv(pCuts.data(), keepMyPartition, MPI_INT, hPartCuts.data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   if (display_option_ > 1 && rank_ == 0) {

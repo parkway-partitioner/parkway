@@ -1,7 +1,7 @@
 #ifndef _DATA_STRUCTURES_NEW_HYPEREDGE_INDEX_TABLE_HPP
 #define _DATA_STRUCTURES_NEW_HYPEREDGE_INDEX_TABLE_HPP
-
 #include "data_structures/dynamic_array.hpp"
+#include "Macros.h"
 
 namespace parkway {
 namespace data_structures {

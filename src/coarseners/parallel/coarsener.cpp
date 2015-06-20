@@ -118,8 +118,7 @@ hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
 
   ds::dynamic_array<int> min_cluster_index(processors_);
   ds::dynamic_array<int> max_cluster_index(processors_);
-  ds::dynamic_array<int> *cluster_weights =
-      new ds::dynamic_array<int>(clusters_on_this_rank);
+  ds::dynamic_array<int> cluster_weights(clusters_on_this_rank);
 
   for (int i = 0; i < processors_; ++i) {
     if (i == 0) {
@@ -158,7 +157,7 @@ hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
   }
 
   MPI_Alltoallv(cluster_weights_.data(), send_lens_.data(),
-                send_displs_.data(), MPI_INT, cluster_weights->data(),
+                send_displs_.data(), MPI_INT, cluster_weights.data(),
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   minimum_cluster_index_ = min_cluster_index[rank_];
@@ -167,7 +166,7 @@ hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
       new parallel::hypergraph(rank_, processors_, clusters_on_this_rank,
                                total_number_of_clusters_,
                                minimum_cluster_index_, stop_coarsening_,
-                               cluster_weights->data());
+                               cluster_weights, h.display_option());
 
     h.contract_hyperedges(*coarseGraph, comm);
 

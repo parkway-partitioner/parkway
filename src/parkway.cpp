@@ -1,16 +1,3 @@
-#ifndef _PARKWAY_CPP
-#define _PARKWAY_CPP
-
-// ### Parkway.cpp ###
-//
-// Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-//
-// HISTORY:
-//
-// 12/12/2004: Last Modified
-//
-// ###
-
 #include "parkway.h"
 #include <fstream>
 #include <iostream>
@@ -180,17 +167,6 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
 
   k_1cut = controller->best_cut_size();
 
-  dynamic_memory::delete_pointer<parallel::controller>(controller);
-  dynamic_memory::delete_pointer<serial::controller>(seqController);
-  dynamic_memory::delete_pointer<parallel::restrictive_coarsening>(restrC);
-  dynamic_memory::delete_pointer<parallel::coarsener>(coarsener);
-  dynamic_memory::delete_pointer<parallel::refiner>(refiner);
-  dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
-
-  if (out_file) {
-    dynamic_memory::delete_pointer<std::ostream>(output);
-  }
-
 #ifdef MEM_CHECK
   MemoryTracker::stop();
 #endif
@@ -198,10 +174,9 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
 
 void k_way_partition(int numVertices, int numHedges, const int *vWeights,
                      const int *hEdgeWts, const int *offsets,
-                     const int *pinList,
-                     int numParts, double constraint, int &k_1cut,
-                     const int *options, int *pVector, const char *out_file,
-                     MPI_Comm comm) {
+                     const int *pinList, int numParts, double constraint,
+                     int &k_1cut, const int *options, int *pVector,
+                     const char *out_file, MPI_Comm comm) {
   int num_procs;
   int my_rank;
   int maxHedgeLen = 0;
@@ -218,6 +193,19 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
 
   int i;
   int j;
+
+  ds::dynamic_array<int> vertex_weights(numVertices);
+  vertex_weights.set_data(const_cast<int *>(vWeights), numVertices);
+
+  ds::dynamic_array<int> hyperedge_weights(numHedges);
+  vertex_weights.set_data(const_cast<int *>(hEdgeWts), numHedges);
+
+  ds::dynamic_array<int> hyperedge_offsets_(numHedges + 1);
+  vertex_weights.set_data(const_cast<int *>(offsets), numHedges);
+
+  ds::dynamic_array<int> pin_list(hyperedge_offsets_.back() - 1);
+  vertex_weights.set_data(const_cast<int *>(pinList), hyperedge_offsets_.back() - 1);
+
 
   parallel::hypergraph *hgraph = nullptr;
   parallel::coarsener *coarsener = nullptr;
@@ -286,8 +274,10 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
     Funct::printIntro(*output);
 
   hgraph = new parallel::hypergraph(my_rank, num_procs, numVertices, numHedges,
-                              globMaxHedgeLen, vWeights, hEdgeWts, pinList,
-                              offsets, disp_option, *output, comm);
+                                    globMaxHedgeLen, vertex_weights,
+                                    hyperedge_weights, pin_list,
+                                    hyperedge_offsets_, disp_option, *output,
+                                    comm);
 
   if (!hgraph) {
     sprintf(message, "p[%d] could not initialise hypergraph - abort\n",
@@ -351,16 +341,4 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
   controller->copy_out_partition(numVertices, pVector);
 
   k_1cut = controller->best_cut_size();
-
-  dynamic_memory::delete_pointer<parallel::controller>(controller);
-  dynamic_memory::delete_pointer<serial::controller>(seqController);
-  dynamic_memory::delete_pointer<parallel::restrictive_coarsening>(restrC);
-  dynamic_memory::delete_pointer<parallel::coarsener>(coarsener);
-  dynamic_memory::delete_pointer<parallel::refiner>(refiner);
-  dynamic_memory::delete_pointer<parallel::hypergraph>(hgraph);
-
-  if (out_file)
-    dynamic_memory::delete_pointer<std::ostream>(output);
 }
-
-#endif

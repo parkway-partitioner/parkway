@@ -36,7 +36,7 @@ class restrictive_first_choice_coarsening : public restrictive_coarsening {
 
   hypergraph *coarsen(hypergraph &h, MPI_Comm comm);
 
-  void permute_vertices_array(int *verts, int numLocVerts);
+  void permute_vertices_array(dynamic_array<int> &verts, int nLocVerts);
   void set_cluster_indices(MPI_Comm comm);
   void print_visit_order(int variable) const;
 };

@@ -12,6 +12,7 @@
 // ###
 
 #include "HarwellBoeingToTxt.hpp"
+#include <cassert>
 
 HarwellBoeingToTxt::HarwellBoeingToTxt() : HarwellBoeingReader() {}
 

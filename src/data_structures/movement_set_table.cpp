@@ -1,6 +1,5 @@
 #ifndef _MOVEMENT_SETS_CPP
 #define _MOVEMENT_SETS_CPP
-
 // ### MovementSets.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,8 +9,8 @@
 // 30/11/2004: Last Modified
 //
 // ###
-
 #include "data_structures/movement_set_table.hpp"
+#include <climits>
 
 namespace parkway {
 namespace data_structures {
@@ -45,14 +44,7 @@ movement_set_table::movement_set_table(int number_of_parts,
   }
 }
 
-movement_set_table::~movement_set_table() {
-  for (int i = 0; i < set_array_len_; ++i) {
-    dynamic_memory::delete_pointer<dynamic_array<movement_set> >(sets_[i]);
-  }
-
-  for (int i = 0; i < number_of_processors_; ++i) {
-    dynamic_memory::delete_pointer<dynamic_array<int> >(restoring_moves_[i]);
-  }
+movement_set_table::~movement_set_table()  {
 }
 
 void movement_set_table::initialize_part_weights(const int *part_weights,
@@ -112,7 +104,7 @@ void movement_set_table::compute_restoring_array() {
   while (heaviest > -1) {
     int minIndex = -1;
     int minProc = -1;
-    int minGain = LARGE_CONSTANT;
+    int minGain = INT_MAX;
 
     for (int j = 0; j < number_of_parts_; ++j) {
       if (j != heaviest) {
@@ -129,7 +121,7 @@ void movement_set_table::compute_restoring_array() {
     }
 
 #ifdef DEBUG_BASICS
-    assert(minGain != LARGE_CONSTANT);
+    assert(minGain != INT_MAX);
     assert(minProc != -1);
     assert(minIndex != -1);
 #endif

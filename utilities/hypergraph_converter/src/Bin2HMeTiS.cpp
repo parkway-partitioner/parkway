@@ -11,6 +11,7 @@
 //
 // ###
 
+#include <cassert>
 #include "Bin2HMeTiS.hpp"
 
 Bin2HMeTiS::Bin2HMeTiS() : FromBinConverter() {}

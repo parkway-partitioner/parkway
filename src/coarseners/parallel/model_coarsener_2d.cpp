@@ -9,6 +9,7 @@
 // ###
 #include "coarseners/parallel/model_coarsener_2d.hpp"
 #include "data_structures/map_to_pos_int.hpp"
+#include "data_structures/bit_field.hpp"
 #include "data_structures/internal/table_utils.hpp"
 
 namespace parkway {
@@ -29,8 +30,8 @@ model_coarsener_2d::model_coarsener_2d(int rank, int nProcs, int nParts,
 }
 
 model_coarsener_2d::~model_coarsener_2d() {
-  dynamic_memory::delete_pointer<ds::match_request_table>(table_);
 }
+
 
 void model_coarsener_2d::display_options() const {
   switch (display_options_) {
@@ -149,7 +150,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
   dynamic_array<double> connectVals;
   dynamic_array<int> vertices(number_of_local_vertices_);
 
-  permute_vertices_arrays(vertices.data(), number_of_local_vertices_);
+  permute_vertices_arrays(vertices, number_of_local_vertices_);
 
   if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
@@ -472,7 +473,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
     }
   }
 
-  bit_field matchedVertices(number_of_vertices_);
+  ds::bit_field matchedVertices(number_of_vertices_);
   matchedVertices.unset();
 
   dynamic_array<int> hEdges(number_of_hyperedges_);
@@ -685,7 +686,7 @@ void model_coarsener_2d::set_request_arrays(int highToLow) {
   int procRank;
 
   ds::match_request_table::entry *entry;
-  ds::match_request_table::entry **entryArray = table_->get_entries();
+  ds::dynamic_array<ds::match_request_table::entry *> entryArray = table_->get_entries();
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
@@ -707,8 +708,8 @@ void model_coarsener_2d::set_request_arrays(int highToLow) {
 
     if ((cluWt >= 0) && ((highToLow && procRank < rank_) ||
                          (!highToLow && procRank > rank_))) {
-      data_out_sets_[procRank]->assign(send_lens_[procRank]++, nonLocVertex);
-      data_out_sets_[procRank]->assign(send_lens_[procRank]++, cluWt);
+      data_out_sets_[procRank][send_lens_[procRank]++] = nonLocVertex;
+      data_out_sets_[procRank][send_lens_[procRank]++] = cluWt;
     }
   }
 }
@@ -761,17 +762,17 @@ void model_coarsener_2d::set_reply_arrays(int highToLow, int maxVWt) {
           // ###
 
           matchIndex = match_vector_[vLocReq - minimum_vertex_index_];
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
-          data_out_sets_[i]->assign(send_lens_[i]++, cluster_weights_[matchIndex]);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = matchIndex;
+          data_out_sets_[i][send_lens_[i]++] = cluster_weights_[matchIndex];
         } else {
           // ###
           // cross-processor match rejected, inform vertices
           // that match rejected
           // ###
 
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, NO_MATCH);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = NO_MATCH;
         }
       }
     } else {
@@ -792,17 +793,17 @@ void model_coarsener_2d::set_reply_arrays(int highToLow, int maxVWt) {
           // ###
 
           matchIndex = match_vector_[vLocReq - minimum_vertex_index_];
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
-          data_out_sets_[i]->assign(send_lens_[i]++, cluster_weights_[matchIndex]);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = matchIndex;
+          data_out_sets_[i][send_lens_[i]++] = cluster_weights_[matchIndex];
         } else {
           // ###
           // cross-processor match rejected, inform vertices
           // that match rejected
           // ###
 
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, NO_MATCH);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = NO_MATCH;
         }
       }
     }
@@ -820,7 +821,6 @@ void model_coarsener_2d::process_request_replies() {
   int cluWt;
   int matchIndex;
   int numLocals;
-  int *locals;
 
   ds::match_request_table::entry *entry;
 
@@ -851,7 +851,7 @@ void model_coarsener_2d::process_request_replies() {
         // ###
 
         entry = table_->get_entry(vNonLocReq);
-        locals = entry->local_vertices_array();
+        auto locals = entry->local_vertices_array();
         numLocals = entry->number_local();
         entry->set_cluster_index(MATCHED_LOCALLY);
 
@@ -876,12 +876,11 @@ void model_coarsener_2d::set_cluster_indices(MPI_Comm comm) {
   int i;
 
   ds::match_request_table::entry *entry;
-  ds::match_request_table::entry **entryArray;
+  ds::dynamic_array<ds::match_request_table::entry *> entryArray = table_->get_entries();
 
   int numLocals;
   int cluIndex;
   int numEntries = table_->size();
-  int *locals;
 
   i = 0;
   for (; index < processors_; ++index) {
@@ -921,7 +920,7 @@ void model_coarsener_2d::set_cluster_indices(MPI_Comm comm) {
 
     if (cluIndex != MATCHED_LOCALLY) {
       numLocals = entry->number_local();
-      locals = entry->local_vertices_array();
+      auto locals = entry->local_vertices_array();
 
 #ifdef DEBUG_COARSENER
       assert(locals);
@@ -1001,10 +1000,9 @@ int model_coarsener_2d::accept(int locVertex, int nonLocCluWt, int highToLow,
   }
 }
 
-void model_coarsener_2d::permute_vertices_arrays(int *verts,
-                                                          int nLocVerts) {
+void model_coarsener_2d::permute_vertices_arrays(dynamic_array<int> &verts,
+                                                 int nLocVerts) {
   int i;
-
   switch (vertex_visit_order_) {
   case INCREASING_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
@@ -1022,31 +1020,37 @@ void model_coarsener_2d::permute_vertices_arrays(int *verts,
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::randomPermutation(verts, nLocVerts);
+    verts.random_permutation();
     break;
 
   case INCREASING_WEIGHT_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, INC);
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::INCREASING);
     break;
 
   case DECREASING_WEIGHT_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, DEC);
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::DECREASING);
     break;
 
   default:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::randomPermutation(verts, nLocVerts);
+    verts.random_permutation();
     break;
   }
 }
+
+
 
 void model_coarsener_2d::print_visit_order(int variable) const {
   switch (variable) {

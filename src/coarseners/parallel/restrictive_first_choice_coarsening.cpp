@@ -103,7 +103,7 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
   ds::dynamic_array<int> vertexAdjEntry(number_of_local_vertices_);
   ds::dynamic_array<int> vertices(number_of_local_vertices_);
 
-  permute_vertices_array(vertices.data(), number_of_local_vertices_);
+  permute_vertices_array(vertices, number_of_local_vertices_);
 
   for (i = 0; i < number_of_local_vertices_; ++i)
     vertexAdjEntry[i] = -1;
@@ -124,8 +124,8 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
 
   metricVal = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
 
-  cluster_weights_.reserve(1024);
-  part_vector_ = new dynamic_array<int>(1024);
+  cluster_weights_.resize(1024);
+  part_vector_.resize(1024);
 
   limit_on_index_during_corasening_ =
       number_of_local_vertices_ - static_cast<int>(floor(metricVal - 1.0));
@@ -204,8 +204,8 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
         // match vertex v as singleton as not connected
 
         match_vector_[vertex] = cluster_index_;
-        part_vector_->assign(cluster_index_, partition_vector_[vertex]);
-        cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
+        part_vector_[cluster_index_] = partition_vector_[vertex];
+        cluster_weights_[cluster_index_++] = vertex_weights_[vertex];
         --numNotMatched;
       } else {
         // ###
@@ -237,8 +237,8 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
           // vertex weight - match as singleton
 
           match_vector_[vertex] = cluster_index_;
-          part_vector_->assign(cluster_index_, partition_vector_[vertex]);
-          cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
+          part_vector_[cluster_index_] = partition_vector_[vertex];
+          cluster_weights_[cluster_index_++] = vertex_weights_[vertex];
           --numNotMatched;
         } else {
 #ifdef DEBUG_COARSENER
@@ -249,8 +249,8 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
 
             match_vector_[vertex] = cluster_index_;
             match_vector_[bestMatch] = cluster_index_;
-            part_vector_->assign(cluster_index_, partition_vector_[vertex]);
-            cluster_weights_.assign(cluster_index_++, bestMatchWt);
+            part_vector_[cluster_index_] = partition_vector_[vertex];
+            cluster_weights_[cluster_index_++] = bestMatchWt;
             numNotMatched -= 2;
           } else {
             // match with existing cluster of coarse vertices
@@ -279,8 +279,8 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
 
     if (match_vector_[vertex] == -1) {
       match_vector_[vertex] = cluster_index_;
-      part_vector_->assign(cluster_index_, partition_vector_[vertex]);
-      cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
+      part_vector_[cluster_index_] = partition_vector_[vertex];
+      cluster_weights_[cluster_index_++] = vertex_weights_[vertex];
     }
   }
 
@@ -307,9 +307,8 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
 }
 
 void restrictive_first_choice_coarsening::permute_vertices_array(
-    int *verts, int nLocVerts) {
+    dynamic_array<int> &verts, int nLocVerts) {
   int i;
-
   switch (vertex_visit_order_) {
   case INCREASING_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
@@ -327,31 +326,38 @@ void restrictive_first_choice_coarsening::permute_vertices_array(
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::randomPermutation(verts, nLocVerts);
+    verts.random_permutation();
     break;
 
   case INCREASING_WEIGHT_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, INC);
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::INCREASING);
     break;
 
   case DECREASING_WEIGHT_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, DEC);
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::DECREASING);
     break;
 
   default:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::randomPermutation(verts, nLocVerts);
+    verts.random_permutation();
     break;
   }
 }
+
+
+
 
 void restrictive_first_choice_coarsening::set_cluster_indices(MPI_Comm comm) {
   int i;

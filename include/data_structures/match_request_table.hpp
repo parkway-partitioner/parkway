@@ -17,16 +17,16 @@ class match_request_table {
   int cluster_index(int _vertex) const;
   int local_count(int _vertex) const;
 
-  inline int size() const {
+  inline std::size_t size() const {
     return size_;
   }
 
-  inline int capacity() const {
+  inline std::size_t capacity() const {
     return capacity_;
   }
 
-  inline entry **get_entries() const {
-    return entries_.data();
+  inline dynamic_array<entry *> get_entries() const {
+    return entries_;
   }
 
   entry *get_entry(int i) const;
@@ -38,8 +38,8 @@ class match_request_table {
   void clear();
 
  protected:
-  int size_;
-  int capacity_;
+  std::size_t size_;
+  std::size_t capacity_;
 
   dynamic_array<entry *> table_;
   dynamic_array<entry *> entries_;
@@ -66,11 +66,7 @@ class match_request_table::entry {
         non_local_process_(_proc),
         number_local_(1),
         next_(_next) {
-    local_vertices_.assign(0, _local);
-  }
-
-  inline ~entry() {
-    dynamic_memory::delete_pointer<entry>(next_);
+    local_vertices_[0] = _local;
   }
 
   inline int non_local_vertex() const {
@@ -93,8 +89,8 @@ class match_request_table::entry {
     return number_local_;
   }
 
-  inline int *local_vertices_array() const {
-    return local_vertices_.data();
+  inline dynamic_array<int> local_vertices_array() const {
+    return local_vertices_;
   }
 
   inline entry *next() const {
@@ -123,7 +119,7 @@ class match_request_table::entry {
   }
 
   inline void add_local(int _loc, int _locWt) {
-    local_vertices_.assign(number_local_++, _loc);
+    local_vertices_[number_local_++] = _loc;
     cluster_weight_ += _locWt;
   }
 

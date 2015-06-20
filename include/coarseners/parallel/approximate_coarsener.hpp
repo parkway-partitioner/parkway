@@ -10,6 +10,7 @@
 //
 // ###
 #include <iostream>
+#include "data_structures/dynamic_array.hpp"
 #include "data_structures/bit_field.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "coarseners/parallel/coarsener.hpp"
@@ -27,8 +28,10 @@ class approximate_coarsener : public coarsener {
 
   virtual void set_cluster_indices(MPI_Comm comm) = 0;
 
-  void compute_hyperedges_to_load(bit_field &toLoad, int numH, int *hEdgeWts,
-                                  int *hEdgeOffsets, MPI_Comm comm);
+  void compute_hyperedges_to_load(ds::bit_field &toLoad, int numH,
+                                  ds::dynamic_array<int> &hEdgeWts,
+                                  ds::dynamic_array<int> &hEdgeOffsets,
+                                  MPI_Comm comm);
 
  protected:
   int startPercentile;

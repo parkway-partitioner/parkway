@@ -38,8 +38,6 @@ fm_refiner::fm_refiner(int max, int insMethod, int ee, int dL) : refiner(dL) {
 }
 
 fm_refiner::~fm_refiner() {
-  dynamic_memory::delete_pointer<NodeArray>(bucket_arrays_[0]);
-  dynamic_memory::delete_pointer<NodeArray>(bucket_arrays_[1]);
 }
 
 void fm_refiner::display_options(std::ostream &out) const {
@@ -132,13 +130,6 @@ void fm_refiner::restore_buckets() {
 }
 
 void fm_refiner::destroy_buckets() {
-  int i;
-
-  for (i = 0; i < numVertices; ++i)
-    dynamic_memory::delete_pointer<bucket_node>(buckets_[i]);
-
-  for (i = 0; i < 2; ++i)
-    dynamic_memory::delete_pointer<NodeArray>(bucket_arrays_[i]);
 }
 
 void fm_refiner::initialise_partition_structure() {

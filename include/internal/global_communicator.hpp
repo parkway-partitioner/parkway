@@ -9,7 +9,6 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "mpi.h"
 #include "Funct.hpp"
 #include "data_structures/dynamic_array.hpp"
@@ -31,6 +30,10 @@ class global_communicator {
 
   inline int processors() const {
     return processors_;
+  }
+
+  inline int display_option() const {
+    return display_option_;
   }
 
 protected:

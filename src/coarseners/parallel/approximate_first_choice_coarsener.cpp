@@ -11,6 +11,7 @@
 #include "coarseners/parallel/approximate_first_choice_coarsener.hpp"
 #include "data_structures/map_to_pos_int.hpp"
 #include "data_structures/internal/table_utils.hpp"
+#include "Macros.h"
 #include <iostream>
 
 namespace parkway {
@@ -27,10 +28,6 @@ approximate_first_choice_coarsener::approximate_first_choice_coarsener(
   limitOnIndexDuringCoarsening = 0;
 
   table = nullptr;
-}
-
-approximate_first_choice_coarsener::~approximate_first_choice_coarsener() {
-  dynamic_memory::delete_pointer<ds::match_request_table>(table);
 }
 
 void approximate_first_choice_coarsener::dispCoarseningOptions() const {
@@ -143,7 +140,7 @@ parallel::hypergraph *approximate_first_choice_coarsener::coarsen(
   dynamic_array<double> connectVals;
   dynamic_array<int> vertices(number_of_local_vertices_);
 
-  permuteVerticesArray(vertices.data(), number_of_local_vertices_);
+  permuteVerticesArray(vertices, number_of_local_vertices_);
 
   if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
@@ -459,7 +456,7 @@ void approximate_first_choice_coarsener::setRequestArrays(int highToLow) {
   int procRank;
 
   ds::match_request_table::entry *entry;
-  ds::match_request_table::entry **entryArray = table->get_entries();
+  ds::dynamic_array<ds::match_request_table::entry *> entryArray = table->get_entries();
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
@@ -481,8 +478,8 @@ void approximate_first_choice_coarsener::setRequestArrays(int highToLow) {
 
     if ((cluWt > 0) && ((highToLow && procRank < rank_) ||
                         (!highToLow && procRank > rank_))) {
-      data_out_sets_[procRank]->assign(send_lens_[procRank]++, nonLocVertex);
-      data_out_sets_[procRank]->assign(send_lens_[procRank]++, cluWt);
+      data_out_sets_[procRank][send_lens_[procRank]++] = nonLocVertex;
+      data_out_sets_[procRank][send_lens_[procRank]++] = cluWt;
     }
   }
 }
@@ -535,17 +532,17 @@ void approximate_first_choice_coarsener::setReplyArrays(int highToLow, int maxVW
           // ###
 
           matchIndex = match_vector_[vLocReq - minimum_vertex_index_];
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
-          data_out_sets_[i]->assign(send_lens_[i]++, cluster_weights_[matchIndex]);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = matchIndex;
+          data_out_sets_[i][send_lens_[i]++] = cluster_weights_[matchIndex];
         } else {
           // ###
           // cross-processor match rejected, inform vertices
           // that match rejected
           // ###
 
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, NO_MATCH);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = NO_MATCH;
         }
       }
     } else {
@@ -566,17 +563,17 @@ void approximate_first_choice_coarsener::setReplyArrays(int highToLow, int maxVW
           // ###
 
           matchIndex = match_vector_[vLocReq - minimum_vertex_index_];
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, matchIndex);
-          data_out_sets_[i]->assign(send_lens_[i]++, cluster_weights_[matchIndex]);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = matchIndex;
+          data_out_sets_[i][send_lens_[i]++] = cluster_weights_[matchIndex];
         } else {
           // ###
           // cross-processor match rejected, inform vertices
           // that match rejected
           // ###
 
-          data_out_sets_[i]->assign(send_lens_[i]++, vLocReq);
-          data_out_sets_[i]->assign(send_lens_[i]++, NO_MATCH);
+          data_out_sets_[i][send_lens_[i]++] = vLocReq;
+          data_out_sets_[i][send_lens_[i]++] = NO_MATCH;
         }
       }
     }
@@ -594,7 +591,6 @@ void approximate_first_choice_coarsener::processReqReplies() {
   int cluWt;
   int matchIndex;
   int numLocals;
-  int *locals;
 
   ds::match_request_table::entry *entry;
 
@@ -625,7 +621,7 @@ void approximate_first_choice_coarsener::processReqReplies() {
         // ###
 
         entry = table->get_entry(vNonLocReq);
-        locals = entry->local_vertices_array();
+        auto locals = entry->local_vertices_array();
         numLocals = entry->number_local();
         entry->set_cluster_index(MATCHED_LOCALLY);
 
@@ -639,7 +635,7 @@ void approximate_first_choice_coarsener::processReqReplies() {
   }
 }
 
-void approximate_first_choice_coarsener::permuteVerticesArray(int *verts, int nLocVerts) {
+void approximate_first_choice_coarsener::permuteVerticesArray(dynamic_array<int> &verts, int nLocVerts) {
   int i;
 
   switch (vertexVisitOrder) {
@@ -659,28 +655,32 @@ void approximate_first_choice_coarsener::permuteVerticesArray(int *verts, int nL
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::randomPermutation(verts, nLocVerts);
+    verts.random_permutation();
     break;
 
   case INCREASING_WEIGHT_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, INC);
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::INCREASING);
     break;
 
   case DECREASING_WEIGHT_ORDER:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::qsortByAnotherArray(0, nLocVerts - 1, verts, vertex_weights_, DEC);
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::DECREASING);
     break;
 
   default:
     for (i = 0; i < nLocVerts; ++i) {
       verts[i] = i;
     }
-    Funct::randomPermutation(verts, nLocVerts);
+    verts.random_permutation();
     break;
   }
 }
@@ -696,12 +696,10 @@ void approximate_first_choice_coarsener::setClusterIndices(MPI_Comm comm) {
   int i;
 
   ds::match_request_table::entry *entry;
-  ds::match_request_table::entry **entryArray;
 
   int numLocals;
   int cluIndex;
   int numEntries = table->size();
-  int *locals;
 
   i = 0;
   for (; index < processors_; ++index) {
@@ -725,7 +723,7 @@ void approximate_first_choice_coarsener::setClusterIndices(MPI_Comm comm) {
   // now set the non-local matches' cluster indices
   // ###
 
-  entryArray = table->get_entries();
+  ds::dynamic_array<ds::match_request_table::entry *> entryArray = table->get_entries();
 
   for (index = 0; index < numEntries; ++index) {
     entry = entryArray[index];
@@ -738,11 +736,8 @@ void approximate_first_choice_coarsener::setClusterIndices(MPI_Comm comm) {
 
     if (cluIndex >= 0 && cluIndex != MATCHED_LOCALLY) {
       numLocals = entry->number_local();
-      locals = entry->local_vertices_array();
+      auto locals = entry->local_vertices_array();
 
-#ifdef DEBUG_COARSENER
-      assert(locals);
-#endif
       cluIndex += startIndex[entry->non_local_process()];
 
       // indicate - there is no reason now why a vertex may not

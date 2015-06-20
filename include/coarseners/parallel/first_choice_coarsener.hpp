@@ -44,7 +44,7 @@ class first_choice_coarsener : public coarsener {
   void set_request_arrays(int highToLow);
   void set_reply_arrays(int highToLow, int maxVertexWt);
   void process_request_replies();
-  void permute_vertices_arrays(int *verts, int numLocVerts);
+  void permute_vertices_arrays(dynamic_array<int> &verts, int numLocVerts);
   void set_cluster_indices(MPI_Comm comm);
 
   int accept(int _locV, int _nonLocCluWt, int hToLow, int _maxWt);

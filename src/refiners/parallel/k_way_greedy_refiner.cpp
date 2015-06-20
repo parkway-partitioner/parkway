@@ -71,18 +71,6 @@ k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
 }
 
 k_way_greedy_refiner::~k_way_greedy_refiner() {
-  int i;
-  int j;
-  int ij;
-
-  dynamic_memory::delete_pointer<ds::movement_set_table>(movement_sets_);
-
-  for (i = 0; i < number_of_parts_; ++i) {
-    ij = i * number_of_parts_;
-
-    for (j = 0; j < number_of_parts_; ++j)
-      dynamic_memory::delete_pointer<dynamic_array<int> >(move_sets_[ij + j]);
-  }
 }
 
 void k_way_greedy_refiner::display_options() const {
@@ -667,7 +655,6 @@ int k_way_greedy_refiner::compute_cutsize(MPI_Comm comm) {
 }
 
 void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
-
   int i;
   int j;
   int ij;
@@ -678,10 +665,10 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
   int totToRecv;
   int indexIntoMoveSets;
 
-  int *movesLengths;
+  ds::dynamic_array<int> movesLengths;
   int *array;
 
-  dynamic_array<int> **moves;
+  dynamic_array<dynamic_array<int> *> moves;
 
   numToSend = 0;
 
@@ -746,7 +733,7 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
   moves = movement_sets_->restoring_moves();
   movesLengths = movement_sets_->restoring_move_lens();
 
-  MPI_Scatter(movesLengths, 1, MPI_INT, &totToRecv, 1, MPI_INT, ROOT_PROC,
+  MPI_Scatter(movesLengths.data(), 1, MPI_INT, &totToRecv, 1, MPI_INT, ROOT_PROC,
               comm);
 
   if (rank_ == ROOT_PROC) {
@@ -764,7 +751,7 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
 
   receive_array_.reserve(totToRecv);
 
-  MPI_Scatterv(send_array_.data(), movesLengths, send_displs_.data(),
+  MPI_Scatterv(send_array_.data(), movesLengths.data(), send_displs_.data(),
                MPI_INT, receive_array_.data(), totToRecv, MPI_INT, ROOT_PROC,
                comm);
 
@@ -808,10 +795,8 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
 #endif
 
   if (rank_ == ROOT_PROC) {
-    array = movement_sets_->part_weights_array();
-
     for (ij = 0; ij < number_of_parts_; ++ij) {
-      part_weights_[ij] = array[ij];
+      part_weights_[ij] = movement_sets_->part_weights_array()[ij];
     }
   }
 

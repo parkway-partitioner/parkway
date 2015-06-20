@@ -75,7 +75,7 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
   dynamic_array<int> neighPairWts;
   dynamic_array<int> vertices(numVertices);
   dynamic_array<int> vertexAdjEntry(numVertices);
-  dynamic_array<int> *coarseWts = new dynamic_array<int>;
+  dynamic_array<int> coarseWts;
 
   dynamic_array<double> connectVals;
 
@@ -132,7 +132,7 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
                 else
                   neighPairWts.assign(
                       numNeighbours,
-                      vWeight[v] + (*coarseWts)[matchVector[candVertex]]);
+                      vWeight[v] + coarseWts[matchVector[candVertex]]);
 
                 if (util_fan_out_)
                   connectVals.assign(
@@ -163,7 +163,7 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
         // match vertex v as singleton as not connected
 
         matchVector[v] = coarseIndex;
-        coarseWts->assign(coarseIndex++, vWeight[v]);
+        coarseWts[coarseIndex++] = vWeight[v];
         --numNotMatched;
       } else {
         // else need to pick the best match
@@ -190,7 +190,7 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
           // vertex weight - match as singleton
 
           matchVector[v] = coarseIndex;
-          coarseWts->assign(coarseIndex++, vWeight[v]);
+          coarseWts[coarseIndex++] = vWeight[v];
           --numNotMatched;
         } else {
           if (matchVector[bestMatch] == -1) {
@@ -198,13 +198,13 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
 
             matchVector[v] = coarseIndex;
             matchVector[bestMatch] = coarseIndex;
-            coarseWts->assign(coarseIndex++, bestMatchWt);
+            coarseWts[coarseIndex++] = bestMatchWt;
             numNotMatched -= 2;
           } else {
             // match with existing cluster of coarse vertices
 
             matchVector[v] = matchVector[bestMatch];
-            (*coarseWts)[matchVector[v]] += vWeight[v];
+            coarseWts[matchVector[v]] += vWeight[v];
             --numNotMatched;
           }
         }
@@ -225,8 +225,6 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
   if (i == numVertices) {
     // cannot sufficiently reduce hypergraph
     // back off
-
-    dynamic_memory::delete_pointer<dynamic_array<int> >(coarseWts);
     return nullptr;
   }
 
@@ -237,7 +235,7 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
 
     if (matchVector[v] == -1) {
       matchVector[v] = coarseIndex;
-      coarseWts->assign(coarseIndex++, vWeight[v]);
+      coarseWts[coarseIndex++] = vWeight[v];
     }
   }
 
@@ -246,10 +244,9 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
     assert(matchVector[j] >= 0 && matchVector[j] < coarseIndex);
 #endif
 
-  coarseWts->reserve(coarseIndex);
+  coarseWts.reserve(coarseIndex);
 
-  return (build_coarse_hypergraph(coarseWts->data(), coarseIndex,
-                                  h.total_weight()));
+  return (build_coarse_hypergraph(coarseWts, coarseIndex, h.total_weight()));
 }
 
 }  // namespace serial

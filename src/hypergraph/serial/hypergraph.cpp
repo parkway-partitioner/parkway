@@ -1,6 +1,3 @@
-#ifndef _HYPERGRAPH_CPP
-#define _HYPERGRAPH_CPP
-
 // ### Hypergraph.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -13,28 +10,30 @@
 
 #include "hypergraph/serial/hypergraph.hpp"
 #include <cmath>
+#include <cstring>
 
 namespace parkway {
 namespace serial {
 
-hypergraph::hypergraph(int *vWts, int numVerts)
+hypergraph::hypergraph(dynamic_array<int> vWts, int numVerts)
     : hg::base_hypergraph(numVerts) {
 
   match_vector_.reserve(number_of_vertices_);
-  vertex_weights_.set_data(vWts, number_of_vertices_);
+  vertex_weights_ = vWts;
 
   for (int i = 0; i < number_of_vertices_; ++i) {
     match_vector_[i] = -1;
   }
 }
 
-hypergraph::hypergraph(int *vWts, int *p_vector, int numVerts, int cut)
+hypergraph::hypergraph(dynamic_array<int> vWts, dynamic_array<int> p_vector,
+                       int numVerts, int cut)
     : hypergraph(vWts, numVerts) {
 
-  partition_vector_.set_data(p_vector, number_of_vertices_);
+  partition_vector_ = p_vector;
 
-  partition_cuts_.reserve(1);
-  partition_vector_offsets_.reserve(2);
+  partition_cuts_.resize(1);
+  partition_vector_offsets_.resize(2);
 
   partition_vector_offsets_[0] = 0;
   partition_vector_offsets_[1] = number_of_vertices_;
@@ -106,13 +105,13 @@ void hypergraph::reset_vertex_maps() {
 void hypergraph::project_partitions(const hypergraph &coarse_graph) {
   number_of_partitions_ = coarse_graph.number_of_partitions();
 
-  int *coarse_partition_vector = coarse_graph.partition_vector();
-  int *coarse_partition_offsets = coarse_graph.partition_offsets();
-  int *coarse_partition_cuts = coarse_graph.partition_cuts();
+  auto coarse_partition_vector = coarse_graph.partition_vector();
+  auto coarse_partition_offsets = coarse_graph.partition_offsets();
+  auto coarse_partition_cuts = coarse_graph.partition_cuts();
 
-  partition_cuts_.reserve(number_of_partitions_);
-  partition_vector_offsets_.reserve(number_of_partitions_ + 1);
-  partition_vector_.reserve(number_of_partitions_ * number_of_vertices_);
+  partition_cuts_.resize(number_of_partitions_);
+  partition_vector_offsets_.resize(number_of_partitions_ + 1);
+  partition_vector_.resize(number_of_partitions_ * number_of_vertices_);
 
   int j = 0;
   for (int i = 0; i <= number_of_partitions_; ++i) {
@@ -200,28 +199,19 @@ void hypergraph::set_number_of_partitions(int nPartitions) {
   }
 }
 
-void hypergraph::copy_out_partition(int *p_vector, int nV, int pNo) const {
-#ifdef DEBUG_HYPERGRAPH
-  assert(pNo >= 0 && pNo < numPartitions);
-  assert(nV == numVertices);
-#endif
-
-  int *vOffset = &partition_vector_[partition_vector_offsets_[pNo]];
+void hypergraph::copy_out_partition(dynamic_array<int> p_vector, int nV,
+                                    int pNo) const {
+  int offset = partition_vector_offsets_[pNo];
   for (int i = 0; i < number_of_vertices_; ++i) {
-    p_vector[i] = vOffset[i];
+    p_vector[i] = partition_vector_[i + offset];
   }
 }
 
-void hypergraph::copy_in_partition(const int *p_vector, int nV, int pNo,
-                                   int cut) {
-#ifdef DEBUG_HYPERGRAPH
-  assert(pNo >= 0 && pNo < numPartitions);
-  assert(nV == numVertices);
-#endif
-
-  int *vOffset = &partition_vector_[partition_vector_offsets_[pNo]];
+void hypergraph::copy_in_partition(dynamic_array<int> p_vector, int nV,
+                                   int pNo, int cut) {
+  int offset = partition_vector_offsets_[pNo];
   for (int i = 0; i < number_of_vertices_; ++i) {
-    vOffset[i] = p_vector[i];
+    partition_vector_[i + offset] = p_vector[i];
   }
 
   partition_cuts_[pNo] = cut;
@@ -367,7 +357,7 @@ int hypergraph::export_hyperedge_weight() const {
 }
 
 int hypergraph::cut_size(int nP, int partitionNo) const {
-  int *p_vector = &partition_vector_[partition_vector_offsets_[partitionNo]];
+  int offset = partition_vector_offsets_[partitionNo];
   ds::dynamic_array<int> spanned(nP);
   int k_1_cut = 0;
 
@@ -380,7 +370,7 @@ int hypergraph::cut_size(int nP, int partitionNo) const {
     }
 
     for (int j = hyperedge_offsets_[i]; j < endOffset; ++j) {
-      int vertex_part = p_vector[pin_list_[j]];
+      int vertex_part = partition_vector_[offset + pin_list_[j]];
 #ifdef DEBUG_HYPERGRAPH
       assert(vertex_part >= 0 && vertex_part < nP);
 #endif
@@ -397,7 +387,7 @@ int hypergraph::cut_size(int nP, int partitionNo) const {
 }
 
 int hypergraph::sum_of_external_degrees(int nP, int partitionNo) const {
-  int *p_vector = &partition_vector_[partition_vector_offsets_[partitionNo]];
+  int offset = partition_vector_offsets_[partitionNo];
 
   ds::dynamic_array<int> spanned(nP);
 
@@ -412,7 +402,7 @@ int hypergraph::sum_of_external_degrees(int nP, int partitionNo) const {
     }
 
     for (int j = hyperedge_offsets_[i]; j < endOffset; ++j) {
-      int vertex_part = p_vector[pin_list_[j]];
+      int vertex_part = partition_vector_[offset + pin_list_[j]];
 #ifdef DEBUG_HYPERGRAPH
       assert(vertex_part >= 0 && vertex_part < nP);
 #endif
@@ -453,13 +443,13 @@ void hypergraph::check_partitions(int nP, int maxWt) const {
       partWts[j] = 0;
     }
 
-    int *p_vector = &partition_vector_[partition_vector_offsets_[i]];
+    int offset = partition_vector_offsets_[i];
 
     for (int j = 0; j < number_of_vertices_; ++j) {
-      partWts[p_vector[j]] += vertex_weights_[j];
+      partWts[partition_vector_[offset + j]] += vertex_weights_[j];
     }
 
-    check_part_weights_are_less_than(partWts.data(), nP, maxWt);
+    check_part_weights_are_less_than(partWts, nP, maxWt);
   }
 }
 
@@ -472,23 +462,22 @@ void hypergraph::check_partition(int numPartition, int nP, int maxWt) const {
   for (int i = 0; i < nP; ++i)
     partWts[i] = 0;
 
-  int *p_vector = &partition_vector_[partition_vector_offsets_[numPartition]];
+  int offset = partition_vector_offsets_[numPartition];
 
   for (int i = 0; i < number_of_vertices_; ++i)
-    partWts[p_vector[i]] += vertex_weights_[i];
+    partWts[partition_vector_[offset + i]] += vertex_weights_[i];
 
-  check_part_weights_are_less_than(partWts.data(), nP, maxWt);
+  check_part_weights_are_less_than(partWts, nP, maxWt);
 }
 
-void hypergraph::check_part_weights_are_less_than(int *part_weights,
-                                                  const int number,
-                                                  int maximum) const {
+void hypergraph::check_part_weights_are_less_than(
+    dynamic_array<int> &part_weights, const int number, int maximum) const {
   for (int i = 0; i < number; ++i) {
     assert(part_weights[i] <= maximum);
   }
 }
 
-void hypergraph::convert_to_DOMACS_graph_file(const char *fN) const {
+void hypergraph::convert_to_DOMACS_graph_file(const char *fN) {
   int i;
   int j;
   int ij;
@@ -522,7 +511,7 @@ void hypergraph::convert_to_DOMACS_graph_file(const char *fN) const {
     start_offset = hyperedge_offsets_[i];
     endOffset = hyperedge_offsets_[i + 1] - 1;
 
-    Funct::qsort(start_offset, endOffset, pin_list_.data());
+    pin_list_.sort_between(start_offset, endOffset);
 
     for (j = start_offset; j < endOffset; ++j) {
       v1 = pin_list_[j];
@@ -582,9 +571,6 @@ void hypergraph::convert_to_DOMACS_graph_file(const char *fN) const {
   }
 
   out_stream.close();
-
-  for (i = 0; i < number_of_vertices_; ++i)
-    dynamic_memory::delete_pointer<ds::dynamic_array<int> >(vNeighs[i]);
 }
 
 void hypergraph::print_percentiles(std::ostream &out_stream) {
@@ -718,5 +704,3 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
 
 }  // serial
 }  // parkway
-
-#endif

@@ -106,22 +106,17 @@ void parallel_v_cycle_controller::record_v_cycle_partition(
   int minVertexIndex;
   int numLocalVertices;
 
-  int *array;
-  int *pVector;
-
   IntArray *bestPartVector;
 
-  pVector = h.partition_vector();
+  auto pVector = h.partition_vector();
   minVertexIndex = h.minimum_vertex_index();
   numLocalVertices = h.number_of_vertices();
 
   if (numIteration == 0) {
     bestPartVector = new IntArray(numLocalVertices);
 
-    array = bestPartVector->data();
-
     for (i = 0; i < numLocalVertices; ++i)
-      array[i] = pVector[i];
+      bestPartVector->at(i) = pVector[i];
 
     minimum_local_current_vertices_.push(minVertexIndex);
     number_of_local_current_vertices_.push(numLocalVertices);
@@ -134,10 +129,8 @@ void parallel_v_cycle_controller::record_v_cycle_partition(
 #endif
 
     bestPartVector->reserve(numLocalVertices);
-    array = bestPartVector->data();
-
     for (i = 0; i < numLocalVertices; ++i)
-      array[i] = pVector[i];
+      bestPartVector->at(i) = pVector[i];
 
     minimum_local_current_vertices_.pop();
     number_of_local_current_vertices_.pop();
@@ -170,7 +163,6 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   int minStoredVertexIndex;
   int maxStoredVertexIndex;
   int numStoredLocVertices;
-  int numLocalVertices;
   int origV;
   int arrayLen;
   int totToSend;
@@ -180,14 +172,9 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   int numTotVertices = h.getNumTotalVertices();
 #endif
 
-  int *array;
-  int *dataOutArray;
-  int *myPartVector;
-  int *myVtoOrigV;
-
-  myPartVector = h.partition_vector();
-  numLocalVertices = h.number_of_vertices();
-  myVtoOrigV = h.to_origin_vertex();
+  auto myPartVector = h.partition_vector();
+  int numLocalVertices = h.number_of_vertices();
+  auto myVtoOrigV = h.to_origin_vertex();
 
   minStoredVertexIndex = minimum_local_current_vertices_.pop();
   numStoredLocVertices = number_of_local_current_vertices_.pop();
@@ -198,8 +185,6 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
 #ifdef DEBUG_CONTROLLER
   assert(bestPartVector);
 #endif
-
-  array = bestPartVector->data();
 
   dynamic_array<int> minStoredIDs(processors_);
   dynamic_array<int> localSendArrayVerts;
@@ -224,12 +209,12 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
 #endif
 
     if (origV >= minStoredVertexIndex && origV < maxStoredVertexIndex) {
-      myPartVector[i] = array[origV - minStoredVertexIndex];
+      myPartVector[i] = bestPartVector->at(origV - minStoredVertexIndex);
     } else {
       j = storedVtoProc.root_value(origV);
 
-      data_out_sets_[j]->assign(send_lens_[j]++, origV);
-      data_out_sets_[j]->assign(send_lens_[j]++, i);
+      data_out_sets_[j][send_lens_[j]++] = origV;
+      data_out_sets_[j][send_lens_[j]++] = i;
     }
   }
 
@@ -248,12 +233,10 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   j = 0;
 
   for (i = 0; i < processors_; ++i) {
-    dataOutArray = data_out_sets_[i]->data();
     arrayLen = Shiftl(send_lens_[i], 1);
-
     for (ij = 0; ij < arrayLen;) {
-      send_array_[j] = dataOutArray[ij++];
-      localSendArrayVerts[j++] = dataOutArray[ij++];
+      send_array_[j] = data_out_sets_[i][ij++];
+      localSendArrayVerts[j++] = data_out_sets_[i][ij++];
     }
   }
 #ifdef DEBUG_CONTROLLER
@@ -284,12 +267,7 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   send_array_.reserve(totToRecv);
 
   for (i = 0; i < totToRecv; ++i) {
-#ifdef DEBUG_CONTROLLER
-    assert(receive_array_[i] >= minStoredVertexIndex &&
-           receive_array_[i] < maxStoredVertexIndex);
-#endif
-
-    send_array_[i] = array[receive_array_[i] - minStoredVertexIndex];
+    send_array_[i] = bestPartVector->at(receive_array_[i] - minStoredVertexIndex);
   }
 
   receive_array_.reserve(totToSend);
@@ -302,13 +280,7 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
     myPartVector[localSendArrayVerts[i]] = receive_array_[i];
   }
 
-    h.set_cut(0, cut);
-
-#ifdef DEBUG_CONTROLLER
-  h.checkPartitions(numTotalParts, maxPartWt, comm);
-#endif
-
-  dynamic_memory::delete_pointer<IntArray>(bestPartVector);
+  h.set_cut(0, cut);
 }
 
 void parallel_v_cycle_controller::project_v_cycle_partition(
@@ -334,23 +306,13 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
     int numTotalCoarseVertices = cG.total_number_of_vertices();
     int coarseCut = cG.cut(0);
 
-      fG.set_cut(0, coarseCut);
+    fG.set_cut(0, coarseCut);
 
-#ifdef DEBUG_CONTROLLER
-    assert(numLocalCoarseVertices == mapToInterVerts.capacity());
-    if (rank_ != processors_ - 1)
-      assert(numLocalCoarseVertices == numTotalCoarseVertices / processors_);
-#endif
-
-    int *coarsePartVector = cG.partition_vector();
-    int *finePartVector = fG.partition_vector();
-    int *fineMatVector = fG.match_vector();
-    int *array;
+    auto coarsePartVector = cG.partition_vector();
+    auto finePartVector = fG.partition_vector();
+    auto fineMatVector = fG.match_vector();
 
     int minCoarseVertexId = cG.minimum_vertex_index();
-#ifdef DEBUG_CONTROLLER
-    int maxCoarseVertexId = minCoarseVertexId + numLocalCoarseVertices;
-#endif
     int numRequestingLocalVerts;
     int cVertPerProc = numTotalCoarseVertices / processors_;
     int cVertex;
@@ -382,8 +344,8 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
       if (ij == rank_) {
         interGraphPVector[cVertex - minCoarseVertexId] = vPart;
       } else {
-        data_out_sets_[ij]->assign(send_lens_[ij]++, cVertex);
-        data_out_sets_[ij]->assign(send_lens_[ij]++, vPart);
+        data_out_sets_[ij][send_lens_[ij]++] = cVertex;
+        data_out_sets_[ij][send_lens_[ij]++] = vPart;
       }
     }
 
@@ -394,17 +356,15 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
       ij += send_lens_[i];
     }
 
-    send_array_.reserve(ij);
+    send_array_.resize(ij);
     totToSend = ij;
     ij = 0;
 
     for (i = 0; i < processors_; ++i) {
       j = 0;
       sendLength = send_lens_[i];
-      array = data_out_sets_[i]->data();
-
       while (j < sendLength) {
-        send_array_[ij++] = array[j++];
+        send_array_[ij++] = data_out_sets_[i][j++];
       }
     }
 
@@ -476,8 +436,8 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
       if (ij == rank_) {
         finePartVector[i] = interGraphPVector[cVertex - minCoarseVertexId];
       } else {
-        data_out_sets_[ij]->assign(send_lens_[ij]++, i);
-        data_out_sets_[ij]->assign(send_lens_[ij]++, cVertex);
+        data_out_sets_[ij][send_lens_[ij]++] = i;
+        data_out_sets_[ij][send_lens_[ij]++] = cVertex;
       }
     }
 
@@ -502,11 +462,9 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
     for (i = 0; i < processors_; ++i) {
       j = 0;
       sendLength = send_lens_[i];
-      array = data_out_sets_[i]->data();
-
       while (j < sendLength) {
-        requestingLocalVerts[ij] = array[j++];
-        send_array_[ij++] = array[j++];
+        requestingLocalVerts[ij] = data_out_sets_[i][j++];
+        send_array_[ij++] = data_out_sets_[i][j++];
       }
 
       send_lens_[i] = Shiftr(sendLength, 1);
@@ -637,26 +595,23 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
   int sendLength;
   int numRequestingLocalVerts;
 
-  int *vToOrigV = h.to_origin_vertex();
-  int *array;
+  auto vToOrigV = h.to_origin_vertex();
 
-  dynamic_array<int> *newToInter = new dynamic_array<int>(numLocVertAftShuff);
+  dynamic_array<int> newToInter(numLocVertAftShuff);
   dynamic_array<int> requestingLocalVerts;
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
-
-  array = newToInter->data();
 
   for (i = 0; i < numLocVertAftShuff; ++i) {
     j = vToOrigV[i];
     ij = std::min(j / numVBefPerProc, processors_ - 1);
 
     if (ij == rank_) {
-      array[i] = map_to_inter_vertices_[j - minimum_inter_vertex_index_];
+      newToInter[i] = map_to_inter_vertices_[j - minimum_inter_vertex_index_];
     } else {
-      data_out_sets_[ij]->assign(send_lens_[ij]++, i);
-      data_out_sets_[ij]->assign(send_lens_[ij]++, j);
+      data_out_sets_[ij][send_lens_[ij]++] = i;
+      data_out_sets_[ij][send_lens_[ij]++] = j;
     }
   }
 
@@ -666,8 +621,8 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
     ij += (Shiftr(send_lens_[i], 1));
   }
 
-  send_array_.reserve(ij);
-  requestingLocalVerts.reserve(ij);
+  send_array_.resize(ij);
+  requestingLocalVerts.resize(ij);
   numRequestingLocalVerts = ij;
   totToSend = ij;
   ij = 0;
@@ -675,11 +630,9 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
   for (i = 0; i < processors_; ++i) {
     j = 0;
     sendLength = send_lens_[i];
-    array = data_out_sets_[i]->data();
-
     while (j < sendLength) {
-      requestingLocalVerts[ij] = array[j++];
-      send_array_[ij++] = array[j++];
+      requestingLocalVerts[ij] = data_out_sets_[i][j++];
+      send_array_[ij++] = data_out_sets_[i][j++];
     }
 
     send_lens_[i] = Shiftr(send_lens_[i], 1);
@@ -703,7 +656,7 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
     ij += receive_lens_[i];
   }
 
-  receive_array_.reserve(ij);
+  receive_array_.resize(ij);
   totToRecv = ij;
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
@@ -745,19 +698,17 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
   // new mapToInterVerts vector
   // ###
 
-  array = newToInter->data();
-
   for (i = 0; i < numRequestingLocalVerts; ++i) {
     j = requestingLocalVerts[i];
 #ifdef DEBUG_CONTROLLER
     assert(j >= 0 && j < numLocVertAftShuff);
     assert(receive_array_[i] >= 0 && receive_array_[i] < numTotVertices);
 #endif
-    array[j] = receive_array_[i];
+    newToInter[j] = receive_array_[i];
   }
 
   minimum_inter_vertex_index_ = minLocVertIdAftShuff;
-  map_to_inter_vertices_.set_data(array, numLocVertAftShuff);
+  map_to_inter_vertices_ = newToInter;
 }
 
 /*
@@ -1016,7 +967,7 @@ void parallel_v_cycle_controller::shift_v_cycle_vertices_to_balance(
                 receive_lens_.data(), receive_displs_.data(), MPI_INT, comm);
 
   minimum_inter_vertex_index_ = minNewIndex[rank_];
-  map_to_inter_vertices_.set_data(newToInter->data(), numMyNewVertices);
+  map_to_inter_vertices_ = *newToInter;
 }
 
 void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
@@ -1043,12 +994,8 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
     assert(numLocalVertices == vertPerProc);
 #endif
 
-  dynamic_array<int> *newMapToOrig = new dynamic_array<int>(
-      number_of_orig_local_vertices_);
+  dynamic_array<int> newMapToOrig(number_of_orig_local_vertices_);
   dynamic_array<int> copyOfSendArray;
-
-  int *auxArray = newMapToOrig->data();
-  int *array;
 
   for (i = 0; i < processors_; ++i)
     send_lens_[i] = 0;
@@ -1063,10 +1010,10 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
     ij = std::min(vertex / vertPerProc, processors_ - 1);
 
     if (ij == rank_) {
-      auxArray[i] = map_to_orig_vertices_[vertex - minLocVertIndex];
+      newMapToOrig[i] = map_to_orig_vertices_[vertex - minLocVertIndex];
     } else {
-      data_out_sets_[ij]->assign(send_lens_[ij]++, i);
-      data_out_sets_[ij]->assign(send_lens_[ij]++, vertex);
+      data_out_sets_[ij][send_lens_[ij]++] = i;
+      data_out_sets_[ij][send_lens_[ij]++] = vertex;
     }
   }
 
@@ -1085,11 +1032,9 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
   for (i = 0; i < processors_; ++i) {
     j = 0;
     sendLength = send_lens_[i];
-    array = data_out_sets_[i]->data();
-
     while (j < sendLength) {
-      copyOfSendArray[ij] = array[j++];
-      send_array_[ij++] = array[j++];
+      copyOfSendArray[ij] = data_out_sets_[i][j++];
+      send_array_[ij++] = data_out_sets_[i][j++];
     }
 
     send_lens_[i] = Shiftr(send_lens_[i], 1);
@@ -1154,15 +1099,15 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
     assert(receive_array_[i] >= 0 && receive_array_[i] < numTotalVertices);
     assert(copyOfSendArray[i] >= 0 && copyOfSendArray[i] < numOrigLocVerts);
 #endif
-    auxArray[copyOfSendArray[i]] = receive_array_[i];
+    newMapToOrig[copyOfSendArray[i]] = receive_array_[i];
   }
 
 #ifdef DEBUG_CONTROLLER
   for (i = 0; i < numOrigLocVerts; ++i)
-    assert(auxArray[i] >= 0 && auxArray[i] < numTotalVertices);
+    assert(newMapToOrig[i] >= 0 && newMapToOrig[i] < numTotalVertices);
 #endif
 
-  map_to_orig_vertices_.set_data(auxArray, number_of_orig_local_vertices_);
+  map_to_orig_vertices_ = newMapToOrig;
 }
 
 void parallel_v_cycle_controller::reset_structures() {

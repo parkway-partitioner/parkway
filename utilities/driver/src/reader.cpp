@@ -140,8 +140,11 @@ void testRecordedPartition(const char *filename, const int *pVector,
   parallel::hypergraph *h =
       new parallel::hypergraph(myRank, numProcs, filename, 1, out, comm);
 
+  parkway::ds::dynamic_array<int> pvec;
+  pvec.set_data(const_cast<int *>(pVector), numLocVerts);
+
   h->set_number_of_partitions(1);
-  h->copy_in_partition(pVector, numLocVerts, 0);
+  h->copy_in_partition(pvec, numLocVerts, 0);
   h->check_partitions(numParts, constraint, out, comm);
 
   if (h)

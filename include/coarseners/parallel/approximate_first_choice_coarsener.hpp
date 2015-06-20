@@ -44,7 +44,7 @@ class approximate_first_choice_coarsener : public approximate_coarsener {
   void setRequestArrays(int highToLow);
   void setReplyArrays(int highToLow, int maxVertexWt);
   void processReqReplies();
-  void permuteVerticesArray(int *verts, int numLocVerts);
+  void permuteVerticesArray(dynamic_array<int> &verts, int numLocVerts);
   void setClusterIndices(MPI_Comm comm);
 
   int accept(int _locV, int _nonLocCluWt, int hToLow, int _maxWt);

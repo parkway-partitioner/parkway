@@ -35,12 +35,11 @@ controller::controller(int rank, int nProcs, int nParts, std::ostream &out)
   partition_vector_offsets_.reserve(0);
 }
 
-controller::~controller() { dynamic_memory::delete_pointer<serial::hypergraph>(
-      hypergraph_); }
+controller::~controller() {
+}
 
-void controller::initialize_coarsest_hypergraph(
-    parallel::hypergraph &hgraph,
-    MPI_Comm comm) {
+void controller::initialize_coarsest_hypergraph(parallel::hypergraph &hgraph,
+                                                MPI_Comm comm) {
   int i;
   int j;
   int ij;
@@ -52,20 +51,20 @@ void controller::initialize_coarsest_hypergraph(
   int numLocalPins = hgraph.number_of_pins();
   int localVertexWt = hgraph.vertex_weight();
 
-  int *localVertWeight = hgraph.vertex_weights();
-  int *localHedgeOffsets = hgraph.hyperedge_offsets();
-  int *localHedgeWeights = hgraph.hyperedge_weights();
-  int *localPins = hgraph.pin_list();
+  auto localVertWeight = hgraph.vertex_weights();
+  auto localHedgeOffsets = hgraph.hyperedge_offsets();
+  auto localHedgeWeights = hgraph.hyperedge_weights();
+  auto localPins = hgraph.pin_list();
 
   int numVertices = hgraph.total_number_of_vertices();
   int numHedges;
   int numPins;
   int totVertexWt;
 
-  dynamic_array<int> *vWeights;
-  dynamic_array<int> *hEdgeWeights;
-  dynamic_array<int> *hEdgeOffsets;
-  dynamic_array<int> *pinList;
+  dynamic_array<int> vWeights;
+  dynamic_array<int> hEdgeWeights;
+  dynamic_array<int> hEdgeOffsets;
+  dynamic_array<int> pinList;
   dynamic_array<int> recvDispls(number_of_processors_);
   dynamic_array<int> recvLens(number_of_processors_);
   dynamic_array<int> recvArray;
@@ -83,11 +82,11 @@ void controller::initialize_coarsest_hypergraph(
   assert(numVertices == ij);
 #endif
 
-  vWeights = new dynamic_array<int>(numVertices);
+  vWeights.resize(numVertices);
 
   MPI_Allreduce(&localVertexWt, &totVertexWt, 1, MPI_INT, MPI_SUM, comm);
-  MPI_Allgatherv(localVertWeight, numLocalVertices, MPI_INT,
-                 vWeights->data(), recvLens.data(),
+  MPI_Allgatherv(localVertWeight.data(), numLocalVertices, MPI_INT,
+                 vWeights.data(), recvLens.data(),
                  recvDispls.data(), MPI_INT, comm);
   MPI_Allgather(&numLocalHedges, 1, MPI_INT, recvLens.data(), 1, MPI_INT,
                 comm);
@@ -99,10 +98,10 @@ void controller::initialize_coarsest_hypergraph(
   }
 
   numHedges = ij;
-  hEdgeWeights = new dynamic_array<int>(numHedges);
+  hEdgeWeights.resize(numHedges);
 
-  MPI_Allgatherv(localHedgeWeights, numLocalHedges, MPI_INT,
-                 hEdgeWeights->data(), recvLens.data(),
+  MPI_Allgatherv(localHedgeWeights.data(), numLocalHedges, MPI_INT,
+                 hEdgeWeights.data(), recvLens.data(),
                  recvDispls.data(), MPI_INT, comm);
 
   ij = 0;
@@ -114,19 +113,19 @@ void controller::initialize_coarsest_hypergraph(
 
   recvArrayLen = ij;
   recvArray.reserve(recvArrayLen);
-  MPI_Allgatherv(localHedgeOffsets, numLocalHedges + 1, MPI_INT,
+  MPI_Allgatherv(localHedgeOffsets.data(), numLocalHedges + 1, MPI_INT,
                  recvArray.data(), recvLens.data(),
                  recvDispls.data(), MPI_INT, comm);
-  hEdgeOffsets = new dynamic_array<int>(numHedges + 1);
+  hEdgeOffsets.resize(numHedges + 1);
 
   j = 1;
   index = 0;
-  (*hEdgeOffsets)[0] = 0;
+  hEdgeOffsets[0] = 0;
 
   for (i = 1; i < recvArrayLen; ++i) {
     if (recvArray[i] != 0) {
       ij = recvArray[i] - recvArray[i - 1];
-      (*hEdgeOffsets)[j] = (*hEdgeOffsets)[j - 1] + ij;
+      hEdgeOffsets[j] = hEdgeOffsets[j - 1] + ij;
       ++j;
     } else {
       recvLens[index++] = recvArray[i - 1];
@@ -146,18 +145,18 @@ void controller::initialize_coarsest_hypergraph(
   }
 
   numPins = ij;
-  pinList = new dynamic_array<int>(numPins);
-  MPI_Allgatherv(localPins, numLocalPins, MPI_INT, pinList->data(),
+  pinList.resize(numPins);
+  MPI_Allgatherv(localPins.data(), numLocalPins, MPI_INT, pinList.data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  hypergraph_ = new serial::hypergraph(vWeights->data(), numVertices);
+  hypergraph_ = new serial::hypergraph(vWeights, numVertices);
 
   hypergraph_->set_number_of_hyperedges(numHedges);
   hypergraph_->set_number_of_pins(numPins);
   hypergraph_->set_total_weight(totVertexWt);
-  hypergraph_->set_hyperedge_weights(hEdgeWeights->data(), hEdgeWeights->capacity());
-  hypergraph_->set_hyperedge_offsets(hEdgeOffsets->data(), hEdgeOffsets->capacity());
-  hypergraph_->set_pin_list(pinList->data(), pinList->capacity());
+  hypergraph_->set_hyperedge_weights(hEdgeWeights);
+  hypergraph_->set_hyperedge_offsets(hEdgeOffsets);
+  hypergraph_->set_pin_list(pinList);
   hypergraph_->buildVtoHedges();
 
   if (display_option_ > 0 && rank_ == 0)
@@ -179,13 +178,13 @@ void controller::initialize_serial_partitions(
   int endOffset;
   int totToSend;
 
-  int *hPartitionVector;
-  int *hPartVectorOffsets;
-  int *hPartCuts;
+  dynamic_array<int> hPartitionVector;
+  dynamic_array<int> hPartVectorOffsets;
+  dynamic_array<int> hPartCuts;
 
   int numTotVertices = hypergraph_->number_of_vertices();
-  int *pVector = hypergraph_->partition_vector();
-  int *pCuts = hypergraph_->partition_cuts();
+  auto pVector = hypergraph_->partition_vector();
+  auto pCuts = hypergraph_->partition_cuts();
 
   dynamic_array<int> numVperProc(number_of_processors_);
   dynamic_array<int> procDispls(number_of_processors_);
@@ -302,7 +301,7 @@ void controller::initialize_serial_partitions(
 #endif
 
   MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, hPartitionVector,
+                sendDispls.data(), MPI_INT, hPartitionVector.data(),
                 recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
@@ -319,7 +318,7 @@ void controller::initialize_serial_partitions(
     ij += recvLens[i];
   }
 
-  MPI_Allgatherv(pCuts, keepMyPartition, MPI_INT, hPartCuts,
+  MPI_Allgatherv(pCuts.data(), keepMyPartition, MPI_INT, hPartCuts.data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   if (display_option_ > 1 && rank_ == 0) {

@@ -1,8 +1,3 @@
-
-#ifndef _FUNCT_CPP
-#define _FUNCT_CPP
-
-// ### Funct.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
 //
@@ -13,6 +8,8 @@
 // ###
 
 #include "Funct.hpp"
+#include <cstring>
+#include <cassert>
 
 char *Funct::startHeap = 0;
 int Funct::shift1 = 7;
@@ -227,38 +224,3 @@ void Funct::printMemUse(int myRank, const char *info) {
 
   fclose(fp);
 }
-
-/*
-void Funct::write_to_memory()
-{
-  int x;
-  int y;
-  int z;
-  int **block;
-
-  int i;
-
-  block = new (int*)[1024];
-
-  for(i=0; i<1024; ++i)
-    {
-      block[i] = new int[2];
-    }
-
-  for(i=0; i<1024 * 2; ++i)
-    {
-      x = static_cast<int>(drand48() * 1024);
-      y = static_cast<int>(drand48() * 2);
-      z = static_cast<int>(drand48() * 10);
-
-      block[x][y] = z;
-    }
-
-  for(i=0; i<1024; ++i)
-    delete [] block[i];
-  delete [] block;
-}
-
-*/
-
-#endif

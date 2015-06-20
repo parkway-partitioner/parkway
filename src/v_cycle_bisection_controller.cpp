@@ -24,7 +24,6 @@ v_cycle_bisection_controller::v_cycle_bisection_controller(
 }
 
 v_cycle_bisection_controller::~v_cycle_bisection_controller() {
-  dynamic_memory::delete_pointer<restrictive_coarsener>(restrictive_coarsener_);
 }
 
 void v_cycle_bisection_controller::display_options() const {
@@ -84,25 +83,16 @@ void v_cycle_bisection_controller::build_restrictive_coarsener(double redRatio,
 }
 
 void v_cycle_bisection_controller::record_v_cycle_partition(
-    const int *pVector, int numV) {
-  int i;
-
-  for (i = 0; i < numV; ++i) {
-#ifdef DEBUG_CONTROLLER
-    assert(pVector[i] >= 0 && pVector[i] < 2);
-#endif
+    ds::dynamic_array<int> pVector, int numV) {
+  v_cycle_partition_ = pVector;
+  for (int i = 0; i < numV; ++i) {
     v_cycle_partition_[i] = pVector[i];
   }
 }
 
-void v_cycle_bisection_controller::store_best_partition(const int *pVector,
-                                                        int numV) {
-  int i;
-
-  for (i = 0; i < numV; ++i) {
-#ifdef DEBUG_CONTROLLER
-    assert(pVector[i] >= 0 && pVector[i] < 2);
-#endif
+void v_cycle_bisection_controller::store_best_partition(
+    ds::dynamic_array<int> pVector, int numV) {
+  for (int i = 0; i < numV; ++i) {
     best_partition_[i] = pVector[i];
   }
 }

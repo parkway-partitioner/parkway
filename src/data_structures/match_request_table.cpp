@@ -13,9 +13,6 @@ match_request_table::match_request_table(int _size)
 }
 
 match_request_table::~match_request_table() {
-  for (std::size_t i = 0; i < capacity_; ++i) {
-    dynamic_memory::delete_pointer<entry>(table_[i]);
-  }
 }
 
 match_request_table::entry *match_request_table::get_entry(int _vertex) const {
@@ -58,9 +55,6 @@ int match_request_table::local_count(int _vertex) const {
 }
 
 void match_request_table::clear() {
-  for (std::size_t i = 0; i < capacity_; ++i)
-    dynamic_memory::delete_pointer<entry>(table_[i]);
-
   size_ = 0;
   entries_.reserve(0);
 }

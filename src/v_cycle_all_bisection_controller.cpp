@@ -91,8 +91,6 @@ void v_cycle_all_bisection_controller::compute_bisection() {
 
       accumulator *= reduction_factor_;
 
-      dynamic_memory::delete_pointer<serial::hypergraph>(coarseGraph);
-
       // ###
       // prepare to call v-cycle
 
@@ -144,8 +142,6 @@ void v_cycle_all_bisection_controller::compute_bisection() {
 
           refiner_->refine(*finerGraph);
 
-          dynamic_memory::delete_pointer<serial::hypergraph>(coarseGraph);
-
           coarseGraph = finerGraph;
         }
 #ifdef DEBUG_CONTROLLER
@@ -165,7 +161,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
       // ###
       // end v-cycle
 
-        coarseGraph->copy_in_partition(v_cycle_partition_.data(),
+        coarseGraph->copy_in_partition(v_cycle_partition_,
                                        coarseGraph->number_of_vertices(), 0,
                                        firstCutSize);
     }
@@ -185,7 +181,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
     // reset hypergraph
     // ###
 
-      origGraph->copy_in_partition(best_partition_.data(),
+      origGraph->copy_in_partition(best_partition_,
                                    number_of_orig_vertices_, 0,
                                    bestCut);
       origGraph->reset_vertex_maps();
@@ -193,7 +189,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
   }
 
     origGraph->set_number_of_partitions(1);
-    origGraph->copy_in_partition(best_partition_.data(), number_of_orig_vertices_, 0,
+    origGraph->copy_in_partition(best_partition_, number_of_orig_vertices_, 0,
                                  bestCut);
 }
 

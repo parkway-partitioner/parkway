@@ -1,6 +1,5 @@
 #ifndef _PARKWAY_H
 #define _PARKWAY_H
-
 // ### parkway.h ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London

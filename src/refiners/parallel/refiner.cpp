@@ -33,9 +33,9 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   int numLocalPins;
   int numLocalHedges;
 
-  int *localPins;
-  int *localHedgeOffsets;
-  int *localHedgeWeights;
+  ds::dynamic_array<int> localPins;
+  ds::dynamic_array<int> localHedgeOffsets;
+  ds::dynamic_array<int> localHedgeWeights;
 
   int j;
   int l;
@@ -124,11 +124,11 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
                 ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
             }
           } else {
-            data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
-            data_out_sets_[proc]->assign(send_lens_[proc]++, localHedgeWeights[i]);
+            data_out_sets_[proc][send_lens_[proc]++] = hEdgeLen + 2;
+            data_out_sets_[proc][send_lens_[proc]++] = localHedgeWeights[i];
 
             for (l = startOffset; l < endOffset; ++l) {
-              data_out_sets_[proc]->assign(send_lens_[proc]++, localPins[l]);
+              data_out_sets_[proc][send_lens_[proc]++] = localPins[l];
             }
           }
 
@@ -144,9 +144,9 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 #endif
 
       if (activeProc == rank_) {
-        allocated_hyperedges_.assign(number_of_allocated_hyperedges_++, number_of_hyperedges_ - 1);
+        allocated_hyperedges_[number_of_allocated_hyperedges_++] = number_of_hyperedges_ - 1;
       } else {
-        data_out_sets_[activeProc]->assign(send_lens_[activeProc]++, RESP_FOR_HEDGE);
+        data_out_sets_[activeProc][send_lens_[activeProc]++] = RESP_FOR_HEDGE;
       }
 
       for (j = 0; j < processors_; ++j) {
@@ -162,7 +162,7 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
        make processors responsible for hyperedges during
        the cutsize calculations                            */
 
-    bit_field toLoad(numLocalHedges);
+    ds::bit_field toLoad(numLocalHedges);
 
     compute_hyperedges_to_load(toLoad, numLocalHedges, numLocalPins,
                                localHedgeWeights,
@@ -182,11 +182,11 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
           if (!sentToProc[proc]) {
             if (proc == rank_) {
-              hyperedge_weights_.assign(number_of_hyperedges_, localHedgeWeights[i]);
-              hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
+              hyperedge_weights_[number_of_hyperedges_] = localHedgeWeights[i];
+              hyperedge_offsets_[number_of_hyperedges_++] = number_of_local_pins_;
 
               for (l = startOffset; l < endOffset; ++l) {
-                local_pin_list_.assign(number_of_local_pins_++, localPins[l]);
+                local_pin_list_[number_of_local_pins_++] = localPins[l];
 #ifdef DEBUG_REFINER
                 assert(localPins[l] < totalVertices && localPins[l] >= 0);
 #endif
@@ -195,11 +195,11 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
                   ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
               }
             } else {
-              data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
-              data_out_sets_[proc]->assign(send_lens_[proc]++, localHedgeWeights[i]);
+              data_out_sets_[proc][send_lens_[proc]++] = hEdgeLen + 2;
+              data_out_sets_[proc][send_lens_[proc]++] = localHedgeWeights[i];
 
               for (l = startOffset; l < endOffset; ++l) {
-                data_out_sets_[proc]->assign(send_lens_[proc]++, localPins[l]);
+                data_out_sets_[proc][send_lens_[proc]++] = localPins[l];
               }
             }
 
@@ -242,11 +242,11 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
           if (!sentToProc[proc]) {
             if (proc == rank_) {
-              hyperedge_weights_.assign(number_of_hyperedges_, localHedgeWeights[i]);
-              hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
+              hyperedge_weights_[number_of_hyperedges_] = localHedgeWeights[i];
+              hyperedge_offsets_[number_of_hyperedges_++] = number_of_local_pins_;
 
               for (l = startOffset; l < endOffset; ++l) {
-                local_pin_list_.assign(number_of_local_pins_++, localPins[l]);
+                local_pin_list_[number_of_local_pins_++] = localPins[l];
 #ifdef DEBUG_REFINER
                 assert(localPins[l] < totalVertices && localPins[l] >= 0);
 #endif
@@ -255,11 +255,11 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
                   ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
               }
             } else {
-              data_out_sets_[proc]->assign(send_lens_[proc]++, hEdgeLen + 2);
-              data_out_sets_[proc]->assign(send_lens_[proc]++, localHedgeWeights[i]);
+              data_out_sets_[proc][send_lens_[proc]++] = hEdgeLen + 2;
+              data_out_sets_[proc][send_lens_[proc]++] = localHedgeWeights[i];
 
               for (l = startOffset; l < endOffset; ++l) {
-                data_out_sets_[proc]->assign(send_lens_[proc]++, localPins[l]);
+                data_out_sets_[proc][send_lens_[proc]++] = localPins[l];
               }
             }
 
@@ -488,8 +488,6 @@ void refiner::initialize_partition_structures(
   int endOffset;
   int totalToSend;
 
-  int *array;
-
   int i;
   int j;
   int ij;
@@ -541,7 +539,7 @@ void refiner::initialize_partition_structures(
 #ifdef DEBUG_REFINER
     assert(ij != rank_);
 #endif
-    data_out_sets_[ij]->assign(send_lens_[ij]++, j);
+    data_out_sets_[ij][send_lens_[ij]++] = j;
   }
 
   ij = 0;
@@ -562,14 +560,9 @@ void refiner::initialize_partition_structures(
   ij = 0;
   for (i = 0; i < processors_; ++i) {
     endOffset = send_lens_[i];
-    array = data_out_sets_[i]->data();
-
     for (j = 0; j < endOffset; ++j) {
-#ifdef DEBUG_REFINER
-      assert(data_[j] < minVertexIndex || data_[j] >= maxVertexIndex);
-#endif
-      send_array_[ij] = array[j];
-      copyOfSendArray[ij++] = array[j];
+      send_array_[ij] = data_out_sets_[i][j];
+      copyOfSendArray[ij++] = data_out_sets_[i][j];
     }
   }
 

@@ -29,8 +29,8 @@ namespace hg = parkway::hypergraph;
 
 class hypergraph : public hg::base_hypergraph {
  public:
-  hypergraph(int *vWts, int numV);
-  hypergraph(int *vWts, int *pVector, int numV, int cut);
+  hypergraph(ds::dynamic_array<int> vWts, int numV);
+  hypergraph(ds::dynamic_array<int> vWts, ds::dynamic_array<int> pVector, int numV, int cut);
   ~hypergraph();
 
   void load_from_file(const char *filename);
@@ -43,8 +43,8 @@ class hypergraph : public hg::base_hypergraph {
   void project_partitions(const hypergraph &coarseGraph);
   void remove_bad_partitions(double fractionOK);
   void set_number_of_partitions(int nPartitions) override;
-  void copy_out_partition(int *pVector, int numV, int pNo) const;
-  void copy_in_partition(const int *pVector, int numV, int pNo, int cut);
+  void copy_out_partition(ds::dynamic_array<int> pVector, int numV, int pNo) const;
+  void copy_in_partition(const ds::dynamic_array<int> pVector, int numV, int pNo, int cut);
   void print_characteristics(std::ostream &o);
   void print_percentiles(std::ostream &o);
 
@@ -53,29 +53,23 @@ class hypergraph : public hg::base_hypergraph {
   inline int total_weight() const { return total_weight_; }
   inline int cut(int pNo) const { return partition_cuts_[pNo]; }
 
-  inline dynamic_array<int> vertex_to_hyperedges() const {
+  inline ds::dynamic_array<int> vertex_to_hyperedges() const {
     return vertex_to_hyperedges_;
   }
 
-  inline dynamic_array<int> vertex_offsets() const {
+  inline ds::dynamic_array<int> vertex_offsets() const {
     return vertex_offsets_;
   }
 
-  inline void set_total_weight(int newWt) { total_weight_ = newWt; }
-
-  inline void set_vertex_to_hyperedges(int *array, int len) {
-   vertex_to_hyperedges_.set_data(array, len);
+  inline void set_total_weight(int newWt) {
+    total_weight_ = newWt;
   }
 
-  inline void set_vertex_to_hyperedges(dynamic_array<int> &arr) {
+  inline void set_vertex_to_hyperedges(ds::dynamic_array<int> &arr) {
    vertex_to_hyperedges_ = arr;
   }
 
-  inline void set_vertex_offsets(int *array, int len) {
-   vertex_offsets_.set_data(array, len);
-  }
-
-  inline void set_vertex_offsets(dynamic_array<int> &offsets) {
+  inline void set_vertex_offsets(ds::dynamic_array<int> &offsets) {
    vertex_offsets_ = offsets;
   }
 
@@ -93,9 +87,9 @@ class hypergraph : public hg::base_hypergraph {
   ds::dynamic_array<int> vertex_to_hyperedges_;
   ds::dynamic_array<int> vertex_offsets_;
 
- void convert_to_DOMACS_graph_file(const char *fName) const;
- void check_part_weights_are_less_than(int *part_weights, const int number,
-                                       int maximum) const;
+ void convert_to_DOMACS_graph_file(const char *fName);
+ void check_part_weights_are_less_than(ds::dynamic_array<int> &part_weights,
+                                       const int number, int maximum) const;
 };
 
 }  // serial

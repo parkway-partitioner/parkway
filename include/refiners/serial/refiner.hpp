@@ -52,7 +52,7 @@ class refiner : public loader {
   }
 
   inline void set_partition_vector(int nP) {
-    partition_vector_ = &partitionVectors[partitionOffsets[nP]];
+    partition_vector_ = &partitionVectors.data()[partitionOffsets[nP]];
   }
 
   int calculate_cut_size() const;

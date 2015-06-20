@@ -33,9 +33,8 @@ bisection_controller::bisection_controller(int nRuns, double kT, double redFacto
 }
 
 bisection_controller::~bisection_controller() {
-  dynamic_memory::delete_pointer<coarsener>(coarsener_);
-  dynamic_memory::delete_pointer<refiner>(refiner_);
 }
+
 
 void bisection_controller::display_options() const {
   switch (display_level_) {
@@ -148,8 +147,6 @@ void bisection_controller::compute_bisection() {
 
       accumulator *= reduction_factor_;
 
-      dynamic_memory::delete_pointer<serial::hypergraph>(coarseGraph);
-
       coarseGraph = finerGraph;
     }
 
@@ -157,8 +154,7 @@ void bisection_controller::compute_bisection() {
 
     if (cut < bestCut) {
       bestCut = cut;
-      coarseGraph->copy_out_partition(best_partition_.data(),
-                                      number_of_orig_vertices_,
+      coarseGraph->copy_out_partition(best_partition_, number_of_orig_vertices_,
                                       0);
     }
 
@@ -168,7 +164,7 @@ void bisection_controller::compute_bisection() {
   }
 
   origGraph->set_number_of_partitions(1);
-  origGraph->copy_in_partition(best_partition_.data(), number_of_orig_vertices_, 0,
+  origGraph->copy_in_partition(best_partition_, number_of_orig_vertices_, 0,
                                bestCut);
 }
 

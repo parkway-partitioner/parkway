@@ -1,8 +1,11 @@
 #ifndef DATA_STRUCTURES_DYNAMIC_ARRAY_HPP_
 #define DATA_STRUCTURES_DYNAMIC_ARRAY_HPP_
 #include <vector>
+#include <iostream>
+#include <iterator>
 #include <memory>
 #include "utility/sorting.hpp"
+#include "utility/random.hpp"
 
 namespace parkway {
 namespace data_structures {
@@ -213,9 +216,10 @@ template <typename T> class dynamic_array {
     return data_->insert(position, initializer_list);
   }
 
-  inline iterator set_data(value_type *array, size_type length) {
+  inline void set_data(value_type *array, size_type length) {
     this->clear();
-    return insert(this->begin(), array, array + length);
+    this->resize(length);
+    data_->insert(this->begin(), array, array + length);
   }
 
   inline iterator erase(const_iterator position) {
@@ -266,6 +270,27 @@ template <typename T> class dynamic_array {
   inline void sort_between(std::size_t start, std::size_t end) {
     parkway::utility::quick_sort(start, end, this->data());
   }
+
+  inline void sort_using_another_array(
+      const dynamic_array &other,
+      parkway::utility::sort_order order =
+        parkway::utility::sort_order::INCREASING) {
+    this->sort_between_using_another_array(0, this->size(), other, order);
+  }
+
+  inline void sort_between_using_another_array(
+      std::size_t start, std::size_t end, const dynamic_array &other,
+      parkway::utility::sort_order order =
+        parkway::utility::sort_order::INCREASING) {
+    parkway::utility::quick_sort_by_another_array(start, end, this->data(),
+                                                  other.data(), order);
+  }
+
+  inline void random_permutation() {
+    parkway::utility::random_permutation(this->data(), this->size());
+  }
+
+
 };
 
 }  // namespace data_structures

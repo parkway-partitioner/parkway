@@ -43,8 +43,6 @@ recursive_bisection_contoller::recursive_bisection_contoller(
 }
 
 recursive_bisection_contoller::~recursive_bisection_contoller() {
-  dynamic_memory::delete_pointer<serial::bisection_controller>(bisector_);
-  dynamic_memory::delete_pointer<serial::greedy_k_way_refiner>(refiner_);
 }
 
 void recursive_bisection_contoller::display_options() const {
@@ -221,8 +219,6 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
         assert(pVector[j] >= 0 && pVector[j] < numParts);
 #endif
     }
-
-    dynamic_memory::delete_pointer<bisection>(b);
   }
 
   // ###
@@ -233,8 +229,10 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
 
   if (number_of_partitions_ > 0) {
     for (i = 0; i < number_of_partitions_; ++i) {
-      pVector = &partition_vector_[partition_vector_offsets_[i]];
-      hypergraph_->copy_in_partition(pVector, numVertices, i, partition_vector_cuts_[i]);
+      int *start = &(partition_vector_.data()[partition_vector_offsets_[i]]);
+      dynamic_array<int> p_vector(numVertices);
+      p_vector.set_data(start, numVertices);
+      hypergraph_->copy_in_partition(p_vector, numVertices, i, partition_vector_cuts_[i]);
     }
 
     refiner_->rebalance(*hypergraph_);
@@ -249,8 +247,6 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
 #ifdef DEBUG_CONTROLLER
   hgraph.checkPartitions(numParts, maxPartWt, comm);
 #endif
-
-  dynamic_memory::delete_pointer<serial::hypergraph>(hypergraph_);
 }
 
 void recursive_bisection_contoller::initialize_serial_partitions(
@@ -266,13 +262,13 @@ void recursive_bisection_contoller::initialize_serial_partitions(
   int endOffset;
   int totToSend;
 
-  int *hGraphPartitionVector;
-  int *hGraphPartVectorOffsets;
-  int *hGraphPartCuts;
+  ds::dynamic_array<int> hGraphPartitionVector;
+  ds::dynamic_array<int> hGraphPartVectorOffsets;
+  ds::dynamic_array<int> hGraphPartCuts;
 
-  int *hPartitionVector = hypergraph_->partition_vector();
-  int *hPartOffsetsVector = hypergraph_->partition_offsets();
-  int *hPartitionCutsArray = hypergraph_->partition_cuts();
+  auto hPartitionVector = hypergraph_->partition_vector();
+  auto hPartOffsetsVector = hypergraph_->partition_offsets();
+  auto hPartitionCutsArray = hypergraph_->partition_cuts();
 
   dynamic_array<int> numVperProc(number_of_processors_);
   dynamic_array<int> procDispls(number_of_processors_);
@@ -346,7 +342,7 @@ void recursive_bisection_contoller::initialize_serial_partitions(
 #endif
 
   MPI_Alltoallv(sendArray.data(), sendLens.data(),
-                sendDispls.data(), MPI_INT, hGraphPartitionVector,
+                sendDispls.data(), MPI_INT, hGraphPartitionVector.data(),
                 recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
   // ###
@@ -363,8 +359,9 @@ void recursive_bisection_contoller::initialize_serial_partitions(
     ij += recvLens[i];
   }
 
-  MPI_Allgatherv(hPartitionCutsArray, number_of_partitions_, MPI_INT, hGraphPartCuts,
-                 recvLens.data(), recvDispls.data(), MPI_INT, comm);
+  MPI_Allgatherv(hPartitionCutsArray.data(), number_of_partitions_, MPI_INT,
+                 hGraphPartCuts.data(), recvLens.data(), recvDispls.data(),
+                 MPI_INT, comm);
 
   if (display_option_ > 1 && rank_ == 0) {
     for (i = 0; i < number_of_runs_; ++i)
@@ -404,20 +401,22 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
 
     if (bisectAgain == 1) {
       int numVerts = h->number_of_vertices();
-      int *partV = h->partition_vector();
-      int *toOrigVmap = b.map_to_orig_vertices();
+      auto partV = h->partition_vector();
+      auto toOrigVmap = b.map_to_orig_vertices();
       int bisectionPart = b.part_id();
 
       int i;
 
       for (i = 0; i < numVerts; ++i) {
-        local_vertex_partition_info_.assign(local_vertex_part_info_length_++, toOrigVmap[i]);
+        local_vertex_partition_info_[local_vertex_part_info_length_++] =
+            toOrigVmap[i];
 
         if (partV[i] == 0)
-          local_vertex_partition_info_.assign(local_vertex_part_info_length_++, bisectionPart);
+          local_vertex_partition_info_[local_vertex_part_info_length_++] =
+              bisectionPart;
         else
-          local_vertex_partition_info_.assign(local_vertex_part_info_length_++,
-                                      (bisectionPart | (1 << (log_k_ - 1))));
+          local_vertex_partition_info_[local_vertex_part_info_length_++] =
+              (bisectionPart | (1 << (log_k_ - 1)));
       }
     } else {
       split_bisection(b, left, right);
@@ -426,16 +425,10 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
 
       if (left) {
         serial::hypergraph *hLeft = left->hypergraph();
-
-        dynamic_memory::delete_pointer<serial::hypergraph>(hLeft);
-        dynamic_memory::delete_pointer<bisection>(left);
       }
 
       if (right) {
         serial::hypergraph *hRight = right->hypergraph();
-
-        dynamic_memory::delete_pointer<serial::hypergraph>(hRight);
-        dynamic_memory::delete_pointer<bisection>(right);
       }
     }
   } else {
@@ -458,8 +451,8 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
     if (bisectAgain == 1) {
       if (rank == bestCutProc) {
         int numVerts = h->number_of_vertices();
-        int *partV = h->partition_vector();
-        int *toOrigVmap = b.map_to_orig_vertices();
+        auto partV = h->partition_vector();
+        auto toOrigVmap = b.map_to_orig_vertices();
         int bisectionPart = b.part_id();
 
         int i;
@@ -475,8 +468,8 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
         }
       }
     } else {
-      MPI_Bcast(h->partition_vector(), h->number_of_vertices(), MPI_INT,
-                bestCutProc, comm);
+      MPI_Bcast(h->partition_vector().data(), h->number_of_vertices(),
+                MPI_INT, bestCutProc, comm);
 
       MPI_Comm new_comm;
       MPI_Comm_split(comm, And(rank, 0x1), 0, &new_comm);
@@ -487,9 +480,6 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
 
       if (newB) {
         serial::hypergraph *hNew = newB->hypergraph();
-
-        dynamic_memory::delete_pointer<serial::hypergraph>(hNew);
-        dynamic_memory::delete_pointer<bisection>(newB);
       }
 
       MPI_Comm_free(&new_comm);
@@ -521,12 +511,12 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
   int bPartID = b.part_id();
   int bisectAgain = b.bisect_again();
 
-  int *mapToOrig = b.map_to_orig_vertices();
-  int *hPartVector = h->partition_vector();
-  int *hVertWt = h->vertex_weights();
-  int *hHedgeWt = h->hyperedge_weights();
-  int *hHedgeOffsets = h->hyperedge_offsets();
-  int *hPinList = h->pin_list();
+  auto mapToOrig = b.map_to_orig_vertices();
+  auto hPartVector = h->partition_vector();
+  auto hVertWt = h->vertex_weights();
+  auto hHedgeWt = h->hyperedge_weights();
+  auto hHedgeOffsets = h->hyperedge_offsets();
+  auto hPinList = h->pin_list();
 
   // ###
   // newH data_
@@ -537,11 +527,11 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
   int totWt = 0;
   int numPins = 0;
 
-  dynamic_array<int> *vertWt = new dynamic_array<int>(64);
-  dynamic_array<int> *mapOrig = new dynamic_array<int>(64);
-  dynamic_array<int> *hedgeWts = new dynamic_array<int>(64);
-  dynamic_array<int> *hedgeOffsets = new dynamic_array<int>(64);
-  dynamic_array<int> *pinList = new dynamic_array<int>(64);
+  dynamic_array<int> vertWt(64);
+  dynamic_array<int> mapOrig(64);
+  dynamic_array<int> hedgeWts(64);
+  dynamic_array<int> hedgeOffsets(64);
+  dynamic_array<int> pinList(64);
 
   // ###
   // auxiliary data_
@@ -563,8 +553,8 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
       assert(hPartVector[i] == 1 || hPartVector[i] == 0);
 #endif
       if (hPartVector[i] == 1) {
-        vertWt->assign(numVerts, hVertWt[i]);
-        mapOrig->assign(numVerts, mapToOrig[i]);
+        vertWt[numVerts] = hVertWt[i];
+        mapOrig[numVerts] = mapToOrig[i];
         mapFromHtoNewH[i] = numVerts++;
         totWt += hVertWt[i];
       } else {
@@ -572,16 +562,16 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
       }
     }
 
-    vertWt->reserve(numVerts);
-    mapOrig->reserve(numVerts);
+    vertWt.resize(numVerts);
+    mapOrig.resize(numVerts);
 
-    newH = new serial::hypergraph(vertWt->data(), numVerts);
+    newH = new serial::hypergraph(vertWt, numVerts);
 
     // ###
     // initialise pin list
     // ###
 
-    hedgeOffsets->assign(numHedges, numPins);
+    hedgeOffsets[numHedges] = numPins;
 
     for (i = 0; i < numHHedges; ++i) {
       endOffset = hHedgeOffsets[i + 1];
@@ -591,23 +581,20 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
         v = hPinList[j];
 
         if (hPartVector[v] == 1) {
-#ifdef DEBUG_CONTROLLER
-          assert(mapFromHtoNewH[v] != -1);
-#endif
-          pinList->assign(numPins + (hEdgeLen++), mapFromHtoNewH[v]);
+          pinList[numPins + (hEdgeLen++)] = mapFromHtoNewH[v];
         }
       }
 
       if (hEdgeLen > 1) {
         numPins += hEdgeLen;
-        hedgeWts->assign(numHedges++, hHedgeWt[i]);
-        hedgeOffsets->assign(numHedges, numPins);
+        hedgeWts[numHedges++] = hHedgeWt[i];
+        hedgeOffsets[numHedges] = numPins;
       }
     }
 
-    hedgeWts->reserve(numHedges);
-    hedgeOffsets->reserve(numHedges + 1);
-    pinList->reserve(numPins);
+    hedgeWts.resize(numHedges);
+    hedgeOffsets.resize(numHedges + 1);
+    pinList.resize(numPins);
 
     // ###
     // now init the hypergraphs
@@ -616,9 +603,9 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
     newH->set_number_of_hyperedges(numHedges);
     newH->set_number_of_pins(numPins);
     newH->set_total_weight(totWt);
-    newH->set_hyperedge_weights(hedgeWts->data(), numHedges);
-    newH->set_pin_list(pinList->data(), numPins);
-    newH->set_hyperedge_offsets(hedgeOffsets->data(), numHedges + 1);
+    newH->set_hyperedge_weights(hedgeWts);
+    newH->set_pin_list(pinList);
+    newH->set_hyperedge_offsets(hedgeOffsets);
 
     newH->buildVtoHedges();
 
@@ -628,7 +615,7 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
 
     newB = new bisection(newH, bisectAgain - 1,
                          Or(bPartID, Shiftl(1, (log_k_ - bisectAgain))));
-    newB->setMap(mapOrig->data(), numVerts);
+    newB->setMap(mapOrig);
   } else {
     // ###
     // in the even processor case
@@ -639,8 +626,8 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
       assert(hPartVector[i] == 1 || hPartVector[i] == 0);
 #endif
       if (hPartVector[i] == 0) {
-        vertWt->assign(numVerts, hVertWt[i]);
-        mapOrig->assign(numVerts, mapToOrig[i]);
+        vertWt[numVerts] = hVertWt[i];
+        mapOrig[numVerts] = mapToOrig[i];
         mapFromHtoNewH[i] = numVerts++;
         totWt += hVertWt[i];
       } else {
@@ -648,16 +635,16 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
       }
     }
 
-    vertWt->reserve(numVerts);
-    mapOrig->reserve(numVerts);
+    vertWt.resize(numVerts);
+    mapOrig.resize(numVerts);
 
-    newH = new serial::hypergraph(vertWt->data(), numVerts);
+    newH = new serial::hypergraph(vertWt, numVerts);
 
     // ###
     // initialise pin list
     // ###
 
-    hedgeOffsets->assign(numHedges, numPins);
+    hedgeOffsets[numHedges] = numPins;
 
     for (i = 0; i < numHHedges; ++i) {
       endOffset = hHedgeOffsets[i + 1];
@@ -670,20 +657,20 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
 #ifdef DEBUG_CONTROLLER
           assert(mapFromHtoNewH[v] != -1);
 #endif
-          pinList->assign(numPins + (hEdgeLen++), mapFromHtoNewH[v]);
+          pinList[numPins + (hEdgeLen++)] = mapFromHtoNewH[v];
         }
       }
 
       if (hEdgeLen > 1) {
         numPins += hEdgeLen;
-        hedgeWts->assign(numHedges++, hHedgeWt[i]);
-        hedgeOffsets->assign(numHedges, numPins);
+        hedgeWts[numHedges++] = hHedgeWt[i];
+        hedgeOffsets[numHedges] = numPins;
       }
     }
 
-    hedgeWts->reserve(numHedges);
-    hedgeOffsets->reserve(numHedges + 1);
-    pinList->reserve(numPins);
+    hedgeWts.resize(numHedges);
+    hedgeOffsets.resize(numHedges + 1);
+    pinList.resize(numPins);
 
     // ###
     // now init the hypergraph
@@ -692,9 +679,9 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
     newH->set_number_of_hyperedges(numHedges);
     newH->set_number_of_pins(numPins);
     newH->set_total_weight(totWt);
-    newH->set_hyperedge_weights(hedgeWts->data(), numHedges);
-    newH->set_pin_list(pinList->data(), numPins);
-    newH->set_hyperedge_offsets(hedgeOffsets->data(), numHedges + 1);
+    newH->set_hyperedge_weights(hedgeWts);
+    newH->set_pin_list(pinList);
+    newH->set_hyperedge_offsets(hedgeOffsets);
 
     newH->buildVtoHedges();
 
@@ -703,7 +690,7 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
     // ###
 
     newB = new bisection(newH, bisectAgain - 1, bPartID);
-    newB->setMap(mapOrig->data(), numVerts);
+    newB->setMap(mapOrig);
   }
 }
 
@@ -726,12 +713,12 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
   int bPartID = b.part_id();
   int bisectAgain = b.bisect_again();
 
-  int *mapToOrig = b.map_to_orig_vertices();
-  int *hPartVector = h->partition_vector();
-  int *hVertWt = h->vertex_weights();
-  int *hHedgeWt = h->hyperedge_weights();
-  int *hHedgeOffsets = h->hyperedge_offsets();
-  int *hPinList = h->pin_list();
+  auto mapToOrig = b.map_to_orig_vertices();
+  auto hPartVector = h->partition_vector();
+  auto hVertWt = h->vertex_weights();
+  auto hHedgeWt = h->hyperedge_weights();
+  auto hHedgeOffsets = h->hyperedge_offsets();
+  auto hPinList = h->pin_list();
 
   // ###
   // leftH data_
@@ -742,11 +729,11 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
   int totLeftWt = 0;
   int numLeftPins = 0;
 
-  dynamic_array<int> *leftVertWt = new dynamic_array<int>(64);
-  dynamic_array<int> *leftMapOrig = new dynamic_array<int>(64);
-  dynamic_array<int> *leftHedgeWts = new dynamic_array<int>(64);
-  dynamic_array<int> *leftHedgeOffsets = new dynamic_array<int>(64);
-  dynamic_array<int> *leftPinList = new dynamic_array<int>(64);
+  dynamic_array<int> leftVertWt(64);
+  dynamic_array<int> leftMapOrig(64);
+  dynamic_array<int> leftHedgeWts(64);
+  dynamic_array<int> leftHedgeOffsets(64);
+  dynamic_array<int> leftPinList(64);
 
   // ###
   // rightH data_
@@ -757,11 +744,11 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
   int totRightWt = 0;
   int numRightPins = 0;
 
-  dynamic_array<int> *rightVertWt = new dynamic_array<int>(64);
-  dynamic_array<int> *rightMapOrig = new dynamic_array<int>(64);
-  dynamic_array<int> *rightHedgeWts = new dynamic_array<int>(64);
-  dynamic_array<int> *rightHedgeOffsets = new dynamic_array<int>(64);
-  dynamic_array<int> *rightPinList = new dynamic_array<int>(64);
+  dynamic_array<int> rightVertWt(64);
+  dynamic_array<int> rightMapOrig(64);
+  dynamic_array<int> rightHedgeWts(64);
+  dynamic_array<int> rightHedgeOffsets(64);
+  dynamic_array<int> rightPinList(64);
 
   // ###
   // auxiliary data_
@@ -779,33 +766,33 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
     assert(hPartVector[i] == 1 || hPartVector[i] == 0);
 #endif
     if (hPartVector[i] == 0) {
-      leftVertWt->assign(numLeftVerts, hVertWt[i]);
-      leftMapOrig->assign(numLeftVerts, mapToOrig[i]);
+      leftVertWt[numLeftVerts] = hVertWt[i];
+      leftMapOrig[numLeftVerts] = mapToOrig[i];
       mapFromHtoNewH[i] = numLeftVerts++;
       totLeftWt += hVertWt[i];
     } else {
-      rightVertWt->assign(numRightVerts, hVertWt[i]);
-      rightMapOrig->assign(numRightVerts, mapToOrig[i]);
+      rightVertWt[numRightVerts] = hVertWt[i];
+      rightMapOrig[numRightVerts] = mapToOrig[i];
       mapFromHtoNewH[i] = numRightVerts++;
       totRightWt += hVertWt[i];
     }
   }
 
-  leftVertWt->reserve(numLeftVerts);
-  leftMapOrig->reserve(numLeftVerts);
+  leftVertWt.resize(numLeftVerts);
+  leftMapOrig.resize(numLeftVerts);
 
-  rightVertWt->reserve(numRightVerts);
-  rightMapOrig->reserve(numRightVerts);
+  rightVertWt.resize(numRightVerts);
+  rightMapOrig.resize(numRightVerts);
 
-  leftH = new serial::hypergraph(leftVertWt->data(), numLeftVerts);
-  rightH = new serial::hypergraph(rightVertWt->data(), numRightVerts);
+  leftH = new serial::hypergraph(leftVertWt, numLeftVerts);
+  rightH = new serial::hypergraph(rightVertWt, numRightVerts);
 
   // ###
   // initialise pin list
   // ###
 
-  leftHedgeOffsets->assign(numLeftHedges, numLeftPins);
-  rightHedgeOffsets->assign(numRightHedges, numRightPins);
+  leftHedgeOffsets[numLeftHedges] = numLeftPins;
+  rightHedgeOffsets[numRightHedges] = numRightPins;
 
   for (i = 0; i < numHHedges; ++i) {
     endOffset = hHedgeOffsets[i + 1];
@@ -817,33 +804,32 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
       v = hPinList[j];
 
       if (hPartVector[v] == 0) {
-        leftPinList->assign(numLeftPins + (leftHedgeLen++), mapFromHtoNewH[v]);
+        leftPinList[numLeftPins + (leftHedgeLen++)] = mapFromHtoNewH[v];
       } else {
-        rightPinList->assign(numRightPins + (rightHedgeLen++),
-                             mapFromHtoNewH[v]);
+        rightPinList[numRightPins + (rightHedgeLen++)] = mapFromHtoNewH[v];
       }
     }
 
     if (leftHedgeLen > 1) {
       numLeftPins += leftHedgeLen;
-      leftHedgeWts->assign(numLeftHedges++, hHedgeWt[i]);
-      leftHedgeOffsets->assign(numLeftHedges, numLeftPins);
+      leftHedgeWts[numLeftHedges++] = hHedgeWt[i];
+      leftHedgeOffsets[numLeftHedges] = numLeftPins;
     }
 
     if (rightHedgeLen > 1) {
       numRightPins += rightHedgeLen;
-      rightHedgeWts->assign(numRightHedges++, hHedgeWt[i]);
-      rightHedgeOffsets->assign(numRightHedges, numRightPins);
+      rightHedgeWts[numRightHedges++] = hHedgeWt[i];
+      rightHedgeOffsets[numRightHedges] = numRightPins;
     }
   }
 
-  leftHedgeWts->reserve(numLeftHedges);
-  leftHedgeOffsets->reserve(numLeftHedges + 1);
-  leftPinList->reserve(numLeftPins);
+  leftHedgeWts.resize(numLeftHedges);
+  leftHedgeOffsets.resize(numLeftHedges + 1);
+  leftPinList.resize(numLeftPins);
 
-  rightHedgeWts->reserve(numRightHedges);
-  rightHedgeOffsets->reserve(numRightHedges + 1);
-  rightPinList->reserve(numRightPins);
+  rightHedgeWts.resize(numRightHedges);
+  rightHedgeOffsets.resize(numRightHedges + 1);
+  rightPinList.resize(numRightPins);
 
   // ###
   // now init the hypergraphs
@@ -852,19 +838,18 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
   leftH->set_number_of_hyperedges(numLeftHedges);
   leftH->set_number_of_pins(numLeftPins);
   leftH->set_total_weight(totLeftWt);
-  leftH->set_hyperedge_weights(leftHedgeWts->data(), numLeftHedges);
-  leftH->set_pin_list(leftPinList->data(), numLeftPins);
-  leftH->set_hyperedge_offsets(leftHedgeOffsets->data(), numLeftHedges + 1);
+  leftH->set_hyperedge_weights(leftHedgeWts);
+  leftH->set_pin_list(leftPinList);
+  leftH->set_hyperedge_offsets(leftHedgeOffsets);
 
   leftH->buildVtoHedges();
 
   rightH->set_number_of_hyperedges(numRightHedges);
   rightH->set_number_of_pins(numRightPins);
   rightH->set_total_weight(totRightWt);
-  rightH->set_hyperedge_weights(rightHedgeWts->data(), numRightHedges);
-  rightH->set_pin_list(rightPinList->data(), numRightPins);
-  rightH->set_hyperedge_offsets(rightHedgeOffsets->data(),
-                                numRightHedges + 1);
+  rightH->set_hyperedge_weights(rightHedgeWts);
+  rightH->set_pin_list(rightPinList);
+  rightH->set_hyperedge_offsets(rightHedgeOffsets);
 
   rightH->buildVtoHedges();
 
@@ -876,8 +861,8 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
   r = new bisection(rightH, bisectAgain - 1,
                     Or(bPartID, Shiftl(1, (log_k_ - bisectAgain))));
 
-  l->setMap(leftMapOrig->data(), numLeftVerts);
-  r->setMap(rightMapOrig->data(), numRightVerts);
+  l->setMap(leftMapOrig);
+  r->setMap(rightMapOrig);
 }
 
 int recursive_bisection_contoller::best_partition_processor(int cut,

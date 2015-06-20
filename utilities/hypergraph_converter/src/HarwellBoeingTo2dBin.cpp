@@ -13,6 +13,7 @@
 
 #include "HarwellBoeingTo2dBin.hpp"
 #include "data_structures/bit_field.hpp"
+#include <cassert>
 
 using namespace parkway::data_structures;
 

@@ -91,12 +91,12 @@ void basic_contoller::run(MPI_Comm comm) {
     Funct::printMemUse(rank_, "[begin run]");
 #endif
     if (shuffled_ == 1) {
-        hypergraph_->shuffle_vertices_randomly(map_to_orig_vertices_.data(), comm);
+        hypergraph_->shuffle_vertices_randomly(map_to_orig_vertices_, comm);
     }
 
     if (shuffled_ == 2) {
-        hypergraph_->prescribed_vertex_shuffle(map_to_orig_vertices_.data(),
-                                          shuffle_partition_.data(), comm);
+        hypergraph_->prescribed_vertex_shuffle(map_to_orig_vertices_,
+                                               shuffle_partition_, comm);
     }
 
     hypergraphs_.push(hypergraph_);
@@ -177,12 +177,9 @@ void basic_contoller::run(MPI_Comm comm) {
 
         finerGraph->project_partitions(*coarseGraph, comm);
 
-#ifdef DEBUG_CONTROLLER
-      finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
-#endif
       if (random_shuffle_before_refine_) {
         if (hypergraphs_.size() == 0)
-            finerGraph->shuffle_vertices_randomly(map_to_orig_vertices_.data(), comm);
+            finerGraph->shuffle_vertices_randomly(map_to_orig_vertices_, comm);
         else
             finerGraph->shuffle_vertices_randomly(*(hypergraphs_.top()), comm);
       }
@@ -190,44 +187,17 @@ void basic_contoller::run(MPI_Comm comm) {
       if (approximate_refine_)
         refiner_.set_percentile(hEdgePercentile);
 
-#ifdef MEM_CHECK
-      write_log(rank_, "[before refineme]: usage: %f", MemoryTracker::usage());
-      Funct::printMemUse(rank_, "[before refinement]");
-#endif
       refiner_.refine(*finerGraph, comm);
-
-#ifdef DEBUG_CONTROLLER
-      finerGraph->checkPartitions(numTotalParts, maxPartWt, comm);
-#endif
-
-      dynamic_memory::delete_pointer<parallel::hypergraph>(coarseGraph);
       coarseGraph = finerGraph;
     }
-
-#ifdef DEBUG_CONTROLLER
-    assert(coarseGraph == hgraph);
-#endif
 
     MPI_Barrier(comm);
     total_refinement_time_ += (MPI_Wtime() - start_time_);
 
     refiner_.release_memory();
 
-#ifdef MEM_CHECK
-    MPI_Barrier(comm);
-    write_log(rank_, "[after refinement]: usage: %f", MemoryTracker::usage());
-    Funct::printMemUse(rank_, "[after refinement]");
-    MPI_Barrier(comm);
-#endif
-
     /* select the best partition */
-
     cutSize = coarseGraph->keep_best_partition();
-
-#ifdef DEBUG_CONTROLLER
-    checkCutsize = coarseGraph->calcCutsize(numTotalParts, 0, comm);
-    assert(cutSize == checkCutsize);
-#endif
 
     if (cutSize < best_cutsize_) {
       best_cutsize_ = cutSize;
@@ -241,13 +211,7 @@ void basic_contoller::run(MPI_Comm comm) {
     total_cutsize_ += cutSize;
 
     /* free memory used by the para controller */
-
     reset_structures();
-
-#ifdef DEBUG_CONTROLLER
-    assert(hgraphs.getNumElem() == 0);
-#endif
-
     if (rank_ == 0 && display_option_ > 0) {
       out_stream_ << "\nPRUN[" << i << "] = " << cutSize << std::endl << std::endl;
     }

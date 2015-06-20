@@ -1,5 +1,6 @@
 #include "data_structures/map_to_pos_int.hpp"
 #include "data_structures/internal/table_utils.hpp"
+#include "assert.h"
 
 namespace parkway {
 namespace data_structures {

@@ -27,8 +27,8 @@ approximate_coarsener::~approximate_coarsener() {
 }
 
 void approximate_coarsener::compute_hyperedges_to_load(
-    bit_field &toLoad, int numH, int *hEdgeWts, int *hEdgeOffsets,
-    MPI_Comm comm) {
+    ds::bit_field &toLoad, int numH, ds::dynamic_array<int> &hEdgeWts,
+    ds::dynamic_array<int> &hEdgeOffsets, MPI_Comm comm) {
   int i;
   int j;
 

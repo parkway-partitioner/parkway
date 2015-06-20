@@ -32,16 +32,13 @@ template<typename Type> class map_from_pos_int {
     size_ = 0;
     capacity_ = internal::table_utils::table_size(size);
 
+
     #ifdef DEBUG_TABLES
     assert(size >= _size);
     #endif
 
-    keys_.reserve(capacity_);
-    table_.reserve(capacity_);
-
-    for (std::size_t i = 0; i < capacity_; ++i) {
-      keys_[i] = -1;
-    }
+    keys_.assign(capacity_, -1);
+    table_.resize(capacity_);
   }
 
   void destroy() {
@@ -51,13 +48,9 @@ template<typename Type> class map_from_pos_int {
   }
 
   void recover() {
-    table_.reserve(capacity_);
-    keys_.reserve(capacity_);
+    table_.resize(capacity_);
+    keys_.assign(capacity_, -1);
     size_ = 0;
-
-    for (std::size_t i = 0; i < capacity_; ++i) {
-      keys_[i] = -1;
-    }
   }
 
   bool insert(int key, Type value) {

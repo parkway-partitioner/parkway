@@ -24,9 +24,9 @@ class refiner : public loader {
   int maximum_part_weight_;
   int number_of_partitions_;
 
-  int *partition_vector_;
-  int *partition_vector_offsets_;
-  int *partition_cuts_;
+  ds::dynamic_array<int> partition_vector_;
+  ds::dynamic_array<int> partition_vector_offsets_;
+  ds::dynamic_array<int> partition_cuts_;
 
   int *current_partition_vector_;
   int current_partition_number_;

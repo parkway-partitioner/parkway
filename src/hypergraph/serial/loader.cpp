@@ -19,22 +19,10 @@ namespace serial {
 loader::loader(int disp) {
   dispOption = disp;
   currPercentile = 100;
-
   numHedges = 0;
   numVertices = 0;
   numPins = 0;
   numPartitions = 0;
-
-  vWeight = nullptr;
-  hEdgeWeight = nullptr;
-  matchVector = nullptr;
-  pinList = nullptr;
-  hEdgeOffsets = nullptr;
-  vToHedges = nullptr;
-  vOffsets = nullptr;
-  partitionVectors = nullptr;
-  partitionOffsets = nullptr;
-  partitionCutsizes = nullptr;
 }
 
 loader::~loader() {}

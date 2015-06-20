@@ -21,11 +21,7 @@ restrictive_coarsening::restrictive_coarsening(int rank, int nProcs, int nParts,
                                                std::ostream &out)
     : coarsener(rank, nProcs, nParts, out, "Restrictive Coarsener"),
       minimum_nodes_(0),
-      total_clusters_(0),
-      partition_vector_(nullptr),
-      partition_vector_offsets_(nullptr),
-      partition_cuts_(nullptr),
-      part_vector_(nullptr) {
+      total_clusters_(0) {
 }
 
 restrictive_coarsening::~restrictive_coarsening() {}
@@ -33,9 +29,9 @@ restrictive_coarsening::~restrictive_coarsening() {}
 void restrictive_coarsening::load(const hypergraph &h, MPI_Comm comm) {
   int number_of_local_pins = h.number_of_pins();
   int number_of_local_hedges = h.number_of_hyperedges();
-  int *local_pins = h.pin_list();
-  int *local_hyperedge_offsets = h.hyperedge_offsets();
-  int *local_hyperedge_weights = h.hyperedge_weights();
+  dynamic_array<int> local_pins = h.pin_list();
+  dynamic_array<int> local_hyperedge_offsets = h.hyperedge_offsets();
+  dynamic_array<int> local_hyperedge_weights = h.hyperedge_weights();
 
   update_hypergraph_information(h);
 
@@ -58,7 +54,8 @@ void restrictive_coarsening::load(const hypergraph &h, MPI_Comm comm) {
   // processors and to receive hyperedges from processors
   // ###
   prepare_data_to_send(number_of_local_hedges, number_of_local_pins,
-                       local_hyperedge_weights, local_hyperedge_offsets,
+                       local_hyperedge_weights,
+                       local_hyperedge_offsets,
                        local_pins, comm);
 
   // Exchange the hyperedges.
@@ -77,13 +74,11 @@ hypergraph *restrictive_coarsening::contract_hyperedges(hypergraph &h,
   hypergraph *coarseGraph =
       new hypergraph(rank_, processors_, cluster_index_, total_clusters_,
                      minimum_cluster_index_, stop_coarsening_,
-                     partition_cuts_[0], cluster_weights_.data(),
-                     part_vector_->data());
-
-  part_vector_ = nullptr;
+                     partition_cuts_[0], cluster_weights_, part_vector_,
+                     h.display_option());
 
   h.contractRestrHyperedges(*coarseGraph, comm);
-    h.set_number_of_partitions(0);
+  h.set_number_of_partitions(0);
 
   if (display_options_ > 1) {
     int numTotCoarseVerts = coarseGraph->total_number_of_vertices();
@@ -106,8 +101,9 @@ hypergraph *restrictive_coarsening::contract_hyperedges(hypergraph &h,
 
 void restrictive_coarsening::prepare_data_to_send(
     int n_local_hyperedges, int n_local_pins,
-    int *local_hyperedge_weights, int *local_hyperedge_offsets,
-    int *local_pins, MPI_Comm comm) {
+    dynamic_array<int> local_hyperedge_weights,
+    dynamic_array<int> local_hyperedge_offsets,
+    dynamic_array<int> local_pins, MPI_Comm comm) {
 
   ds::dynamic_array<int> processors(processors_);
   for (int i = 0; i < processors_; ++i) {
@@ -140,16 +136,13 @@ void restrictive_coarsening::prepare_data_to_send(
                                local_hyperedge_offsets, comm);
   }
 
-  ds::dynamic_array<bool> sent_to_processor(processors_);
-  utility::set_to<bool>(sent_to_processor.data(), processors_, false);
+  ds::dynamic_array<bool> sent_to_processor(processors_, false);
   utility::set_to_zero<int>(send_lens_.data(), processors_);
 
   for (int i = 0; i < n_local_hyperedges; ++i) {
     if (to_load.test(i)) {
       int start_offset = local_hyperedge_offsets[i];
       int end_offset = local_hyperedge_offsets[i + 1];
-      int hyperedge_length = end_offset - start_offset;
-
       for (int j = start_offset; j < end_offset; ++j) {
         int proc = vertex_to_processor.root_value(local_pins[j]);
         ++vertices_per_processor[proc];
@@ -173,15 +166,13 @@ void restrictive_coarsening::prepare_data_to_send(
               }
             }
           } else {
-            data_out_sets_[j]->assign(send_lens_[j]++,
-                                      vertices_per_processor[j] + 2);
-            data_out_sets_[j]->assign(send_lens_[j]++,
-                                      local_hyperedge_weights[i]);
+            data_out_sets_[j][send_lens_[j]++] = vertices_per_processor[j] + 2;
+            data_out_sets_[j][send_lens_[j]++] = local_hyperedge_weights[i];
             for (int l = start_offset; l < end_offset; ++l) {
               if (min_local_indices[j] <= local_pins[l] &&
                   local_pins[l] < max_local_indices[j]) {
-                data_out_sets_[j]->assign(
-                    send_lens_[j]++, local_pins[l] - min_local_indices[j]);
+                data_out_sets_[j][send_lens_[j]++] =
+                    local_pins[l] - min_local_indices[j];
               }
             }
           }

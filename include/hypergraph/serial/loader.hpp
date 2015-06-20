@@ -1,6 +1,5 @@
 #ifndef _LOADER_HPP
 #define _LOADER_HPP
-
 // ### HypergraphLoader.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -29,17 +28,17 @@ protected:
   int numPins;
   int numPartitions;
 
-  int *vWeight;
-  int *hEdgeWeight;
-  int *matchVector;
-  int *pinList;
-  int *hEdgeOffsets;
-  int *vToHedges;
-  int *vOffsets;
+  ds::dynamic_array<int> vWeight;
+  ds::dynamic_array<int> hEdgeWeight;
+  ds::dynamic_array<int> matchVector;
+  ds::dynamic_array<int> pinList;
+  ds::dynamic_array<int> hEdgeOffsets;
+  ds::dynamic_array<int> vToHedges;
+  ds::dynamic_array<int> vOffsets;
 
-  int *partitionVectors;
-  int *partitionOffsets;
-  int *partitionCutsizes;
+  ds::dynamic_array<int> partitionVectors;
+  ds::dynamic_array<int> partitionOffsets;
+  ds::dynamic_array<int> partitionCutsizes;
 
   inline void load(const serial::hypergraph &h) {
     numVertices = h.number_of_vertices();

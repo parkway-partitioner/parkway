@@ -14,10 +14,11 @@
 #include "internal/parallel_controller.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "coarseners/parallel/restrictive_first_choice_coarsening.hpp"
+#include "data_structures/dynamic_array.hpp"
 
 namespace ds = parkway::data_structures;
 namespace parallel = parkway::parallel;
-typedef dynamic_array<int> IntArray;
+typedef ds::dynamic_array<int> IntArray;
 
 class parallel_v_cycle_controller : public parallel::controller {
  protected:

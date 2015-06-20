@@ -46,9 +46,9 @@ class restrictive_coarsening : public coarsener {
   void initialize_vertex_to_hyperedges();
   void load_non_local_hyperedges();
   void prepare_data_to_send(int n_local_hyperedges, int n_local_pins,
-                            int *local_hyperedge_weights,
-                            int *local_hyperedge_offsets,
-                            int *local_pins, MPI_Comm comm);
+                            ds::dynamic_array<int> local_hyperedge_weights,
+                            ds::dynamic_array<int> local_hyperedge_offsets,
+                            ds::dynamic_array<int> local_pins, MPI_Comm comm);
 
  protected:
   /* coarsening auxiliary variables */
@@ -56,11 +56,10 @@ class restrictive_coarsening : public coarsener {
   int total_clusters_;
 
   /* partition data_ structures */
-  int *partition_vector_;
-  int *partition_vector_offsets_;
-  int *partition_cuts_;
-
-  ds::dynamic_array<int> *part_vector_;
+  ds::dynamic_array<int> partition_vector_;
+  ds::dynamic_array<int> partition_vector_offsets_;
+  ds::dynamic_array<int> partition_cuts_;
+  ds::dynamic_array<int> part_vector_;
 };
 
 }  // namespace parallel

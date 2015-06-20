@@ -37,16 +37,16 @@ class movement_set_table {
     max_part_weight_ = weight;
   }
 
-  inline int *part_weights_array() const {
-    return part_weights_.data();
+  inline dynamic_array<int> part_weights_array() const {
+    return part_weights_;
   }
 
-  inline int *restoring_move_lens() const {
-    return restoring_move_lens_.data();
+  inline dynamic_array<int> restoring_move_lens() const {
+    return restoring_move_lens_;
   }
 
-  inline dynamic_array<int> **restoring_moves() const {
-    return restoring_moves_.data();
+  inline dynamic_array<dynamic_array<int> *> restoring_moves() const {
+    return restoring_moves_;
   }
 
   inline int find_heaviest_part_index() const {
@@ -86,8 +86,8 @@ class movement_set_table {
   int number_of_parts_;
   // TODO(gb610): processors or processes?
   int number_of_processors_;
-  int max_part_weight_;
   int set_array_len_;
+  int max_part_weight_;
 
   dynamic_array<int> part_weights_;
   dynamic_array<int> restoring_move_lens_;
