@@ -52,8 +52,15 @@ int match_request_table::local_count(int _vertex) const {
 }
 
 void match_request_table::clear() {
+  for (auto &ptr : table_) {
+    if (ptr != nullptr) {
+      delete ptr;
+      ptr = nullptr;
+    }
+  }
+
   size_ = 0;
-  entries_.reserve(0);
+  entries_.resize(0);
 }
 
 void match_request_table::add_local(int _vertex, int _local, int locWt,
