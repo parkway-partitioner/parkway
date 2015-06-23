@@ -164,7 +164,7 @@ class hypergraph : public parkway::global_communicator, public base_hypergraph {
 
   void check_loaded_vertex_and_hyperedge_lengths(std::ostream &out,
                                                  const char *filename,
-                                                 MPI_Comm comm) const;
+                                                 MPI_Comm comm);
 
   int compute_number_of_elements_to_send(dynamic_array<int> &copy_of_requests);
   int compute_number_of_elements_to_receive();

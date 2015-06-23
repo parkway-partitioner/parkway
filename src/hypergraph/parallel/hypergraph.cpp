@@ -2372,7 +2372,7 @@ void hypergraph::load_data_from_blocks(
 
 
 void hypergraph::check_loaded_vertex_and_hyperedge_lengths(
-    std::ostream &out, const char *filename, MPI_Comm comm) const {
+    std::ostream &out, const char *filename, MPI_Comm comm) {
   if (display_option_ > 0) {
     int pins;
     int edges;
