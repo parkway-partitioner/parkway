@@ -268,16 +268,13 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
                 assert(0);
               }
 
-              neighVerts.assign(numVisited, candidatV);
-              neighCluWts.assign(numVisited, cluWeight);
+              neighVerts[numVisited] = candidatV;
+              neighCluWts[numVisited] = cluWeight;
 
               if (divide_by_hyperedge_length_)
-                connectVals.assign(numVisited++,
-                                   static_cast<double>(hyperedge_weights_[hEdge]) /
-                                       (hEdgeLen - 1));
+                connectVals[numVisited++] = static_cast<double>(hyperedge_weights_[hEdge]) / (hEdgeLen - 1);
               else
-                connectVals.assign(numVisited++,
-                                   static_cast<double>(hyperedge_weights_[hEdge]));
+                connectVals[numVisited++] = static_cast<double>(hyperedge_weights_[hEdge]);
             }
           }
         }
@@ -319,7 +316,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
         // ###
 
         match_vector_[vertex] = cluster_index_;
-        cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
+        cluster_weights_[cluster_index_++] = vertex_weights_[vertex];
         --numNotMatched;
       } else {
 #ifdef DEBUG_COARSENER
@@ -335,7 +332,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
           if (match_vector_[bestMatch - minimum_vertex_index_] == -1) {
             match_vector_[bestMatch - minimum_vertex_index_] = cluster_index_;
             match_vector_[vertex] = cluster_index_;
-            cluster_weights_.assign(cluster_index_++, bestMatchWt);
+            cluster_weights_[cluster_index_++] = bestMatchWt;
             numNotMatched -= 2;
           } else {
             if (match_vector_[bestMatch - minimum_vertex_index_] >= NON_LOCAL_MATCH) {
@@ -399,7 +396,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
 
     if (match_vector_[vertex] == -1) {
       match_vector_[vertex] = cluster_index_;
-      cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
+      cluster_weights_[cluster_index_++] = vertex_weights_[vertex];
     }
   }
 
@@ -553,12 +550,11 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
 #endif
       if (vertex >= minimum_vertex_index_ && vertex < maximum_vertex_index_) {
         if (match_vector_[vertex - minimum_vertex_index_] == -1) {
-          unmatchedLocals.assign(numUnmatchedLocals++, vertex -
-                                                       minimum_vertex_index_);
+          unmatchedLocals[numUnmatchedLocals++] = vertex - minimum_vertex_index_;
         }
       } else {
         if (matchedVertices(vertex) == 0) {
-          unmatchedNonLocals.assign(numUnmatchedNonLocals++, vertex);
+          unmatchedNonLocals[numUnmatchedNonLocals++] = vertex;
         }
       }
     }
@@ -582,7 +578,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
           for (i = 0; i < numUnmatchedLocals; ++i) {
             vertex = unmatchedLocals[i];
             match_vector_[vertex] = cluster_index_;
-            cluster_weights_.assign(cluster_index_, totMatchWt);
+            cluster_weights_[cluster_index_] = totMatchWt;
           }
 
           ++cluster_index_;
@@ -641,7 +637,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
   for (index = 0; index < number_of_local_vertices_; ++index) {
     if (match_vector_[index] == -1) {
       match_vector_[index] = cluster_index_;
-      cluster_weights_.assign(cluster_index_++, vertex_weights_[index]);
+      cluster_weights_[cluster_index_++] = vertex_weights_[index];
     }
   }
 
@@ -858,7 +854,7 @@ void model_coarsener_2d::process_request_replies() {
         for (index = 0; index < numLocals; ++index)
           match_vector_[locals[index] - minimum_vertex_index_] = cluster_index_;
 
-        cluster_weights_.assign(cluster_index_++, entry->cluster_weight());
+        cluster_weights_[cluster_index_++] = entry->cluster_weight();
       }
     }
     startOffset += receive_lens_[i];
@@ -993,7 +989,7 @@ int model_coarsener_2d::accept(int locVertex, int nonLocCluWt, int highToLow,
 
       table_->remove_local(nonLocReq, locVertex, vertex_weights_[locVertexIndex]);
       match_vector_[locVertexIndex] = cluster_index_;
-      cluster_weights_.assign(cluster_index_++, cluWt);
+      cluster_weights_[cluster_index_++] = cluWt;
 
       return 1;
     }

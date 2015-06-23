@@ -124,24 +124,17 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
               candVertexEntry = vertexAdjEntry[candVertex];
 
               if (candVertexEntry == -1) {
-                neighVerts.assign(numNeighbours, candVertex);
+                neighVerts[numNeighbours] = candVertex;
 
                 if (matchVector[candVertex] == -1)
-                  neighPairWts.assign(numNeighbours,
-                                      vWeight[v] + vWeight[candVertex]);
+                  neighPairWts[numNeighbours] = vWeight[v] + vWeight[candVertex];
                 else
-                  neighPairWts.assign(
-                      numNeighbours,
-                      vWeight[v] + coarseWts[matchVector[candVertex]]);
+                  neighPairWts[numNeighbours] = vWeight[v] + coarseWts[matchVector[candVertex]];
 
                 if (util_fan_out_)
-                  connectVals.assign(
-                      numNeighbours,
-                      static_cast<double>(hEdgeWeight[hEdge]) /
-                          (endHedgeOffset - (hEdgeOffsets[hEdge] + 1)));
+                  connectVals[numNeighbours] = static_cast<double>(hEdgeWeight[hEdge]) / (endHedgeOffset - (hEdgeOffsets[hEdge] + 1));
                 else
-                  connectVals.assign(numNeighbours,
-                                     static_cast<double>(hEdgeWeight[hEdge]));
+                  connectVals[numNeighbours] = static_cast<double>(hEdgeWeight[hEdge]);
 
                 vertexAdjEntry[candVertex] = numNeighbours;
                 ++numNeighbours;

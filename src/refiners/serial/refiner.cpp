@@ -20,7 +20,7 @@ refiner::refiner(int dL)
       accept_proportion_(0),
       average_part_weight_(0),
       partition_vector_(nullptr) {
-  part_weights_.reserve(0);
+  part_weights_.resize(0);
 }
 
 refiner::~refiner() {}

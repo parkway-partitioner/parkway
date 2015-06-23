@@ -163,21 +163,16 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
 
             if (neighVertexEntry == -1) {
               if (match_vector_[neighVertex] == -1)
-                neighPairWts.assign(numNeighbours,
-                                    vertex_weights_[vertex] + vertex_weights_[neighVertex]);
+                neighPairWts[numNeighbours] = vertex_weights_[vertex] + vertex_weights_[neighVertex];
               else
-                neighPairWts.assign(
-                    numNeighbours,
-                    vertex_weights_[vertex] +
-                        cluster_weights_[match_vector_[neighVertex]]);
+                neighPairWts[numNeighbours] = vertex_weights_[vertex] + cluster_weights_[match_vector_[neighVertex]];
 
-              neighVerts.assign(numNeighbours, neighVertex);
+              neighVerts[numNeighbours] = neighVertex;
 
               if (divide_by_hyperedge_length_)
-                connectVals.assign(numNeighbours, static_cast<double>(hEdgeWt) /
-                                                      (hEdgeLen - 1));
+                connectVals[numNeighbours] = static_cast<double>(hEdgeWt) / (hEdgeLen - 1);
               else
-                connectVals.assign(numNeighbours, static_cast<double>(hEdgeWt));
+                connectVals[numNeighbours] = static_cast<double>(hEdgeWt);
 
               vertexAdjEntry[neighVertex] = numNeighbours;
               ++numNeighbours;

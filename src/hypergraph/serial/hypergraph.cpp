@@ -18,12 +18,8 @@ namespace serial {
 hypergraph::hypergraph(dynamic_array<int> vWts, int numVerts)
     : hg::base_hypergraph(numVerts) {
 
-  match_vector_.reserve(number_of_vertices_);
+  match_vector_.assign(number_of_vertices_, -1);
   vertex_weights_ = vWts;
-
-  for (int i = 0; i < number_of_vertices_; ++i) {
-    match_vector_[i] = -1;
-  }
 }
 
 hypergraph::hypergraph(dynamic_array<int> vWts, dynamic_array<int> p_vector,
@@ -52,8 +48,8 @@ void hypergraph::buildVtoHedges() {
 #endif
 
   ds::dynamic_array<int> vDegs(number_of_vertices_);
-  vertex_to_hyperedges_.reserve(number_of_pins_);
-  vertex_offsets_.reserve(number_of_vertices_ + 1);
+  vertex_to_hyperedges_.resize(number_of_pins_);
+  vertex_offsets_.resize(number_of_vertices_ + 1);
 
   for (int i = 0; i < number_of_vertices_; ++i) {
     vDegs[i] = 0;
@@ -91,9 +87,9 @@ void hypergraph::reset_match_vector() {
 }
 
 void hypergraph::reset_partition_vector() {
-  partition_vector_.reserve(0);
-  partition_cuts_.reserve(0);
-  partition_vector_offsets_.reserve(0);
+  partition_vector_.resize(0);
+  partition_cuts_.resize(0);
+  partition_vector_offsets_.resize(0);
   number_of_partitions_ = 0;
 }
 
@@ -188,9 +184,9 @@ void hypergraph::remove_bad_partitions(double fraction_ok) {
 void hypergraph::set_number_of_partitions(int nPartitions) {
   number_of_partitions_ = nPartitions;
 
-  partition_cuts_.reserve(number_of_partitions_);
-  partition_vector_.reserve(number_of_partitions_ * number_of_vertices_);
-  partition_vector_offsets_.reserve(number_of_partitions_ + 1);
+  partition_cuts_.resize(number_of_partitions_);
+  partition_vector_.resize(number_of_partitions_ * number_of_vertices_);
+  partition_vector_offsets_.resize(number_of_partitions_ + 1);
 
   int j = 0;
   for (int i = 0; i <= number_of_partitions_; ++i) {
@@ -218,8 +214,10 @@ void hypergraph::copy_in_partition(dynamic_array<int> p_vector, int nV,
 }
 
 void hypergraph::print_characteristics(std::ostream &out_stream) {
-  out_stream << " |cGraph| " << number_of_vertices_ << " "
-      << number_of_hyperedges_ << " " << number_of_pins_ << " : ";
+  out_stream << " |cGraph| "
+      << number_of_vertices_ << " "
+      << number_of_hyperedges_ << " "
+      << number_of_pins_ << " : ";
 
   double weighted_ave = 0;
   double percentile_75;
@@ -249,6 +247,7 @@ void hypergraph::print_characteristics(std::ostream &out_stream) {
   Funct::qsortByAnotherArray(0, number_of_hyperedges_ - 1, hEdges.data(),
                              hEdgeLens.data(), INC);
 
+  j = 0;
   int ij = 0;
   for (int i = 0; i < number_of_hyperedges_;) {
     j += hyperedge_weights_[hEdges[i++]];
@@ -520,7 +519,7 @@ void hypergraph::convert_to_DOMACS_graph_file(const char *fN) {
         v2 = pin_list_[ij];
 
         if (Funct::search(vNeighs[v1]->data(), numVNeighs[v1], v2) == -1) {
-          vNeighs[v1]->assign(numVNeighs[v1]++, v2);
+          vNeighs[v1]->at(numVNeighs[v1]++) = v2;
           ++numEdges;
         }
       }
@@ -594,7 +593,7 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
   /* display hyperedge information */
 
   j = 0;
-  indices.reserve(number_of_hyperedges_);
+  indices.resize(number_of_hyperedges_);
 
   for (i = 0; i < number_of_hyperedges_; ++i) {
     indices[i] = i;
@@ -650,7 +649,7 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
   /* display vertex information */
 
   j = 0;
-  indices.reserve(number_of_vertices_);
+  indices.resize(number_of_vertices_);
 
   for (i = 0; i < number_of_vertices_; ++i) {
     indices[i] = i;

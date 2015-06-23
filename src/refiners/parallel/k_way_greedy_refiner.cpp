@@ -9,7 +9,9 @@
 // ###
 
 #include "refiners/parallel/k_way_greedy_refiner.hpp"
+#include "utility/random.hpp"
 #include <iostream>
+#include <cmath>
 
 namespace parkway {
 namespace parallel {
@@ -31,10 +33,10 @@ k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
   total_number_of_vertices_moved_ = 0;
   ij = number_of_parts_ * number_of_parts_;
 
-  move_sets_.reserve(ij);
-  move_set_data_.reserve(Shiftl(ij, 1));
-  index_into_move_set_.reserve(ij);
-  number_of_vertices_moved_.reserve(ij);
+  move_sets_.resize(ij);
+  move_set_data_.resize(Shiftl(ij, 1));
+  index_into_move_set_.resize(ij);
+  number_of_vertices_moved_.resize(ij);
 
   for (i = 0; i < ij; ++i)
     move_sets_[i] = new dynamic_array<int>;
@@ -57,15 +59,15 @@ k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
 
   movement_sets_ = new ds::movement_set_table(number_of_parts_, processors_);
 
-  number_of_neighbor_parts_.reserve(0);
-  neighbors_of_vertices_.reserve(0);
-  neighbors_of_vertices_offsets_.reserve(0);
-  hyperedge_vertices_in_part_.reserve(0);
-  hyperedge_vertices_in_part_offsets_.reserve(0);
-  vertices_.reserve(0);
-  moved_vertices_.reserve(0);
-  number_of_parts_spanned_.reserve(0);
-  spanned_parts_.reserve(0);
+  number_of_neighbor_parts_.resize(0);
+  neighbors_of_vertices_.resize(0);
+  neighbors_of_vertices_offsets_.resize(0);
+  hyperedge_vertices_in_part_.resize(0);
+  hyperedge_vertices_in_part_offsets_.resize(0);
+  vertices_.resize(0);
+  moved_vertices_.resize(0);
+  number_of_parts_spanned_.resize(0);
+  spanned_parts_.resize(0);
   locked_.reserve(0);
   vertices_seen_.reserve(0);
 }
@@ -90,30 +92,30 @@ void k_way_greedy_refiner::display_options() const {
 }
 
 void k_way_greedy_refiner::release_memory() {
-  hyperedge_weights_.reserve(0);
-  hyperedge_offsets_.reserve(0);
-  local_pin_list_.reserve(0);
+  hyperedge_weights_.resize(0);
+  hyperedge_offsets_.resize(0);
+  local_pin_list_.resize(0);
 
-  vertex_to_hyperedges_offset_.reserve(0);
-  vertex_to_hyperedges_.reserve(0);
-  allocated_hyperedges_.reserve(0);
+  vertex_to_hyperedges_offset_.resize(0);
+  vertex_to_hyperedges_.resize(0);
+  allocated_hyperedges_.resize(0);
 
-  number_of_neighbor_parts_.reserve(0);
-  neighbors_of_vertices_.reserve(0);
-  neighbors_of_vertices_offsets_.reserve(0);
-  hyperedge_vertices_in_part_.reserve(0);
-  hyperedge_vertices_in_part_offsets_.reserve(0);
-  vertices_.reserve(0);
-  moved_vertices_.reserve(0);
-  seen_vertices_.reserve(0);
-  number_of_parts_spanned_.reserve(0);
-  spanned_parts_.reserve(0);
+  number_of_neighbor_parts_.resize(0);
+  neighbors_of_vertices_.resize(0);
+  neighbors_of_vertices_offsets_.resize(0);
+  hyperedge_vertices_in_part_.resize(0);
+  hyperedge_vertices_in_part_offsets_.resize(0);
+  vertices_.resize(0);
+  moved_vertices_.resize(0);
+  seen_vertices_.resize(0);
+  number_of_parts_spanned_.resize(0);
+  spanned_parts_.resize(0);
 
-  non_local_vertices_.reserve(0);
-  part_indices_.reserve(0);
-  index_into_part_indices_.reserve(0);
-  non_local_vertices_to_hyperedges_.reserve(0);
-  non_local_vertices_to_hyperedges_offsets_.reserve(0);
+  non_local_vertices_.resize(0);
+  part_indices_.resize(0);
+  index_into_part_indices_.resize(0);
+  non_local_vertices_to_hyperedges_.resize(0);
+  non_local_vertices_to_hyperedges_offsets_.resize(0);
 
   to_non_local_vertices_.destroy();
 
@@ -138,16 +140,16 @@ void k_way_greedy_refiner::initialize_data_structures(
   vertices_seen_.unset();
 
   locked_.reserve(number_of_local_vertices_);
-  vertices_.reserve(number_of_local_vertices_);
-  seen_vertices_.reserve(number_of_local_vertices_);
-  spanned_parts_.reserve(number_of_parts_);
-  number_of_parts_spanned_.reserve(number_of_hyperedges_);
-  number_of_neighbor_parts_.reserve(number_of_local_vertices_);
-  neighbors_of_vertices_.reserve(number_of_local_vertices_ * number_of_parts_);
-  neighbors_of_vertices_offsets_.reserve(number_of_local_vertices_ + 1);
+  vertices_.resize(number_of_local_vertices_);
+  seen_vertices_.resize(number_of_local_vertices_);
+  spanned_parts_.resize(number_of_parts_);
+  number_of_parts_spanned_.resize(number_of_hyperedges_);
+  number_of_neighbor_parts_.resize(number_of_local_vertices_);
+  neighbors_of_vertices_.resize(number_of_local_vertices_ * number_of_parts_);
+  neighbors_of_vertices_offsets_.resize(number_of_local_vertices_ + 1);
 
-  hyperedge_vertices_in_part_.reserve(number_of_hyperedges_ * number_of_parts_);
-  hyperedge_vertices_in_part_offsets_.reserve(number_of_hyperedges_ + 1);
+  hyperedge_vertices_in_part_.resize(number_of_hyperedges_ * number_of_parts_);
+  hyperedge_vertices_in_part_offsets_.resize(number_of_hyperedges_ + 1);
 
   j = 0;
   ij = number_of_parts_;
@@ -373,8 +375,7 @@ void k_way_greedy_refiner::refine(parallel::hypergraph &h,
 }
 
 int k_way_greedy_refiner::greedy_k_way_refinement(parallel::hypergraph &h,
-                                                           int pNo,
-                                                           MPI_Comm comm) {
+                                                  int pNo, MPI_Comm comm) {
   int i;
 
   total_number_of_vertices_moved_ = 0;
@@ -385,9 +386,8 @@ int k_way_greedy_refiner::greedy_k_way_refinement(parallel::hypergraph &h,
       // ###
       // init movement sets
       // ###
-
       movement_sets_->initialize_part_weights(part_weights_.data(),
-                                            number_of_parts_);
+                                              number_of_parts_);
     }
 
     greedy_pass(i, comm);
@@ -398,9 +398,6 @@ int k_way_greedy_refiner::greedy_k_way_refinement(parallel::hypergraph &h,
   if (percentile_ == 100)
     return (compute_cutsize(comm));
   else {
-#ifdef DEBUG_REFINER
-// assert(currPercentile > 0 && currPercentile < 100);
-#endif
     return (h.calculate_cut_size(number_of_parts_, pNo, comm));
   }
 }
@@ -425,10 +422,8 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
   int hEdgeOff;
   int neighOfVOffset;
   int numNonPos = 0;
-  int limNonPosMoves =
-      static_cast<int>(ceil(
-          limit_ * static_cast<double>(number_of_local_vertices_)));
-  ;
+  int limNonPosMoves = static_cast<int>(
+      ceil(limit_ * static_cast<double>(number_of_local_vertices_)));
 
   double currImbalance = 0;
   double bestImbalance;
@@ -450,17 +445,21 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
     }
   }
 
-  for (i = 0; i < number_of_local_vertices_; ++i)
-    vertices_[i] = i;
 
-  for (i = 0; i < number_of_parts_; ++i)
-    currImbalance += fabs(part_weights_[i] - average_part_weight_);
+
+  for (i = 0; i < number_of_local_vertices_; ++i) {
+    vertices_[i] = i;
+  }
+
+  for (i = 0; i < number_of_parts_; ++i) {
+    currImbalance += std::fabs(part_weights_[i] - average_part_weight_);
+  }
 
   i = number_of_local_vertices_;
   gain = 0;
 
   do {
-    randomNum = RANDOM(0, i);
+    randomNum = parkway::utility::random(0, i);
     v = vertices_[randomNum];
 
     if (!locked_(v)) {
@@ -482,25 +481,21 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
 
               for (ij = vertex_to_hyperedges_offset_[v]; ij < vertOffset; ++ij) {
                 hEdge = vertex_to_hyperedges_[ij];
-#ifdef DEBUG_REFINER
-                assert(hEdge >= 0 && hEdge < numHedges);
-#endif
                 hEdgeOff = hyperedge_vertices_in_part_offsets_[hEdge];
 
-                if (hyperedge_vertices_in_part_[hEdgeOff + sP] == 1)
+                if (hyperedge_vertices_in_part_[hEdgeOff + sP] == 1) {
                   posGain += hyperedge_weights_[hEdge];
+                }
 
-                if (hyperedge_vertices_in_part_[hEdgeOff + j] == 0)
+                if (hyperedge_vertices_in_part_[hEdgeOff + j] == 0) {
                   posGain -= hyperedge_weights_[hEdge];
+                }
               }
 
-              posImbalance = currImbalance +
-                             fabs(part_weights_[sP] - (vertexWt +
-                                                     average_part_weight_));
-              posImbalance += fabs((part_weights_[j] + vertexWt) -
-                                   average_part_weight_);
-              posImbalance -= fabs(part_weights_[sP] - average_part_weight_);
-              posImbalance -= fabs(part_weights_[j] - average_part_weight_);
+              posImbalance = currImbalance + std::fabs(part_weights_[sP] - (vertexWt + average_part_weight_));
+              posImbalance += std::fabs((part_weights_[j] + vertexWt) - average_part_weight_);
+              posImbalance -= std::fabs(part_weights_[sP] - average_part_weight_);
+              posImbalance -= std::fabs(part_weights_[j] - average_part_weight_);
 
               if ((posGain > vGain) ||
                   (posGain == vGain && posImbalance < bestImbalance)) {
@@ -512,10 +507,8 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
           }
         }
 
+
         if (bestMove != -1) {
-#ifdef DEBUG_REFINER
-          assert(bestMove >= 0 && bestMove < numParts);
-#endif
           vertOffset = vertex_to_hyperedges_offset_[v + 1];
           neighOfVOffset = neighbors_of_vertices_offsets_[v];
 
@@ -523,8 +516,9 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
           // update the moved vertices' stats
           // ###
 
-          if (neighbors_of_vertices_[neighOfVOffset + bestMove] == 0)
+          if (neighbors_of_vertices_[neighOfVOffset + bestMove] == 0) {
             ++number_of_neighbor_parts_[v];
+          }
 
           neighbors_of_vertices_[neighOfVOffset + bestMove] = 1;
           neighbors_of_vertices_[neighOfVOffset + sP] = 0;
@@ -535,27 +529,13 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
             // ###
 
             hEdge = vertex_to_hyperedges_[j];
-#ifdef DEBUG_REFINER
-            assert(hEdge >= 0 && hEdge < numHedges);
-#endif
             hEdgeOff = hyperedge_vertices_in_part_offsets_[hEdge];
-#ifdef DEBUG_REFINER
-            int hEdgeLen = 0;
-            for (int ijk = 0; ijk < numParts; ++ijk)
-              hEdgeLen += hEdgeVinPart[hEdgeOff + ijk];
-            assert(hEdgeLen == hEdgeOffset[hEdge + 1] - hEdgeOffset[hEdge]);
-#endif
             if (hyperedge_vertices_in_part_[hEdgeOff + bestMove] == 0) {
               ++number_of_parts_spanned_[hEdge];
             }
 
             --hyperedge_vertices_in_part_[hEdgeOff + sP];
             ++hyperedge_vertices_in_part_[hEdgeOff + bestMove];
-
-#ifdef DEBUG_REFINER
-            assert(hEdgeVinPart[hEdgeOff + sP] >= 0);
-            assert(hEdgeVinPart[hEdgeOff + bestMove] > 0);
-#endif
 
             if (hyperedge_vertices_in_part_[hEdgeOff + sP] > 0) {
               neighbors_of_vertices_[neighOfVOffset + sP] = 1;
@@ -590,11 +570,7 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
           // ###
 
           gain += vGain;
-
-          if (vGain <= 0)
-            ++numNonPos;
-          else
-            numNonPos = 0;
+          numNonPos = vGain <= 0 ? numNonPos + 1 : 0;
 
           // ###
           // update the movement set structures
@@ -602,34 +578,19 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
 
           ij = sP * number_of_parts_ + bestMove;
 
-#ifdef DEBUG_REFINER
-          assert(ij < numParts * numParts);
-          assert(indexIntoMoveSetData[ij] != -1);
-          assert(indexIntoMoveSetData[ij] >= 0);
-          assert(indexIntoMoveSetData[ij] < Shiftl(numParts * numParts, 1));
-#endif
-          move_sets_[ij]->assign(number_of_vertices_moved_[ij]++, v +
-                                                       minimum_vertex_index_);
+          move_sets_[ij]->at(number_of_vertices_moved_[ij]++) = v + minimum_vertex_index_;
           move_set_data_[index_into_move_set_[ij]] += vGain;
           move_set_data_[index_into_move_set_[ij] + 1] += vertexWt;
 
-          if (limit_ < 1.0) {
-            if (numNonPos > limNonPosMoves)
-              break;
+          if (limit_ < 1.0 && numNonPos > limNonPosMoves) {
+            break;
           }
         }
       }
     }
 
-    fswap(vertices_[randomNum], vertices_[i - 1], tmp);
-    --i;
-
+    std::swap(vertices_[randomNum], vertices_[--i]);
   } while (i > 0);
-
-#ifdef DEBUG_REFINER
-  sanityHedgeCheck();
-#endif
-
   return gain;
 }
 
@@ -666,12 +627,10 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
   int indexIntoMoveSets;
 
   ds::dynamic_array<int> movesLengths;
-  int *array;
 
   dynamic_array<dynamic_array<int> *> moves;
 
   numToSend = 0;
-
   for (i = 0; i < number_of_parts_; ++i) {
     prod = i * number_of_parts_;
 
@@ -680,26 +639,18 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
         ij = index_into_move_set_[prod + j];
 
         if (move_set_data_[ij + 1] > 0) {
-#ifdef DEBUG_REFINER
-          assert(numVerticesMoved[prod + j] > 0);
-#endif
-          send_array_.assign(numToSend++, i);
-          send_array_.assign(numToSend++, j);
-          send_array_.assign(numToSend++, move_set_data_[ij]);
-          send_array_.assign(numToSend++, move_set_data_[ij + 1]);
+          send_array_[numToSend++] = i;
+          send_array_[numToSend++] = j;
+          send_array_[numToSend++] = move_set_data_[ij];
+          send_array_[numToSend++] = move_set_data_[ij + 1];
         } else {
-#ifdef DEBUG_REFINER
-          if (numVerticesMoved[prod + j] > 0)
-            out_stream << "p[" << rank_ << "] moved vertices with weight zero"
-                       << std::endl;
-#endif
         }
       }
     }
   }
 
-  MPI_Gather(&numToSend, 1, MPI_INT, receive_lens_.data(), 1, MPI_INT, ROOT_PROC,
-             comm);
+  MPI_Gather(&numToSend, 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
+             ROOT_PROC, comm);
 
   if (rank_ == ROOT_PROC) {
     ij = 0;
@@ -709,7 +660,7 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
       ij += receive_lens_[i];
     }
 
-    receive_array_.reserve(ij);
+    receive_array_.resize(ij);
     totToRecv = ij;
   }
 
@@ -742,14 +693,13 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
     for (i = 0; i < processors_; ++i) {
       arrayLen = movesLengths[i];
       send_displs_[i] = ij;
-      array = moves[i]->data();
 
       for (j = 0; j < arrayLen; ++j)
-        send_array_.assign(ij++, array[j]);
+        send_array_[ij++] = moves[i]->at(j);;
     }
   }
 
-  receive_array_.reserve(totToRecv);
+  receive_array_.resize(totToRecv);
 
   MPI_Scatterv(send_array_.data(), movesLengths.data(), send_displs_.data(),
                MPI_INT, receive_array_.data(), totToRecv, MPI_INT, ROOT_PROC,
@@ -777,23 +727,6 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
     ij += 2;
   }
 
-#ifdef DEBUG_REFINER
-  dynamic_array<int> partWts(numParts);
-
-  for (ij = 0; ij < numParts; ++ij)
-    partWts[ij] = 0;
-
-  for (ij = 0; ij < numLocalVertices; ++ij)
-    partWts[partitionVector[ij]] += vWeight[ij];
-
-  MPI_Allreduce(partWts.getArray(), partWeights.getArray(), numParts, MPI_INT,
-                MPI_SUM, comm);
-
-  for (ij = 0; ij < numParts; ++ij) {
-    assert(partWts[ij] <= maxPartWt);
-  }
-#endif
-
   if (rank_ == ROOT_PROC) {
     for (ij = 0; ij < number_of_parts_; ++ij) {
       part_weights_[ij] = movement_sets_->part_weights_array()[ij];
@@ -801,18 +734,9 @@ void k_way_greedy_refiner::manage_balance_constraint(MPI_Comm comm) {
   }
 
   MPI_Bcast(part_weights_.data(), number_of_parts_, MPI_INT, ROOT_PROC, comm);
-
-#ifdef DEBUG_REFINER
-  for (i = 0; i < numParts; ++i)
-    assert(partWeights[i] <= maxPartWt);
-#endif
 }
 
 void k_way_greedy_refiner::undo_pass_moves() {
-#ifdef DEBUG_REFINER
-  assert(And(numTotVerticesMoved, 0x1) == 0);
-#endif
-
   int i;
   int v;
   int vPart;
@@ -820,11 +744,6 @@ void k_way_greedy_refiner::undo_pass_moves() {
   for (i = 0; i < total_number_of_vertices_moved_; i += 2) {
     v = moved_vertices_[i];
     vPart = moved_vertices_[i + 1];
-
-#ifdef DEBUG_REFINER
-    assert(vPart >= 0 && vPart < numParts);
-#endif
-
     current_partition_vector_[v - minimum_vertex_index_] = vPart;
   }
 }
@@ -859,8 +778,6 @@ void k_way_greedy_refiner::update_vertex_move_info(MPI_Comm comm) {
   int nonLocIdx;
   int endNonLocOffset;
 
-  int *array;
-
   totToSend = 0;
   for (i = 0; i < number_of_parts_; ++i) {
     prod = i * number_of_parts_;
@@ -869,19 +786,13 @@ void k_way_greedy_refiner::update_vertex_move_info(MPI_Comm comm) {
       if (i != j) {
         index = prod + j;
         endOffset = number_of_vertices_moved_[index];
-        array = move_sets_[index]->data();
-
         for (ij = 0; ij < endOffset; ++ij) {
-          v = array[ij];
-#ifdef DEBUG_REFINER
-          assert(v >= minVertexIndex && v < maxVertexIndex);
-          assert(currPVector[v - minVertexIndex] == j);
-#endif
-          send_array_.assign(totToSend++, v);
-          send_array_.assign(totToSend++, j);
+          v = move_sets_[index]->at(ij);
+          send_array_[totToSend++] = v;
+          send_array_[totToSend++] = j;
 
-          moved_vertices_.assign(total_number_of_vertices_moved_++, v);
-          moved_vertices_.assign(total_number_of_vertices_moved_++, i);
+          moved_vertices_[total_number_of_vertices_moved_++] = v;
+          moved_vertices_[total_number_of_vertices_moved_++] = i;
         }
       }
     }
@@ -895,7 +806,7 @@ void k_way_greedy_refiner::update_vertex_move_info(MPI_Comm comm) {
     ij += receive_lens_[i];
   }
 
-  receive_array_.reserve(ij);
+  receive_array_.resize(ij);
   totToRecv = ij;
 
   MPI_Allgatherv(send_array_.data(), totToSend, MPI_INT,
@@ -1212,7 +1123,7 @@ void k_way_greedy_refiner::update_vertex_move_info(MPI_Comm comm) {
 }
 
 void k_way_greedy_refiner::update_adjacent_vertex_status(int v, int sP,
-                                                                  int bestMove) {
+                                                         int bestMove) {
   int i;
   int j;
   int ij;

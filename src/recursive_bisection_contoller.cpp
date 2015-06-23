@@ -92,15 +92,6 @@ void recursive_bisection_contoller::convToBisectionConstraints() {
   refiner_->set_maximum_part_weight(maximum_part_weight_);
   refiner_->set_average_part_weight(average_part_weight_);
 
-// ###
-// now initialise the partition
-// vector structures
-// ###
-
-#ifdef DEBUG_CONTROLLER
-  assert(numSeqRuns > 0);
-#endif
-
   // ###
   // now determine how many of the serial
   // runs' partitions  the processor should
@@ -122,8 +113,8 @@ void recursive_bisection_contoller::convToBisectionConstraints() {
       number_of_partitions_ = j;
   }
 
-  partition_vector_cuts_.reserve(number_of_partitions_);
-  partition_vector_offsets_.reserve(number_of_partitions_ + 1);
+  partition_vector_cuts_.resize(number_of_partitions_);
+  partition_vector_offsets_.resize(number_of_partitions_ + 1);
   partition_vector_offsets_[0] = 0;
 
   j = hypergraph_->number_of_vertices();
@@ -132,11 +123,11 @@ void recursive_bisection_contoller::convToBisectionConstraints() {
     partition_vector_offsets_[i] = partition_vector_offsets_[i - 1] + j;
   }
 
-  partition_vector_.reserve(partition_vector_offsets_[number_of_partitions_]);
+  partition_vector_.resize(partition_vector_offsets_[number_of_partitions_]);
 }
 
 void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
-                                MPI_Comm comm) {
+                                        MPI_Comm comm) {
   initialize_coarsest_hypergraph(hgraph, comm);
   convToBisectionConstraints();
 
@@ -159,7 +150,7 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
 
   bisection *b;
 
-  all_partition_info_.reserve(Shiftl(numVertices, 1));
+  all_partition_info_.resize(Shiftl(numVertices, 1));
 
   for (i = 0; i < number_of_runs_; ++i) {
     destProcessor = Mod(i, number_of_processors_);
@@ -167,9 +158,6 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
     local_vertex_part_info_length_ = 0;
 
     if (rank_ == destProcessor) {
-#ifdef DEBUG_CONTROLLER
-      assert(myPartitionIdx < numMyPartitions);
-#endif
       pVector = &partition_vector_[partition_vector_offsets_[myPartitionIdx]];
     }
 
@@ -195,9 +183,6 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
         recvDispls[j] = ij;
         ij += recvLens[j];
       }
-#ifdef DEBUG_CONTROLLER
-      assert(ij == Shiftl(numVertices, 1));
-#endif
     }
 
     MPI_Gatherv(local_vertex_partition_info_.data(), local_vertex_part_info_length_, MPI_INT,
@@ -213,11 +198,6 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
       }
 
       ++myPartitionIdx;
-
-#ifdef DEBUG_CONTROLLER
-      for (j = 0; j < numVertices; ++j)
-        assert(pVector[j] >= 0 && pVector[j] < numParts);
-#endif
     }
   }
 
@@ -308,7 +288,7 @@ void recursive_bisection_contoller::initialize_serial_partitions(
     ij += numVperProc[i];
   }
 
-  sendArray.reserve(j);
+  sendArray.resize(j);
   totToSend = j;
 
   ij = 0;
@@ -458,13 +438,12 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
         int i;
 
         for (i = 0; i < numVerts; ++i) {
-          local_vertex_partition_info_.assign(local_vertex_part_info_length_++, toOrigVmap[i]);
+          local_vertex_partition_info_[local_vertex_part_info_length_++] = toOrigVmap[i];
 
           if (partV[i] == 0)
-            local_vertex_partition_info_.assign(local_vertex_part_info_length_++, bisectionPart);
+            local_vertex_partition_info_[local_vertex_part_info_length_++] = bisectionPart;
           else
-            local_vertex_partition_info_.assign(local_vertex_part_info_length_++,
-                                        (bisectionPart | (1 << (log_k_ - 1))));
+            local_vertex_partition_info_[local_vertex_part_info_length_++] = (bisectionPart | (1 << (log_k_ - 1)));
         }
       }
     } else {

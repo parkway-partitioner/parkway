@@ -151,17 +151,15 @@ void restrictive_coarsening::prepare_data_to_send(
       for (int j = 0; j < processors_; ++j) {
         if (vertices_per_processor[j] > 1) {
           if (j == rank_) {
-            hyperedge_weights_.assign(
-                number_of_hyperedges_, local_hyperedge_weights[i]);
-            hyperedge_offsets_.assign(
-                number_of_hyperedges_, number_of_local_pins_);
+            hyperedge_weights_[number_of_hyperedges_] = local_hyperedge_weights[i];
+            hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
             ++number_of_hyperedges_;
 
             for (int l = start_offset; l < end_offset; ++l) {
               int local_vertex = local_pins[l] - minimum_vertex_index_;
               if (0 <= local_vertex &&
                   local_vertex < number_of_local_vertices_) {
-                local_pin_list_.assign(number_of_local_pins_++, local_vertex);
+                local_pin_list_[number_of_local_pins_++] = local_vertex;
                 ++vertex_to_hyperedges_offset_[local_vertex];
               }
             }
@@ -197,20 +195,20 @@ void restrictive_coarsening::load_non_local_hyperedges() {
     int end_offset = i + receive_array_[i];
     ++i;
 
-    hyperedge_weights_.assign(number_of_hyperedges_, receive_array_[i++]);
-    hyperedge_offsets_.assign(number_of_hyperedges_, number_of_local_pins_);
+    hyperedge_weights_[number_of_hyperedges_] = receive_array_[i++];
+    hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
     ++i;
     ++number_of_hyperedges_;
 
     while (i < end_offset) {
       int local_vertex = receive_array_[i];
-      local_pin_list_.assign(number_of_local_pins_, local_vertex);
+      local_pin_list_[number_of_local_pins_] = local_vertex;
       ++number_of_local_pins_;
       ++vertex_to_hyperedges_offset_[local_vertex];
       ++i;
     }
   }
-  hyperedge_offsets_.assign(number_of_hyperedges_, number_of_local_pins_);
+  hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
 }
 
 void restrictive_coarsening::initialize_vertex_to_hyperedges() {

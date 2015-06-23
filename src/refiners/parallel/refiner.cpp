@@ -15,7 +15,7 @@ namespace parallel {
 
 refiner::refiner(int rank, int nProcs, int nParts, std::ostream &out)
     : loader(rank, nProcs, nParts, out) {
-  part_weights_.reserve(nParts);
+  part_weights_.resize(nParts);
 }
 
 refiner::~refiner() {}
@@ -69,9 +69,9 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   number_of_local_pins_ = 0;
   vertsPerProc = number_of_vertices_ / processors_;
 
-  vertex_to_hyperedges_offset_.reserve(number_of_local_vertices_ + 1);
-  sentToProc.reserve(processors_);
-  vDegs.reserve(number_of_local_vertices_);
+  vertex_to_hyperedges_offset_.resize(number_of_local_vertices_ + 1);
+  sentToProc.resize(processors_);
+  vDegs.resize(number_of_local_vertices_);
 
   for (i = 0; i < number_of_local_vertices_; ++i) {
     vertex_to_hyperedges_offset_[i] = 0;
@@ -86,10 +86,8 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   // processors and to receive hyperedges from processors
   // ###
 
-  for (i = 0; i < processors_; ++i) {
-    send_lens_[i] = 0;
-    sentToProc[i] = 0;
-  }
+  send_lens_.assign(processors_, 0);
+  sentToProc.assign(processors_, 0);
 
   if (percentile_ == 100) {
     int numActiveProcs;
@@ -104,21 +102,15 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
       numActiveProcs = 0;
 
       for (j = startOffset; j < endOffset; ++j) {
-#ifdef DEBUG_REFINER
-        assert(localPins[j] < totalVertices && localPins[j] >= 0);
-#endif
         proc = std::min(localPins[j] / vertsPerProc, processors_ - 1);
 
         if (!sentToProc[proc]) {
           if (proc == rank_) {
-            hyperedge_weights_.assign(number_of_hyperedges_, localHedgeWeights[i]);
-            hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
+            hyperedge_weights_[number_of_hyperedges_] = localHedgeWeights[i];
+            hyperedge_offsets_[number_of_hyperedges_++] = number_of_local_pins_;
 
             for (l = startOffset; l < endOffset; ++l) {
-              local_pin_list_.assign(number_of_local_pins_++, localPins[l]);
-#ifdef DEBUG_REFINER
-              assert(localPins[l] < totalVertices && localPins[l] >= 0);
-#endif
+              local_pin_list_[number_of_local_pins_++] = localPins[l];
               if (localPins[l] >= minimum_vertex_index_ &&
                   localPins[l] < maximum_vertex_index_)
                 ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
@@ -139,10 +131,6 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
       activeProc = activeProcs[RANDOM(0, numActiveProcs)];
 
-#ifdef DEBUG_REFINER
-      assert(activeProc >= 0 && activeProc < processors_);
-#endif
-
       if (activeProc == rank_) {
         allocated_hyperedges_[number_of_allocated_hyperedges_++] = number_of_hyperedges_ - 1;
       } else {
@@ -154,9 +142,6 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
       }
     }
   } else if (percentile_ > 0) {
-#ifdef DEBUG_REFINER
-    assert(currPercentile > 0 && currPercentile < 100);
-#endif
 
     /* When not loading all the hyperedges, do not need to
        make processors responsible for hyperedges during
@@ -175,9 +160,6 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
         hEdgeLen = endOffset - startOffset;
 
         for (j = startOffset; j < endOffset; ++j) {
-#ifdef DEBUG_REFINER
-          assert(localPins[j] < totalVertices && localPins[j] >= 0);
-#endif
           proc = std::min(localPins[j] / vertsPerProc, processors_ - 1);
 
           if (!sentToProc[proc]) {
@@ -187,9 +169,6 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
               for (l = startOffset; l < endOffset; ++l) {
                 local_pin_list_[number_of_local_pins_++] = localPins[l];
-#ifdef DEBUG_REFINER
-                assert(localPins[l] < totalVertices && localPins[l] >= 0);
-#endif
                 if (localPins[l] >= minimum_vertex_index_ &&
                     localPins[l] < maximum_vertex_index_)
                   ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
@@ -235,9 +214,6 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
       if (hEdgeLen < limit) {
         for (j = startOffset; j < endOffset; ++j) {
-#ifdef DEBUG_REFINER
-          assert(localPins[j] < totalVertices && localPins[j] >= 0);
-#endif
           proc = std::min(localPins[j] / vertsPerProc, processors_ - 1);
 
           if (!sentToProc[proc]) {
@@ -247,9 +223,6 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
               for (l = startOffset; l < endOffset; ++l) {
                 local_pin_list_[number_of_local_pins_++] = localPins[l];
-#ifdef DEBUG_REFINER
-                assert(localPins[l] < totalVertices && localPins[l] >= 0);
-#endif
                 if (localPins[l] >= minimum_vertex_index_ &&
                     localPins[l] < maximum_vertex_index_)
                   ++vertex_to_hyperedges_offset_[localPins[l] - minimum_vertex_index_];
@@ -292,45 +265,36 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   j = 0;
 
   while (j < recvLen) {
-#ifdef DEBUG_REFINER
-    assert(receive_array_[j] > 0);
-#endif
     endOffset = j + receive_array_[j];
     ++j;
 
-    hyperedge_weights_.assign(number_of_hyperedges_, receive_array_[j++]);
-    hyperedge_offsets_.assign(number_of_hyperedges_++, number_of_local_pins_);
+    hyperedge_weights_[number_of_hyperedges_] = receive_array_[j++];
+    hyperedge_offsets_[number_of_hyperedges_++] = number_of_local_pins_;
 
     for (; j < endOffset; ++j) {
-      local_pin_list_.assign(number_of_local_pins_++, receive_array_[j]);
+      local_pin_list_[number_of_local_pins_++] = receive_array_[j];
 
-#ifdef DEBUG_REFINER
-      assert(receive_array_[j] < totalVertices && receive_array_[j] >= 0);
-#endif
 
       locVert = receive_array_[j] - minimum_vertex_index_;
 
       if (locVert >= 0 && locVert < number_of_local_vertices_)
         ++vertex_to_hyperedges_offset_[locVert];
     }
-#ifdef DEBUG_REFINER
-    assert(j == endOffset);
-#endif
 
     if (percentile_ == 100 && j < recvLen &&
         receive_array_[j] == RESP_FOR_HEDGE) {
-      allocated_hyperedges_.assign(number_of_allocated_hyperedges_++, number_of_hyperedges_ - 1);
+      allocated_hyperedges_[number_of_allocated_hyperedges_++] = number_of_hyperedges_ - 1;
       ++j;
     }
   }
 
-  hyperedge_offsets_.assign(number_of_hyperedges_, number_of_local_pins_);
+  hyperedge_offsets_[number_of_hyperedges_] = number_of_local_pins_;
 
 #ifdef MEM_OPT
-  hyperedge_offsets_.reserve(number_of_hyperedges_ + 1);
-  hyperedge_weights_.reserve(number_of_hyperedges_);
-  allocated_hyperedges_.reserve(number_of_hyperedges_);
-  local_pin_list_.reserve(number_of_local_pins_);
+  hyperedge_offsets_.resize(number_of_hyperedges_ + 1);
+  hyperedge_weights_.resize(number_of_hyperedges_);
+  allocated_hyperedges_.resize(number_of_hyperedges_);
+  local_pin_list_.resize(number_of_local_pins_);
 #endif
 
   // ###
@@ -341,17 +305,13 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   l = 0;
 
   for (; j < number_of_local_vertices_; ++j) {
-#ifdef DEBUG_REFINER
-    assert(vToHedgesOffset[j] >= 0);
-#endif
-
     locVert = vertex_to_hyperedges_offset_[j];
     vertex_to_hyperedges_offset_[j] = l;
     l += locVert;
   }
 
   vertex_to_hyperedges_offset_[j] = l;
-  vertex_to_hyperedges_.reserve(l);
+  vertex_to_hyperedges_.resize(l);
 
   for (j = 0; j < number_of_hyperedges_; ++j) {
     endOffset = hyperedge_offsets_[j + 1];
@@ -365,11 +325,6 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
       }
     }
   }
-
-#ifdef DEBUG_REFINER
-  for (j = 1; j <= numLocalVertices; ++j)
-    assert(vDegs[j - 1] == vToHedgesOffset[j] - vToHedgesOffset[j - 1]);
-#endif
 
   /* now init the non-local vertex structs */
 
@@ -385,20 +340,14 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
     for (j = hyperedge_offsets_[i]; j < endOffset; ++j) {
       ij = local_pin_list_[j];
-#ifdef DEBUG_REFINER
-      assert(ij >= 0 && ij < totalVertices);
-#endif
       if (ij < minimum_vertex_index_ || ij >= maximum_vertex_index_) {
         nonLocIndex = to_non_local_vertices_.insert_if_empty(ij,
                                                     number_of_non_local_vertices_);
 
         if (nonLocIndex == -1) {
-          vDegs.assign(number_of_non_local_vertices_, 1);
-          non_local_vertices_.assign(number_of_non_local_vertices_++, ij);
+          vDegs[number_of_non_local_vertices_] = 1;
+          non_local_vertices_[number_of_non_local_vertices_++] = ij;
         } else {
-#ifdef DEBUG_REFINER
-          assert(nonLocIndex < numNonLocVerts);
-#endif
           ++vDegs[nonLocIndex];
         }
       }
@@ -407,20 +356,12 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
   number_of_non_local_vertices_to_hyperedges_ = 0;
   for (i = 0; i < number_of_non_local_vertices_; ++i) {
-#ifdef DEBUG_REFINER
-    assert(vDegs[i] >= 1);
-#endif
     number_of_non_local_vertices_to_hyperedges_ += vDegs[i];
   }
 
-  non_local_vertices_.reserve(number_of_non_local_vertices_);
-  non_local_vertices_to_hyperedges_offsets_.reserve(number_of_non_local_vertices_ + 1);
-  non_local_vertices_to_hyperedges_.reserve(number_of_non_local_vertices_to_hyperedges_);
-
-#ifdef DEBUG_REFINER
-  for (i = 0; i < numNonLocVertsHedges; ++i)
-    nonLocVToHedges[i] = -1;
-#endif
+  non_local_vertices_.resize(number_of_non_local_vertices_);
+  non_local_vertices_to_hyperedges_offsets_.resize(number_of_non_local_vertices_ + 1);
+  non_local_vertices_to_hyperedges_.resize(number_of_non_local_vertices_to_hyperedges_);
 
   ij = 0;
   for (i = 0; i < number_of_non_local_vertices_; ++i) {
@@ -437,25 +378,14 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
 
     for (j = hyperedge_offsets_[i]; j < endOffset; ++j) {
       ij = local_pin_list_[j];
-#ifdef DEBUG_REFINER
-      assert(ij >= 0 && ij < totalVertices);
-#endif
       if (ij < minimum_vertex_index_ || ij >= maximum_vertex_index_) {
         nonLocIndex = to_non_local_vertices_.get(ij);
-#ifdef DEBUG_REFINER
-        assert(nonLocIndex >= 0 && nonLocIndex < numNonLocVerts);
-#endif
         l = non_local_vertices_to_hyperedges_offsets_[nonLocIndex] + vDegs[nonLocIndex];
         non_local_vertices_to_hyperedges_[l] = i;
         ++vDegs[nonLocIndex];
       }
     }
   }
-
-#ifdef DEBUG_REFINER
-  for (i = 0; i < numNonLocVertsHedges; ++i)
-    assert(nonLocVToHedges[i] > -1);
-#endif
 
   if (display_options_ > 1) {
     int numTotHedgesInGraph;
@@ -513,8 +443,8 @@ void refiner::initialize_partition_structures(
     assert(partitionVector[i] >= 0 && partitionVector[i] < number_of_parts_);
 #endif
 
-  part_indices_.reserve(number_of_non_local_vertices_ * number_of_partitions_);
-  index_into_part_indices_.reserve(number_of_partitions_ + 1);
+  part_indices_.resize(number_of_non_local_vertices_ * number_of_partitions_);
+  index_into_part_indices_.resize(number_of_partitions_ + 1);
 
   j = 0;
   for (i = 0; i < number_of_partitions_; ++i) {
@@ -553,8 +483,8 @@ void refiner::initialize_partition_structures(
   assert(send_lens_[rank_] == 0);
 #endif
 
-  send_array_.reserve(ij);
-  copyOfSendArray.reserve(ij);
+  send_array_.resize(ij);
+  copyOfSendArray.resize(ij);
   arraySize = ij;
 
   ij = 0;
@@ -576,7 +506,7 @@ void refiner::initialize_partition_structures(
   }
 
   totalToRecv = ij;
-  receive_array_.reserve(ij);
+  receive_array_.resize(ij);
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),
@@ -588,7 +518,7 @@ void refiner::initialize_partition_structures(
   // ###
 
   totalToSend = totalToRecv * number_of_partitions_;
-  send_array_.reserve(totalToSend);
+  send_array_.resize(totalToSend);
 
   for (i = 0; i < processors_; ++i) {
     ij = send_lens_[i];
@@ -639,7 +569,7 @@ void refiner::initialize_partition_structures(
 #endif
 
   totalToRecv = number_of_non_local_vertices_ * number_of_partitions_;
-  receive_array_.reserve(totalToRecv);
+  receive_array_.resize(totalToRecv);
 
   MPI_Alltoallv(send_array_.data(), send_lens_.data(),
                 send_displs_.data(), MPI_INT, receive_array_.data(),

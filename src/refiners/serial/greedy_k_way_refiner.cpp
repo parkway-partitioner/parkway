@@ -21,17 +21,17 @@ greedy_k_way_refiner::greedy_k_way_refiner(int max, int nparts, double ave,
   average_part_weight_ = ave;
   limit_ = lim;
   number_of_non_positive_moves_ = 0;
-  part_weights_.reserve(number_of_parts_);
+  part_weights_.resize(number_of_parts_);
 
-  number_of_neighboring_parts_.reserve(0);
-  neighbors_of_vertex_.reserve(0);
-  neighbors_of_vertex_offsets_.reserve(0);
-  hyperedge_vertices_in_part_.reserve(0);
-  hyperedge_vertices_in_part_offsets_.reserve(0);
-  vertices_.reserve(0);
-  vertex_seen_.reserve(0);
-  seen_vertices_.reserve(0);
-  parts_spanned_.reserve(0);
+  number_of_neighboring_parts_.resize(0);
+  neighbors_of_vertex_.resize(0);
+  neighbors_of_vertex_offsets_.resize(0);
+  hyperedge_vertices_in_part_.resize(0);
+  hyperedge_vertices_in_part_offsets_.resize(0);
+  vertices_.resize(0);
+  vertex_seen_.resize(0);
+  seen_vertices_.resize(0);
+  parts_spanned_.resize(0);
 
 #ifdef DEBUG_REFINER
   assert(limit >= 0 && limit <= 1.0);
@@ -57,16 +57,16 @@ void greedy_k_way_refiner::display_options(std::ostream &out) const {
 void greedy_k_way_refiner::build_data_structures() {
   int i;
 
-  parts_spanned_.reserve(number_of_parts_);
-  vertices_.reserve(numVertices);
-  vertex_seen_.reserve(numVertices);
-  seen_vertices_.reserve(numVertices);
-  number_of_neighboring_parts_.reserve(numVertices);
-  neighbors_of_vertex_offsets_.reserve(numVertices + 1);
-  neighbors_of_vertex_.reserve(numVertices * number_of_parts_);
+  parts_spanned_.resize(number_of_parts_);
+  vertices_.resize(numVertices);
+  vertex_seen_.resize(numVertices);
+  seen_vertices_.resize(numVertices);
+  number_of_neighboring_parts_.resize(numVertices);
+  neighbors_of_vertex_offsets_.resize(numVertices + 1);
+  neighbors_of_vertex_.resize(numVertices * number_of_parts_);
 
-  hyperedge_vertices_in_part_offsets_.reserve(numHedges + 1);
-  hyperedge_vertices_in_part_.reserve(numHedges * number_of_parts_);
+  hyperedge_vertices_in_part_offsets_.resize(numHedges + 1);
+  hyperedge_vertices_in_part_.resize(numHedges * number_of_parts_);
 
   neighbors_of_vertex_offsets_[0] = 0;
   hyperedge_vertices_in_part_offsets_[0] = 0;
@@ -81,16 +81,16 @@ void greedy_k_way_refiner::build_data_structures() {
 }
 
 void greedy_k_way_refiner::destroy_data_structures() {
-  parts_spanned_.reserve(0);
-  vertices_.reserve(0);
-  vertex_seen_.reserve(0);
-  seen_vertices_.reserve(0);
-  number_of_neighboring_parts_.reserve(0);
-  neighbors_of_vertex_offsets_.reserve(0);
-  neighbors_of_vertex_.reserve(0);
+  parts_spanned_.resize(0);
+  vertices_.resize(0);
+  vertex_seen_.resize(0);
+  seen_vertices_.resize(0);
+  number_of_neighboring_parts_.resize(0);
+  neighbors_of_vertex_offsets_.resize(0);
+  neighbors_of_vertex_.resize(0);
 
-  hyperedge_vertices_in_part_offsets_.reserve(0);
-  hyperedge_vertices_in_part_.reserve(0);
+  hyperedge_vertices_in_part_offsets_.resize(0);
+  hyperedge_vertices_in_part_.resize(0);
 }
 
 int greedy_k_way_refiner::initialize_data_structures() {
@@ -194,7 +194,7 @@ void greedy_k_way_refiner::update_adjacent_vertex_stats(int v, int sP,
   vertOffset = vOffsets[v + 1];
   numVerticesSeen = 0;
 
-  parts_spanned_.reserve(number_of_parts_);
+  parts_spanned_.resize(number_of_parts_);
 
   for (j = vOffsets[v]; j < vertOffset; ++j) {
 

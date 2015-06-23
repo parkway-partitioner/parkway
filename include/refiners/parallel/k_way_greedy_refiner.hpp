@@ -1,7 +1,5 @@
-
 #ifndef _PARA_GREEDYKWAY_REFINER_HPP
 #define _PARA_GREEDYKWAY_REFINER_HPP
-
 // ### ParaGreedyKwayRefiner.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London

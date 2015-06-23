@@ -64,6 +64,9 @@ template <typename T> class dynamic_array {
 
   // Access
   inline reference at(size_type position) {
+    if (this->size() <= position) {
+      this->resize(position + 1);
+    }
     return data_->at(position);
   }
 
@@ -264,7 +267,7 @@ template <typename T> class dynamic_array {
   }
 
   inline void sort() {
-    this->sort_between(0, this->size() - 1);
+    this->sort_between(0, this->size());
   }
 
   inline void sort_between(std::size_t start, std::size_t end) {
@@ -275,7 +278,7 @@ template <typename T> class dynamic_array {
       const dynamic_array &other,
       parkway::utility::sort_order order =
         parkway::utility::sort_order::INCREASING) {
-    this->sort_between_using_another_array(0, this->size() - 1, other, order);
+    this->sort_between_using_another_array(0, this->size(), other, order);
   }
 
   inline void sort_between_using_another_array(
@@ -287,10 +290,8 @@ template <typename T> class dynamic_array {
   }
 
   inline void random_permutation() {
-    parkway::utility::random_permutation(this->data(), this->size() - 1);
+    parkway::utility::random_permutation(this->data(), this->size());
   }
-
-
 };
 
 }  // namespace data_structures

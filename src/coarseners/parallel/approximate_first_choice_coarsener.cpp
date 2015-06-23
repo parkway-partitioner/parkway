@@ -254,16 +254,13 @@ parallel::hypergraph *approximate_first_choice_coarsener::coarsen(
                 assert(0);
               }
 
-              neighVerts.assign(numVisited, candidatV);
-              neighCluWts.assign(numVisited, cluWeight);
+              neighVerts[numVisited] = candidatV;
+              neighCluWts[numVisited] = cluWeight;
 
               if (divByHedgeLen)
-                connectVals.assign(numVisited++,
-                                   static_cast<double>(hyperedge_weights_[hEdge]) /
-                                       (hEdgeLen - 1));
+                connectVals[numVisited++] = static_cast<double>(hyperedge_weights_[hEdge]) / (hEdgeLen - 1);
               else
-                connectVals.assign(numVisited++,
-                                   static_cast<double>(hyperedge_weights_[hEdge]));
+                connectVals[numVisited++] = static_cast<double>(hyperedge_weights_[hEdge]);
             }
           }
         }
@@ -341,7 +338,7 @@ assert(bestMatch >= 0);
         // ###
 
         match_vector_[vertex] = cluster_index_;
-        cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
+        cluster_weights_[cluster_index_++] = vertex_weights_[vertex];
         --numNotMatched;
       } else {
 #ifdef DEBUG_COARSENER
@@ -357,7 +354,7 @@ assert(bestMatch >= 0);
           if (match_vector_[bestMatch - minimum_vertex_index_] == -1) {
             match_vector_[bestMatch - minimum_vertex_index_] = cluster_index_;
             match_vector_[vertex] = cluster_index_;
-            cluster_weights_.assign(cluster_index_++, bestMatchWt);
+            cluster_weights_[cluster_index_++] = bestMatchWt;
             numNotMatched -= 2;
           } else {
             if (match_vector_[bestMatch - minimum_vertex_index_] >= NON_LOCAL_MATCH) {
@@ -415,7 +412,7 @@ assert(bestMatch >= 0);
 
     if (match_vector_[vertex] == -1) {
       match_vector_[vertex] = cluster_index_;
-      cluster_weights_.assign(cluster_index_++, vertex_weights_[vertex]);
+      cluster_weights_[cluster_index_++] = vertex_weights_[vertex];
     }
   }
 
@@ -628,7 +625,7 @@ void approximate_first_choice_coarsener::processReqReplies() {
         for (index = 0; index < numLocals; ++index)
           match_vector_[locals[index] - minimum_vertex_index_] = cluster_index_;
 
-        cluster_weights_.assign(cluster_index_++, entry->cluster_weight());
+        cluster_weights_[cluster_index_++] = entry->cluster_weight();
       }
     }
     startOffset += receive_lens_[i];
@@ -803,7 +800,7 @@ int approximate_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, i
 
       table->remove_local(nonLocReq, locVertex, vertex_weights_[locVertexIndex]);
       match_vector_[locVertexIndex] = cluster_index_;
-      cluster_weights_.assign(cluster_index_++, cluWt);
+      cluster_weights_[cluster_index_++] = cluWt;
 
       return 1;
     }

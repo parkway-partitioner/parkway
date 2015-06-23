@@ -58,11 +58,6 @@ class movement_set_table {
         }
       }
     }
-
-#ifdef DEBUG_BASICS
-    assert(j >= -1 && j < number_of_parts_);
-#endif
-
     return j;
   }
 

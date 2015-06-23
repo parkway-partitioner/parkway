@@ -1,6 +1,3 @@
-#ifndef _SEQ_CONTROLLER_CPP
-#define _SEQ_CONTROLLER_CPP
-
 // ### SeqController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -30,9 +27,9 @@ controller::controller(int rank, int nProcs, int nParts, std::ostream &out)
 
   hypergraph_ = nullptr;
 
-  partition_vector_.reserve(0);
-  partition_vector_cuts_.reserve(0);
-  partition_vector_offsets_.reserve(0);
+  partition_vector_.resize(0);
+  partition_vector_cuts_.resize(0);
+  partition_vector_offsets_.resize(0);
 }
 
 controller::~controller() {
@@ -112,7 +109,7 @@ void controller::initialize_coarsest_hypergraph(parallel::hypergraph &hgraph,
   }
 
   recvArrayLen = ij;
-  recvArray.reserve(recvArrayLen);
+  recvArray.resize(recvArrayLen);
   MPI_Allgatherv(localHedgeOffsets.data(), numLocalHedges + 1, MPI_INT,
                  recvArray.data(), recvLens.data(),
                  recvDispls.data(), MPI_INT, comm);
@@ -267,7 +264,7 @@ void controller::initialize_serial_partitions(
     ij += numVperProc[i];
   }
 
-  sendArray.reserve(j);
+  sendArray.resize(j);
   totToSend = j;
 
   ij = 0;
@@ -373,5 +370,3 @@ int controller::accept_cut() const {
 
 }  // namespace serial
 }  // namespace parkway
-
-#endif

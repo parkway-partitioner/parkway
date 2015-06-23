@@ -49,10 +49,6 @@ movement_set_table::~movement_set_table()  {
 
 void movement_set_table::initialize_part_weights(const int *part_weights,
                                                  int number_of_parts) {
-#ifdef DEBUG_BASICS
-  assert(number_of_parts == number_of_parts_);
-#endif
-
   for (int i = 0; i < number_of_parts_; ++i) {
     part_weights_[i] = part_weights[i];
   }
@@ -60,8 +56,8 @@ void movement_set_table::initialize_part_weights(const int *part_weights,
   for (int j = 0; j < set_array_len_; ++j) {
     if ((j % number_of_parts_) != j / number_of_parts_) {
       for (int i = 0; i < number_of_processors_; ++i) {
-        (*sets_[j])[i].gain = -1;
-        (*sets_[j])[i].weight = 0;
+        sets_[j]->at(i).gain = -1;
+        sets_[j]->at(i).weight = 0;
       }
     }
   }
@@ -133,8 +129,8 @@ void movement_set_table::compute_restoring_array() {
     assert(weight > 0);
 #endif
 
-    restoring_moves_[minProc]->assign(restoring_move_lens_[minProc]++, minIndex);
-    restoring_moves_[minProc]->assign(restoring_move_lens_[minProc]++, heaviest);
+    restoring_moves_[minProc]->at(restoring_move_lens_[minProc]++) = minIndex;
+    restoring_moves_[minProc]->at(restoring_move_lens_[minProc]++) = heaviest;
 
     part_weights_[minIndex] += weight;
     part_weights_[heaviest] -= weight;
