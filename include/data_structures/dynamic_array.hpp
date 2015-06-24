@@ -221,7 +221,7 @@ template <typename T> class dynamic_array {
 
   inline void set_data(value_type *array, size_type length) {
     this->clear();
-    this->resize(length);
+    // this->resize(length);
     data_->insert(this->begin(), array, array + length);
   }
 
@@ -253,7 +253,6 @@ template <typename T> class dynamic_array {
     data_->resize(count, value);
   }
 
-
   inline bool read_from(std::istream &stream, const std::size_t length) {
     if (stream.good()) {
       if (this->size() < length) {
@@ -267,7 +266,7 @@ template <typename T> class dynamic_array {
   }
 
   inline void sort() {
-    this->sort_between(0, this->size());
+    this->sort_between(0, this->size() - 1);
   }
 
   inline void sort_between(std::size_t start, std::size_t end) {
@@ -278,7 +277,7 @@ template <typename T> class dynamic_array {
       const dynamic_array &other,
       parkway::utility::sort_order order =
         parkway::utility::sort_order::INCREASING) {
-    this->sort_between_using_another_array(0, this->size(), other, order);
+    this->sort_between_using_another_array(0, this->size() - 1, other, order);
   }
 
   inline void sort_between_using_another_array(

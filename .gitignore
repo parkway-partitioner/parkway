@@ -8,3 +8,4 @@ hypergraphs
 *.part
 *.part.*
 *.swp
+test_output.*
