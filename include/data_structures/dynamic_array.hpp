@@ -15,6 +15,12 @@ template <typename T> class dynamic_array {
   typedef T value_type;
   typedef std::vector<value_type> data_type;
   typedef typename data_type::size_type size_type;
+
+  // Shared point to Underlying data.
+  std::shared_ptr<data_type> data_;
+
+ public:
+  // public typedefs.
   typedef value_type& reference;
   typedef const value_type& const_reference;
   typedef value_type&& move_reference;
@@ -23,10 +29,6 @@ template <typename T> class dynamic_array {
   typedef typename data_type::reverse_iterator reverse_iterator;
   typedef typename data_type::const_reverse_iterator const_reverse_iterator;
 
-  // Shared point to Underlying data.
-  std::shared_ptr<data_type> data_;
-
- public:
   // Constructors
   dynamic_array() : data_(new data_type) {
   }
@@ -196,6 +198,31 @@ template <typename T> class dynamic_array {
     this->shrink_to_fit();
   }
 
+#if ((__GNUC__ == 4) && (__GNUC_MINOR_ < 9))
+  inline iterator insert(iterator position, const_reference value) {
+    return data_->insert(position, value);
+  }
+
+  inline iterator insert(iterator position, move_reference value) {
+    return data_->insert(position, value);
+  }
+
+  inline iterator insert(iterator position, size_type count,
+                         const_reference value) {
+    return data_->insert(position, count, value);
+  }
+
+  template <class InputIt>
+  inline iterator insert(iterator position, InputIt first, InputIt last) {
+    return data_->insert(position, first, last);
+  }
+
+  inline iterator insert(iterator position,
+                         std::initializer_list<value_type> initializer_list) {
+    return data_->insert(position, initializer_list);
+  }
+#else
+
   inline iterator insert(const_iterator position, const_reference value) {
     return data_->insert(position, value);
   }
@@ -218,13 +245,22 @@ template <typename T> class dynamic_array {
                          std::initializer_list<value_type> initializer_list) {
     return data_->insert(position, initializer_list);
   }
+#endif
 
   inline void set_data(value_type *array, size_type length) {
     this->clear();
-    // this->resize(length);
     data_->insert(this->begin(), array, array + length);
   }
 
+#if ((__GNUC__ == 4) && (__GNUC_MINOR_ < 9))
+  inline iterator erase(iterator position) {
+    return data_->erase(position);
+  }
+
+  inline iterator erase(iterator first, iterator last) {
+    return data_->erase(first, last);
+  }
+#else
   inline iterator erase(const_iterator position) {
     return data_->erase(position);
   }
@@ -232,6 +268,7 @@ template <typename T> class dynamic_array {
   inline iterator erase(const_iterator first, const_iterator last) {
     return data_->erase(first, last);
   }
+#endif
 
   inline void push_back(const_reference value) {
     data_->push_back(value);

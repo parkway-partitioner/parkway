@@ -3,7 +3,7 @@
 
 using parkway::data_structures::bit_field;
 
-TEST(BitField, Construction) {
+TEST(bit_field, construction) {
   bit_field bf1;
 
   ASSERT_EQ(bf1.capacity(), 0);
@@ -15,14 +15,14 @@ TEST(BitField, Construction) {
 }
 
 
-TEST(BitField, OperatorBrackets) {
+TEST(bit_field, subscript_operators) {
   bit_field bf(1);
   ASSERT_FALSE(bf(0));
   ASSERT_FALSE(bf[0]);
 }
 
 
-TEST(BitField, Set) {
+TEST(bit_field, set) {
   bit_field bf(4);
   ASSERT_FALSE(bf[2]);
   bf.set(2);
@@ -30,7 +30,7 @@ TEST(BitField, Set) {
 }
 
 
-TEST(BitField, Unset) {
+TEST(bit_field, unset) {
   bit_field bf(4);
   bf.set(3);
   ASSERT_TRUE(bf[3]);
@@ -39,7 +39,7 @@ TEST(BitField, Unset) {
 }
 
 
-TEST(BitField, TestAll) {
+TEST(bit_field, test_all) {
   bit_field bf(10);
   ASSERT_FALSE(bf.test_all());
 
@@ -48,7 +48,7 @@ TEST(BitField, TestAll) {
 }
 
 
-TEST(BitField, Check) {
+TEST(bit_field, check) {
   bit_field bf;
   ASSERT_EQ(bf.capacity(), 0);
   // Check if there is space in index 0.
@@ -58,7 +58,7 @@ TEST(BitField, Check) {
 }
 
 
-TEST(BitField, Chunk) {
+TEST(bit_field, chunk) {
   bit_field bf(64);
   // Set all bits.
   bf.set();
@@ -67,7 +67,7 @@ TEST(BitField, Chunk) {
 }
 
 
-TEST(BitField, Data) {
+TEST(bit_field, data) {
   bit_field bf(64);
   bf.set();
 
@@ -79,7 +79,7 @@ TEST(BitField, Data) {
 }
 
 
-TEST(BitField, Reserve) {
+TEST(bit_field, reserve) {
   bit_field bf;
   ASSERT_EQ(bf.capacity(), 0);
   ASSERT_EQ(bf.number_of_bits(), 0);
@@ -92,10 +92,16 @@ TEST(BitField, Reserve) {
 }
 
 
-TEST(BitField, SetUnsetAll) {
+TEST(bit_field, set_all) {
   bit_field bf(64);
   ASSERT_FALSE(bf.test_all());
 
+  bf.set();
+  ASSERT_TRUE(bf.test_all());
+}
+
+TEST(bit_field, unset_all) {
+  bit_field bf(64);
   bf.set();
   ASSERT_TRUE(bf.test_all());
 

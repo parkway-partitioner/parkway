@@ -196,21 +196,6 @@ TEST(dynamic_array, insert_move_at_position) {
   ASSERT_EQ(arr[10], 5);
 }
 
-TEST(dynamic_array, insert_range_at_position) {
-  dynamic_array<int> arr(10, 0);
-  ASSERT_EQ(arr.size(), 10);
-  int count = 5;
-  int value = 3;
-  arr.insert(arr.end(), count, value);
-  ASSERT_EQ(arr.size(), 15);
-  for (std::size_t i = 0; i < 10; ++i) {
-    ASSERT_EQ(arr[i], 0);
-  }
-  for (std::size_t i = 10; i < arr.size(); ++i) {
-    ASSERT_EQ(arr[i], value);
-  }
-}
-
 TEST(dynamic_array, set_data) {
   dynamic_array<int> arr;
   ASSERT_EQ(arr.size(), 0);
