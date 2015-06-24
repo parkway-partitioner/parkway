@@ -47,6 +47,9 @@ endif()
 ### Packages ##################################################################
 # Find any required packages.
 find_package(MPI REQUIRED)
+find_package(Boost COMPONENTS log_setup log thread system REQUIRED)
+add_definitions(-DBOOST_LOG_DYN_LINK)
+
 
 
 ### Testing framework #########################################################
@@ -64,6 +67,8 @@ endif()
 include_directories("${MAINFOLDER}/include")
 # MPI
 include_directories(${MPI_INCLUDE_PATH})
+# Boost
+include_directories(${Boost_INCLUDE_PATH})
 
 
 ### CMakeLists to consider ####################################################

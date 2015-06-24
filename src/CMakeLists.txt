@@ -2,7 +2,7 @@
 file(GLOB_RECURSE PROJECT_SRCS *.cpp *.cxx *.c)
 file(GLOB_RECURSE PROJECT_HEADERS
   "${MAINFOLDER}/include/*.h" "${MAINFOLDER}/include/*.hpp")
-set(PROJECT_LIBRARIES ${MPI_LIBRARIES})
+set(PROJECT_LIBRARIES ${MPI_LIBRARIES} ${Boost_LIBRARIES})
 
 # Compile the sources into a library and link with 3rd party libraries.
 # Include headers here so that generated IDE projects include them.
