@@ -43,7 +43,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
   double accumulator;
   double othAccumulator;
 
-  stack<int> hEdgePercentiles;
+  std::stack<int> hEdgePercentiles;
 
   number_of_orig_vertices_ = origGraph->number_of_vertices();
   best_partition_.reserve(number_of_orig_vertices_);
@@ -61,7 +61,7 @@ void v_cycle_all_bisection_controller::compute_bisection() {
 
     do {
       hEdgePercentile = hEdgePercentiles.top();
-        coarsener_->set_percentile(hEdgePercentile);
+      coarsener_->set_percentile(hEdgePercentile);
       coarseGraph = coarsener_->coarsen(*finerGraph);
 
       if (coarseGraph) {
@@ -75,7 +75,8 @@ void v_cycle_all_bisection_controller::compute_bisection() {
     // compute the initial partition
     // ###
 
-    coarseGraph = hypergraphs_.pop();
+    coarseGraph = hypergraphs_.top();
+    hypergraphs_.pop();
     initial_bisector_->initialize_bisector(*coarseGraph);
 
     accumulator = 1.0;
@@ -84,8 +85,9 @@ void v_cycle_all_bisection_controller::compute_bisection() {
         coarseGraph->remove_bad_partitions(keep_threshold_ * accumulator);
 
       hEdgePercentiles.pop();
-      finerGraph = hypergraphs_.pop();
-        finerGraph->project_partitions(*coarseGraph);
+      finerGraph = hypergraphs_.top();
+      hypergraphs_.pop();
+      finerGraph->project_partitions(*coarseGraph);
 
       refiner_->refine(*finerGraph);
 
@@ -129,7 +131,8 @@ void v_cycle_all_bisection_controller::compute_bisection() {
         // compute the initial partition
         // ###
 
-        coarseGraph = hypergraphs_.pop();
+        coarseGraph = hypergraphs_.top();
+        hypergraphs_.pop();
         initial_bisector_->initialize_bisector(*coarseGraph);
 
         while (coarseGraph != interMedGraph) {
@@ -137,8 +140,9 @@ void v_cycle_all_bisection_controller::compute_bisection() {
           othAccumulator *= reduction_factor_;
 
           hEdgePercentiles.pop();
-          finerGraph = hypergraphs_.pop();
-            finerGraph->project_partitions(*coarseGraph);
+          finerGraph = hypergraphs_.top();
+          hypergraphs_.pop();
+          finerGraph->project_partitions(*coarseGraph);
 
           refiner_->refine(*finerGraph);
 

@@ -43,7 +43,7 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
   double othAccumulator;
   double totStartTime;
 
-  ds::stack<int> hEdgePercentiles;
+  std::stack<int> hEdgePercentiles;
 
   parallel::hypergraph *coarseGraph;
   parallel::hypergraph *interMedGraph;
@@ -109,7 +109,8 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
     MPI_Barrier(comm);
     start_time_ = MPI_Wtime();
 
-    coarseGraph = hypergraphs_.pop();
+    coarseGraph = hypergraphs_.top();
+    hypergraphs_.pop();
     serial_controller_.run(*coarseGraph, comm);
 
     MPI_Barrier(comm);
@@ -123,8 +124,11 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
         coarseGraph->remove_bad_partitions(keep_partitions_within_ *
                                            accumulator_);
       accumulator_ *= reduction_in_keep_threshold_;
-      hEdgePercentile = hEdgePercentiles.pop();
-      finerGraph = hypergraphs_.pop();
+      hEdgePercentile = hEdgePercentiles.top();
+      hEdgePercentiles.pop();
+      finerGraph = hypergraphs_.top();
+      hypergraphs_.pop();
+
 
       MPI_Barrier(comm);
       start_time_ = MPI_Wtime();
@@ -207,9 +211,10 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
           // compute the initial partition
           // ###
 
-          coarseGraph = hypergraphs_.pop();
-            coarseGraph->set_number_of_partitions(0);
-            coarseGraph->shift_vertices_to_balance(comm);
+          coarseGraph = hypergraphs_.top();
+          hypergraphs_.pop();
+          coarseGraph->set_number_of_partitions(0);
+          coarseGraph->shift_vertices_to_balance(comm);
 
           MPI_Barrier(comm);
           start_time_ = MPI_Wtime();
@@ -231,8 +236,10 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
                                                  othAccumulator);
             othAccumulator *= reduction_in_keep_threshold_;
 
-            hEdgePercentile = hEdgePercentiles.pop();
-            finerGraph = hypergraphs_.pop();
+            hEdgePercentile = hEdgePercentiles.top();
+            hEdgePercentiles.pop();
+            finerGraph = hypergraphs_.top();
+            hypergraphs_.pop();
 
             if (finerGraph == interMedGraph) {
               shift_v_cycle_vertices_to_balance(*finerGraph, comm);

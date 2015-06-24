@@ -1,6 +1,5 @@
 #ifndef _VCYCLE_CONTROLLER_HPP
 #define _VCYCLE_CONTROLLER_HPP
-
 // ### ParaVCycleController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,7 +9,7 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
+#include <stack>
 #include "internal/parallel_controller.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "coarseners/parallel/restrictive_first_choice_coarsening.hpp"
@@ -18,7 +17,6 @@
 
 namespace ds = parkway::data_structures;
 namespace parallel = parkway::parallel;
-typedef ds::dynamic_array<int> IntArray;
 
 class parallel_v_cycle_controller : public parallel::controller {
  protected:
@@ -27,9 +25,9 @@ class parallel_v_cycle_controller : public parallel::controller {
 
   double limit_as_percent_of_cut_;
 
-  ds::stack<int> number_of_local_current_vertices_;
-  ds::stack<int> minimum_local_current_vertices_;
-  ds::stack<IntArray *> best_v_cycle_partition_;
+  std::stack<int> number_of_local_current_vertices_;
+  std::stack<int> minimum_local_current_vertices_;
+  std::stack<ds::dynamic_array<int> *> best_v_cycle_partition_;
 
   dynamic_array<int> map_to_inter_vertices_;
 

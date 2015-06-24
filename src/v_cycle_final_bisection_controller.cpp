@@ -40,7 +40,7 @@ void v_cycle_final_bisection_controller::compute_bisection() {
 
   double accumulator;
 
-  stack<int> hEdgePercentiles;
+  std::stack<int> hEdgePercentiles;
 
   number_of_orig_vertices_ = origGraph->number_of_vertices();
   best_partition_.reserve(number_of_orig_vertices_);
@@ -72,7 +72,8 @@ void v_cycle_final_bisection_controller::compute_bisection() {
     // compute the initial partition
     // ###
 
-    coarseGraph = hypergraphs_.pop();
+    coarseGraph = hypergraphs_.top();
+    hypergraphs_.pop();
     initial_bisector_->initialize_bisector(*coarseGraph);
       coarseGraph->remove_bad_partitions(keep_threshold_);
 
@@ -80,8 +81,9 @@ void v_cycle_final_bisection_controller::compute_bisection() {
 
     while (coarseGraph != origGraph) {
       hEdgePercentiles.pop();
-      finerGraph = hypergraphs_.pop();
-        finerGraph->project_partitions(*coarseGraph);
+      finerGraph = hypergraphs_.top();
+      hypergraphs_.pop();
+      finerGraph->project_partitions(*coarseGraph);
 
       refiner_->refine(*finerGraph);
 
@@ -137,7 +139,8 @@ void v_cycle_final_bisection_controller::compute_bisection() {
       // compute the initial partition
       // ###
 
-      coarseGraph = hypergraphs_.pop();
+      coarseGraph = hypergraphs_.top();
+      hypergraphs_.pop();
 
       initial_bisector_->initialize_bisector(*coarseGraph);
         coarseGraph->remove_bad_partitions(keep_threshold_);
@@ -150,8 +153,9 @@ void v_cycle_final_bisection_controller::compute_bisection() {
 
       while (coarseGraph != origGraph) {
         hEdgePercentiles.pop();
-        finerGraph = hypergraphs_.pop();
-          finerGraph->project_partitions(*coarseGraph);
+        finerGraph = hypergraphs_.top();
+        hypergraphs_.pop();
+        finerGraph->project_partitions(*coarseGraph);
 
         refiner_->refine(*finerGraph);
 

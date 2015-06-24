@@ -1,12 +1,3 @@
-// ### ParaVCycleController.cpp ###
-//
-// Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-//
-// HISTORY:
-//
-// 4/1/2005: Last Modified
-//
-// ###
 
 #include "parallel_v_cycle_controller.hpp"
 #include "data_structures/complete_binary_tree.hpp"
@@ -106,14 +97,14 @@ void parallel_v_cycle_controller::record_v_cycle_partition(
   int minVertexIndex;
   int numLocalVertices;
 
-  IntArray *bestPartVector;
+  ds::dynamic_array<int> *bestPartVector;
 
   auto pVector = h.partition_vector();
   minVertexIndex = h.minimum_vertex_index();
   numLocalVertices = h.number_of_vertices();
 
   if (numIteration == 0) {
-    bestPartVector = new IntArray(numLocalVertices);
+    bestPartVector = new ds::dynamic_array<int>(numLocalVertices);
 
     for (i = 0; i < numLocalVertices; ++i)
       bestPartVector->at(i) = pVector[i];
@@ -176,19 +167,22 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   int numLocalVertices = h.number_of_vertices();
   auto myVtoOrigV = h.to_origin_vertex();
 
-  minStoredVertexIndex = minimum_local_current_vertices_.pop();
-  numStoredLocVertices = number_of_local_current_vertices_.pop();
+  minStoredVertexIndex = minimum_local_current_vertices_.top();
+  minimum_local_current_vertices_.pop();
+  numStoredLocVertices = number_of_local_current_vertices_.top();
+  number_of_local_current_vertices_.pop();
   maxStoredVertexIndex = minStoredVertexIndex + numStoredLocVertices;
 
-  IntArray *bestPartVector = best_v_cycle_partition_.pop();
+  ds::dynamic_array<int> *bestPartVector = best_v_cycle_partition_.top();
+  best_v_cycle_partition_.pop();
 
 #ifdef DEBUG_CONTROLLER
   assert(bestPartVector);
 #endif
 
-  dynamic_array<int> minStoredIDs(processors_);
-  dynamic_array<int> localSendArrayVerts;
-  dynamic_array<int> procs(processors_);
+  ds::dynamic_array<int> minStoredIDs(processors_);
+  ds::dynamic_array<int> localSendArrayVerts;
+  ds::dynamic_array<int> procs(processors_);
 
   MPI_Allgather(&minStoredVertexIndex, 1, MPI_INT, minStoredIDs.data(), 1,
                 MPI_INT, comm);
@@ -196,7 +190,7 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   for (i = 0; i < processors_; ++i)
     procs[i] = i;
 
-  ds::complete_binary_tree <int> storedVtoProc(procs.data(),
+  ds::complete_binary_tree<int> storedVtoProc(procs.data(),
                                                minStoredIDs.data(), processors_);
 
   for (i = 0; i < processors_; ++i)
@@ -324,8 +318,8 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
     int j;
     int ij;
 
-    dynamic_array<int> interGraphPVector(numLocalCoarseVertices);
-    dynamic_array<int> requestingLocalVerts;
+    ds::dynamic_array<int> interGraphPVector(numLocalCoarseVertices);
+    ds::dynamic_array<int> requestingLocalVerts;
 
     for (i = 0; i < processors_; ++i)
       send_lens_[i] = 0;

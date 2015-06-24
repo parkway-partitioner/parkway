@@ -9,11 +9,10 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include <iostream>
+#include <stack>
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "data_structures/dynamic_array.hpp"
-#include "data_structures/stack.hpp"
 #include "coarseners/parallel/first_choice_coarsener.hpp"
 #include "coarseners/parallel/model_coarsener_2d.hpp"
 #include "coarseners/parallel/approximate_first_choice_coarsener.hpp"
@@ -76,7 +75,7 @@ class controller : public parkway::global_communicator {
   coarsener &coarsener_;
   refiner &refiner_;
   serial::controller &serial_controller_;
-  ds::stack<parallel::hypergraph *> hypergraphs_;
+  std::stack<parallel::hypergraph *> hypergraphs_;
 
  public:
   controller(coarsener &c, refiner &r,

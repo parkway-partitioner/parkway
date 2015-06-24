@@ -36,7 +36,7 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
 
   double totStartTime;
 
-  ds::stack<int> hEdgePercentiles;
+  std::stack<int> hEdgePercentiles;
 
   parallel::hypergraph *coarseGraph;
   parallel::hypergraph *finerGraph;
@@ -105,7 +105,8 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
     MPI_Barrier(comm);
     start_time_ = MPI_Wtime();
 
-    coarseGraph = hypergraphs_.pop();
+    coarseGraph = hypergraphs_.top();
+    hypergraphs_.pop();
     serial_controller_.run(*coarseGraph, comm);
 
     MPI_Barrier(comm);
@@ -123,8 +124,10 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
                                            accumulator_);
       accumulator_ *= reduction_in_keep_threshold_;
 
-      hEdgePercentile = hEdgePercentiles.pop();
-      finerGraph = hypergraphs_.pop();
+      hEdgePercentile = hEdgePercentiles.top();
+      hEdgePercentiles.pop();
+      finerGraph = hypergraphs_.top();
+      hypergraphs_.pop();
 
       if (finerGraph == hypergraph_)
         project_v_cycle_partition(*coarseGraph, *finerGraph, comm);
@@ -215,9 +218,10 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
       // compute the initial partition
       // ###
 
-      coarseGraph = hypergraphs_.pop();
-        coarseGraph->set_number_of_partitions(0);
-        coarseGraph->shift_vertices_to_balance(comm);
+      coarseGraph = hypergraphs_.top();
+      hypergraphs_.pop();
+      coarseGraph->set_number_of_partitions(0);
+      coarseGraph->shift_vertices_to_balance(comm);
 
       MPI_Barrier(comm);
       start_time_ = MPI_Wtime();
@@ -240,8 +244,10 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
               keep_partitions_within_ * accumulator_);
         accumulator_ *= reduction_in_keep_threshold_;
 
-        hEdgePercentile = hEdgePercentiles.pop();
-        finerGraph = hypergraphs_.pop();
+        hEdgePercentile = hEdgePercentiles.top();
+        hEdgePercentiles.pop();
+        finerGraph = hypergraphs_.top();
+        hypergraphs_.pop();
 
         if (finerGraph == hypergraph_)
           shift_v_cycle_vertices_to_balance(*finerGraph, comm);

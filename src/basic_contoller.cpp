@@ -13,8 +13,8 @@
 //   then extend idea to v-cycle refinement
 //
 // ###
-
 #include "basic_contoller.hpp"
+#include <stack>
 #include "hypergraph/parallel/hypergraph.hpp"
 
 namespace parkway {
@@ -65,7 +65,7 @@ void basic_contoller::run(MPI_Comm comm) {
   int checkCutsize;
 #endif
 
-  ds::stack<int> hEdgePercentiles;
+  std::stack<int> hEdgePercentiles;
 
   number_of_orig_local_vertices_ = hypergraph_->number_of_vertices();
 
@@ -147,7 +147,8 @@ void basic_contoller::run(MPI_Comm comm) {
     MPI_Barrier(comm);
     start_time_ = MPI_Wtime();
 
-    coarseGraph = hypergraphs_.pop();
+    coarseGraph = hypergraphs_.top();
+    hypergraphs_.pop();
     serial_controller_.run(*coarseGraph, comm);
 
     MPI_Barrier(comm);
@@ -173,8 +174,10 @@ void basic_contoller::run(MPI_Comm comm) {
                                            accumulator_);
       accumulator_ *= reduction_in_keep_threshold_;
 
-      finerGraph = hypergraphs_.pop();
-      hEdgePercentile = hEdgePercentiles.pop();
+      finerGraph = hypergraphs_.top();
+      hypergraphs_.pop();
+      hEdgePercentile = hEdgePercentiles.top();
+      hEdgePercentiles.pop();
 
         finerGraph->project_partitions(*coarseGraph, comm);
 

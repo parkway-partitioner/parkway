@@ -1,6 +1,5 @@
 #ifndef _BISECTION_CONTROLLER_HPP
 #define _BISECTION_CONTROLLER_HPP
-
 // ### BisectionController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -12,7 +11,7 @@
 // ###
 
 #include <ostream>
-#include "data_structures/stack.hpp"
+#include <stack>
 #include "hypergraph/serial/hypergraph.hpp"
 #include "coarseners/serial/first_choice_coarsener.hpp"
 #include "initial_bisector.hpp"
@@ -41,7 +40,7 @@ class bisection_controller {
   coarsener *coarsener_;
   refiner *refiner_;
   initial_bisector *initial_bisector_;
-  ds::stack<serial::hypergraph *> hypergraphs_;
+  std::stack<serial::hypergraph *> hypergraphs_;
   ds::dynamic_array<int> best_partition_;
 
  public:
