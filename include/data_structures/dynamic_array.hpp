@@ -30,15 +30,15 @@ template <typename T> class dynamic_array {
   typedef typename data_type::const_reverse_iterator const_reverse_iterator;
 
   // Constructors
-  dynamic_array() : data_(new data_type) {
+  dynamic_array() : data_(std::make_shared<data_type>()) {
   }
 
   explicit dynamic_array(size_type capacity, const_reference value)
-      : data_(new data_type(capacity, value)) {
+      : data_(std::make_shared<data_type>(capacity, value)) {
   }
 
   explicit dynamic_array(size_type capacity)
-      : data_(new data_type(capacity)) {
+      : data_(std::make_shared<data_type>(capacity)) {
   }
 
   dynamic_array(dynamic_array& other) {
