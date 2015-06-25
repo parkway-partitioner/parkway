@@ -69,6 +69,7 @@ include_directories("${MAINFOLDER}/include")
 include_directories(${MPI_INCLUDE_PATH})
 # Boost
 include_directories(${Boost_INCLUDE_PATH})
+include_directories(${Boost_INCLUDE_DIRS})
 
 
 ### CMakeLists to consider ####################################################
