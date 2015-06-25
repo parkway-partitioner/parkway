@@ -23,7 +23,7 @@ namespace utility = parkway::utility;
 coarsener::coarsener(int rank, int number_of_processors, int number_of_parts,
                      std::ostream &out, std::string object_name)
     : loader(rank, number_of_processors, number_of_parts, out, 0),
-      parkway::coarsener::base_coarsener(object_name),
+      parkway::base::coarsener(object_name),
       total_hypergraph_weight_(0),
       stop_coarsening_(0),
       cluster_index_(0),

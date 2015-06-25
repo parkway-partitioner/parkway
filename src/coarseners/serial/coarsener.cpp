@@ -18,8 +18,8 @@ namespace ds = parkway::data_structures;
 coarsener::coarsener(int minimum_number_of_nodes, int max_weight, double ratio,
                      int display_option, std::string object_name)
     : loader(display_option),
-      parkway::coarsener::base_coarsener(object_name, max_weight,
-                                         minimum_number_of_nodes, ratio) {
+      parkway::base::coarsener(object_name, max_weight,
+                               minimum_number_of_nodes, ratio) {
 }
 
 coarsener::~coarsener() {}

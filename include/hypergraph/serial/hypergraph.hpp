@@ -19,15 +19,14 @@
 #include "Macros.h"
 #include "Funct.hpp"
 #include "data_structures/dynamic_array.hpp"
-#include "hypergraph/base_hypergraph.hpp"
+#include "internal/base/hypergraph.hpp"
 
 namespace parkway {
 namespace serial {
 
 namespace ds = parkway::data_structures;
-namespace hg = parkway::hypergraph;
 
-class hypergraph : public hg::base_hypergraph {
+class hypergraph : public parkway::base::hypergraph {
  public:
   hypergraph(ds::dynamic_array<int> vWts, int numV);
   hypergraph(ds::dynamic_array<int> vWts, ds::dynamic_array<int> pVector, int numV, int cut);

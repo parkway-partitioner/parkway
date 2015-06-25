@@ -16,7 +16,7 @@ namespace parkway {
 namespace serial {
 
 hypergraph::hypergraph(dynamic_array<int> vWts, int numVerts)
-    : hg::base_hypergraph(numVerts) {
+    : parkway::base::hypergraph(numVerts) {
 
   match_vector_.assign(number_of_vertices_, -1);
   vertex_weights_ = vWts;

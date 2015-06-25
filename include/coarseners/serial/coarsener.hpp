@@ -9,7 +9,7 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "coarseners/base_coarsener.hpp"
+#include "internal/base/coarsener.hpp"
 #include "data_structures/dynamic_array.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 #include "hypergraph/serial/loader.hpp"
@@ -18,7 +18,7 @@ namespace parkway {
 namespace serial {
 namespace ds = parkway::data_structures;
 
-class coarsener : public loader, public parkway::coarsener::base_coarsener {
+class coarsener : public loader, public parkway::base::coarsener {
  public:
   coarsener(int min, int maxwt, double ratio, int dispL,
             std::string object_name = "Serial Coarsener");

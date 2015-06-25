@@ -4,19 +4,19 @@
 #include <string>
 
 namespace parkway {
-namespace coarsener {
+namespace base {
 
-class base_coarsener {
+class coarsener {
  public:
-  base_coarsener(std::string object_name, int vertex_weight = 0,
-                 int minimum_nodes = 0, double reduction_ratio = 0.0) :
-      maximum_vertex_weight_(vertex_weight),
-      minimum_number_of_nodes_(minimum_nodes),
-      reduction_ratio_(reduction_ratio),
-      object_name_(object_name) {
+  coarsener(std::string object_name, int vertex_weight = 0,
+            int minimum_nodes = 0, double reduction_ratio = 0.0)
+      : maximum_vertex_weight_(vertex_weight),
+        minimum_number_of_nodes_(minimum_nodes),
+        reduction_ratio_(reduction_ratio),
+        object_name_(object_name) {
   }
 
-  virtual ~base_coarsener() {
+  virtual ~coarsener() {
   }
 
   inline int maximum_vertex_weight() const {
@@ -55,7 +55,7 @@ class base_coarsener {
   std::string object_name_;
 };
 
-}  // namespace coarsener
+}  // namespace base
 }  // namespace parkway
 
 #endif  // COARSENERS_BASE_COARSENER_HPP_

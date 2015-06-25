@@ -9,7 +9,7 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "coarseners/base_coarsener.hpp"
+#include "internal/base/coarsener.hpp"
 
 #include <limits.h>
 #include "hypergraph/parallel/hypergraph.hpp"
@@ -20,7 +20,7 @@ namespace parkway {
 namespace parallel {
 namespace ds = parkway::data_structures;
 
-class coarsener : public loader, public parkway::coarsener::base_coarsener {
+class coarsener : public loader, public parkway::base::coarsener {
  public:
   coarsener(int rank, int number_of_processors, int number_of_parts,
             std::ostream &out, std::string object_name = "Parallel Coarsener");

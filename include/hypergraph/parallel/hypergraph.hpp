@@ -27,14 +27,15 @@
 #include "data_structures/dynamic_array.hpp"
 #include "data_structures/complete_binary_tree.hpp"
 #include "data_structures/new_hyperedge_index_table.hpp"
-#include "hypergraph/base_hypergraph.hpp"
+#include "internal/base/hypergraph.hpp"
 
 namespace parkway {
 namespace parallel {
 namespace ds = parkway::data_structures;
-using parkway::hypergraph::base_hypergraph;
 
-class hypergraph : public parkway::global_communicator, public base_hypergraph {
+class hypergraph :
+    public parkway::global_communicator,
+    public parkway::base::hypergraph {
  public:
   hypergraph(int rank, int number_of_processors, int number_of_local_vertices,
              int total_vertices, int minimum_vertex_index, int coarsen,
