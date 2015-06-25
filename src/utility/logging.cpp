@@ -55,6 +55,77 @@ void set_log_file(const std::string &basename, const std::size_t rank) {
     keywords::format = "[" + rank_str + "][%LineID%][%Severity%]: %Message%");
 }
 
+}  // namespace logging
+
+namespace status {
+
+stream::stream(const char *filename)
+  : filestream_(filename), stream_(filestream_), buffer_(&null_buffer_) {
+}
+
+stream::stream() : stream_(std::cout), buffer_(&null_buffer_) {
+}
+
+void stream::enable() {
+  enabled_ = true;
+}
+
+void stream::disable() {
+  enabled_ = false;
+}
+
+std::ostream &stream::operator()(const level_t lvl) {
+  if (enabled_ && lvl <= filter_) {
+    return stream_;
+  }
+  return buffer_;
+}
+
+void stream::set_filter_level(const level_t lvl) {
+  filter_ = lvl;
+}
+
+
+status_handler::status_handler() : output_stream_(new stream) {
+}
+
+
+void status_handler::disable() {
+  output_stream_->disable();
+}
+
+void status_handler::enable() {
+  output_stream_->enable();
+}
+
+void status_handler::set_rank(std::size_t rank) {
+  rank_ = rank;
+  if (rank_ == valid_rank_) {
+    enable();
+  } else {
+    disable();
+  }
+}
+
+std::ostream &status_handler::operator()(const level_t lvl) {
+  return static_cast<std::ofstream&>(output_stream_->operator()(lvl));
+}
+
+
+void status_handler::set_filter_level(const level_t lvl) {
+  output_stream_->set_filter_level(lvl);
+}
+
+void status_handler::set_output_file(const char *filename) {
+  output_stream_.release();
+  output_stream_.reset(new stream(filename));
+}
+
+bool stream::enabled_ = true;
+level_t stream::filter_ = level_t::progress;
+std::size_t status_handler::valid_rank_ = 0;
+std::size_t status_handler::rank_ = 0;
+
 }
 }
 }

@@ -47,55 +47,44 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
   MPI_Barrier(MPI_COMM_WORLD);
-  if (myRank == 0)
-    cout << "prog started" << endl;
-
-#ifdef MEM_CHECK
-  Funct::printMemUse(myRank, "BEGIN PROGRAM: ");
-  write_log(myRank, "[BEG PROG] MemUsage %f", MemoryTracker::usage());
-#endif
+  STATUS.set_rank(myRank);
+  STATUS.set_filter_level(info);
 
   if (argc < 2) {
-    if (myRank == 0) {
-      cout << endl
-           << "USAGE: " << endl
-           << endl
-           << "% mpirun [mpirun_options...] " << argv[0]
-           << " [parkway_options...] <hypergraph filename>" << endl
-           << endl
-           << "\t Unrecognized options will be ignored. " << endl
-           << endl
-           << "PARAMETERS: " << endl
-           << endl
-           << "\t -oFile <output_filename> " << endl
-           << "\t     - name of file that program information should "
-              "be output to. Default behaviour is to" << endl
-           << "\t       display program information to screen" << endl
-           << "\t -tType <test_type> " << endl
-           << "\t     - integer specifying the routine to be tested:" << endl
-           << "\t       0 -> tests "
-              "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm) - "
-              "default" << endl
-           << "\t       1 -> tests "
-              "ParaPartKway(int,int,int*,int*,int*,int*,"
-              "int,double,int&,int*,int*,char*,MPI_Comm)" << endl
-           << "\t -c <balance_constraint> " << endl
-           << "\t       double precision number defining the balance "
-              "constraint on partition" << endl
-           << "\t -nParts <number_of_parts> " << endl
-           << "\t     - the number of parts in the partition sought. By "
-              "default, will look for partitions of" << endl
-           << "\t       size 4" << endl
-           << endl;
-    }
-
+    STATUS(info) << "USAGE: " << endl << endl
+         << "% mpirun [mpirun_options...] " << argv[0]
+         << " [parkway_options...] <hypergraph filename>" << endl
+         << endl
+         << "\t Unrecognized options will be ignored. " << endl
+         << endl
+         << "PARAMETERS: " << endl
+         << endl
+         << "\t -oFile <output_filename> " << endl
+         << "\t     - name of file that program information should "
+            "be output to. Default behaviour is to" << endl
+         << "\t       display program information to screen" << endl
+         << "\t -tType <test_type> " << endl
+         << "\t     - integer specifying the routine to be tested:" << endl
+         << "\t       0 -> tests "
+            "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm) - "
+            "default" << endl
+         << "\t       1 -> tests "
+            "ParaPartKway(int,int,int*,int*,int*,int*,"
+            "int,double,int&,int*,int*,char*,MPI_Comm)" << endl
+         << "\t -c <balance_constraint> " << endl
+         << "\t       double precision number defining the balance "
+            "constraint on partition" << endl
+         << "\t -nParts <number_of_parts> " << endl
+         << "\t     - the number of parts in the partition sought. By "
+            "default, will look for partitions of" << endl
+         << "\t       size 4" << endl
+         << endl;
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
   }
 
   /* PROCESS COMMAND LINE */
-
   sprintf(testFile, "test_output.%d.txt", numProcs);
   ofstream test_output(testFile, ofstream::app | ofstream::out);
   parkway::utility::logging::set_log_file("logs/parkway_driver", myRank);
