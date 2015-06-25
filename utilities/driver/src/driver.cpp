@@ -1,7 +1,3 @@
-
-#ifndef _DRIVER_CPP
-#define _DRIVER_CPP
-
 // ### driver.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -47,38 +43,32 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
   MPI_Barrier(MPI_COMM_WORLD);
-  STATUS.set_rank(myRank);
-  STATUS.set_filter_level(info);
+  parkway::utility::status::handler::set_rank(myRank);
 
   if (argc < 2) {
-    STATUS(info) << "USAGE: " << endl << endl
-         << "% mpirun [mpirun_options...] " << argv[0]
-         << " [parkway_options...] <hypergraph filename>" << endl
-         << endl
-         << "\t Unrecognized options will be ignored. " << endl
-         << endl
-         << "PARAMETERS: " << endl
-         << endl
-         << "\t -oFile <output_filename> " << endl
-         << "\t     - name of file that program information should "
-            "be output to. Default behaviour is to" << endl
-         << "\t       display program information to screen" << endl
-         << "\t -tType <test_type> " << endl
-         << "\t     - integer specifying the routine to be tested:" << endl
-         << "\t       0 -> tests "
-            "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm) - "
-            "default" << endl
-         << "\t       1 -> tests "
-            "ParaPartKway(int,int,int*,int*,int*,int*,"
-            "int,double,int&,int*,int*,char*,MPI_Comm)" << endl
-         << "\t -c <balance_constraint> " << endl
-         << "\t       double precision number defining the balance "
-            "constraint on partition" << endl
-         << "\t -nParts <number_of_parts> " << endl
-         << "\t     - the number of parts in the partition sought. By "
-            "default, will look for partitions of" << endl
-         << "\t       size 4" << endl
-         << endl;
+    info("USAGE:\n\n");
+    info("$ mpirun [mpirun_options...] %s", argv[0]);
+    info(" [parkway_options...] <hypergraph filename>\n\n");
+    info("\t Unrecognized options will be ignored. \n\n");
+    info("PARAMETERS: \n");
+    info("\t -oFile <output_filename> \n");
+    info("\t     - name of file that program information should be output to. "
+                   "Default behaviour is to\n");
+    info("\t       display program information to screen\n");
+    info("\t -tType <test_type> \n");
+    info("\t     - integer specifying the routine to be tested:\n");
+    info("\t       0 -> tests "
+         "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm) - default\n");
+    info("\t       1 -> tests "
+         "ParaPartKway(int,int,int*,int*,int*,int*,int,double,int&,int*,int*,"
+         "char*,MPI_Comm)\n");
+    info("\t -c <balance_constraint>\n");
+    info("\t       double precision number defining the balance constraint "
+         "on partition\n");
+    info("\t -nParts <number_of_parts>\n");
+    info("\t     - the number of parts in the partition sought. By ");
+    info("default, will look for partitions of\n");
+    info("\t       size 4\n\n");
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
@@ -253,5 +243,3 @@ int main(int argc, char **argv) {
 
   return 0;
 }
-
-#endif

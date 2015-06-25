@@ -6,7 +6,6 @@
 #include "boost/log/utility/setup/common_attributes.hpp"
 #include "boost/log/utility/setup/file.hpp"
 
-
 namespace parkway {
 namespace utility {
 namespace logging {
@@ -56,76 +55,25 @@ void set_log_file(const std::string &basename, const std::size_t rank) {
 }
 
 }  // namespace logging
+}  // namespace utility
+}  // namespace parkway
 
+namespace parkway {
+namespace utility {
 namespace status {
 
-stream::stream(const char *filename)
-  : filestream_(filename), stream_(filestream_), buffer_(&null_buffer_) {
-}
+std::ostream *handler::out_ = &std::cout;
+std::ofstream *handler::filestream_ = nullptr;
+std::unique_ptr<char> handler::buffer_(new char[1024]);
 
-stream::stream() : stream_(std::cout), buffer_(&null_buffer_) {
-}
+std::size_t handler::write_on_ = 0;
+std::size_t handler::rank_ = 0;
+bool handler::show_info_ = true;
+bool handler::show_progress_ = true;
 
-void stream::enable() {
-  enabled_ = true;
-}
+// This status handler exists to call tidy up when the program exits.
+handler __handler__;
 
-void stream::disable() {
-  enabled_ = false;
-}
-
-std::ostream &stream::operator()(const level_t lvl) {
-  if (enabled_ && lvl <= filter_) {
-    return stream_;
-  }
-  return buffer_;
-}
-
-void stream::set_filter_level(const level_t lvl) {
-  filter_ = lvl;
-}
-
-
-status_handler::status_handler() : output_stream_(new stream) {
-}
-
-
-void status_handler::disable() {
-  output_stream_->disable();
-}
-
-void status_handler::enable() {
-  output_stream_->enable();
-}
-
-void status_handler::set_rank(std::size_t rank) {
-  rank_ = rank;
-  if (rank_ == valid_rank_) {
-    enable();
-  } else {
-    disable();
-  }
-}
-
-std::ostream &status_handler::operator()(const level_t lvl) {
-  return static_cast<std::ofstream&>(output_stream_->operator()(lvl));
-}
-
-
-void status_handler::set_filter_level(const level_t lvl) {
-  output_stream_->set_filter_level(lvl);
-}
-
-void status_handler::set_output_file(const char *filename) {
-  output_stream_.release();
-  output_stream_.reset(new stream(filename));
-}
-
-bool stream::enabled_ = true;
-level_t stream::filter_ = level_t::progress;
-std::size_t status_handler::valid_rank_ = 0;
-std::size_t status_handler::rank_ = 0;
-
-}
-}
-}
+}  // namespace status
+}  // namespace utility
+}  // namespace parkway
