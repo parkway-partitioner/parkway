@@ -14,6 +14,7 @@
 
 #include "parkway.h"
 #include "reader.h"
+#include "utility/logging.hpp"
 
 int main(int argc, char **argv) {
   /* DRIVER MAIN */
@@ -97,6 +98,7 @@ int main(int argc, char **argv) {
 
   sprintf(testFile, "test_output.%d.txt", numProcs);
   ofstream test_output(testFile, ofstream::app | ofstream::out);
+  parkway::utility::logging::set_log_file("logs/parkway_driver", myRank);
 
   outputFile = Funct::getParameterAsCharPtr(argc, argv, "-oFile", nullptr);
   testType = Funct::getParameterAsInteger(argc, argv, "-tType", 0);

@@ -2,6 +2,7 @@ build
 bin
 lib
 hypergraphs
+logs
 
 *.a
 *.o
