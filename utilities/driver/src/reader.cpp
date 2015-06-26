@@ -1,6 +1,3 @@
-#ifndef _READER_CPP
-#define _READER_CPP
-
 // ### reader.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,7 +7,6 @@
 // 3/12/2004: Last Modified
 //
 // ###
-
 #include "reader.h"
 
 void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
@@ -118,37 +114,31 @@ void error(int myRank, int a, const char *note) {
 }
 
 void testRecordedPartition(const char *filename, int myRank, int numProcs,
-                           int numParts, double constraint, ostream &out,
-                           MPI_Comm comm) {
-  parallel::hypergraph *h =
-      new parallel::hypergraph(myRank, numProcs, filename, 1, out, comm);
+                           int numParts, double constraint, MPI_Comm comm) {
+  parallel::hypergraph *h = new parallel::hypergraph(myRank, numProcs, filename,
+                                                     comm);
 
   char pFile[512];
   sprintf(pFile, "%s.part.%d", filename, numParts);
 
-  h->initalize_partition_from_file(pFile, numParts, out, comm);
-  h->check_partitions(numParts, constraint, out, comm);
+  h->initalize_partition_from_file(pFile, numParts, comm);
+  h->check_partitions(numParts, constraint, comm);
 
-  if (h)
-    delete h;
+  if (h) delete h;
 }
 
 void testRecordedPartition(const char *filename, const int *pVector,
                            int numLocVerts, int myRank, int numProcs,
-                           int numParts, double constraint, ostream &out,
-                           MPI_Comm comm) {
-  parallel::hypergraph *h =
-      new parallel::hypergraph(myRank, numProcs, filename, 1, out, comm);
+                           int numParts, double constraint, MPI_Comm comm) {
+  parallel::hypergraph *h = new parallel::hypergraph(myRank, numProcs, filename,
+                                                     comm);
 
   parkway::ds::dynamic_array<int> pvec;
   pvec.set_data(const_cast<int *>(pVector), numLocVerts);
 
   h->set_number_of_partitions(1);
   h->copy_in_partition(pvec, numLocVerts, 0);
-  h->check_partitions(numParts, constraint, out, comm);
+  h->check_partitions(numParts, constraint, comm);
 
-  if (h)
-    delete h;
+  if (h) delete h;
 }
-
-#endif

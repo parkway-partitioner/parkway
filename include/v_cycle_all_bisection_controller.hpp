@@ -18,11 +18,9 @@ namespace serial {
 class v_cycle_all_bisection_controller : public v_cycle_bisection_controller {
  public:
   v_cycle_all_bisection_controller(int nRuns, double kT, double redFactor,
-                                   int eeParam, int percentile, int inc,
-                                   int dispL, std::ostream &out);
+                                   int eeParam, int percentile, int inc);
   ~v_cycle_all_bisection_controller();
 
-  void print_type() const;
   void compute_bisection();
 };
 

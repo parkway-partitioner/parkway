@@ -1,6 +1,3 @@
-#ifndef _RECUR_BISECT_CONTROLLER_CPP
-#define _RECUR_BISECT_CONTROLLER_CPP
-
 // ### RecurBisectController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,18 +7,18 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "recursive_bisection_contoller.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
+#include "utility/logging.hpp"
 
 namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
 
 recursive_bisection_contoller::recursive_bisection_contoller(
     serial::bisection_controller *b, serial::greedy_k_way_refiner *k, int rank,
-    int nProcs, int nParts, int nBisectRuns, std::ostream &out)
-    : parkway::serial::controller(rank, nProcs, nParts, out) {
+    int nProcs, int nParts, int nBisectRuns)
+    : parkway::serial::controller(rank, nProcs, nParts) {
   bisector_ = b;
   refiner_ = k;
   number_of_bisections_ = nBisectRuns;
@@ -46,25 +43,12 @@ recursive_bisection_contoller::~recursive_bisection_contoller() {
 }
 
 void recursive_bisection_contoller::display_options() const {
-  switch (display_option_) {
-  case SILENT:
-    break;
-
-  default:
-
-    out_stream_ << "|--- SEQ_CON:" << std::endl
-               << "|- RBis:"
-               << " seqR = " << number_of_runs_ << " bisR = " <<
-                                                   number_of_bisections_
-               << " pkT = " << accept_proportion_ << std::endl
-               << "|" << std::endl;
-#ifdef DEBUG_CONTROLLER
-    assert(bisector);
-#endif
-      bisector_->display_options();
-
-    break;
-  }
+  info("[Serial Controller: Recursive Bisection Controller]\n"
+       "-- Number of runs:       %i\n"
+       "-- Number of bisections: %i\n"
+       "-- Accept proportion:    %.2f\n",
+       number_of_runs_, number_of_bisections_, accept_proportion_);
+  bisector_->display_options();
 }
 
 void recursive_bisection_contoller::convToBisectionConstraints() {
@@ -131,9 +115,7 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
   initialize_coarsest_hypergraph(hgraph, comm);
   convToBisectionConstraints();
 
-  if (display_option_ > 1 && rank_ == 0) {
-    out_stream_ << "[R-B]: " << number_of_runs_ << " | ";
-  }
+  progress("[Recursive Bisection %i] ", number_of_runs_);
 
   int i;
   int j;
@@ -240,7 +222,6 @@ void recursive_bisection_contoller::initialize_serial_partitions(
   int ijk;
   int startOffset;
   int endOffset;
-  int totToSend;
 
   ds::dynamic_array<int> hGraphPartitionVector;
   ds::dynamic_array<int> hGraphPartVectorOffsets;
@@ -289,8 +270,6 @@ void recursive_bisection_contoller::initialize_serial_partitions(
   }
 
   sendArray.resize(j);
-  totToSend = j;
-
   ij = 0;
 
   for (ijk = 0; ijk < number_of_processors_; ++ijk) {
@@ -343,11 +322,11 @@ void recursive_bisection_contoller::initialize_serial_partitions(
                  hGraphPartCuts.data(), recvLens.data(), recvDispls.data(),
                  MPI_INT, comm);
 
-  if (display_option_ > 1 && rank_ == 0) {
-    for (i = 0; i < number_of_runs_; ++i)
-      out_stream_ << hGraphPartCuts[i] << " ";
-
-    out_stream_ << std::endl;
+  if (rank_ == 0) {
+    for (i = 0; i < number_of_runs_; ++i) {
+      progress("%i ", hGraphPartCuts[i]);
+    }
+    progress("\n");
   }
 }
 
@@ -903,5 +882,3 @@ double recursive_bisection_contoller::recursively_compute_maximum(
       (currAve + currAve * bisection_constraint_) / 2,
       depth - 1));
 }
-
-#endif

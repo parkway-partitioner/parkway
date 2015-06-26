@@ -7,19 +7,17 @@
 // 3/2/2005: Last Modified
 //
 // ###
-
 #include "refiners/parallel/k_way_greedy_refiner.hpp"
+#include "utility/logging.hpp"
 #include "utility/random.hpp"
-#include <iostream>
 #include <cmath>
 
 namespace parkway {
 namespace parallel {
 
 k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
-                                           numVperP, int eExit, double lim,
-                                           std::ostream &out)
-    : refiner(rank, nProcs, nParts, out) {
+                                           numVperP, int eExit, double lim)
+    : refiner(rank, nProcs, nParts) {
   int i;
   int j;
   int ij;
@@ -76,19 +74,10 @@ k_way_greedy_refiner::~k_way_greedy_refiner() {
 }
 
 void k_way_greedy_refiner::display_options() const {
-  switch (display_options_) {
-  case SILENT:
-
-    break;
-
-  default:
-
-    out_stream << "|--- PARA_REF: " << std::endl
-               << "|- PKWAY:"
-               << " eeL = " << limit_ << " eExit = " << early_exit_ << std::endl
-               << "|" << std::endl;
-    break;
-  }
+  info("[Parallel Greedy K-Way Refiner]\n",
+       "-- Early exit limit: %.2f\n"
+       "-- Early exit:       %i\n\n",
+       limit_, early_exit_);
 }
 
 void k_way_greedy_refiner::release_memory() {
@@ -321,8 +310,7 @@ void k_way_greedy_refiner::set_partitioning_structures(int pNo, MPI_Comm comm) {
 #endif
 }
 
-void k_way_greedy_refiner::refine(parallel::hypergraph &h,
-                                           MPI_Comm comm) {
+void k_way_greedy_refiner::refine(parallel::hypergraph &h, MPI_Comm comm) {
   initialize_data_structures(h, comm);
 
   int i;
@@ -339,17 +327,13 @@ void k_way_greedy_refiner::refine(parallel::hypergraph &h,
     totalGain = 0;
     numPasses = 0;
 
-    if (display_options_ > 1 && rank_ == 0) {
-      out_stream << "\t[" << i << "] ";
-    }
+    progress("-- Partition %i", i);
 
     do {
       newCutsize = greedy_k_way_refinement(h, i, comm);
       gain = partition_cuts_[i] - newCutsize;
 
-      if (display_options_ > 1 && rank_ == 0) {
-        out_stream << gain << " ";
-      }
+      progress("\tgain: %i", gain);
 
       if (gain < 0) {
         undo_pass_moves();
@@ -359,18 +343,16 @@ void k_way_greedy_refiner::refine(parallel::hypergraph &h,
         ++numPasses;
       }
 
-      if (early_exit_ && numPasses > 1 && gain < lastGain)
+      if (early_exit_ && numPasses > 1 && gain < lastGain) {
         break;
+      }
 
       lastGain = gain;
     } while (gain > 0);
 
-    if (display_options_ > 1 && rank_ == 0) {
-      out_stream << "| " << numPasses << " " << totalGain << " "
-                 << partition_cuts_[i] << std::endl;
-    }
+    progress(" | Passes: %i, Total gain: %i, Parition cut: %i\n", numPasses,
+             totalGain, partition_cuts_[i]);
   }
-
   reset_data_structures();
 }
 
@@ -408,7 +390,6 @@ int k_way_greedy_refiner::greedy_pass(int lowToHigh, MPI_Comm comm) {
   int ij;
   int v;
   int sP;
-  int tmp;
   int gain;
   int prod;
   int vGain;

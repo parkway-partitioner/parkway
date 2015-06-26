@@ -7,8 +7,8 @@
 // 5/1/2005: Last Modified
 //
 // ###
-
 #include "hypergraph/serial/hypergraph.hpp"
+#include "utility/logging.hpp"
 #include <cmath>
 #include <cstring>
 
@@ -213,11 +213,12 @@ void hypergraph::copy_in_partition(dynamic_array<int> p_vector, int nV,
   partition_cuts_[pNo] = cut;
 }
 
-void hypergraph::print_characteristics(std::ostream &out_stream) {
-  out_stream << " |cGraph| "
-      << number_of_vertices_ << " "
-      << number_of_hyperedges_ << " "
-      << number_of_pins_ << " : ";
+void hypergraph::print_characteristics() {
+  info("[Coarse hypergraph]\n"
+       "-- Number of vertices: %i\n"
+       "-- Number of hyperedges: %i\n"
+       "-- Number of pins: %i\n",
+       number_of_vertices_, number_of_hyperedges_, number_of_pins_);
 
   double weighted_ave = 0;
   double percentile_75;
@@ -242,7 +243,8 @@ void hypergraph::print_characteristics(std::ostream &out_stream) {
   percentile_95 = (static_cast<double>(j) * 95) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  out_stream << weighted_ave / j << " ";
+  // TODO(gb610): what is this?
+  // out_stream << weighted_ave / j << " ";
 
   Funct::qsortByAnotherArray(0, number_of_hyperedges_ - 1, hEdges.data(),
                              hEdgeLens.data(), INC);
@@ -253,27 +255,27 @@ void hypergraph::print_characteristics(std::ostream &out_stream) {
     j += hyperedge_weights_[hEdges[i++]];
 
     if (ij == 0 && j > percentile_25) {
-      out_stream << hEdgeLens[hEdges[i]] << " ";
+      info("%i ", hEdgeLens[hEdges[i]]);
       ++ij;
     }
 
     if (ij == 1 && j > percentile_50) {
-      out_stream << hEdgeLens[hEdges[i]] << " ";
+      info("%i ", hEdgeLens[hEdges[i]]);
       ++ij;
     }
 
     if (ij == 2 && j > percentile_75) {
-      out_stream << hEdgeLens[hEdges[i]] << " ";
+      info("%i ", hEdgeLens[hEdges[i]]);
       ++ij;
     }
 
     if (ij == 3 && j > percentile_95) {
-      out_stream << hEdgeLens[hEdges[i]] << " ";
+      info("%i ", hEdgeLens[hEdges[i]]);
       ++ij;
     }
 
     if (i == number_of_hyperedges_ - 1) {
-      out_stream << hEdgeLens[hEdges[i]] << " : ";
+      info("%i ", hEdgeLens[hEdges[i]]);
     }
   }
 
@@ -297,27 +299,27 @@ void hypergraph::print_characteristics(std::ostream &out_stream) {
     j += vertex_weights_[vertices[i++]];
 
     if (ij == 0 && j > percentile_25) {
-      out_stream << vertex_weights_[vertices[i]] << " ";
+      info("%i ", vertex_weights_[vertices[i]]);
       ++ij;
     }
 
     if (ij == 1 && j > percentile_50) {
-      out_stream << vertex_weights_[vertices[i]] << " ";
+      info("%i ", vertex_weights_[vertices[i]]);
       ++ij;
     }
 
     if (ij == 2 && j > percentile_75) {
-      out_stream << vertex_weights_[vertices[i]] << " ";
+      info("%i ", vertex_weights_[vertices[i]]);
       ++ij;
     }
 
     if (ij == 3 && j > percentile_95) {
-      out_stream << vertex_weights_[vertices[i]] << " ";
+      info("%i ", vertex_weights_[vertices[i]]);
       ++ij;
     }
 
     if (i == number_of_vertices_ - 1) {
-      out_stream << vertex_weights_[vertices[i]] << std::endl;
+      info("%i \n", vertex_weights_[vertices[i]]);
     }
   }
 }
@@ -572,14 +574,14 @@ void hypergraph::convert_to_DOMACS_graph_file(const char *fN) {
   out_stream.close();
 }
 
-void hypergraph::print_percentiles(std::ostream &out_stream) {
+void hypergraph::print_percentiles() {
   int i;
   int j;
   int ij;
-
-  out_stream << " #vertices: " << number_of_vertices_
-      << " #hyperedges: " << number_of_hyperedges_
-      << " #pins: " << number_of_pins_ << std::endl;
+  info("-- Number of vertices: %i\n"
+       "-- Number of hyperedges: %i\n"
+       "-- Number of pins: %i\n", number_of_vertices_, number_of_hyperedges_,
+       number_of_pins_);
 
   double weighted_ave = 0;
   double percentile_95;
@@ -607,10 +609,8 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
   percentile_50 = (static_cast<double>(j) * 50) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  out_stream << "hyperedge capacity_ percentiles: (weighted ave, 25, 50, 75, "
-      "95, maxLength) " << std::endl;
-  out_stream << "\t" << weighted_ave / j << " ";
-
+  info("-- Hyperedge capacity percentiles:\n"
+       "  -- Weighed average: %.2f\n", weighted_ave / j);
   Funct::qsortByAnotherArray(0, number_of_hyperedges_ - 1, indices.data(),
                              hEdgeLens.data(), INC);
 
@@ -622,27 +622,27 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
     j += hyperedge_weights_[indices[i++]];
 
     if (ij == 0 && j > percentile_25) {
-      out_stream << hEdgeLens[indices[i]] << " ";
+      info("  -- 25th: %i\n", hEdgeLens[indices[i]]);
       ++ij;
     }
 
     if (ij == 1 && j > percentile_50) {
-      out_stream << hEdgeLens[indices[i]] << " ";
+      info("  -- 50th: %i\n", hEdgeLens[indices[i]]);
       ++ij;
     }
 
     if (ij == 2 && j > percentile_75) {
-      out_stream << hEdgeLens[indices[i]] << " ";
+      info("  -- 75th: %i\n", hEdgeLens[indices[i]]);
       ++ij;
     }
 
     if (ij == 3 && j > percentile_95) {
-      out_stream << hEdgeLens[indices[i]] << " ";
+      info("  -- 95th: %i\n", hEdgeLens[indices[i]]);
       ++ij;
     }
 
     if (i == number_of_hyperedges_ - 1) {
-      out_stream << hEdgeLens[indices[i]] << std::endl;
+      info("  -- Maximum length: %i\n", hEdgeLens[indices[i]]);
     }
   }
 
@@ -664,9 +664,8 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
   Funct::qsortByAnotherArray(0, number_of_vertices_ - 1, indices.data(),
                              vertex_weights_.data(), INC);
 
-  out_stream << "vertex weight percentiles: (ave, 25, 50, 75, 95, maxWeight) "
-      << std::endl;
-  out_stream << "\t" << static_cast<double>(j) / number_of_vertices_ << " ";
+  info("-- Vertex weight percentiles:\n"
+       "  -- Average: %.2f\n", static_cast<double>(j) / number_of_vertices_);
 
   j = 0;
   i = 0;
@@ -676,27 +675,27 @@ void hypergraph::print_percentiles(std::ostream &out_stream) {
     j += vertex_weights_[indices[i++]];
 
     if (ij == 0 && j > percentile_25) {
-      out_stream << vertex_weights_[indices[i]] << " ";
+      info("  -- 25th: %i\n", vertex_weights_[indices[i]]);
       ++ij;
     }
 
     if (ij == 1 && j > percentile_50) {
-      out_stream << vertex_weights_[indices[i]] << " ";
+      info("  -- 50th: %i\n", vertex_weights_[indices[i]]);
       ++ij;
     }
 
     if (ij == 2 && j > percentile_75) {
-      out_stream << vertex_weights_[indices[i]] << " ";
+      info("  -- 75th: %i\n", vertex_weights_[indices[i]]);
       ++ij;
     }
 
     if (ij == 3 && j > percentile_95) {
-      out_stream << vertex_weights_[indices[i]] << " ";
+      info("  -- 95th: %i\n", vertex_weights_[indices[i]]);
       ++ij;
     }
 
     if (i == number_of_vertices_ - 1) {
-      out_stream << vertex_weights_[indices[i]] << std::endl;
+      info("  -- Maximum weight: %i\n", vertex_weights_[indices[i]]);
     }
   }
 }

@@ -20,8 +20,7 @@ namespace ds = parkway::data_structures;
 
 class loader : public global_communicator {
  public:
-  loader(int rank, int number_of_processors, int number_of_parts,
-         std::ostream &out_stream, int display_option = 0);
+  loader(int rank, int number_of_processors, int number_of_parts);
 
   virtual ~loader();
 
@@ -48,18 +47,7 @@ class loader : public global_communicator {
     percentile_ = p;
   }
 
-  inline void set_display_option(int d) {
-    display_options_ = d;
-  }
-
-  inline int display_option() const {
-    return display_options_;
-  }
-
  protected:
-  // Output stream
-  std::ostream &out_stream;
-
   // Hypergraph variables
   int number_of_parts_;
   int number_of_hyperedges_;
@@ -72,7 +60,6 @@ class loader : public global_communicator {
 
   // Misc
   int number_of_allocated_hyperedges_;
-  int display_options_;
 
   // Member for approximate coarsening and refinement
   int percentile_;

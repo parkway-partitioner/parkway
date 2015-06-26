@@ -18,12 +18,12 @@ namespace serial {
 class restrictive_first_choice_coarsener : public restrictive_coarsener {
  public:
   restrictive_first_choice_coarsener(int _min, int _maxwt, double r, int fanOut,
-                                     int dbWt, int dL);
+                                     int dbWt);
   ~restrictive_first_choice_coarsener();
 
   hypergraph *coarsen(const hypergraph &h);
 
-  void display_options(std::ostream &out) const;
+  void display_options() const;
 
   inline void set_util_fan_out(int f) { util_fan_out_ = f; }
   inline int util_fan_out() const { return util_fan_out_; }

@@ -15,15 +15,12 @@ namespace serial {
 
 v_cycle_final_bisection_controller::v_cycle_final_bisection_controller(
     int nRuns, double kT, double redFactor, int eeParam, int percentile,
-    int inc, int dispL, std::ostream &out)
-    : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc,
-                                dispL, out) {}
+    int inc)
+    : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile,
+                                   inc, "big") {
+}
 
 v_cycle_final_bisection_controller::~v_cycle_final_bisection_controller() {}
-
-void v_cycle_final_bisection_controller::print_type() const {
-  out_stream << " type = BIG";
-}
 
 void v_cycle_final_bisection_controller::compute_bisection() {
   serial::hypergraph *origGraph = hypergraphs_.top();

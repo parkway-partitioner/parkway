@@ -13,9 +13,7 @@ namespace parkway {
 namespace serial {
 namespace ds = parkway::data_structures;
 
-restrictive_coarsener::restrictive_coarsener(int min, int maxWt, double ratio,
-                                             int dispL)
-    : loader(dispL) {
+restrictive_coarsener::restrictive_coarsener(int min, int maxWt, double ratio) {
   minimum_nodes_ = min;
   maximum_vertex_weight_ = maxWt;
   reduction_ratio_ = ratio;

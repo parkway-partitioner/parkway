@@ -9,8 +9,6 @@
 // 30/11/2004: Last Modified
 //
 // ###
-
-#include <iostream>
 #include "data_structures/bit_field.hpp"
 #include "data_structures/movement_set_table.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
@@ -60,7 +58,7 @@ class k_way_greedy_refiner : public refiner {
 
  public:
   k_way_greedy_refiner(int rank, int nProcs, int nParts, int numVperP,
-                       int eExit, double lim, std::ostream &out);
+                       int eExit, double lim);
   ~k_way_greedy_refiner();
 
   void display_options() const;
@@ -68,7 +66,6 @@ class k_way_greedy_refiner : public refiner {
   void initialize_data_structures(const parallel::hypergraph &h, MPI_Comm comm);
   void reset_data_structures();
   void set_partitioning_structures(int pNumber, MPI_Comm comm);
-  // void initVertexPartTable(MPI_Comm comm);
   void refine(parallel::hypergraph &h, MPI_Comm comm);
 
   int greedy_k_way_refinement(parallel::hypergraph &h, int pNo, MPI_Comm comm);

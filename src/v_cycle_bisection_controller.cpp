@@ -7,17 +7,17 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "v_cycle_bisection_controller.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
 v_cycle_bisection_controller::v_cycle_bisection_controller(
     const int nRuns, const double kT, const double redFactor, int eeParam,
-    int percentile, int inc, int dispL, std::ostream &out)
-    : bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc, dispL,
-                          out) {
+    int percentile, int inc, std::string type)
+    : bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc),
+      type_(type) {
   restrictive_coarsener_ = nullptr;
 
   v_cycle_partition_.reserve(0);
@@ -27,28 +27,17 @@ v_cycle_bisection_controller::~v_cycle_bisection_controller() {
 }
 
 void v_cycle_bisection_controller::display_options() const {
-  switch (display_level_) {
-  case SILENT:
-    break;
-
-  default:
-
-    out_stream << "|- V-CYC BSECTOR:";
-#ifdef DEBUG_CONTROLLER
-    assert(coarsener && initBisector && refiner && restrCoarsener);
-#endif
-    out_stream << " kT = " << keep_threshold_ << " rF = " << reduction_factor_
-               << " %le = " << start_percentile_
-               << " %inc = " << percentile_increment_;
-      print_type();
-    out_stream << std::endl << "|" << std::endl;
-      coarsener_->display_options(out_stream);
-      restrictive_coarsener_->display_options(out_stream);
-      initial_bisector_->display_options(out_stream);
-      refiner_->display_options(out_stream);
-
-    break;
-  }
+  info("[V-Cycle Bisection Controller]\n"
+       "-- Keep threshold:       %i\n"
+       "-- Reduction factor:     %.2f\n"
+       "-- Start percentile:     %i\n"
+       "-- Percentile increment: %i\n"
+       "-- Type:                 %s\n", keep_threshold_, reduction_factor_,
+       start_percentile_, percentile_increment_, type_.c_str());
+  coarsener_->display_options();
+  restrictive_coarsener_->display_options();
+  initial_bisector_->display_options();
+  refiner_->display_options();
 }
 
 void v_cycle_bisection_controller::build_restrictive_coarsener(double redRatio,
@@ -56,28 +45,28 @@ void v_cycle_bisection_controller::build_restrictive_coarsener(double redRatio,
                                                                int minNodes) {
   switch (cType) {
   case RestrFCwithFanOutDiv:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1,
-                                          1, display_level_);
+    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
+        Shiftl(minNodes, 1), -1, redRatio, 1, 1);
     break;
 
   case RestrFCwithoutFanOutDiv:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0,
-                                          1, display_level_);
+    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
+        Shiftl(minNodes, 1), -1, redRatio, 0, 1);
     break;
 
   case RestrFCwithFanOut:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1,
-                                          0, display_level_);
+    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
+        Shiftl(minNodes, 1), -1, redRatio, 1, 0);
     break;
 
   case RestrFCwithoutFanOut:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0,
-                                          0, display_level_);
+    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
+        Shiftl(minNodes, 1), -1, redRatio, 0, 0);
     break;
 
   default:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1,
-                                          1, display_level_);
+    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
+        Shiftl(minNodes, 1), -1, redRatio, 1, 1);
     break;
   }
 }

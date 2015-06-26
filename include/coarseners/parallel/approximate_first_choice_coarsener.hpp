@@ -13,6 +13,7 @@
 #include "coarseners/parallel/approximate_coarsener.hpp"
 #include "data_structures/match_request_table.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
+#include "types.hpp"
 
 namespace parkway {
 namespace parallel {
@@ -20,8 +21,8 @@ namespace ds = parkway::data_structures;
 
 class approximate_first_choice_coarsener : public approximate_coarsener {
  protected:
-  int vertexVisitOrder;
-  int matchRequestVisitOrder;
+  parkway::visit_order_t vertexVisitOrder;
+  parkway::visit_order_t matchRequestVisitOrder;
   int divByCluWt;
   int divByHedgeLen;
   int limitOnIndexDuringCoarsening;
@@ -31,7 +32,7 @@ class approximate_first_choice_coarsener : public approximate_coarsener {
   approximate_first_choice_coarsener(int rank, int nProcs, int nParts,
                                      int percentile, int inc, int vertVisOrder,
                                      int matchReqOrder, int divByWt,
-                                     int divByLen, std::ostream &out);
+                                     int divByLen);
   ~approximate_first_choice_coarsener();
 
   void dispCoarseningOptions() const;
@@ -49,14 +50,12 @@ class approximate_first_choice_coarsener : public approximate_coarsener {
 
   int accept(int _locV, int _nonLocCluWt, int hToLow, int _maxWt);
 
-  void printVisitOrder(int variable) const;
-
-  inline void setVertexVisitOrder(int vO) {
-    vertexVisitOrder = vO;
+  inline void set_vertex_visit_order(int vO) {
+    vertexVisitOrder = static_cast<parkway::visit_order_t>(vO - 1);
   }
 
-  inline void setMatchRequestVisitOrder(int mvO) {
-    matchRequestVisitOrder = mvO;
+  inline void set_match_request_visit_order(int mvO) {
+    matchRequestVisitOrder = static_cast<parkway::visit_order_t>(mvO - 1);
   }
 
   inline void setDivByCluWt(int divBy) {

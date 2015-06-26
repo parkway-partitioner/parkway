@@ -8,32 +8,27 @@
 //
 // ###
 #include "coarseners/serial/restrictive_first_choice_coarsener.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
-restrictive_first_choice_coarsener::restrictive_first_choice_coarsener(int _min, int _maxwt, double r, int fanOut,
-                                   int dbWt, int dL)
-    : restrictive_coarsener(_min, _maxwt, r, dL) {
+restrictive_first_choice_coarsener::restrictive_first_choice_coarsener(
+    int _min, int _maxwt, double r, int fanOut, int dbWt)
+    : restrictive_coarsener(_min, _maxwt, r) {
   util_fan_out_ = fanOut;
   divide_by_cluster_weight_ = dbWt;
 }
 
-restrictive_first_choice_coarsener::~restrictive_first_choice_coarsener() {}
+restrictive_first_choice_coarsener::~restrictive_first_choice_coarsener() {
+}
 
-void restrictive_first_choice_coarsener::display_options(std::ostream &out) const {
-  switch (dispOption) {
-  case SILENT:
-    break;
-
-  default:
-
-    out << "|- RestrFCC:"
-        << " r = " << reduction_ratio_ << " min = " << minimum_nodes_
-        << " util = " << util_fan_out_ << std::endl
-        << "|" << std::endl;
-    break;
-  }
+void restrictive_first_choice_coarsener::display_options() const {
+  info("[Serial Coarsener: Restrictive First Choice]\n"
+       "-- Reduction ratio: %.2f\n"
+       "-- Minimum number of nodes: %i\n"
+       "-- Util fan out: %i\n\n",
+       reduction_ratio_, minimum_nodes_, util_fan_out_);
 }
 
 serial::hypergraph *restrictive_first_choice_coarsener::coarsen(const serial::hypergraph &h) {

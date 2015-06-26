@@ -7,15 +7,14 @@
 // 30/11/2004: Last Modified
 //
 // ###
-
 #include "refiners/serial/greedy_k_way_refiner.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
 greedy_k_way_refiner::greedy_k_way_refiner(int max, int nparts, double ave,
-                                           double lim, int dL)
-    : refiner(dL) {
+                                           double lim) {
   maximum_part_weight_ = max;
   number_of_parts_ = nparts;
   average_part_weight_ = ave;
@@ -40,18 +39,9 @@ greedy_k_way_refiner::greedy_k_way_refiner(int max, int nparts, double ave,
 
 greedy_k_way_refiner::~greedy_k_way_refiner() {}
 
-void greedy_k_way_refiner::display_options(std::ostream &out) const {
-  switch (dispOption) {
-  case SILENT:
-    break;
-
-  default:
-
-    out << "|- GKWAY:"
-        << " lim = " << limit_ << std::endl
-        << "|" << std::endl;
-    break;
-  }
+void greedy_k_way_refiner::display_options() const {
+  info("[Serial Greedy K-Way Refiner]\n"
+       "-- Limit: %i\n\n", limit_);
 }
 
 void greedy_k_way_refiner::build_data_structures() {

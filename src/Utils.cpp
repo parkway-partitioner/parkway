@@ -1,6 +1,3 @@
-#ifndef _UTILS_CPP
-#define _UTILS_CPP
-
 // ### Utils.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,20 +7,19 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "Utils.h"
+#include "utility/logging.hpp"
 
 using namespace std;
 
 parallel::coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                          int num_parts, double constraint,
-                                         parallel::hypergraph *h, ostream &out,
+                                         parallel::hypergraph *h,
                                          const int *options, MPI_Comm comm) {
   parallel::coarsener *c = nullptr;
 
   int coarsener_type = ParaFCC; // Para2DModel
   int min_nodes = options[8];
-  int disp_option = options[2];
   int numTotPins = h->total_number_of_pins(comm);
 
   double r = static_cast<double>(options[9]) / options[10];
@@ -57,10 +53,9 @@ parallel::coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
     }
 
     c = new parallel::first_choice_coarsener(my_rank, num_proc, num_parts, vertexVisitOrder,
-                            matchReqVisitOrder, divByCluWt, divByHedgeLen, out);
+                            matchReqVisitOrder, divByCluWt, divByHedgeLen);
 
     c->set_minimum_number_of_nodes(min_nodes * num_parts);
-    c->set_display_option(disp_option);
     c->set_balance_constraint(constraint);
     c->set_reduction_ratio(r);
     c->build_auxiliary_structures(numTotPins, aveVertDeg, aveHedgeSize);
@@ -93,11 +88,9 @@ parallel::coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
     }
 
     c = new parallel::model_coarsener_2d(my_rank, num_proc, num_parts, vertexVisitOrder,
-                                 matchReqVisitOrder, divByCluWt, divByHedgeLen,
-                                 out);
+                                 matchReqVisitOrder, divByCluWt, divByHedgeLen);
 
     c->set_minimum_number_of_nodes(min_nodes * num_parts);
-    c->set_display_option(disp_option);
     c->set_balance_constraint(constraint);
     c->set_reduction_ratio(r);
     c->build_auxiliary_structures(numTotPins, aveVertDeg, aveHedgeSize);
@@ -111,10 +104,9 @@ parallel::coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
 
 parallel::restrictive_coarsening *Utils::buildParaRestrCoarsener(
     int my_rank, int num_proc, int num_parts, double constraint,
-    parallel::hypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
+    parallel::hypergraph *h, const int *options, MPI_Comm comm) {
   int coarsener_type = ParaRestFCC;
   int min_nodes = options[8];
-  int disp_option = options[2];
 
   double r = static_cast<double>(options[9]) / options[10];
 
@@ -147,10 +139,9 @@ parallel::restrictive_coarsening *Utils::buildParaRestrCoarsener(
 
     c = new parallel::restrictive_first_choice_coarsening(
         my_rank, num_proc, num_parts, vertexVisitOrder, divByCluWt,
-        divByHedgeLen, out);
+        divByHedgeLen);
 
     c->set_minimum_nodes(min_nodes * num_parts);
-    c->set_display_option(disp_option);
     c->set_balance_constraint(constraint);
     c->set_reduction_ratio(r);
   }
@@ -163,10 +154,9 @@ parallel::restrictive_coarsening *Utils::buildParaRestrCoarsener(
 
 parallel::refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
                                      double constraint, parallel::hypergraph *h,
-                                     std::ostream &out, const int *options,
+                                     const int *options,
                                      MPI_Comm comm) {
   int refiner_type = ParaGreedyKway;
-  int disp_option = options[2];
   int numTotPins = h->total_number_of_pins(comm);
 
   parallel::refiner *r = nullptr;
@@ -179,10 +169,8 @@ parallel::refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_pa
       earlyExit = 1;
 
     r = new parallel::k_way_greedy_refiner(my_rank, num_proc, num_parts,
-                                  numTotPins / num_proc, earlyExit, eeLimit,
-                                  out);
+                                  numTotPins / num_proc, earlyExit, eeLimit);
 
-    r->set_display_option(disp_option);
     r->set_balance_constraint(constraint);
   }
 
@@ -194,10 +182,9 @@ parallel::refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_pa
 
 serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
                                          int num_parts, double constraint,
-                                         ostream &out, const int *options) {
+                                         const int *options) {
   int numSeqRuns = options[14];
   int seqControllerType = options[15];
-  int disp_option = options[2];
 
   serial::controller *seqC = nullptr;
 
@@ -212,7 +199,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
 
     serial::bisection_controller *bC = new
         serial::bisection_controller(numBisectRuns, keepT, redFactor, eeParam,
-                                     startPercentile, inc, disp_option, out);
+                                     startPercentile, inc);
 
     // ###
     // build the serial coarsener
@@ -247,7 +234,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
     serial::greedy_k_way_refiner *k =
-        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
+        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit);
 
     // ###
     // build the seq controller
@@ -256,11 +243,10 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double paraKeepT = DEF_KEEP_THRESHOLD;
 
     seqC = new recursive_bisection_contoller(bC, k, my_rank, num_proc, num_parts,
-                                     numBisectRuns, out);
+                                     numBisectRuns);
 
     seqC->set_accept_proportion(paraKeepT);
     seqC->set_number_of_runs(numSeqRuns);
-    seqC->set_display_option(disp_option);
     seqC->set_k_way_constraint(constraint);
   }
 
@@ -275,8 +261,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
 
     serial::v_cycle_all_bisection_controller *bC =
         new serial::v_cycle_all_bisection_controller(
-            numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
-            disp_option, out);
+            numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc);
 
     // ###
     // build the serial coarsener
@@ -319,7 +304,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
     serial::greedy_k_way_refiner *k =
-        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
+        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit);
 
     // ###
     // build the seq controller
@@ -328,11 +313,10 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double paraKeepT = DEF_KEEP_THRESHOLD;
 
     seqC = new recursive_bisection_contoller(bC, k, my_rank, num_proc, num_parts,
-                                     numBisectRuns, out);
+                                     numBisectRuns);
 
     seqC->set_accept_proportion(paraKeepT);
     seqC->set_number_of_runs(numSeqRuns);
-    seqC->set_display_option(disp_option);
     seqC->set_k_way_constraint(constraint);
   }
 
@@ -347,8 +331,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
 
     serial::v_cycle_final_bisection_controller *bC =
         new serial::v_cycle_final_bisection_controller(
-            numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc,
-            disp_option, out);
+            numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc);
 
     // ###
     // build the serial coarsener
@@ -391,7 +374,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double kWayLimit = DEF_SEQ_KWAY_LIM;
 
     serial::greedy_k_way_refiner *k =
-        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit, disp_option);
+        new serial::greedy_k_way_refiner(-1, num_parts, -1, kWayLimit);
 
     // ###
     // build the seq controller
@@ -400,11 +383,10 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double paraKeepT = DEF_KEEP_THRESHOLD;
 
     seqC = new recursive_bisection_contoller(bC, k, my_rank, num_proc, num_parts,
-                                     numBisectRuns, out);
+                                     numBisectRuns);
 
     seqC->set_accept_proportion(paraKeepT);
     seqC->set_number_of_runs(numSeqRuns);
-    seqC->set_display_option(disp_option);
     seqC->set_k_way_constraint(constraint);
   }
 
@@ -482,10 +464,9 @@ parallel::controller *Utils::buildParaController(
     int my_rank, int num_proc, int num_parts, int num_tot_verts,
     double constraint, parallel::coarsener *c,
     parallel::restrictive_coarsening *rc, parallel::refiner *r,
-    serial::controller *s, ostream &out, const int *options, MPI_Comm comm) {
+    serial::controller *s, const int *options, MPI_Comm comm) {
   int paraControllerType = options[22];
   int numParaRuns = options[4];
-  int disp_option = options[2];
   int shuffleVertices = options[5];
   int percentile = options[6];
   int perCentInc = options[7];
@@ -498,8 +479,7 @@ parallel::controller *Utils::buildParaController(
 
   if (paraControllerType == BasicParaC) {
     paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc,
-                                          percentile, perCentInc, approxRef,
-                                          out);
+                                          percentile, perCentInc, approxRef);
   }
 
   if (paraControllerType == ParaVCycleBig) {
@@ -524,14 +504,14 @@ parallel::controller *Utils::buildParaController(
       }
 
       paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc, percentile,
-                                      perCentInc, approxRef, out);
+                                      perCentInc, approxRef);
     } else {
       int limitOnCycles = options[23];
       double limitAsPercent = static_cast<double>(options[24]) / 100;
 
       paraC = new parallel_v_cycle_final_controller(*rc, *c, *r, *s, my_rank, num_proc,
                                             percentile, perCentInc, approxRef,
-                                            limitOnCycles, limitAsPercent, out);
+                                            limitOnCycles, limitAsPercent);
     }
   }
 
@@ -539,32 +519,25 @@ parallel::controller *Utils::buildParaController(
     bool noCoarsening = (num_tot_verts <= options[8] * num_parts);
 
     if (!rc || noCoarsening) {
-      char message[512];
-
-      if (!rc && my_rank == 0) {
-        sprintf(message,
-                "p[%d] no ParaRestrCoarsener - create basic controller\n",
-                my_rank);
-        out << message;
+      if (!rc) {
+        info("[Processor %i] No parallel restrictive coarsener -- creating a "
+             "basic controller.\n", my_rank);
       }
 
-      if (noCoarsening && my_rank == 0) {
-        sprintf(message,
-                "p[%d] max coarse hypergraph size > orig hypergraph size - no "
-                "v-cycles possible\n",
-                my_rank);
-        out << message;
+      if (noCoarsening) {
+        info("[Processor %i] maximum coarse hypergraph size is greater than "
+             "original hypergraph size; no v-cycles possible\n", my_rank);
       }
 
-      paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc, percentile,
-                                      perCentInc, approxRef, out);
+      paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc,
+                                            percentile, perCentInc, approxRef);
     } else {
       int limitOnCycles = options[23];
       double limitAsPercent = static_cast<double>(options[24]) / 100;
 
-      paraC = new parallel_v_cycle_all_controller(*rc, *c, *r, *s, my_rank, num_proc,
-                                          percentile, perCentInc, approxRef,
-                                          limitOnCycles, limitAsPercent, out);
+      paraC = new parallel_v_cycle_all_controller(
+          *rc, *c, *r, *s, my_rank, num_proc, percentile, perCentInc, approxRef,
+          limitOnCycles, limitAsPercent);
     }
   }
 
@@ -574,14 +547,11 @@ parallel::controller *Utils::buildParaController(
     paraC->set_balance_constraint(constraint);
     paraC->set_kt_factor(paraKeepT);
     paraC->set_reduction_in_keep_threshold(redFactor);
-    paraC->set_display_option(disp_option);
     paraC->set_shuffle_vertices(shuffleVertices);
 
     /* random vertex shuffle before each k-way refinement */
     paraC->set_random_shuffle_before_refine(0);
-
-    if (my_rank == 0)
-      paraC->display_options();
+    paraC->display_options();
   }
 
   return paraC;
@@ -864,5 +834,3 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
     }
   }
 }
-
-#endif

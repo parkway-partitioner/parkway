@@ -11,6 +11,9 @@
 
 using parkway::utility::status::info;
 using parkway::utility::status::progress;
+using parkway::utility::status::warning;
+using parkway::utility::status::warning_on_processor;
+using parkway::utility::status::error_on_processor;
 
 namespace parkway {
 namespace utility {

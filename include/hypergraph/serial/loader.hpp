@@ -20,7 +20,6 @@ namespace serial {
 
 class loader {
 protected:
-  int dispOption;
   int currPercentile;
 
   int numHedges;
@@ -54,7 +53,7 @@ protected:
   }
 
 public:
-  loader(int disp);
+  loader();
   ~loader();
 
   void compute_hyperedges_to_load(bit_field &toLoad);

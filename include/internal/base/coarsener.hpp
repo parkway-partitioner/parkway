@@ -8,13 +8,14 @@ namespace base {
 
 class coarsener {
  public:
-  coarsener(std::string object_name, int vertex_weight = 0,
-            int minimum_nodes = 0, double reduction_ratio = 0.0)
+  coarsener(int vertex_weight = 0, int minimum_nodes = 0,
+            double reduction_ratio = 0.0)
       : maximum_vertex_weight_(vertex_weight),
         minimum_number_of_nodes_(minimum_nodes),
-        reduction_ratio_(reduction_ratio),
-        object_name_(object_name) {
+        reduction_ratio_(reduction_ratio) {
   }
+
+  virtual void display_options() const = 0;
 
   virtual ~coarsener() {
   }
@@ -43,16 +44,10 @@ class coarsener {
     return reduction_ratio_;
   }
 
-  inline void print_name(std::ostream &out_stream) {
-    out_stream << "[" << object_name_ << "]";
-  }
-
  protected:
   int maximum_vertex_weight_;
   int minimum_number_of_nodes_;
   double reduction_ratio_;
-
-  std::string object_name_;
 };
 
 }  // namespace base

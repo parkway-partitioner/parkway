@@ -17,7 +17,6 @@
 // does not expect to be able to rebalance it.
 //
 // ###
-
 #include <ostream>
 #include "refiner.hpp"
 #include "data_structures/bit_field.hpp"
@@ -30,8 +29,7 @@ namespace serial {
 namespace ds = parkway::data_structures;
 
 class fm_refiner : public refiner {
-
-protected:
+ protected:
   // ###
   // auxiliary members
   // ###
@@ -58,12 +56,11 @@ protected:
 
   ds::bit_field loaded_;
 
-public:
+ public:
   fm_refiner(int max, int insMethod, int ee, int dL);
   ~fm_refiner();
 
-  void display_options(std::ostream &out) const;
-  void printQdis(std::ostream &out) const;
+  void display_options() const;
 
   void build_buckets();
   void restore_buckets();

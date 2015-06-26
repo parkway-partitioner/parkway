@@ -49,10 +49,10 @@ protected:
   ds::dynamic_array<int> parts_spanned_;
 
 public:
-  greedy_k_way_refiner(int max, int nparts, double ave, double limit, int dL);
+  greedy_k_way_refiner(int max, int nparts, double ave, double limit);
   ~greedy_k_way_refiner();
 
-  void display_options(std::ostream &out) const;
+  void display_options() const;
   void build_data_structures();
   void destroy_data_structures();
   int initialize_data_structures();

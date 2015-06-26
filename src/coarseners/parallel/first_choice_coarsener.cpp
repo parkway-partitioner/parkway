@@ -11,16 +11,17 @@
 #include "data_structures/internal/table_utils.hpp"
 #include "data_structures/match_request_table.hpp"
 #include "data_structures/map_to_pos_int.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
 first_choice_coarsener::first_choice_coarsener(int rank, int nProcs, int nParts,
                                  int vertVisOrder, int matchReqOrder,
-                                 int divByWt, int divByLen, std::ostream &out)
-    : coarsener(rank, nProcs, nParts, out) {
-  vertex_visit_order_ = vertVisOrder;
-  match_request_visit_order_ = matchReqOrder;
+                                 int divByWt, int divByLen)
+    : coarsener(rank, nProcs, nParts) {
+  vertex_visit_order_ = static_cast<visit_order_t>(vertVisOrder - 1);
+  match_request_visit_order_ = static_cast<visit_order_t>(matchReqOrder - 1);
   divide_by_cluster_weight_ = divByWt;
   divide_by_hyperedge_length_ = divByLen;
   limit_on_index_during_coarsening_ = 0;
@@ -32,30 +33,21 @@ first_choice_coarsener::~first_choice_coarsener() {
 }
 
 void first_choice_coarsener::display_options() const {
-  switch (display_options_) {
-  case SILENT:
-    break;
-
-  default:
-    out_stream << "|--- PARA_C:" << std::endl
-               << "|- PFC:"
-               << " r = " << reduction_ratio_ << " min = " <<
-                                                 minimum_number_of_nodes_
-               << " vvo = ";
-      print_visit_order(vertex_visit_order_);
-    out_stream << " mvo = ";
-      print_visit_order(match_request_visit_order_);
-    out_stream << " divWt = " << divide_by_cluster_weight_ << " divLen = " <<
-                                                              divide_by_hyperedge_length_
-               << std::endl
-               << "|" << std::endl;
-    break;
-  }
+  info("[Parallel Coarsener: First Choice]\n"
+       "-- Reduction ratio: %.2f\n"
+       "-- Minimum number of nodes: %i\n"
+       "-- Vertex visit order: %s\n"
+       "-- Match request visit order: %s\n"
+       "-- Divide by cluster weight: %i\n"
+       "-- Divide by hyeredge length: %i\n\n",
+       reduction_ratio_, minimum_number_of_nodes_,
+       parkway::to_c_str(vertex_visit_order_),
+       parkway::to_c_str(match_request_visit_order_),
+       divide_by_cluster_weight_, divide_by_hyperedge_length_);
 }
 
-void first_choice_coarsener::build_auxiliary_structures(int numTotPins,
-                                                        double aveVertDeg,
-                                                        double aveHedgeSize) {
+void first_choice_coarsener::build_auxiliary_structures(
+    int numTotPins, double aveVertDeg, double aveHedgeSize) {
   // ###
   // build the ds::match_request_table
   // ###
@@ -130,7 +122,7 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
 
   permute_vertices_arrays(vertices, number_of_local_vertices_);
 
-  if (display_options_ > 1) {
+  if (parkway::utility::status::handler::progress_enabled()) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
       if (vertex_weights_[i] > maxLocWt) {
         maxLocWt = vertex_weights_[i];
@@ -138,13 +130,10 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
-
-    if (rank_ == 0) {
-      out_stream << " " << maximum_vertex_weight_
-                 << " " << maxWt
-                 << " " << aveVertexWt << " ";
-      out_stream.flush();
-    }
+    progress("-- Maximum vertex weight: %i\n"
+             "-- Maximum weight:        %i\n"
+             "-- Average vertex weight: %i\n",
+             maximum_vertex_weight_, maxWt, aveVertexWt);
   }
 
   metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
@@ -161,15 +150,6 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
       bestMatch = -1;
       maxMatchMetric = 0.0;
       numVisited = 0;
-
-      //
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      //
 
       for (i = vertex_to_hyperedges_offset_[vertex]; i < endOffset1; ++i) {
         hEdge = vertex_to_hyperedges_[i];
@@ -438,7 +418,7 @@ void first_choice_coarsener::set_reply_arrays(int highToLow, int maxVWt) {
     assert(And(receive_lens_[i], 0x1) == 0);
 #endif
 
-    if (match_request_visit_order_ == RANDOM_ORDER) {
+    if (match_request_visit_order_ == visit_order_t::RANDOM) {
       visitOrderLen = Shiftr(receive_lens_[i], 1);
       visitOrder.resize(visitOrderLen);
 
@@ -572,49 +552,47 @@ void first_choice_coarsener::permute_vertices_arrays(dynamic_array<int> &verts,
                                                      int nLocVerts) {
   int i;
   switch (vertex_visit_order_) {
-  case INCREASING_ORDER:
-    for (i = 0; i < nLocVerts; ++i) {
-      verts[i] = i;
-    }
-    break;
+    case visit_order_t::INCREASING:
+      for (i = 0; i < nLocVerts; ++i) {
+        verts[i] = i;
+      }
+      break;
 
-  case DECREASING_ORDER:
-    for (i = 0; i < nLocVerts; ++i) {
-      verts[i] = nLocVerts - i - 1;
-    }
-    break;
+    case visit_order_t::DECREASING:
+      for (i = 0; i < nLocVerts; ++i) {
+        verts[i] = nLocVerts - i - 1;
+      }
+      break;
 
-  case RANDOM_ORDER:
-    for (i = 0; i < nLocVerts; ++i) {
-      verts[i] = i;
-    }
-    verts.random_permutation();
-    break;
+    case visit_order_t::RANDOM:
+      for (i = 0; i < nLocVerts; ++i) {
+        verts[i] = i;
+      }
+      verts.random_permutation();
+      break;
 
-  case INCREASING_WEIGHT_ORDER:
-    for (i = 0; i < nLocVerts; ++i) {
-      verts[i] = i;
-    }
-    verts.sort_between_using_another_array(
-        0, nLocVerts - 1, vertex_weights_,
-        parkway::utility::sort_order::INCREASING);
-    break;
+    case visit_order_t::INCREASING_WEIGHT:
+      for (i = 0; i < nLocVerts; ++i) {
+        verts[i] = i;
+      }
+      verts.sort_between_using_another_array(
+          0, nLocVerts - 1, vertex_weights_, utility::sort_order::INCREASING);
+      break;
 
-  case DECREASING_WEIGHT_ORDER:
-    for (i = 0; i < nLocVerts; ++i) {
-      verts[i] = i;
-    }
-    verts.sort_between_using_another_array(
-        0, nLocVerts - 1, vertex_weights_,
-        parkway::utility::sort_order::DECREASING);
-    break;
+    case visit_order_t::DECREASING_WEIGHT:
+      for (i = 0; i < nLocVerts; ++i) {
+        verts[i] = i;
+      }
+      verts.sort_between_using_another_array(
+          0, nLocVerts - 1, vertex_weights_, utility::sort_order::DECREASING);
+      break;
 
-  default:
-    for (i = 0; i < nLocVerts; ++i) {
-      verts[i] = i;
-    }
-    verts.random_permutation();
-    break;
+    default:
+      for (i = 0; i < nLocVerts; ++i) {
+        verts[i] = i;
+      }
+      verts.random_permutation();
+      break;
   }
 }
 
@@ -752,30 +730,6 @@ int first_choice_coarsener::accept(int locVertex, int nonLocCluWt, int highToLow
 
       return 1;
     }
-  }
-}
-
-void first_choice_coarsener::print_visit_order(int variable) const {
-  switch (variable) {
-  case INCREASING_ORDER:
-    out_stream << "inc-idx";
-    break;
-
-  case DECREASING_ORDER:
-    out_stream << "dec-idx";
-    break;
-
-  case INCREASING_WEIGHT_ORDER:
-    out_stream << "inc_wt";
-    break;
-
-  case DECREASING_WEIGHT_ORDER:
-    out_stream << "dec-wt";
-    break;
-
-  default:
-    out_stream << "rand";
-    break;
   }
 }
 

@@ -22,6 +22,7 @@ class parallel_v_cycle_controller : public parallel::controller {
  protected:
   int limit_on_cycles_;
   int minimum_inter_vertex_index_;
+  std::string type_;
 
   double limit_as_percent_of_cut_;
 
@@ -38,11 +39,10 @@ class parallel_v_cycle_controller : public parallel::controller {
                               parallel::coarsener &c, parallel::refiner &r,
                               parkway::serial::controller &ref, int rank, int nP,
                               int percentile, int inc, int approxRef, int limit,
-                              double limitAsPercent, std::ostream &out);
+                              double limitAsPercent, std::string type);
 
   virtual ~parallel_v_cycle_controller();
   virtual void run(MPI_Comm comm) = 0;
-  virtual void print_type() const = 0;
 
   void set_weight_constraints(MPI_Comm comm);
   void display_options() const;
