@@ -94,7 +94,7 @@ double Funct::toRecurBal(double e, int nP) {
     int index = 1;
 
     while (index < nP) {
-      index = Shiftl(index, 1);
+      index = index << 1;
       ++pow2;
     }
 
@@ -117,16 +117,16 @@ HashKey Funct::computeHash(const int *vs, int len) {
   for (i = 0; i < maxHedgeLen; ++i) {
     if (i < len) {
       sum += vs[i];
-      key = Xor(key, RotateLeft(vs[i], slide1));
+      key = key xor RotateLeft(vs[i], slide1);
     } else {
       sum += 1;
-      key = Xor(key, RotateLeft(1, slide1));
+      key = key xor RotateLeft(1, slide1);
     }
 
-    key = Xor(key, RotateLeft(sum, slide2));
+    key = key xor RotateLeft(sum, slide2);
 
-    slide1 = Mod((slide1 + shift1), sizeof(HashKey));
-    slide2 = Mod((slide2 + shift2), sizeof(HashKey));
+    slide1 = (slide1 + shift1) % sizeof(HashKey);
+    slide2 = (slide2 + shift2) % sizeof(HashKey);
   }
 
   return key;
@@ -134,12 +134,11 @@ HashKey Funct::computeHash(const int *vs, int len) {
 
 void Funct::randomPermutation(int *array, int size) {
   int i;
-  int j;
   int ij;
 
   for (i = 0; i < size; ++i) {
     ij = RANDOM(i, size);
-    fswap(array[i], array[ij], j);
+    std::swap(array[i], array[ij]);
   }
 }
 

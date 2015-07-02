@@ -414,7 +414,7 @@ void first_choice_coarsener::set_reply_arrays(int highToLow, int maxVWt) {
 #endif
 
     if (match_request_visit_order_ == RANDOM_ORDER) {
-      visitOrderLen = Shiftr(receive_lens_[i], 1);
+      visitOrderLen = receive_lens_[i] >> 1;
       visitOrder.resize(visitOrderLen);
 
       for (j = 0; j < visitOrderLen; ++j)
@@ -428,7 +428,7 @@ void first_choice_coarsener::set_reply_arrays(int highToLow, int maxVWt) {
 
       for (l = 0; l < visitOrderLen; ++l) {
 
-        j = Shiftl(visitOrder[l], 1);
+        j = visitOrder[l] << 1;
 
         vLocReq = receive_array_[startOffset + j];
         reqCluWt = receive_array_[startOffset + j + 1];

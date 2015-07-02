@@ -825,7 +825,7 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
 
   Funct::randomPermutation(vertices.data(), number_of_vertices_);
 
-  numSpareVertices = Mod(number_of_vertices_, processors_);
+  numSpareVertices = number_of_vertices_ % processors_;
   numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;
 
   MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.data(), 1,
@@ -842,7 +842,7 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
   vSpareToProc.resize(totSpareVertices);
 
   j = totSpareVertices / processors_;
-  ij = Mod(totSpareVertices, processors_);
+  ij = totSpareVertices % processors_;
 
   if (j == 0) {
     for (i = 0; i < totSpareVertices; ++i) {
@@ -850,7 +850,7 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
     }
   } else {
     for (i = 0; i < totSpareVertices - ij; ++i) {
-      vSpareToProc[i] = Mod(i, processors_);
+      vSpareToProc[i] = i % processors_;
     }
 
     for (i = totSpareVertices - ij; i < totSpareVertices; ++i) {
@@ -859,7 +859,7 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
   }
 
   for (i = 0; i < numVerticesEvenlyAllocated; ++i) {
-    j = Mod(i, processors_);
+    j = i % processors_;
     vertex_to_processor[vertices[i]] = j;
   }
 
@@ -903,7 +903,7 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
 
   Funct::randomPermutation(vertices.data(), number_of_vertices_);
 
-  numSpareVertices = Mod(number_of_vertices_, processors_);
+  numSpareVertices = number_of_vertices_ % processors_;
   numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;
 
   MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.data(), 1,
@@ -920,7 +920,7 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
   vSpareToProc.resize(totSpareVertices);
 
   j = totSpareVertices / processors_;
-  ij = Mod(totSpareVertices, processors_);
+  ij = totSpareVertices % processors_;
 
   if (j == 0) {
     for (i = 0; i < totSpareVertices; ++i) {
@@ -928,7 +928,7 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
     }
   } else {
     for (i = 0; i < totSpareVertices - ij; ++i) {
-      vSpareToProc[i] = Mod(i, processors_);
+      vSpareToProc[i] = i % processors_;
     }
 
     for (i = totSpareVertices - ij; i < totSpareVertices; ++i) {
@@ -937,7 +937,7 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
   }
 
   for (i = 0; i < numVerticesEvenlyAllocated; ++i) {
-    j = Mod(i, processors_);
+    j = i % processors_;
     vertex_to_processor[vertices[i]] = j;
   }
 
@@ -1088,7 +1088,7 @@ void hypergraph::shuffle_vertices(
     for (int i = 0; i < processors_; ++i) {
       send_displs_[i] = j;
       index_into_send_array[i] = j;
-      send_lens_[i] = Shiftl(local_vertices_per_processors[i], 1);
+      send_lens_[i] = local_vertices_per_processors[i] << 1;
       j += send_lens_[i];
     }
   } else {
@@ -1839,7 +1839,7 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
   if (rank_ != processors_ - 1)
     numMyVertices = vPerProc;
   else
-    numMyVertices = vPerProc + Mod(total_number_of_vertices_, processors_);
+    numMyVertices = vPerProc + (total_number_of_vertices_ % processors_);
 
   dynamic_array<int> minNewIndex(processors_);
   dynamic_array<int> maxNewIndex(processors_);
@@ -1889,7 +1889,7 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
     }
   } else {
     j = 0;
-    send_array_.resize(Shiftl(number_of_vertices_, 1));
+    send_array_.resize(number_of_vertices_ << 1);
 
     for (i = 0; i < number_of_vertices_; ++i) {
       send_array_[j++] = vertex_weights_[i];
@@ -1905,11 +1905,10 @@ void hypergraph::shift_vertices_to_balance(MPI_Comm comm) {
       else
         send_displs_[i] = send_displs_[i - 1] + send_lens_[i - 1];
 
-      send_lens_[i] = Shiftl(
-          std::max(number_of_vertices_ - (std::max(maxVertexIndex - maxNewIndex[i], 0) +
-                                  std::max(minNewIndex[i] - minimum_vertex_index_, 0)),
-              0),
-          1);
+      send_lens_[i] =
+          std::max(number_of_vertices_ -
+             (std::max(maxVertexIndex - maxNewIndex[i], 0) +
+              std::max(minNewIndex[i] - minimum_vertex_index_, 0)), 0) << 1;
     }
   }
 

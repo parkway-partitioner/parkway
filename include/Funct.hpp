@@ -36,8 +36,7 @@
 /* useful macros */
 
 #define RotateLeft(a, b)                                                       \
-  ((b) > (sizeof(HashKey)) ? (0) : (Or(Shiftr((a), sizeof(HashKey) - (b)),     \
-                                       Shiftl((a), (b)))))
+  (b > (sizeof(HashKey)) ? (0) : ( ((a >> sizeof(HashKey) - b)) | (a << b) ))
 #ifdef USE_SPRNG
 #define RANDOM(a, b)                                                           \
   ((a) == (b) ? (a) : (static_cast<int>((sprng()) * ((b) - (a))) + (a)))
@@ -124,9 +123,9 @@ class Funct {
       return 1;
 
     while (num > 1) {
-      if (And(num, 0x1))
+      if (num & 0x1)
         return 0;
-      num = Shiftr(num, 1);
+      num = num >> 1;
     }
 
     return 1;

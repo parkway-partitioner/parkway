@@ -1,7 +1,5 @@
-
 #ifndef _MACROS_H
 #define _MACROS_H
-
 // ### Macros.h ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -13,25 +11,6 @@
 // ###
 
 #include "configurtion.h"
-
-/* simple operator macros */
-
-#define And(a, b) ((a) & (b))
-#define Or(a, b) ((a) | (b))
-#define Xor(a, b) ((a) ^ (b))
-#define Compl(a) (~(a))
-#define Shiftl(a, b) ((a) << (b))
-#define Shiftr(a, b) ((a) >> (b))
-#define Mod(a, b) ((a) % (b))
-
-//#  define min(a,b) (((a)<(b))?(a):(b))
-//#  define max(a,b) (((a)>(b))?(a):(b))
-#define fswap(a, b, c)                                                         \
-  do {                                                                         \
-    (c) = (a);                                                                 \
-    (a) = (b);                                                                 \
-    (b) = (c);                                                                 \
-  } while (0)
 
 /* debug options */
 

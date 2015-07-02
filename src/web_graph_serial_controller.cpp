@@ -248,7 +248,7 @@ void web_graph_serial_controller::initialize_serial_partitions(
   for (i = 0; i < j; ++i)
     numVperProc[i] = ij;
 
-  numVperProc[i] = ij + Mod(numTotVertices, number_of_processors_);
+  numVperProc[i] = ij + (numTotVertices % number_of_processors_);
 
   j = 0;
   ij = 0;

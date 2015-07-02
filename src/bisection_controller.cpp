@@ -48,27 +48,27 @@ void bisection_controller::build_coarsener(double redRatio, int cType,
   switch (cType) {
   case FCwithFanOutDiv:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 1);
+        new first_choice_coarsener((minNodes << 1), -1, redRatio, 1, 1);
     break;
 
   case FCwithoutFanOutDiv:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0, 1);
+        new first_choice_coarsener((minNodes << 1), -1, redRatio, 0, 1);
     break;
 
   case FCwithFanOut:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 0);
+        new first_choice_coarsener((minNodes << 1), -1, redRatio, 1, 0);
     break;
 
   case FCwithoutFanOut:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0, 0);
+        new first_choice_coarsener((minNodes << 1), -1, redRatio, 0, 0);
     break;
 
   default:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 1);
+        new first_choice_coarsener((minNodes << 1), -1, redRatio, 1, 1);
     break;
   }
 }

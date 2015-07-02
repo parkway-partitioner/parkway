@@ -200,7 +200,7 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   ij = 0;
 
   for (i = 0; i < processors_; ++i) {
-    send_lens_[i] = Shiftr(send_lens_[i], 1);
+    send_lens_[i] = send_lens_[i] >> 1;
     send_displs_[i] = ij;
     ij += send_lens_[i];
   }
@@ -212,7 +212,7 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   j = 0;
 
   for (i = 0; i < processors_; ++i) {
-    arrayLen = Shiftl(send_lens_[i], 1);
+    arrayLen = send_lens_[i] << 1;
     for (ij = 0; ij < arrayLen;) {
       send_array_[j] = data_out_sets_[i][ij++];
       localSendArrayVerts[j++] = data_out_sets_[i][ij++];
@@ -428,7 +428,7 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
 
     for (i = 0; i < processors_; ++i) {
       send_displs_[i] = ij;
-      ij += (Shiftr(send_lens_[i], 1));
+      ij += send_lens_[i] >> 1;
     }
 
     send_array_.reserve(ij);
@@ -446,7 +446,7 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
         send_array_[ij++] = data_out_sets_[i][j++];
       }
 
-      send_lens_[i] = Shiftr(sendLength, 1);
+      send_lens_[i] = sendLength >> 1;
     }
 
 #ifdef DEBUG_CONTROLLER
@@ -597,7 +597,7 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
   ij = 0;
   for (i = 0; i < processors_; ++i) {
     send_displs_[i] = ij;
-    ij += (Shiftr(send_lens_[i], 1));
+    ij += send_lens_[i] >> 1;
   }
 
   send_array_.resize(ij);
@@ -614,7 +614,7 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
       send_array_[ij++] = data_out_sets_[i][j++];
     }
 
-    send_lens_[i] = Shiftr(send_lens_[i], 1);
+    send_lens_[i] = send_lens_[i] >> 1;
   }
 
 #ifdef DEBUG_CONTROLLER
@@ -712,7 +712,7 @@ void parallel_v_cycle_controller::shift_v_cycle_vertices_to_balance(
   if (rank_ != processors_ - 1)
     numMyNewVertices = vPerProc;
   else
-    numMyNewVertices = vPerProc + Mod(numTotVertices, processors_);
+    numMyNewVertices = vPerProc + (numTotVertices % processors_);
 
   dynamic_array<int> minNewIndex(processors_);
   dynamic_array<int> maxNewIndex(processors_);
@@ -826,7 +826,7 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
 
   for (i = 0; i < processors_; ++i) {
     send_displs_[i] = ij;
-    ij += Shiftr(send_lens_[i], 1);
+    ij += send_lens_[i] >> 1;
   }
 
   send_array_.reserve(ij);
@@ -842,7 +842,7 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
       send_array_[ij++] = data_out_sets_[i][j++];
     }
 
-    send_lens_[i] = Shiftr(send_lens_[i], 1);
+    send_lens_[i] = send_lens_[i] >> 1;
   }
 
 #ifdef DEBUG_CONTROLLER

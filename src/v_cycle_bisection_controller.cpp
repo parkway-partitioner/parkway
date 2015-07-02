@@ -44,27 +44,27 @@ void v_cycle_bisection_controller::build_restrictive_coarsener(double redRatio,
   switch (cType) {
   case RestrFCwithFanOutDiv:
     restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        Shiftl(minNodes, 1), -1, redRatio, 1, 1);
+        (minNodes << 1), -1, redRatio, 1, 1);
     break;
 
   case RestrFCwithoutFanOutDiv:
     restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        Shiftl(minNodes, 1), -1, redRatio, 0, 1);
+        (minNodes << 1), -1, redRatio, 0, 1);
     break;
 
   case RestrFCwithFanOut:
     restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        Shiftl(minNodes, 1), -1, redRatio, 1, 0);
+        (minNodes << 1), -1, redRatio, 1, 0);
     break;
 
   case RestrFCwithoutFanOut:
     restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        Shiftl(minNodes, 1), -1, redRatio, 0, 0);
+        (minNodes << 1), -1, redRatio, 0, 0);
     break;
 
   default:
     restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        Shiftl(minNodes, 1), -1, redRatio, 1, 1);
+        (minNodes << 1), -1, redRatio, 1, 1);
     break;
   }
 }

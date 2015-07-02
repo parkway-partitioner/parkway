@@ -302,7 +302,6 @@ int greedy_k_way_refiner::greedy_pass() {
   int ij;
   int v;
   int sP;
-  int tmp;
   int gain;
   int vGain;
   int posGain;
@@ -445,7 +444,7 @@ int greedy_k_way_refiner::greedy_pass() {
       }
     }
 
-    fswap(vertices_[randomNum], vertices_[i - 1], tmp);
+    std::swap(vertices_[randomNum], vertices_[i - 1]);
     --i;
   } while (i > 0);
 

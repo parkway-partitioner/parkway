@@ -86,7 +86,7 @@ void recursive_bisection_contoller::convToBisectionConstraints() {
     else
       number_of_partitions_ = 0;
   } else {
-    i = Mod(number_of_runs_, number_of_processors_);
+    i = number_of_runs_ % number_of_processors_;
     j = number_of_runs_ / number_of_processors_;
 
     if (rank_ < i)
@@ -130,10 +130,10 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
 
   bisection *b;
 
-  all_partition_info_.resize(Shiftl(numVertices, 1));
+  all_partition_info_.resize(numVertices << 1);
 
   for (i = 0; i < number_of_runs_; ++i) {
-    destProcessor = Mod(i, number_of_processors_);
+    destProcessor = i % number_of_processors_;
     sum_of_cuts_ = 0;
     local_vertex_part_info_length_ = 0;
 
@@ -170,7 +170,7 @@ void recursive_bisection_contoller::run(parallel::hypergraph &hgraph,
                 recvDispls.data(), MPI_INT, destProcessor, comm);
 
     if (rank_ == destProcessor) {
-      ij = Shiftl(numVertices, 1);
+      ij = numVertices << 1;
 
       for (j = 0; j < ij;) {
         v = all_partition_info_[j++];
@@ -255,7 +255,7 @@ void recursive_bisection_contoller::initialize_serial_partitions(
   for (i = 0; i < j; ++i)
     numVperProc[i] = ij;
 
-  numVperProc[i] = ij + Mod(numTotVertices, number_of_processors_);
+  numVperProc[i] = ij + (numTotVertices % number_of_processors_);
 
   j = 0;
   ij = 0;
@@ -429,7 +429,7 @@ void recursive_bisection_contoller::recursively_bisect(const bisection &b,
                 MPI_INT, bestCutProc, comm);
 
       MPI_Comm new_comm;
-      MPI_Comm_split(comm, And(rank, 0x1), 0, &new_comm);
+      MPI_Comm_split(comm, (rank & 0x1), 0, &new_comm);
 
       split_bisection(b, newB, comm);
 
@@ -500,7 +500,7 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
 
   dynamic_array<int> mapFromHtoNewH(numHVertices);
 
-  if (And(rank, 0x1)) {
+  if (rank & 0x1) {
     // ###
     // in the odd processor case
     // ###
@@ -571,7 +571,7 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
     // ###
 
     newB = new bisection(newH, bisectAgain - 1,
-                         Or(bPartID, Shiftl(1, (log_k_ - bisectAgain))));
+                         (bPartID | (1 << (log_k_ - bisectAgain))));
     newB->setMap(mapOrig);
   } else {
     // ###
@@ -816,7 +816,7 @@ void recursive_bisection_contoller::split_bisection(const bisection &b,
 
   l = new bisection(leftH, bisectAgain - 1, bPartID);
   r = new bisection(rightH, bisectAgain - 1,
-                    Or(bPartID, Shiftl(1, (log_k_ - bisectAgain))));
+                    (bPartID | (1 << (log_k_ - bisectAgain))));
 
   l->setMap(leftMapOrig);
   r->setMap(rightMapOrig);

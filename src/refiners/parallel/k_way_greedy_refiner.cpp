@@ -34,7 +34,7 @@ k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
   ij = number_of_parts_ * number_of_parts_;
 
   move_sets_.resize(ij);
-  move_set_data_.resize(Shiftl(ij, 1));
+  move_set_data_.resize(ij << 1);
   index_into_move_set_.resize(ij);
   number_of_vertices_moved_.resize(ij);
 
@@ -48,7 +48,7 @@ k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
       if (i == j) {
         index_into_move_set_[ij + j] = -1;
       } else {
-        index_into_move_set_[ij + j] = Shiftl((ij + j), 1);
+        index_into_move_set_[ij + j] = (ij + j) << 1;
       }
     }
   }

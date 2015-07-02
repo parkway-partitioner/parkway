@@ -68,7 +68,7 @@ void fm_refiner::build_buckets() {
   vertex_gains_.reserve(numVertices);
   loaded_.reserve(numVertices);
   move_list_.reserve(numVertices);
-  vertex_in_part_.reserve(Shiftl(numHedges, 1));
+  vertex_in_part_.reserve(numHedges << 1);
 
   for (i = 0; i < numVertices; ++i) {
     buckets_[i] = new bucket_node;
@@ -89,7 +89,7 @@ void fm_refiner::build_buckets() {
   }
 
   maximum_possible_gain_ = maxVertDeg * maxHedgeWt;
-  bucket_arrays_length_ = Or(Shiftl(maximum_possible_gain_, 1), 0x1);
+  bucket_arrays_length_ = (maximum_possible_gain_ << 1) | 0x1;
 
   bucket_arrays_[0] = new NodeArray(bucket_arrays_length_);
   bucket_arrays_[1] = new NodeArray(bucket_arrays_length_);
@@ -136,15 +136,15 @@ void fm_refiner::initialise_partition_structure() {
   }
 
   for (i = 0; i < numHedges; ++i) {
-    hEdgeOffset = Shiftl(i, 1);
+    hEdgeOffset = i << 1;
 
     vertex_in_part_[hEdgeOffset] = 0;
-    vertex_in_part_[Or(hEdgeOffset, 0x1)] = 0;
+    vertex_in_part_[hEdgeOffset | 0x1] = 0;
 
     endOffset = hEdgeOffsets[i + 1];
 
     for (j = hEdgeOffsets[i]; j < endOffset; ++j) {
-      ++vertex_in_part_[Or(hEdgeOffset, partition_vector_[pinList[j]])];
+      ++vertex_in_part_[hEdgeOffset | partition_vector_[pinList[j]]];
     }
   }
 }
@@ -180,12 +180,12 @@ void fm_refiner::prepare_vertex_gains() {
 
     for (j = vOffsets[i]; j < endOffset; ++j) {
       hEdge = vToHedges[j];
-      hEdgeOffset = Shiftl(hEdge, 1);
+      hEdgeOffset = hEdge << 1;
 
-      if (vertex_in_part_[Or(hEdgeOffset, vPart)] == 1)
+      if (vertex_in_part_[hEdgeOffset | vPart] == 1)
         vertex_gains_[i] += hEdgeWeight[hEdge];
 
-      if (vertex_in_part_[Or(hEdgeOffset, Xor(vPart, 1))] == 0)
+      if (vertex_in_part_[hEdgeOffset | (vPart xor 1)] == 0)
         vertex_gains_[i] -= hEdgeWeight[hEdge];
     }
 
@@ -219,10 +219,10 @@ void fm_refiner::initialise_gains_1_to_0() {
       for (j = vOffsets[i]; j < endOffset; ++j) {
         hEdge = vToHedges[j];
 
-        if (vertex_in_part_[Shiftl(hEdge, 1)] == 0)
+        if (vertex_in_part_[hEdge << 1] == 0)
           vertex_gains_[i] -= hEdgeWeight[hEdge];
 
-        if (vertex_in_part_[Or(Shiftl(hEdge, 1), 0x1)] == 1)
+        if (vertex_in_part_[(hEdge << 1) | 0x1] == 1)
           vertex_gains_[i] += hEdgeWeight[hEdge];
       }
 
@@ -261,10 +261,10 @@ void fm_refiner::initialise_gains_0_to_1() {
       for (j = vOffsets[i]; j < endOffset; ++j) {
         hEdge = vToHedges[j];
 
-        if (vertex_in_part_[Or(Shiftl(hEdge, 1), 0x1)] == 0)
+        if (vertex_in_part_[(hEdge << 1) | 0x1] == 0)
           vertex_gains_[i] -= hEdgeWeight[hEdge];
 
-        if (vertex_in_part_[Shiftl(hEdge, 1)] == 1)
+        if (vertex_in_part_[hEdge << 1] == 1)
           vertex_gains_[i] += hEdgeWeight[hEdge];
       }
 
@@ -284,7 +284,7 @@ void fm_refiner::remove_buckets_from_1() {
 
   bucket_node *array = bucket_arrays_[1]->data();
 
-  int bucketArrayLen = Or(Shiftl(maximum_possible_gain_, 1), 0x1);
+  int bucketArrayLen = (maximum_possible_gain_ << 1) | 0x1;
 
   for (i = 0; i < bucketArrayLen; ++i) {
     while (array[i].next != nullptr) {
@@ -308,7 +308,7 @@ void fm_refiner::remove_buckets_from_0() {
 
   bucket_node *array = bucket_arrays_[0]->data();
 
-  int bucketArrayLen = Or(Shiftl(maximum_possible_gain_, 1), 0x1);
+  int bucketArrayLen = (maximum_possible_gain_ << 1) | 0x1;
 
   for (i = 0; i < bucketArrayLen; ++i) {
     while (array[i].next != nullptr) {
@@ -491,7 +491,7 @@ void fm_refiner::remove_from_bucket_array(int v, int vPart, int vGain) {
 
 void fm_refiner::adjust_maximum_gain_pointer(int dP) {
   if (number_of_buckets_in_array_[dP] > 0) {
-    int index = Shiftl(maximum_possible_gain_, 1);
+    int index = maximum_possible_gain_ << 1;
 
     while ((*bucket_arrays_[dP])[index].next == nullptr) {
 #ifdef DEBUG_FM_REFINER
@@ -535,8 +535,8 @@ void fm_refiner::update_gains(int v) {
 
   for (i = vOffsets[v]; i < endOffset; ++i) {
     hEdge = vToHedges[i];
-    sourceOffset = Or(Shiftl(hEdge, 1), sP);
-    destOffset = Or(Shiftl(hEdge, 1), dP);
+    sourceOffset = (hEdge << 1) | sP;
+    destOffset = (hEdge << 1) | dP;
 
     // ###
     // now if the hyperedge has no vertices in
@@ -659,8 +659,8 @@ void fm_refiner::update_gains_1_to_0(int v) {
 
   for (i = vOffsets[v]; i < endOffset; ++i) {
     hEdge = vToHedges[i];
-    sourceOffset = Or(Shiftl(hEdge, 1), 0x1);
-    destOffset = Shiftl(hEdge, 1);
+    sourceOffset = (hEdge << 1) | 0x1;
+    destOffset = hEdge << 1;
 
     // ###
     // now if the hyperedge has no vertices in
@@ -740,8 +740,8 @@ void fm_refiner::update_gains_0_to_1(int v) {
 
   for (i = vOffsets[v]; i < endOffset; ++i) {
     hEdge = vToHedges[i];
-    sourceOffset = Shiftl(hEdge, 1);
-    destOffset = Or(Shiftl(hEdge, 1), 0x1);
+    sourceOffset = hEdge << 1;
+    destOffset = (hEdge << 1) | 0x1;
 
     // ###
     // now if the hyperedge has no vertices in
@@ -803,7 +803,7 @@ void fm_refiner::undo_move(int v) {
   int i;
   int endOffset = vOffsets[v + 1];
   int hEdgeOffset;
-  int othPart = Xor(vPart, 0x1);
+  int othPart = vPart xor 0x1;
 
 #ifdef DEBUG_FM_REFINER
   assert(v < numVertices && v >= 0);
@@ -817,10 +817,10 @@ void fm_refiner::undo_move(int v) {
 
   for (i = vOffsets[v]; i < endOffset; ++i) {
     hEdge = vToHedges[i];
-    hEdgeOffset = Shiftl(hEdge, 1);
+    hEdgeOffset = hEdge << 1;
 
-    --vertex_in_part_[Or(hEdgeOffset, vPart)];
-    ++vertex_in_part_[Or(hEdgeOffset, othPart)];
+    --vertex_in_part_[hEdgeOffset | vPart];
+    ++vertex_in_part_[hEdgeOffset | othPart];
   }
 }
 
@@ -939,7 +939,7 @@ int fm_refiner::rebalancing_pass(int largePart) {
   int vertexGain;
   int bestVertex;
 
-  if (And(largePart, 0x1)) {
+  if (largePart & 0x1) {
     initialise_gains_1_to_0();
 
     while (part_weights_[1] > maximum_part_weight_) {
@@ -1078,7 +1078,7 @@ int fm_refiner::choose_legal_move(int sP) {
 
   bucket *b;
 
-  if (And(sP, 0x1)) {
+  if (sP & 0x1) {
     index = maximum_gain_entries_[1];
 
 #ifdef DEBUG_FM_REFINER
