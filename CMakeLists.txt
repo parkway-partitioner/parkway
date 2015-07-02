@@ -55,9 +55,6 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 ### Testing framework #########################################################
 # Check if enabled.
 if(PARKWAY_TESTS)
-  # Enable CTest to handle running tests with 'make test'.
-  include(CTest)
-
   add_subdirectory("${MAINFOLDER}/tests/unit_tests")
 endif()
 

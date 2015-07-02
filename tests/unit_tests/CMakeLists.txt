@@ -63,9 +63,3 @@ foreach(UNIT_TEST_FILE ${UNIT_TEST_FILES})
     )
   endforeach()
 endforeach()
-
-# Add a target to check that tests have been built.
-add_custom_target(check
-  COMMAND ${CMAKE_CTEST_COMMAND}
-  DEPENDS ${PROJECT_TEST_DRIVER}
-)
