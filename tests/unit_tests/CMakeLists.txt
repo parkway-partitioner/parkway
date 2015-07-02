@@ -1,10 +1,13 @@
+enable_testing()
+
 # GMock (and GTest) require threads.
 find_package(Threads REQUIRED)
 
 # Set up Coveralls if enabled.
 if (PARKWAY_USE_COVERALLS)
   include(Coveralls)
-  coveralls_turn_on_coverage()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
   file(GLOB_RECURSE COVERAGE_SRCS ${MAINFOLDER}/src/*.cpp
     ${MAINFOLDER}/src/*.cxx ${MAINFOLDER}/src/*.c)
   # # Create the coveralls target.
