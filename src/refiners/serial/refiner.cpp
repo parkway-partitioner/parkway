@@ -13,9 +13,8 @@
 namespace parkway {
 namespace serial {
 
-refiner::refiner(int dL)
-    : loader(dL),
-      maximum_part_weight_(0),
+refiner::refiner()
+    : maximum_part_weight_(0),
       number_of_parts_(0),
       accept_proportion_(0),
       average_part_weight_(0),

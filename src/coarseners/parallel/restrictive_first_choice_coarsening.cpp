@@ -7,16 +7,16 @@
 // 31/12/2004: Last Modified
 //
 // ###
-
 #include "coarseners/parallel/restrictive_first_choice_coarsening.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
 restrictive_first_choice_coarsening::restrictive_first_choice_coarsening(
     int rank, int nProcs, int nParts, int verVisOrder, int divByWt,
-    int divByLen, std::ostream &out)
-    : restrictive_coarsening(rank, nProcs, nParts, out) {
+    int divByLen)
+    : restrictive_coarsening(rank, nProcs, nParts) {
   vertex_visit_order_ = verVisOrder;
   divide_by_cluster_weight_ = divByWt;
   divide_by_hyperedge_length_ = divByLen;
@@ -26,24 +26,11 @@ restrictive_first_choice_coarsening::restrictive_first_choice_coarsening(
 restrictive_first_choice_coarsening::~restrictive_first_choice_coarsening() {}
 
 void restrictive_first_choice_coarsening::display_options() const {
-  switch (display_options_) {
-  case SILENT:
-
-    break;
-
-  default:
-
-    out_stream << "|--- PARA_RESTR_C:" << std::endl
-               << "|- PFC:"
-               << " r = " << reduction_ratio_ << " min = " << minimum_nodes_
-               << " vvo = ";
-      print_visit_order(vertex_visit_order_);
-    out_stream << " divWt = " << divide_by_cluster_weight_ << " divLen = " <<
-                                                              divide_by_hyperedge_length_
-               << std::endl
-               << "|" << std::endl;
-    break;
-  }
+  info("|--- PARA_RESTR_C:\n"
+       "|- PFC: r = %.2f min = %i vvo = ", reduction_ratio_, minimum_nodes_);
+  print_visit_order(vertex_visit_order_);
+  info(" divWt = %i divLen = %i\n|\n", divide_by_cluster_weight_,
+       divide_by_hyperedge_length_);
 }
 
 void restrictive_first_choice_coarsening::build_auxiliary_structures(int numPins,
@@ -108,18 +95,14 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
   for (i = 0; i < number_of_local_vertices_; ++i)
     vertexAdjEntry[i] = -1;
 
-  if (display_options_ > 1) {
+  if (parkway::utility::status::handler::progress_enabled()) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
       if (vertex_weights_[i] > maxLocWt)
         maxLocWt = vertex_weights_[i];
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
-
-    if (rank_ == 0) {
-      out_stream << " " << maximum_vertex_weight_ << " " << maxWt << " " << aveVertexWt
-                 << " ";
-    }
+    progress(" %i %i %i ", maximum_vertex_weight_, maxWt, aveVertexWt);
   }
 
   metricVal = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
@@ -378,23 +361,23 @@ void restrictive_first_choice_coarsening::print_visit_order(
     int variable) const {
   switch (variable) {
   case INCREASING_ORDER:
-    out_stream << "inc-idx";
+    info("inc-idx");
     break;
 
   case DECREASING_ORDER:
-    out_stream << "dec-idx";
+    info("dec-idx");
     break;
 
   case INCREASING_WEIGHT_ORDER:
-    out_stream << "inc_wt";
+    info("inc_wt");
     break;
 
   case DECREASING_WEIGHT_ORDER:
-    out_stream << "dec-wt";
+    info("dec-wt");
     break;
 
   default:
-    out_stream << "rand";
+    info("rand");
     break;
   }
 }

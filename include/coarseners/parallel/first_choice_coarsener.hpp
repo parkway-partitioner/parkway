@@ -31,7 +31,7 @@ class first_choice_coarsener : public coarsener {
 
  public:
   first_choice_coarsener(int rank, int nProcs, int nParts, int vertVisOrder,
-                  int matchReqOrder, int divByWt, int divByLen, std::ostream &out);
+                  int matchReqOrder, int divByWt, int divByLen);
   ~first_choice_coarsener();
 
   void display_options() const;

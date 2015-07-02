@@ -16,38 +16,27 @@
 #include "basic_contoller.hpp"
 #include <stack>
 #include "hypergraph/parallel/hypergraph.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
 basic_contoller::basic_contoller(coarsener &c, refiner &r,
                                  serial::controller &ref, int rank, int nP, int
-                                 percentile, int inc, int approxRef,
-                                 std::ostream &out)
-    : controller(c, r, ref, rank, nP, percentile, inc, approxRef, out) {
+                                 percentile, int inc, int approxRef)
+    : controller(c, r, ref, rank, nP, percentile, inc, approxRef) {
 }
 
-basic_contoller::~basic_contoller() {}
+basic_contoller::~basic_contoller() {
+}
 
 void basic_contoller::display_options() const {
-  switch (display_option_) {
-  case SILENT:
-    break;
-
-  default:
-
-    out_stream_ << "|--- PARA_CONTR (# parts = " << total_number_of_parts_
-               << "): " << std::endl
-               << "|- BASIC:"
-               << " pRuns = " << number_of_runs_ << " kT = " <<
-                                                    keep_partitions_within_
-               << " rKT = " << reduction_in_keep_threshold_
-               << " appRef = " << approximate_refine_
-               << " wTF = " << write_partition_to_file_ << " start %le "
-               << start_percentile_ << " %le inc " << percentile_increment_ << std::endl
-               << "|" << std::endl;
-    break;
-  }
+  info("|--- PARA_CONTR (# parts = %i)\n"
+       "|- BASIC: pRuns = %i kT = %.2f rKT = %.2f appRef = %i wTF = %i "
+      "percentile = %i increment = %i\n|\n", total_number_of_parts_,
+      number_of_runs_, keep_partitions_within_, reduction_in_keep_threshold_,
+      approximate_refine_, write_partition_to_file_, start_percentile_,
+      percentile_increment_);
 }
 
 void basic_contoller::run(MPI_Comm comm) {
@@ -216,9 +205,7 @@ void basic_contoller::run(MPI_Comm comm) {
 
     /* free memory used by the para controller */
     reset_structures();
-    if (rank_ == 0 && display_option_ > 0) {
-      out_stream_ << "\nPRUN[" << i << "] = " << cutSize << std::endl << std::endl;
-    }
+    info("\nPRUN[%i] = %i\n\n", i, cutSize);
   }
 
   MPI_Barrier(comm);
@@ -235,27 +222,27 @@ void basic_contoller::run(MPI_Comm comm) {
 
   average_cutsize_ = static_cast<double>(total_cutsize_) / number_of_runs_;
 
-  if (rank_ == 0 && display_option_ > 0) {
-    out_stream_ << std::endl
-               << " --- PARTITIONING SUMMARY ---" << std::endl
-               << "|" << std::endl
-               << "|--- Cutsizes statistics:" << std::endl
-               << "|" << std::endl
-               << "|-- BEST = " << best_cutsize_ << std::endl
-               << "|-- WORST = " << worst_cutsize_ << std::endl
-               << "|-- AVE = " << average_cutsize_ << std::endl
-               << "|" << std::endl
-               << "|--- Time usage:" << std::endl
-               << "|" << std::endl
-               << "|-- TOTAL TIME = " << total_time_ << std::endl
-               << "|-- AVE TIME = " << total_time_ / number_of_runs_ << std::endl
-               << "|-- PARACOARSENING% = " << percentCoarsening << std::endl
-               << "|-- SEQPARTITIONING% = " << percentserial << std::endl
-               << "|-- PARAREFINEMENT% = " << percentRefinement << std::endl
-               << "|-- OTHER% = " << percentOther << std::endl
-               << "|" << std::endl
-               << " ----------------------------" << std::endl;
-  }
+  info("\n --- PARTITIONING SUMMARY ---\n"
+       "|\n"
+       "|--- Cutsizes statistics:\n"
+       "|\n"
+       "|-- BEST = %i\n"
+       "|-- WORST = %i\n"
+       "|-- AVE = %.2f\n"
+       "|\n"
+       "|--- Time usage:\n"
+       "|\n"
+       "|-- TOTAL TIME = %.2f\n"
+       "|-- AVE TIME = %.2f\n"
+       "|-- PARACOARSENING% = %i\n"
+       "|-- SEQPARTITIONING% = %i\n"
+       "|-- PARAREFINEMENT% = %i\n"
+       "|-- OTHER% = %i\n"
+       "|\n"
+       " ----------------------------\n",
+       best_cutsize_, worst_cutsize_, average_cutsize_, total_time_,
+       total_time_ / number_of_runs_, percentCoarsening, percentserial,
+       percentRefinement, percentOther);
 }
 
 void basic_contoller::reset_structures() {

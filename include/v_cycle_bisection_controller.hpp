@@ -24,8 +24,7 @@ class v_cycle_bisection_controller : public bisection_controller {
  public:
   v_cycle_bisection_controller(const int nRuns, const double kT,
                                const double redFactor, int eeParam,
-                               int percentile, int inc, int dispL,
-                               std::ostream &out);
+                               int percentile, int inc);
   virtual ~v_cycle_bisection_controller();
 
   void display_options() const;

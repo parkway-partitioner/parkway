@@ -8,17 +8,19 @@
 //
 // ###
 #include "refiners/parallel/refiner.hpp"
+#include "utility/logging.hpp"
 #include <iostream>
 
 namespace parkway {
 namespace parallel {
 
-refiner::refiner(int rank, int nProcs, int nParts, std::ostream &out)
-    : loader(rank, nProcs, nParts, out) {
+refiner::refiner(int rank, int nProcs, int nParts)
+    : loader(rank, nProcs, nParts) {
   part_weights_.resize(nParts);
 }
 
-refiner::~refiner() {}
+refiner::~refiner() {
+}
 
 void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
   int i;
@@ -78,8 +80,7 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
     vDegs[i] = 0;
   }
 
-  if (display_options_ > 1 && rank_ == 0)
-    out_stream << "[PR]";
+  progress("[PR]");
 
   // ###
   // use the request sets to send local hyperedges to other
@@ -387,7 +388,7 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
     }
   }
 
-  if (display_options_ > 1) {
+  if (parkway::utility::status::handler::progress_enabled()) {
     int numTotHedgesInGraph;
     int numTotPinsInGraph;
 
@@ -395,10 +396,8 @@ void refiner::load(const parallel::hypergraph &h, MPI_Comm comm) {
                comm);
     MPI_Reduce(&numLocalPins, &numTotPinsInGraph, 1, MPI_INT, MPI_SUM, 0, comm);
 
-    if (rank_ == 0) {
-      out_stream << " " << number_of_vertices_ << " " << numTotHedgesInGraph << " "
-                 << numTotPinsInGraph << std::endl;
-    }
+    progress(" %i %i %i\n", number_of_vertices_, numTotHedgesInGraph,
+             numTotPinsInGraph);
   }
 }
 

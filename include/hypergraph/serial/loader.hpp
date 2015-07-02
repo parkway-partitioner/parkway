@@ -19,8 +19,7 @@ namespace parkway {
 namespace serial {
 
 class loader {
-protected:
-  int dispOption;
+ protected:
   int currPercentile;
 
   int numHedges;
@@ -53,8 +52,8 @@ protected:
     vOffsets = h.vertex_offsets();
   }
 
-public:
-  loader(int disp);
+ public:
+  loader();
   ~loader();
 
   void compute_hyperedges_to_load(bit_field &toLoad);

@@ -7,19 +7,16 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "bisection_controller.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
 bisection_controller::bisection_controller(int nRuns, double kT, double redFactor,
-                                         int eeP, int percentile, int inc,
-                                         int dispL, std::ostream &out)
-    : out_stream(out) {
+                                         int eeP, int percentile, int inc) {
   number_of_serial_runs_ = nRuns;
   ee_parameter_ = eeP;
-  display_level_ = dispL;
   start_percentile_ = percentile;
   percentile_increment_ = inc;
   keep_threshold_ = kT;
@@ -37,26 +34,13 @@ bisection_controller::~bisection_controller() {
 
 
 void bisection_controller::display_options() const {
-  switch (display_level_) {
-  case SILENT:
-    break;
-
-  default:
-
-    out_stream << "|- BSECTOR:";
-#ifdef DEBUG_CONTROLLER
-    assert(coarsener && initBisector && refiner);
-#endif
-    out_stream << " kT = " << keep_threshold_ << " rF = " << reduction_factor_
-               << " %le = " << start_percentile_
-               << " %inc = " << percentile_increment_ << std::endl
-               << "|" << std::endl;
-      coarsener_->display_options(out_stream);
-      initial_bisector_->display_options(out_stream);
-      refiner_->display_options(out_stream);
-
-    break;
-  }
+  assert(coarsener_ && initial_bisector_ && refiner_);
+  info("|- BSECTOR: kT = %.2f rF = %.2f percentile = %i increment = %i\n|\n",
+       keep_threshold_, reduction_factor_, start_percentile_,
+       percentile_increment_);
+  coarsener_->display_options();
+  initial_bisector_->display_options();
+  refiner_->display_options();
 }
 
 void bisection_controller::build_coarsener(double redRatio, int cType,
@@ -64,38 +48,37 @@ void bisection_controller::build_coarsener(double redRatio, int cType,
   switch (cType) {
   case FCwithFanOutDiv:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 1, display_level_);
+        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 1);
     break;
 
   case FCwithoutFanOutDiv:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0, 1, display_level_);
+        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0, 1);
     break;
 
   case FCwithFanOut:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 0, display_level_);
+        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 0);
     break;
 
   case FCwithoutFanOut:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0, 0, display_level_);
+        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 0, 0);
     break;
 
   default:
     coarsener_ =
-        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 1, display_level_);
+        new first_choice_coarsener(Shiftl(minNodes, 1), -1, redRatio, 1, 1);
     break;
   }
 }
 
 void bisection_controller::build_initial_bisector(int numInitRuns) {
-  initial_bisector_ = new initial_bisector(numInitRuns, FIFO, ee_parameter_,
-                                  display_level_);
+  initial_bisector_ = new initial_bisector(numInitRuns, FIFO, ee_parameter_);
 }
 
 void bisection_controller::build_refiner(int queueD) {
-  refiner_ = new fm_refiner(-1, queueD, ee_parameter_, display_level_);
+  refiner_ = new fm_refiner(-1, queueD, ee_parameter_);
 }
 
 void bisection_controller::compute_bisection() {

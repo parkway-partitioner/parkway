@@ -9,37 +9,27 @@
 // ###
 #include "coarseners/serial/first_choice_coarsener.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
 first_choice_coarsener::first_choice_coarsener(int _min, int _maxwt, double r,
-                                               int fanOut, int dbWt, int dL)
-    : coarsener(_min, _maxwt, r, dL) {
+                                               int fanOut, int dbWt)
+    : coarsener(_min, _maxwt, r) {
   util_fan_out_ = fanOut;
   divide_by_cluster_weight_ = dbWt;
 }
 
 first_choice_coarsener::~first_choice_coarsener() {}
 
-void first_choice_coarsener::display_options(std::ostream &out) const {
-  switch (dispOption) {
-  case SILENT:
-    break;
-
-  default:
-
-    out << "|- FCC:"
-        << " r = " << reduction_ratio_ << " min = " << minimum_number_of_nodes_
-        << " util = " << util_fan_out_ << std::endl
-        << "|" << std::endl;
-    break;
-  }
+void first_choice_coarsener::display_options() const {
+  info("|- FCC: r = %.2f min = %i util = %i\n|\n", reduction_ratio_,
+       minimum_number_of_nodes_, util_fan_out_);
 }
 
 hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
   load_for_coarsening(h);
-
   // ###
   // back off if the hypergraph too small
   // ###

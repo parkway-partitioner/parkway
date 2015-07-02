@@ -11,11 +11,9 @@
 
 namespace parkway {
 
-global_communicator::global_communicator(const int rank, const int processors,
-                                         const int display_option)
+global_communicator::global_communicator(const int rank, const int processors)
     : rank_(rank),
       processors_(processors),
-      display_option_(display_option),
       data_out_sets_(processors_),
       send_lens_(processors_),
       receive_lens_(processors_),

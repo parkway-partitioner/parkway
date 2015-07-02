@@ -51,7 +51,7 @@ class refiner : public loader {
   ds::map_to_pos_int to_non_local_vertices_;
 
  public:
-  refiner(int rank, int nProcs, int nParts, std::ostream &out);
+  refiner(int rank, int nProcs, int nParts);
 
   virtual ~refiner();
   virtual void display_options() const = 0;

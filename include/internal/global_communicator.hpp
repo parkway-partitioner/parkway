@@ -18,7 +18,7 @@ namespace ds = data_structures;
 
 class global_communicator {
  public:
-  global_communicator(int rank, int processors, int display_option = 0);
+  global_communicator(int rank, int processors);
   ~global_communicator();
 
   void free_memory();
@@ -32,14 +32,9 @@ class global_communicator {
     return processors_;
   }
 
-  inline int display_option() const {
-    return display_option_;
-  }
-
 protected:
   const int rank_;
   const int processors_;
-  const int display_option_;
 
   ds::dynamic_array<ds::dynamic_array<int> > data_out_sets_;
   ds::dynamic_array<int> send_lens_;

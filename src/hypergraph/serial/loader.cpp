@@ -1,6 +1,3 @@
-#ifndef _LOADER_CPP
-#define _LOADER_CPP
-
 // ### HypergraphLoader.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -16,8 +13,7 @@
 namespace parkway {
 namespace serial {
 
-loader::loader(int disp) {
-  dispOption = disp;
+loader::loader() {
   currPercentile = 100;
   numHedges = 0;
   numVertices = 0;
@@ -62,5 +58,3 @@ void loader::compute_hyperedges_to_load(bit_field &toLoad) {
 
 }  // serial
 }  // parkway
-
-#endif

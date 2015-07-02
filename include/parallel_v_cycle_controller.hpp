@@ -38,7 +38,7 @@ class parallel_v_cycle_controller : public parallel::controller {
                               parallel::coarsener &c, parallel::refiner &r,
                               parkway::serial::controller &ref, int rank, int nP,
                               int percentile, int inc, int approxRef, int limit,
-                              double limitAsPercent, std::ostream &out);
+                              double limitAsPercent);
 
   virtual ~parallel_v_cycle_controller();
   virtual void run(MPI_Comm comm) = 0;

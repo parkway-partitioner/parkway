@@ -7,21 +7,19 @@
 // 30/11/2004: Last Modified
 //
 // ###
-
 #include "internal/serial_controller.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
 
-controller::controller(int rank, int nProcs, int nParts, std::ostream &out)
-    : out_stream_(out) {
+controller::controller(int rank, int nProcs, int nParts) {
   rank_ = rank;
   number_of_processors_ = nProcs;
   number_of_parts_ = nParts;
   number_of_runs_ = 0;
   accept_proportion_ = 0;
-  display_option_ = 0;
   maximum_vertex_weight_ = 0;
   accept_proportion_ = 0;
 
@@ -155,9 +153,7 @@ void controller::initialize_coarsest_hypergraph(parallel::hypergraph &hgraph,
   hypergraph_->set_hyperedge_offsets(hEdgeOffsets);
   hypergraph_->set_pin_list(pinList);
   hypergraph_->buildVtoHedges();
-
-  if (display_option_ > 0 && rank_ == 0)
-    hypergraph_->print_characteristics(out_stream_);
+  hypergraph_->print_characteristics();
 }
 
 void controller::initialize_serial_partitions(
@@ -318,12 +314,10 @@ void controller::initialize_serial_partitions(
   MPI_Allgatherv(pCuts.data(), keepMyPartition, MPI_INT, hPartCuts.data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  if (display_option_ > 1 && rank_ == 0) {
-    for (i = 0; i < numKept; ++i)
-      out_stream_ << hPartCuts[i] << " ";
-
-    out_stream_ << std::endl;
+  for (i = 0; i < numKept; ++i) {
+    progress("%i ", hPartCuts[i]);
   }
+  progress("\n");
 }
 
 int controller::choose_best_partition() const {

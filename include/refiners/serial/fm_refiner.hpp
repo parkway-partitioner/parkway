@@ -59,11 +59,11 @@ protected:
   ds::bit_field loaded_;
 
 public:
-  fm_refiner(int max, int insMethod, int ee, int dL);
+  fm_refiner(int max, int insMethod, int ee);
   ~fm_refiner();
 
-  void display_options(std::ostream &out) const;
-  void printQdis(std::ostream &out) const;
+  void display_options() const;
+  void printQdis() const;
 
   void build_buckets();
   void restore_buckets();

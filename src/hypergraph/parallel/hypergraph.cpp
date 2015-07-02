@@ -26,6 +26,7 @@
 #include "data_structures/map_from_pos_int.hpp"
 #include "data_structures/new_hyperedge_index_table.hpp"
 #include "utility/sorting.hpp"
+#include "utility/logging.hpp"
 #include "Log.h"
 
 #include <bitset>
@@ -36,9 +37,8 @@ namespace ds = parkway::data_structures;
 hypergraph::hypergraph(int rank, int number_of_processors,
                        int number_of_local_vertices, int total_vertices,
                        int minimum_vertex_index, int coarsen,
-                       ds::dynamic_array<int> weights,
-                       int display_option)
-    : global_communicator(rank, number_of_processors, display_option),
+                       ds::dynamic_array<int> weights)
+    : global_communicator(rank, number_of_processors),
       parkway::base::hypergraph(number_of_local_vertices),
       do_not_coarsen(coarsen),
       total_number_of_vertices_(total_vertices),
@@ -56,9 +56,8 @@ hypergraph::hypergraph(int rank, int number_of_processors,
                        int number_of_local_vertices, int total_vertices,
                        int minimum_vertex_index, int coarsen, int cut,
                        ds::dynamic_array<int> weight,
-                       ds::dynamic_array<int> part_array,
-                       int display_option)
-    : global_communicator(rank, number_of_processors, display_option),
+                       ds::dynamic_array<int> part_array)
+    : global_communicator(rank, number_of_processors),
       parkway::base::hypergraph(number_of_local_vertices, 1),
       do_not_coarsen(coarsen),
       total_number_of_vertices_(total_vertices),
@@ -80,9 +79,9 @@ hypergraph::hypergraph(int rank, int number_of_processors,
 }
 
 hypergraph::hypergraph(int rank, int number_of_processors, const char *filename,
-                       int dispOption, std::ostream &out, MPI_Comm comm)
-    : global_communicator(rank, number_of_processors, dispOption) {
-  load_from_file(filename, out, comm);
+                       MPI_Comm comm)
+    : global_communicator(rank, number_of_processors) {
+  load_from_file(filename, comm);
 }
 
 hypergraph::hypergraph(int rank, int number_of_processors,
@@ -92,8 +91,8 @@ hypergraph::hypergraph(int rank, int number_of_processors,
                        ds::dynamic_array<int> hyperedge_weights,
                        ds::dynamic_array<int> loc_pin_list,
                        ds::dynamic_array<int> hyperedge_offsets,
-                       int display_option, std::ostream &out, MPI_Comm comm)
-    : global_communicator(rank_, number_of_processors, display_option) {
+                       MPI_Comm comm)
+    : global_communicator(rank_, number_of_processors) {
   MPI_Allreduce(&number_of_local_vertices, &total_number_of_vertices_, 1,
                 MPI_INT, MPI_SUM, comm);
   MPI_Scan(&number_of_local_vertices, &minimum_vertex_index_, 1, MPI_INT,
@@ -136,27 +135,21 @@ hypergraph::hypergraph(int rank, int number_of_processors,
   do_not_coarsen = 0;
   number_of_partitions_ = 0;
 
-  if (display_option > 0) {
+  if (parkway::utility::status::handler::info_enabled()) {
     int i;
     int j;
     MPI_Reduce(&number_of_pins_, &i, 1, MPI_INT, MPI_SUM, 0, comm);
     MPI_Reduce(&number_of_hyperedges_, &j, 1, MPI_INT, MPI_SUM, 0, comm);
-
-    if (rank_ == 0) {
-      out << "|--- Hypergraph (as loaded):" << std::endl;
-      out << "| |V| = " << total_number_of_vertices_;
-      out << " |E| = " << j;
-      out << " |Pins| = " << i << std::endl;
-      out << "|" << std::endl;
-    }
+    info("|--- Hypergraph (as loaded):\n"
+         "| |V| = %i |E| = %i |Pins| = %i\n"
+         "|\n", total_number_of_vertices_, j, i);
   }
 }
 
 hypergraph::~hypergraph() {
 }
 
-void hypergraph::load_from_file(const char *filename, std::ostream &out,
-                                MPI_Comm comm) {
+void hypergraph::load_from_file(const char *filename, MPI_Comm comm) {
   // Format filename so that each processor loads the correct part.
   char my_file[512];
   sprintf(my_file, "%s-%d", filename, rank_);
@@ -164,7 +157,7 @@ void hypergraph::load_from_file(const char *filename, std::ostream &out,
 
   // Print message if the file could not be opened.
   if (!in_stream.is_open()) {
-    out << "p[" << rank_ << "] could not open " << my_file << std::endl;
+    error_on_processor("p[%i] could not open %s\n", rank_, my_file);
     MPI_Abort(comm, 0);
   }
 
@@ -174,8 +167,7 @@ void hypergraph::load_from_file(const char *filename, std::ostream &out,
   int buffer_size = sizeof(int) * 3;
   in_stream.read((char *)(&buffer[0]), buffer_size);
   if (in_stream.gcount() != buffer_size) {
-    out << "p[" << rank_ << "] could not read in metadata (three integers)"
-        << std::endl;
+    error_on_processor("p[%i] could not read in metadata\n", rank_);
     in_stream.close();
     MPI_Abort(comm, 0);
   }
@@ -188,16 +180,16 @@ void hypergraph::load_from_file(const char *filename, std::ostream &out,
 
   // Read in vertex weights and hyperedge data
   if (!vertex_weights_.read_from(in_stream, number_of_vertices_)) {
-    out << "p[" << rank_ << "] could not read in " << number_of_vertices_
-        << " vertex elements" << std::endl;
+    error_on_processor("p[%i] could not read in %i vertex elements\n", rank_,
+                       number_of_vertices_);
     in_stream.close();
     MPI_Abort(comm, 0);
   }
 
   dynamic_array<int> hyperedge_data(hyperedge_data_length);
   if (!hyperedge_data.read_from(in_stream, hyperedge_data_length)) {
-    out << "p[" << rank_ << "] could not read in " << hyperedge_data_length
-        << " hyperedge elements" << std::endl;
+    error_on_processor("p[%i] could not read in %i hyperedge elements\n",
+                       rank_, hyperedge_data_length);
     in_stream.close();
     MPI_Abort(comm, 0);
   }
@@ -205,7 +197,7 @@ void hypergraph::load_from_file(const char *filename, std::ostream &out,
 
 
   check_vertex_and_hyperedge_lengths(hyperedge_data_length, hyperedge_data,
-                                     out, filename, comm);
+                                     filename, comm);
 
   match_vector_.assign(number_of_vertices_, -1);
   vertex_weight_ = 0;
@@ -214,13 +206,11 @@ void hypergraph::load_from_file(const char *filename, std::ostream &out,
   }
 
   load_data_from_blocks(hyperedge_data_length, hyperedge_data);
-  check_loaded_vertex_and_hyperedge_lengths(out, filename, comm);
+  check_loaded_vertex_and_hyperedge_lengths(filename, comm);
 }
 
-void hypergraph::initalize_partition_from_file(const char *filename,
-                                               int number_of_parts,
-                                               std::ostream &out,
-                                               MPI_Comm comm) {
+void hypergraph::initalize_partition_from_file(
+    const char *filename, int number_of_parts, MPI_Comm comm) {
   int vertices_per_processor = total_number_of_vertices_ / processors_;
   number_of_partitions_ = 1;
 
@@ -234,8 +224,8 @@ void hypergraph::initalize_partition_from_file(const char *filename,
 
   std::ifstream in_stream(filename, std::ios::in | std::ios::binary);
   if (!in_stream.is_open()) {
-    out << "p[" << rank_ << "] could not open partition file '" << filename
-        << "'" << std::endl;
+    error_on_processor("p[%i] could not open partition file '%s'\n", rank_,
+                       filename);
     MPI_Abort(comm, 0);
   }
 
@@ -243,8 +233,8 @@ void hypergraph::initalize_partition_from_file(const char *filename,
   in_stream.seekg(offset_on_this_rank * sizeof(int), std::ifstream::beg);
 
   if (!partition_vector_.read_from(in_stream, number_of_vertices_)) {
-    out << "p[" << rank_ << "] could not read in " << number_of_vertices_
-        << " elements" << std::endl;
+    error_on_processor("p[%i] could not read in %i vertex elements\n", rank_,
+                       number_of_vertices_);
     MPI_Abort(comm, 0);
   }
 
@@ -512,7 +502,7 @@ void hypergraph::reset_vectors() {
 }
 
 void hypergraph::remove_bad_partitions(double cut_threshold) {
-  int best_partition = 0;
+  int best_partition = 1;
   int best_cut = partition_cuts_[0];
   for (int i = 1; i < number_of_partitions_; ++i) {
     if (partition_cuts_[i] < best_cut) {
@@ -571,7 +561,7 @@ void hypergraph::set_number_of_partitions(int nP) {
 
 void hypergraph::compute_partition_characteristics(
     int partition_number, int number_of_parts, double constraint,
-    std::ostream &out, MPI_Comm comm) {
+    MPI_Comm comm) {
   int *partition_vector = partition_vector_.data();
   partition_vector += partition_vector_offsets_[partition_number];
 
@@ -608,12 +598,12 @@ void hypergraph::compute_partition_characteristics(
       }
     }
 
-    out << "****** partition summary ******" << std::endl
-        << std::endl
-        << "\tcut = " << cut << std::endl
-        << "\tmax_allowed_part_weight = " << max_allowed_part_weight << std::endl
-        << "\tmin_part_weight = " << min_part_weight << std::endl
-        << "\tmax_part_weight = " << max_part_weight << std::endl;
+    info("****** partition summary ******\n\n"
+         "\tcut = %i\n"
+         "\tmax_allowed_part_weight = %i\n"
+         "\tmin_part_weight = %i\n"
+         "\tmax_part_weight = %i\n", cut, max_allowed_part_weight,
+         min_part_weight, max_part_weight);
   }
   MPI_Barrier(comm);
 }
@@ -627,7 +617,8 @@ void hypergraph::copy_in_partition(const dynamic_array<int> &partition,
   }
 }
 
-void hypergraph::copy_out_partition(ds::dynamic_array<int> &partition, int numV, int nP) const {
+void hypergraph::copy_out_partition(ds::dynamic_array<int> &partition, int numV,
+                                    int nP) const {
   int start_offset = partition_vector_offsets_[nP];
   int end_offset = partition_vector_offsets_[nP + 1];
   for (int i = start_offset; i < end_offset; ++i) {
@@ -658,7 +649,8 @@ int hypergraph::keep_best_partition() {
   return best_cut;
 }
 
-void hypergraph::prescribed_vertex_shuffle(ds::dynamic_array<int> &mapToOrigV, ds::dynamic_array<int> &prescArray,
+void hypergraph::prescribed_vertex_shuffle(ds::dynamic_array<int> &mapToOrigV,
+                                           ds::dynamic_array<int> &prescArray,
                                            MPI_Comm comm) {
   prescribed_vertex_shuffle(prescArray, number_of_vertices_, comm);
   shift_vertices_to_balance(comm);
@@ -2179,7 +2171,7 @@ int hypergraph::calculate_cut_size(int number_of_parts, int partition_number, MP
 }
 
 void hypergraph::check_partitions(int number_of_parts, double constraint,
-                                  std::ostream &out, MPI_Comm comm) {
+                                  MPI_Comm comm) {
   int i;
   int j;
 
@@ -2209,12 +2201,11 @@ void hypergraph::check_partitions(int number_of_parts, double constraint,
     for (j = 0; j < number_of_vertices_; ++j) {
       if (partition_vector_[pOffset + j] < 0 ||
           partition_vector_[pOffset + j] >= number_of_parts) {
-        sprintf(message, "p[%d] - partition vector[%d] = %d\n", rank_,
-                minimum_vertex_index_ + j, partition_vector_[pOffset + j]);
-        out << message;
+        error_on_processor("p[%d] - partition vector[%d] = %d\n", rank_,
+                           minimum_vertex_index_ + j,
+                           partition_vector_[pOffset + j]);
         MPI_Abort(comm, 0);
       }
-
       locPWts[partition_vector_[pOffset + j]] += vertex_weights_[j];
     }
 
@@ -2223,31 +2214,32 @@ void hypergraph::check_partitions(int number_of_parts, double constraint,
 
     if (rank_ == 0) {
       maxWt = 0;
-      for (j = 0; j < number_of_parts; ++j)
-        if (pWts[j] > maxWt)
+      for (j = 0; j < number_of_parts; ++j) {
+        if (pWts[j] > maxWt) {
           maxWt = pWts[j];
+        }
+      }
 
-      out << "----- NUM PARTS = " << number_of_parts << std::endl
-          << "----- p[" << i << "] largest part weight = " << maxWt << std::endl
-          << "----- p[" << i << "] max allowed part weight = " << max_part_weight
-          << std::endl;
+      info("----- NUM PARTS = %i\n"
+           "----- p[%i] largest part weight = %i\n"
+           "----- p[%i] max allowed part weight = %i\n",
+           number_of_partitions_, i, maxWt, i, max_part_weight);
 
-      if (maxWt <= max_part_weight)
-        out << "----- p[" << i << "] satisfies balance constraints" << std::endl;
-      else
-        out << "----- p[" << i << "] does not satisfy balance constraints"
-            << std::endl;
+      if (maxWt <= max_part_weight) {
+        info("----- p[%i] satisfies balance constraints\n", i);
+      } else {
+        info("----- p[%i] does not satisfy balance constraints\n", i);
+      }
     }
 
     cut = calculate_cut_size(number_of_parts, i, comm);
 
-    if (rank_ == 0)
-      out << "----- p[" << i << "] k-1 cutsize = " << cut << std::endl;
+    info("----- p[%i] k-1 cutsize = %i\n", i, cut);
   }
 }
 
 void hypergraph::compute_balance_warnings(int number_of_parts, double constraint,
-                                                   std::ostream &out, MPI_Comm comm) {
+                                          MPI_Comm comm) {
   int i;
 
   int maxLocVertWt = 0;
@@ -2268,10 +2260,9 @@ void hypergraph::compute_balance_warnings(int number_of_parts, double constraint
     average_part_weight = static_cast<double>(totWt) / number_of_parts;
     maxAllowedVertWt = static_cast<int>(floor(average_part_weight * constraint));
 
-    if (maxVertWt > maxAllowedVertWt)
-      out << "*** Warning! Balance constraint " << constraint
-          << " may be too tight ***" << std::endl
-          << std::endl;
+    if (maxVertWt > maxAllowedVertWt) {
+      warning("Balance constraint %.2f may be too tight\n", constraint);
+    }
   }
 }
 
@@ -2311,7 +2302,7 @@ double hypergraph::average_hyperedge_size(MPI_Comm comm) {
 
 void hypergraph::check_vertex_and_hyperedge_lengths(
     int hyperedge_data_length, const dynamic_array<int> &hyperedge_data,
-    std::ostream &out, const char *filename, MPI_Comm comm) {
+    const char *filename, MPI_Comm comm) {
   int hyperedges_in_file = 0;
   int j = 0;
   for (int i = 0; i < hyperedge_data_length; i += hyperedge_data[i]) {
@@ -2330,11 +2321,9 @@ void hypergraph::check_vertex_and_hyperedge_lengths(
 
   Funct::setMaxHedgeLen(max_hyperedge_length);
 
-  if (rank_ == 0 && display_option_ > 0) {
-    out << "|--- Hypergraph " << filename << " (on file):" << std::endl
-        << "| |V| = " << total_number_of_vertices_  << std::endl
-        << "| |E| = " << number_of_edges << std::endl;
-  }
+  info("|--- Hypergraph %s (on file):\n"
+       "| |V| = %i\n"
+       "| |E| = %i\n", filename, total_number_of_vertices_, number_of_edges);
 }
 
 
@@ -2372,20 +2361,19 @@ void hypergraph::load_data_from_blocks(
 
 
 void hypergraph::check_loaded_vertex_and_hyperedge_lengths(
-    std::ostream &out, const char *filename, MPI_Comm comm) {
-  if (display_option_ > 0) {
+    const char *filename, MPI_Comm comm) {
+  if (parkway::utility::status::handler::info_enabled()) {
     int pins;
     int edges;
     MPI_Reduce(&number_of_pins_, &pins, 1, MPI_INT, MPI_SUM, 0, comm);
     MPI_Reduce(&number_of_hyperedges_, &edges, 1, MPI_INT, MPI_SUM, 0, comm);
-    if (rank_ == 0) {
-      out << "|--- Hypergraph " << filename << " (as loaded):" << std::endl
-          << "| |V| = " << total_number_of_vertices_  << std::endl
-          << "| |E| = " << edges << std::endl
-          << "| |Pins| = " << pins << std::endl
-          << "| # Processors = " << processors_ << std::endl
-          << "| " << std::endl;
-    }
+    info("|--- Hypergraph %s (as loaded):\n"
+         "| |V| = %i\n"
+         "| |E| = %i\n"
+         "| |Pins| = %i\n"
+         "| # Processors = %i\n"
+         "|\n",
+         filename, total_number_of_vertices_, edges, pins, processors_);
   }
 }
 

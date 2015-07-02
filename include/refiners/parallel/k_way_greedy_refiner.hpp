@@ -60,7 +60,7 @@ class k_way_greedy_refiner : public refiner {
 
  public:
   k_way_greedy_refiner(int rank, int nProcs, int nParts, int numVperP,
-                       int eExit, double lim, std::ostream &out);
+                       int eExit, double lim);
   ~k_way_greedy_refiner();
 
   void display_options() const;

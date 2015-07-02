@@ -9,29 +9,20 @@
 // ###
 
 #include "initial_bisector.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
-initial_bisector::initial_bisector(int nRuns, int insMethod, int ee, int dL)
-    : fm_refiner(-1, insMethod, ee, dL) {
+initial_bisector::initial_bisector(int nRuns, int insMethod, int ee)
+    : fm_refiner(-1, insMethod, ee) {
   number_of_initial_runs_ = nRuns;
 }
 
 initial_bisector::~initial_bisector() {}
 
-void initial_bisector::display_options(std::ostream &out) const {
-  switch (dispOption) {
-  case SILENT:
-    break;
-
-  default:
-
-    out << "|- GIB:"
-        << " runs = " << number_of_initial_runs_ << std::endl
-        << "|" << std::endl;
-    break;
-  }
+void initial_bisector::display_options() const {
+  info("|- GIB: runs = %i\n|\n", number_of_initial_runs_);
 }
 
 void initial_bisector::initialize_bisector(serial::hypergraph &h) {

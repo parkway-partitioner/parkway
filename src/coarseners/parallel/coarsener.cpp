@@ -14,16 +14,15 @@
 // ###
 #include "coarseners/parallel/coarsener.hpp"
 #include "utility/array.hpp"
+#include "utility/logging.hpp"
 #include <iostream>
 
 namespace parkway {
 namespace parallel {
 namespace utility = parkway::utility;
 
-coarsener::coarsener(int rank, int number_of_processors, int number_of_parts,
-                     std::ostream &out, std::string object_name)
-    : loader(rank, number_of_processors, number_of_parts, out, 0),
-      parkway::base::coarsener(object_name),
+coarsener::coarsener(int rank, int number_of_processors, int number_of_parts)
+    : loader(rank, number_of_processors, number_of_parts),
       total_hypergraph_weight_(0),
       stop_coarsening_(0),
       cluster_index_(0),
@@ -62,10 +61,6 @@ void coarsener::load(const hypergraph &h, MPI_Comm comm) {
   int vertices_per_processor = number_of_vertices_ / processors_;
 
   vertex_to_hyperedges_offset_.assign(number_of_local_vertices_ + 1, 0);
-
-  if (display_options_ > 1 && rank_ == 0) {
-    print_name(out_stream);
-  }
 
   // Use the request sets to send local hyperedges to other processors and to
   // receive hyperedges from processors.
@@ -171,12 +166,11 @@ hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
                                total_number_of_clusters_,
                                minimum_cluster_index_,
                                stop_coarsening_,
-                               cluster_weights,
-                               h.display_option());
+                               cluster_weights);
 
   h.contract_hyperedges(*coarseGraph, comm);
 
-  if (display_options_ > 1) {
+  if (parkway::utility::status::handler::progress_enabled()) {
     int numTotCoarseVerts = coarseGraph->total_number_of_vertices();
     int numLocHedges = coarseGraph->number_of_hyperedges();
     int numLocPins = coarseGraph->number_of_pins();
@@ -187,10 +181,8 @@ hypergraph *coarsener::contract_hyperedges(hypergraph &h, MPI_Comm comm) {
                comm);
     MPI_Reduce(&numLocPins, &numTotCoarsePins, 1, MPI_INT, MPI_SUM, 0, comm);
 
-    if (rank_ == 0) {
-      out_stream << numTotCoarseVerts << " " << numTotCoarseHedges << " "
-                 << numTotCoarsePins << " " << std::endl;
-    }
+    progress("%i %i %i\n", numTotCoarseVerts, numTotCoarseHedges,
+             numTotCoarsePins);
   }
 
   return coarseGraph;

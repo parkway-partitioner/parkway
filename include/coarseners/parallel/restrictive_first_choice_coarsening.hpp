@@ -26,7 +26,7 @@ class restrictive_first_choice_coarsening : public restrictive_coarsening {
  public:
   restrictive_first_choice_coarsening(int rank, int nProcs, int nParts,
                                       int verVisOrder, int divByWt,
-                                      int divByLen, std::ostream &out);
+                                      int divByLen);
   ~restrictive_first_choice_coarsening();
 
   void display_options() const;

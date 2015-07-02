@@ -29,7 +29,8 @@ namespace ds = parkway::data_structures;
 class hypergraph : public parkway::base::hypergraph {
  public:
   hypergraph(ds::dynamic_array<int> vWts, int numV);
-  hypergraph(ds::dynamic_array<int> vWts, ds::dynamic_array<int> pVector, int numV, int cut);
+  hypergraph(ds::dynamic_array<int> vWts, ds::dynamic_array<int> pVector,
+             int numV, int cut);
   ~hypergraph();
 
   void load_from_file(const char *filename);
@@ -44,8 +45,8 @@ class hypergraph : public parkway::base::hypergraph {
   void set_number_of_partitions(int nPartitions) override;
   void copy_out_partition(ds::dynamic_array<int> pVector, int numV, int pNo) const;
   void copy_in_partition(const ds::dynamic_array<int> pVector, int numV, int pNo, int cut);
-  void print_characteristics(std::ostream &o);
-  void print_percentiles(std::ostream &o);
+  void print_characteristics();
+  void print_percentiles();
 
   int keep_best_partition();
 
@@ -65,11 +66,11 @@ class hypergraph : public parkway::base::hypergraph {
   }
 
   inline void set_vertex_to_hyperedges(ds::dynamic_array<int> &arr) {
-   vertex_to_hyperedges_ = arr;
+    vertex_to_hyperedges_ = arr;
   }
 
   inline void set_vertex_offsets(ds::dynamic_array<int> &offsets) {
-   vertex_offsets_ = offsets;
+    vertex_offsets_ = offsets;
   }
 
   int export_hyperedge_weight() const;
@@ -80,15 +81,15 @@ class hypergraph : public parkway::base::hypergraph {
   void check_partitions(int nP, int maxWt) const;
   void check_partition(int partitionNum, int numParts, int maxPartWt) const;
 
-  protected:
+ protected:
   int total_weight_;
 
   ds::dynamic_array<int> vertex_to_hyperedges_;
   ds::dynamic_array<int> vertex_offsets_;
 
- void convert_to_DOMACS_graph_file(const char *fName);
- void check_part_weights_are_less_than(ds::dynamic_array<int> &part_weights,
-                                       const int number, int maximum) const;
+  void convert_to_DOMACS_graph_file(const char *fName);
+  void check_part_weights_are_less_than(ds::dynamic_array<int> &part_weights,
+                                        const int number, int maximum) const;
 };
 
 }  // serial

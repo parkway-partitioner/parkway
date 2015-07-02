@@ -11,6 +11,7 @@
 #include "coarseners/parallel/approximate_first_choice_coarsener.hpp"
 #include "data_structures/map_to_pos_int.hpp"
 #include "data_structures/internal/table_utils.hpp"
+#include "utility/logging.hpp"
 #include "Macros.h"
 #include <iostream>
 
@@ -19,8 +20,8 @@ namespace parallel {
 
 approximate_first_choice_coarsener::approximate_first_choice_coarsener(
     int rank, int nProcs, int nParts, int percentile, int inc, int vertVisOrder,
-    int matchReqOrder, int divByWt, int divByLen, std::ostream &out)
-    : approximate_coarsener(rank, nProcs, nParts, percentile, inc, out) {
+    int matchReqOrder, int divByWt, int divByLen)
+    : approximate_coarsener(rank, nProcs, nParts, percentile, inc) {
   vertexVisitOrder = vertVisOrder;
   matchRequestVisitOrder = matchReqOrder;
   divByCluWt = divByWt;
@@ -31,32 +32,19 @@ approximate_first_choice_coarsener::approximate_first_choice_coarsener(
 }
 
 void approximate_first_choice_coarsener::dispCoarseningOptions() const {
-  switch (display_options_) {
-  case SILENT:
+  info("|--- PARA_C:\n"
+       "|- ApproxPFC: r = %.2f min = %i vvo = ",
+       reduction_ratio_, minimum_number_of_nodes_);
+  printVisitOrder(vertexVisitOrder);
+  info(" mvo = ");
+  printVisitOrder(matchRequestVisitOrder);
+  info(" divWt = %i divLen = %i percentile = %i inc = %i\n|\n",
+       divByCluWt, divByHedgeLen, startPercentile, increment);
 
-    break;
-
-  default:
-
-    out_stream << "|--- PARA_C:" << std::endl
-               << "|- ApproxPFC:"
-               << " r = " << reduction_ratio_ << " min = " <<
-                                                 minimum_number_of_nodes_
-               << " vvo = ";
-    printVisitOrder(vertexVisitOrder);
-    out_stream << " mvo = ";
-    printVisitOrder(matchRequestVisitOrder);
-    out_stream << " divWt = " << divByCluWt << " divLen = " << divByHedgeLen
-               << " %ile = " << startPercentile << " inc = " << increment
-               << std::endl
-               << "|" << std::endl;
-    break;
-  }
 }
 
-void approximate_first_choice_coarsener::buildAuxiliaryStructs(int numTotPins,
-                                                  double aveVertDeg,
-                                                  double aveHedgeSize) {
+void approximate_first_choice_coarsener::buildAuxiliaryStructs(
+    int numTotPins, double aveVertDeg, double aveHedgeSize) {
   // ###
   // build the ds::match_request_table
   // ###
@@ -142,7 +130,7 @@ parallel::hypergraph *approximate_first_choice_coarsener::coarsen(
 
   permuteVerticesArray(vertices, number_of_local_vertices_);
 
-  if (display_options_ > 1) {
+  if (parkway::utility::status::handler::progress_enabled()) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
       if (vertex_weights_[i] > maxLocWt)
         maxLocWt = vertex_weights_[i];
@@ -150,10 +138,7 @@ parallel::hypergraph *approximate_first_choice_coarsener::coarsen(
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
-    if (rank_ == 0) {
-      out_stream << "[PFCC] " << maximum_vertex_weight_ << " " << maxWt << " "
-                 << aveVertexWt << " ";
-    }
+    info("[PFCC] %i %i %i ", maximum_vertex_weight_, maxWt, aveVertexWt);
   }
 
   metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
@@ -810,23 +795,23 @@ int approximate_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, i
 void approximate_first_choice_coarsener::printVisitOrder(int variable) const {
   switch (variable) {
   case INCREASING_ORDER:
-    out_stream << "inc-idx";
+    info("inc-idx");
     break;
 
   case DECREASING_ORDER:
-    out_stream << "dec-idx";
+    info("dec-idx");
     break;
 
   case INCREASING_WEIGHT_ORDER:
-    out_stream << "inc_wt";
+    info("inc_wt");
     break;
 
   case DECREASING_WEIGHT_ORDER:
-    out_stream << "dec-wt";
+    info("dec-wt");
     break;
 
   default:
-    out_stream << "rand";
+    info("rand");
     break;
   }
 }

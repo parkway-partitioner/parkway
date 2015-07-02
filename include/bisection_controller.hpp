@@ -22,11 +22,8 @@ namespace ds = parkway::data_structures;
 
 class bisection_controller {
  protected:
-  std::ostream &out_stream;
-
   int number_of_serial_runs_;
   int ee_parameter_;
-  int display_level_;
 
   int start_percentile_;
   int percentile_increment_;
@@ -45,7 +42,7 @@ class bisection_controller {
 
  public:
   bisection_controller(int nRuns, double kT, double redFactor, int eeParam,
-                       int percentile, int inc, int dispL, std::ostream &out);
+                       int percentile, int inc);
 
   virtual ~bisection_controller();
   virtual void display_options() const;

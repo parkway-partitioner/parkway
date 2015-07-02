@@ -33,11 +33,11 @@ class refiner : public loader {
   ds::dynamic_array<int> part_weights_;
 
  public:
-  refiner(int dispL);
+  refiner();
 
   virtual ~refiner();
   virtual void refine(serial::hypergraph &h) = 0;
-  virtual void display_options(std::ostream &out) const = 0;
+  virtual void display_options() const = 0;
 
   inline int maximum_part_weight() const {
     return maximum_part_weight_;

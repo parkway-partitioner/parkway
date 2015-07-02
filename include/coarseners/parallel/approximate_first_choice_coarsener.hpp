@@ -31,7 +31,7 @@ class approximate_first_choice_coarsener : public approximate_coarsener {
   approximate_first_choice_coarsener(int rank, int nProcs, int nParts,
                                      int percentile, int inc, int vertVisOrder,
                                      int matchReqOrder, int divByWt,
-                                     int divByLen, std::ostream &out);
+                                     int divByLen);
   ~approximate_first_choice_coarsener();
 
   void dispCoarseningOptions() const;

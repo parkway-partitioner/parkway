@@ -51,7 +51,7 @@ class recursive_bisection_contoller : public parkway::serial::controller {
   recursive_bisection_contoller(parkway::serial::bisection_controller *b,
                                 parkway::serial::greedy_k_way_refiner *k,
                                 int rank, int nProcs, int nParts,
-                                int nBisectRuns, std::ostream &out);
+                                int nBisectRuns);
   ~recursive_bisection_contoller();
 
   void display_options() const;

@@ -34,8 +34,7 @@ class model_coarsener_2d : public coarsener {
 
  public:
   model_coarsener_2d(int rank, int nProcs, int nParts, int vertVisOrder,
-                     int matchReqOrder, int divByWt, int divByLen,
-                     std::ostream &out);
+                     int matchReqOrder, int divByWt, int divByLen);
   ~model_coarsener_2d();
 
   void display_options() const;

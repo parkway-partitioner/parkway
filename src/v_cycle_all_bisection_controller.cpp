@@ -7,22 +7,23 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "v_cycle_all_bisection_controller.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
 v_cycle_all_bisection_controller::v_cycle_all_bisection_controller(
     int nRuns, double kT, double redFactor, int eeParam, int percentile,
-    int inc, int dispL, std::ostream &out)
-    : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc,
-                                dispL, out) {}
+    int inc)
+    : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile,
+                                   inc) {
+}
 
 v_cycle_all_bisection_controller::~v_cycle_all_bisection_controller() {}
 
 void v_cycle_all_bisection_controller::print_type() const {
-  out_stream << " type = ALL";
+  info(" type = ALL");
 }
 
 void v_cycle_all_bisection_controller::compute_bisection() {

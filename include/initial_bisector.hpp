@@ -23,10 +23,10 @@ class initial_bisector : public fm_refiner {
   int number_of_initial_runs_;
 
  public:
-  initial_bisector(int nRuns, int insMethod, int ee, int dL);
+  initial_bisector(int nRuns, int insMethod, int ee);
   ~initial_bisector();
 
-  void display_options(std::ostream &out) const;
+  void display_options() const;
   void initialize_bisector(serial::hypergraph &h);
 
   int set_base_vertex();

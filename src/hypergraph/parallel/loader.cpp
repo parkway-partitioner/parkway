@@ -9,14 +9,13 @@
 // ###
 
 #include "hypergraph/parallel/loader.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
-loader::loader(int rank, int number_of_processors, int number_of_parts,
-               std::ostream &out_stream, int display_option)
+loader::loader(int rank, int number_of_processors, int number_of_parts)
     : global_communicator(rank, number_of_processors),
-      out_stream(out_stream),
       number_of_parts_(number_of_parts),
       number_of_hyperedges_(0),
       number_of_local_pins_(0),
@@ -26,7 +25,6 @@ loader::loader(int rank, int number_of_processors, int number_of_parts,
       maximum_vertex_index_(0),
       local_vertex_weight_(0),
       number_of_allocated_hyperedges_(0),
-      display_options_(display_option),
       percentile_(100) {
 }
 
@@ -86,10 +84,8 @@ void loader::compute_hyperedges_to_load(ds::bit_field &to_load,
   MPI_Allreduce(&percentile_length_this_rank, &percentile_length, 1, MPI_INT,
                 MPI_MAX, comm);
 
-  if (display_options_ > 1 && rank_ == 0) {
-    out_stream << " " << percentile_ << " " << max_length << " "
-        << average_length << " " << percentile_length;
-  }
+  progress(" %i %i %.2f %i ", percentile_, max_length, average_length,
+           percentile_length);
 
   for (; i < number_of_hyperedges; ++i) {
     if (hyperedge_lengths[hyperedges[i]] > percentile_length) {

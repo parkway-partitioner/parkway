@@ -9,7 +9,6 @@
 // 30/11/2004: Last Modified
 //
 // ###
-
 #include <iostream>
 #include "data_structures/dynamic_array.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
@@ -25,8 +24,6 @@ namespace ds = parkway::data_structures;
 
 class controller {
  protected:
-  std::ostream &out_stream_;
-  int display_option_;
   int rank_;
   int number_of_processors_;
   int number_of_parts_;
@@ -43,7 +40,7 @@ class controller {
   ds::dynamic_array<int> partition_vector_offsets_;
 
  public:
-  controller(int rank, int nProcs, int nParts, std::ostream &out);
+  controller(int rank, int nProcs, int nParts);
 
   virtual ~controller();
   virtual void display_options() const = 0;
@@ -57,7 +54,6 @@ class controller {
   int accept_cut() const;
 
   inline void set_number_of_runs(int r) { number_of_runs_ = r; }
-  inline void set_display_option(int d) { display_option_ = d; }
   inline void set_maximum_vertex_weight(int max) { maximum_vertex_weight_ = max; }
   inline void set_hypergraph(serial::hypergraph *hGraph) { hypergraph_ = hGraph; }
   inline void set_k_way_constraint(double c) { k_way_constraint_ = c; }

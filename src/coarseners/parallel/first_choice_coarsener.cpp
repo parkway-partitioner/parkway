@@ -11,14 +11,15 @@
 #include "data_structures/internal/table_utils.hpp"
 #include "data_structures/match_request_table.hpp"
 #include "data_structures/map_to_pos_int.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
 first_choice_coarsener::first_choice_coarsener(int rank, int nProcs, int nParts,
                                  int vertVisOrder, int matchReqOrder,
-                                 int divByWt, int divByLen, std::ostream &out)
-    : coarsener(rank, nProcs, nParts, out) {
+                                 int divByWt, int divByLen)
+    : coarsener(rank, nProcs, nParts) {
   vertex_visit_order_ = vertVisOrder;
   match_request_visit_order_ = matchReqOrder;
   divide_by_cluster_weight_ = divByWt;
@@ -32,25 +33,14 @@ first_choice_coarsener::~first_choice_coarsener() {
 }
 
 void first_choice_coarsener::display_options() const {
-  switch (display_options_) {
-  case SILENT:
-    break;
-
-  default:
-    out_stream << "|--- PARA_C:" << std::endl
-               << "|- PFC:"
-               << " r = " << reduction_ratio_ << " min = " <<
-                                                 minimum_number_of_nodes_
-               << " vvo = ";
-      print_visit_order(vertex_visit_order_);
-    out_stream << " mvo = ";
-      print_visit_order(match_request_visit_order_);
-    out_stream << " divWt = " << divide_by_cluster_weight_ << " divLen = " <<
-                                                              divide_by_hyperedge_length_
-               << std::endl
-               << "|" << std::endl;
-    break;
-  }
+  info("|--- PARA_C:\n"
+       "|- PFC: r = %.2f min = %i vvo = ", reduction_ratio_,
+       minimum_number_of_nodes_);
+  print_visit_order(vertex_visit_order_);
+  info(" mvo = ");
+  print_visit_order(match_request_visit_order_);
+  info(" divWt = %i divLen = %i\n|\n", divide_by_cluster_weight_,
+       divide_by_hyperedge_length_);
 }
 
 void first_choice_coarsener::build_auxiliary_structures(int numTotPins,
@@ -130,7 +120,7 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
 
   permute_vertices_arrays(vertices, number_of_local_vertices_);
 
-  if (display_options_ > 1) {
+  if (parkway::utility::status::handler::progress_enabled()) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
       if (vertex_weights_[i] > maxLocWt) {
         maxLocWt = vertex_weights_[i];
@@ -138,13 +128,7 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
-
-    if (rank_ == 0) {
-      out_stream << " " << maximum_vertex_weight_
-                 << " " << maxWt
-                 << " " << aveVertexWt << " ";
-      out_stream.flush();
-    }
+    progress(" %i %i %i ", maximum_vertex_weight_, maxWt, aveVertexWt);
   }
 
   metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
@@ -161,15 +145,6 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
       bestMatch = -1;
       maxMatchMetric = 0.0;
       numVisited = 0;
-
-      //
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      // VERTEX TO HYPEREDGES OFFSET ARRAY IS INCORRECT
-      //
 
       for (i = vertex_to_hyperedges_offset_[vertex]; i < endOffset1; ++i) {
         hEdge = vertex_to_hyperedges_[i];
@@ -758,23 +733,23 @@ int first_choice_coarsener::accept(int locVertex, int nonLocCluWt, int highToLow
 void first_choice_coarsener::print_visit_order(int variable) const {
   switch (variable) {
   case INCREASING_ORDER:
-    out_stream << "inc-idx";
+    info("inc-idx");
     break;
 
   case DECREASING_ORDER:
-    out_stream << "dec-idx";
+    info("dec-idx");
     break;
 
   case INCREASING_WEIGHT_ORDER:
-    out_stream << "inc_wt";
+    info("inc_wt");
     break;
 
   case DECREASING_WEIGHT_ORDER:
-    out_stream << "dec-wt";
+    info("dec-wt");
     break;
 
   default:
-    out_stream << "rand";
+    info("rand");
     break;
   }
 }

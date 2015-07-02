@@ -22,8 +22,7 @@ namespace ds = parkway::data_structures;
 
 class coarsener : public loader, public parkway::base::coarsener {
  public:
-  coarsener(int rank, int number_of_processors, int number_of_parts,
-            std::ostream &out, std::string object_name = "Parallel Coarsener");
+  coarsener(int rank, int number_of_processors, int number_of_parts);
 
   virtual ~coarsener();
 
