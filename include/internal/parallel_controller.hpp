@@ -27,6 +27,8 @@ namespace ds = parkway::data_structures;
 
 class controller : public parkway::global_communicator {
  protected:
+  std::ostream &out_stream_;
+
   /* Parallel partitioning options */
   int random_shuffle_before_refine_;
   int shuffled_;
@@ -78,7 +80,7 @@ class controller : public parkway::global_communicator {
  public:
   controller(coarsener &c, refiner &r,
              serial::controller &ref, int rank, int nP, int percentile,
-             int inc, int approxRefine);
+             int inc, int approxRefine, std::ostream &out);
 
   virtual ~controller();
   virtual void display_options() const = 0;

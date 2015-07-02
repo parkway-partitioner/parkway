@@ -11,17 +11,17 @@
 #include "data_structures/map_to_pos_int.hpp"
 #include "data_structures/bit_field.hpp"
 #include "data_structures/internal/table_utils.hpp"
-#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
 model_coarsener_2d::model_coarsener_2d(int rank, int nProcs, int nParts,
                                        int vertVisOrder, int matchReqOrder,
-                                       int divByWt, int divByLen)
-    : coarsener(rank, nProcs, nParts) {
-  vertex_visit_order_ = static_cast<visit_order_t>(vertVisOrder - 1);
-  match_request_visit_order_ = static_cast<visit_order_t>(matchReqOrder - 1);
+                                       int divByWt, int divByLen,
+                                       std::ostream &out)
+    : coarsener(rank, nProcs, nParts, out) {
+  vertex_visit_order_ = vertVisOrder;
+  match_request_visit_order_ = matchReqOrder;
   divide_by_cluster_weight_ = divByWt;
   divide_by_hyperedge_length_ = divByLen;
   limit_on_index_during_coarsening_ = 0;
@@ -34,18 +34,24 @@ model_coarsener_2d::~model_coarsener_2d() {
 
 
 void model_coarsener_2d::display_options() const {
-  info("[Parallel Coarsener: Approximate 2D Model]\n"
-       "-- Reduction ratio:           %.2f\n"
-       "-- Minimum number of nodes:   %i\n"
-       "-- Vertex visit order:        %s\n"
-       "-- Match request visit order: %s\n"
-       "-- Divide by cluster weight:  %i\n"
-       "-- Divide by hyeredge length: %i\n",
-       "-- Threshold:                 %e\n\n",
-       reduction_ratio_, minimum_number_of_nodes_,
-       parkway::to_c_str(vertex_visit_order_),
-       parkway::to_c_str(match_request_visit_order_),
-       divide_by_cluster_weight_, divide_by_hyperedge_length_, 1e6);
+  switch (display_options_) {
+  case SILENT:
+    break;
+
+  default:
+    out_stream << "|--- PARA_C:" << std::endl
+               << "|- 2DModel:"
+               << " r = " << reduction_ratio_ << " min = " <<
+                                                 minimum_number_of_nodes_
+               << " vvo = ";
+      print_visit_order(vertex_visit_order_);
+    out_stream << " mvo = ";
+      print_visit_order(match_request_visit_order_);
+    out_stream << " divWt = " << divide_by_cluster_weight_ << " divLen = " <<
+                                                              divide_by_hyperedge_length_
+               << " threshold = " << 1e6 << std::endl
+               << "|" << std::endl;
+  }
 }
 
 void model_coarsener_2d::build_auxiliary_structures(int numTotPins,
@@ -77,12 +83,18 @@ parallel::hypergraph *model_coarsener_2d::coarsen(
     parallel::hypergraph &h, MPI_Comm comm) {
   load(h, comm);
 
+  // if(rank_ == 0)
+  // std::cout << "loaded hypergraph" << std::endl;
+  // MPI_Barrier(comm);
+
   if (number_of_vertices_ < minimum_number_of_nodes_ || h.dont_coarsen())
     return nullptr;
 
   if (number_of_vertices_ < 3000000) {
+    // if(rank_ == 0) std::cout << "ParaFCC " << std::endl;
     return (parallel_first_choice_coarsen(h, comm));
   } else {
+    // if(rank_ == 0) std::cout << "ParaHedgeC " << std::endl;
     return (parallel_hyperedge_coarsen(h, comm));
   }
 }
@@ -140,17 +152,19 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
 
   permute_vertices_arrays(vertices, number_of_local_vertices_);
 
-  if (parkway::utility::status::handler::progress_enabled()) {
+  if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
       if (vertex_weights_[i] > maxLocWt)
         maxLocWt = vertex_weights_[i];
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
-    info("-- Maximum vertex weight: %i\n"
-         "-- Maximum weight:        %i\n"
-         "-- Average vertex weight: %i\n",
-         maximum_vertex_weight_, maxWt, aveVertexWt);
+
+    if (rank_ == 0) {
+      out_stream << " " << maximum_vertex_weight_ << " " << maxWt << " " << aveVertexWt
+                 << " ";
+      out_stream.flush();
+    }
   }
 
   metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
@@ -367,6 +381,10 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
     }
   }
 
+  // if(rank_ == 0)
+  //  std::cout << "done local match" << std::endl;
+  // MPI_Barrier(comm);
+
   matchInfoLoc.destroy();
 
   // ###
@@ -407,6 +425,9 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
   // now construct the coarse hypergraph using the matching vector
   // ###
 
+  // if(rank_ == 0)
+  // std::cout << "about to contract hyperedges" << std::endl;
+  // MPI_Barrier(comm);
   return (contract_hyperedges(h, comm));
 }
 
@@ -434,17 +455,19 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
 
   double reducedBy;
 
-  if (parkway::utility::status::handler::progress_enabled()) {
+  if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
       if (vertex_weights_[i] > maxLocWt)
         maxLocWt = vertex_weights_[i];
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
-    info("-- Maximum vertex weight: %i\n"
-         "-- Maximum weight:        %i\n"
-         "-- Average vertex weight: %i\n",
-         maximum_vertex_weight_, maxWt, aveVertexWt);
+
+    if (rank_ == 0) {
+      out_stream << " [PHEDGE] " << maximum_vertex_weight_ << " " << maxWt << " "
+                 << aveVertexWt << " ";
+      out_stream.flush();
+    }
   }
 
   ds::bit_field matchedVertices(number_of_vertices_);
@@ -482,10 +505,26 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
     for (; rightBound < number_of_hyperedges_ && hEdgeLens[rightBound] == length;
          ++rightBound)
       ;
+    /*
+    if(rank_ == 0) {
+      std::cout << "leftBound = " << leftBound
+           << ", rightBound = " << rightBound << std::endl;
+    }
+    */
     Funct::qsortByAnotherArray(leftBound, rightBound - 1, hEdges.data(),
                                hyperedge_weights_.data(), DEC);
     leftBound = rightBound;
   }
+
+  /*
+  if(rank_ == 0) {
+    for (i=0;i<numHedges;++i)
+      if(i % 10 == 0)
+        std::cout << hEdgeLens[hEdges[i]] << " ";
+    std::cout << std::endl;
+  }
+  MPI_Barrier(comm);
+  */
 
   cluster_index_ = 0;
   stop_coarsening_ = 0;
@@ -493,6 +532,14 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
   for (index = 0; index < number_of_hyperedges_; ++index) {
 
     hEdge = hEdges[index];
+    /*
+    if(index % 1000 == 0 && rank_ == 0) {
+      std::cout << "hEdge = " << hEdge << std::endl;
+      std::cout << "hEdgeLen[" << hEdge << "] = " << hEdgeLens[hEdge] << std::endl;
+      std::cout << "hEdgeOffset[" << hEdge+1 << "]-hEdgeOffset[" << hEdge << "] = "
+    << hEdgeOffset[hEdge+1]-hEdgeOffset[hEdge] << std::endl;
+    }
+    */
     int numUnmatchedLocals = 0;
     int numUnmatchedNonLocals = 0;
 
@@ -511,6 +558,13 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
         }
       }
     }
+    /*
+    if(index % 1000 == 0 && rank_ == 0) {
+      std::cout << "numUnmatchedLocals = " << numUnmatchedLocals << std::endl
+           << ", numUnmatchedNonLocals = " << numUnmatchedNonLocals << std::endl;
+    }
+    */
+    // if(numUnmatchedLocals+numUnmatchedNonLocals == hEdgeLens[hEdge]) {
     if (numUnmatchedLocals > 1 ||
         ((numUnmatchedLocals + numUnmatchedNonLocals) == hEdgeLens[hEdge])) {
 
@@ -531,6 +585,9 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
           numNotMatched -= numUnmatchedLocals;
           reducedBy = static_cast<double>(number_of_local_vertices_) /
                       (numNotMatched + cluster_index_ + table_->size());
+
+          // if(rank_ == 0)
+          // std::cout << "[local] reducedBy = " << reducedBy << std::endl;
 
           if (reducedBy > reduction_ratio_)
             break;
@@ -562,12 +619,20 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
           reducedBy = static_cast<double>(number_of_local_vertices_) /
                       (numNotMatched + cluster_index_ + table_->size());
 
+          // if(rank_ == 0)
+          //  std::cout << "[remote] reducedBy = " << reducedBy << std::endl;
+
           if (reducedBy > reduction_ratio_)
             break;
         }
       }
     }
   }
+
+  // if(rank_ == 0)
+  // std::cout << "reducedBy = " << reducedBy << std::endl
+  // << ", index = " << index << std::endl;
+  // MPI_Barrier(comm);
 
   for (index = 0; index < number_of_local_vertices_; ++index) {
     if (match_vector_[index] == -1) {
@@ -600,6 +665,10 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
   // ###
   // now construct the coarse hypergraph using the matching vector
   // ###
+
+  //  if(rank_ == 0)
+  // std::cout << "about to contract hyperedges" << std::endl;
+  // MPI_Barrier(comm);
 
   return (contract_hyperedges(h, comm));
 }
@@ -662,7 +731,7 @@ void model_coarsener_2d::set_reply_arrays(int highToLow, int maxVWt) {
     assert(And(receive_lens_[i], 0x1) == 0);
 #endif
 
-    if (match_request_visit_order_ == visit_order_t::RANDOM) {
+    if (match_request_visit_order_ == RANDOM_ORDER) {
       visitOrderLen = Shiftr(receive_lens_[i], 1);
       visitOrder.reserve(visitOrderLen);
 
@@ -864,6 +933,14 @@ void model_coarsener_2d::set_cluster_indices(MPI_Comm comm) {
         match_vector_[locals[i] - minimum_vertex_index_] = cluIndex;
     }
   }
+
+#ifdef DEBUG_COARSENER
+  for (index = 0; index < numLocalVertices; ++index)
+    if (matchVector[index] < 0 || matchVector[index] >= totalVertices) {
+      std::cout << "matchVector[" << index << "]  = " << matchVector[index] << std::endl;
+      assert(0);
+    }
+#endif
 }
 
 int model_coarsener_2d::accept(int locVertex, int nonLocCluWt, int highToLow,
@@ -923,47 +1000,75 @@ void model_coarsener_2d::permute_vertices_arrays(dynamic_array<int> &verts,
                                                  int nLocVerts) {
   int i;
   switch (vertex_visit_order_) {
-    case visit_order_t::INCREASING:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      break;
+  case INCREASING_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    break;
 
-    case visit_order_t::DECREASING:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = nLocVerts - i - 1;
-      }
-      break;
+  case DECREASING_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = nLocVerts - i - 1;
+    }
+    break;
 
-    case visit_order_t::RANDOM:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.random_permutation();
-      break;
+  case RANDOM_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.random_permutation();
+    break;
 
-    case visit_order_t::INCREASING_WEIGHT:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.sort_between_using_another_array(
-          0, nLocVerts - 1, vertex_weights_, utility::sort_order::INCREASING);
-      break;
+  case INCREASING_WEIGHT_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::INCREASING);
+    break;
 
-    case visit_order_t::DECREASING_WEIGHT:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.sort_between_using_another_array(
-          0, nLocVerts - 1, vertex_weights_, utility::sort_order::DECREASING);
-      break;
+  case DECREASING_WEIGHT_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::DECREASING);
+    break;
 
-    default:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.random_permutation();
-      break;
+  default:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.random_permutation();
+    break;
+  }
+}
+
+
+
+void model_coarsener_2d::print_visit_order(int variable) const {
+  switch (variable) {
+  case INCREASING_ORDER:
+    out_stream << "inc-idx";
+    break;
+
+  case DECREASING_ORDER:
+    out_stream << "dec-idx";
+    break;
+
+  case INCREASING_WEIGHT_ORDER:
+    out_stream << "inc_wt";
+    break;
+
+  case DECREASING_WEIGHT_ORDER:
+    out_stream << "dec-wt";
+    break;
+
+  default:
+    out_stream << "rand";
+    break;
   }
 }
 

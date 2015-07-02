@@ -21,11 +21,11 @@ namespace ds = parkway::data_structures;
 
 class restrictive_coarsener : public loader {
  public:
-  restrictive_coarsener(int min, int maxwt, double ratio);
+  restrictive_coarsener(int min, int maxwt, double ratio, int dispL);
 
   virtual ~restrictive_coarsener();
   virtual serial::hypergraph *coarsen(const serial::hypergraph &h) = 0;
-  virtual void display_options() const = 0;
+  virtual void display_options(std::ostream &out) const = 0;
 
   serial::hypergraph *build_coarse_hypergraph(ds::dynamic_array<int> coarseWts,
                                               ds::dynamic_array<int> pVector,

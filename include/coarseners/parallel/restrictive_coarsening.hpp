@@ -20,7 +20,8 @@ namespace ds = parkway::data_structures;
 
 class restrictive_coarsening : public coarsener {
  public:
-  restrictive_coarsening(int _rank, int _numProcs, int _numParts);
+  restrictive_coarsening(int _rank, int _numProcs, int _numParts,
+                         std::ostream &out);
 
   virtual ~restrictive_coarsening();
   // virtual hypergraph *coarsen(hypergraph &h, MPI_Comm comm) = 0;

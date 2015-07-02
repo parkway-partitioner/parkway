@@ -22,7 +22,7 @@ protected:
  public:
   basic_contoller(coarsener &c, refiner &r,
                   serial::controller &ref, int rank, int nP, int percentile,
-                  int inc, int approxRef);
+                  int inc, int approxRef, std::ostream &out);
   ~basic_contoller();
 
   void reset_structures();

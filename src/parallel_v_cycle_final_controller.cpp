@@ -7,16 +7,15 @@
 // 10/1/2005: Last Modified
 //
 // ###
+
 #include "parallel_v_cycle_final_controller.hpp"
-#include "utility/logging.hpp"
 
 parallel_v_cycle_final_controller::parallel_v_cycle_final_controller(
     parallel::restrictive_coarsening &rc, parallel::coarsener &c, parallel::refiner &r,
     parkway::serial::controller &ref, int rank, int nP, int percentile, int inc,
-    int approxRef, int limit, double limitAsPercent)
+    int approxRef, int limit, double limitAsPercent, std::ostream &out)
     : parallel_v_cycle_controller(rc, c, r, ref, rank, nP, percentile, inc, approxRef,
-                                  limit, limitAsPercent, "big") {
-}
+                           limit, limitAsPercent, out) {}
 
 parallel_v_cycle_final_controller::~parallel_v_cycle_final_controller() {}
 
@@ -173,7 +172,9 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
     vCycleGain = 0;
     record_v_cycle_partition(*hypergraph_, numIterations++);
 
-    progress("[Parallel V-Cycle]\n");
+    if (display_option_ > 1 && rank_ == 0) {
+      out_stream_ << "\t ------ PARALLEL V-CYCLE CALL ------" << std::endl;
+    }
 
     do {
       minIterationGain =
@@ -292,8 +293,15 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
       secondCutSize = coarseGraph->keep_best_partition();
       diffInCutSize = firstCutSize - secondCutSize;
 
-      progress("-- [V-Cycle %i] Difference in cut size: %i\n",
-               numIterations, diffInCutSize);
+      if (display_option_ > 1 && rank_ == 0) {
+        out_stream_ << "\t ------ [" << numIterations << "] " << diffInCutSize
+                   << std::endl;
+      }
+
+#ifdef DEBUG_CONTROLLER
+      checkCutsize = coarseGraph->calcCutsize(numTotalParts, 0, comm);
+      assert(secondCutSize == checkCutsize);
+#endif
 
       if (diffInCutSize > 0 && diffInCutSize < minIterationGain)
         break;
@@ -311,9 +319,19 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
     gather_in_v_cycle_partition(*hypergraph_, firstCutSize, comm);
     update_map_to_orig_vertices(comm);
 
-    progress("-- Gain: %i\n", vCycleGain);
+    if (display_option_ > 1 && rank_ == 0) {
+      out_stream_ << "\t ------ " << vCycleGain << " ------" << std::endl;
+    }
 
-    info("[Parallel Run %i] First cut size: %i\n", i, firstCutSize);
+#ifdef DEBUG_CONTROLLER
+    assert(hgraphs.getNumElem() == 0);
+    assert(hgraph->getNumLocalVertices() == numOrigLocVerts);
+    hgraph->checkPartitions(numTotalParts, maxPartWt, comm);
+#endif
+
+    if (rank_ == 0 && display_option_ > 0) {
+      out_stream_ << "\nPRUN[" << i << "] = " << firstCutSize << std::endl << std::endl;
+    }
 
     total_cutsize_ += firstCutSize;
 
@@ -347,19 +365,29 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
 
   average_cutsize_ = static_cast<double>(total_cutsize_) / number_of_runs_;
 
-  info("[Partitioning Summary]\n"
-       "-- Cutsize statistics:\n"
-       "  -- Best:                    %i\n"
-       "  -- Worst:                   %i\n"
-       "  -- Average:                 %i\n"
-       "-- Time usage:\n"
-       "  -- Total time:              %.2f\n"
-       "  -- Average time per run:    %.2f\n"
-       "  -- Parallel coarsening (%): %.2f\n"
-       "  -- Serial partitioning (%): %.2f\n"
-       "  -- Parallel refinement (%): %.2f\n"
-       "  -- Other (%):               %.2f\n\n",
-       best_cutsize_, worst_cutsize_, average_cutsize_, total_time_,
-       total_time_ / number_of_runs_, percentCoarsening, percentserial,
-       percentRefinement, percentOther);
+  if (rank_ == 0 && display_option_ > 0) {
+    out_stream_ << std::endl
+               << " --- PARTITIONING SUMMARY ---" << std::endl
+               << "|" << std::endl
+               << "|--- Cutsizes statistics:" << std::endl
+               << "|" << std::endl
+               << "|-- BEST = " << best_cutsize_ << std::endl
+               << "|-- WORST = " << worst_cutsize_ << std::endl
+               << "|-- AVE = " << average_cutsize_ << std::endl
+               << "|" << std::endl
+               << "|--- Time usage:" << std::endl
+               << "|" << std::endl
+               << "|-- TOTAL TIME = " << total_time_ << std::endl
+               << "|-- AVE TIME = " << total_time_ / number_of_runs_ << std::endl
+               << "|-- PARACOARSENING% = " << percentCoarsening << std::endl
+               << "|-- SEQPARTITIONING% = " << percentserial << std::endl
+               << "|-- PARAREFINEMENT% = " << percentRefinement << std::endl
+               << "|-- OTHER% = " << percentOther << std::endl
+               << "|" << std::endl
+               << " ----------------------------" << std::endl;
+  }
+}
+
+void parallel_v_cycle_final_controller::print_type() const {
+  out_stream_ << " type = BIG";
 }

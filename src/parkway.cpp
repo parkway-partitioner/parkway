@@ -95,7 +95,8 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
     Funct::printIntro(*output);
   }
 
-  hgraph = new parallel::hypergraph(my_rank, num_procs, file_name, comm);
+  hgraph = new parallel::hypergraph(my_rank, num_procs, file_name, disp_option,
+                              *output, comm);
 
   if (!hgraph) {
     sprintf(message,
@@ -108,14 +109,15 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
   ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
 
   coarsener = Utils::buildParaCoarsener(my_rank, num_procs, num_parts,
-                                        constraint, hgraph, init_options, comm);
+                                        constraint, hgraph, *output,
+                                        init_options, comm);
   restrC = Utils::buildParaRestrCoarsener(my_rank, num_procs, num_parts,
-                                          constraint, hgraph,
+                                          constraint, hgraph, *output,
                                           init_options, comm);
   refiner = Utils::buildParaRefiner(my_rank, num_procs, num_parts, constraint,
-                                    hgraph, init_options, comm);
+                                    hgraph, *output, init_options, comm);
   seqController = Utils::buildSeqController(my_rank, num_procs, num_parts,
-                                            constraint, init_options);
+                                            constraint, *output, init_options);
 
   if (!coarsener) {
     sprintf(message, "p[%d] not able to build ParaCoarsener - abort\n",
@@ -139,7 +141,7 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
 
   controller = Utils::buildParaController(
       my_rank, num_procs, num_parts, hgraph->total_number_of_vertices(), constraint,
-      coarsener, restrC, refiner, seqController, init_options, comm);
+      coarsener, restrC, refiner, seqController, *output, init_options, comm);
 
   if (!controller) {
     sprintf(message, "p[%d] not able to build ParaController - abort\n",
@@ -152,7 +154,7 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
     Funct::printEnd(*output);
   }
 
-  hgraph->compute_balance_warnings(num_parts, constraint, comm);
+  hgraph->compute_balance_warnings(num_parts, constraint, *output, comm);
 
   controller->set_hypergraph(hgraph);
   controller->set_prescribed_partition(shuffle_file, comm);
@@ -274,7 +276,8 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
   hgraph = new parallel::hypergraph(my_rank, num_procs, numVertices, numHedges,
                                     globMaxHedgeLen, vertex_weights,
                                     hyperedge_weights, pin_list,
-                                    hyperedge_offsets_, comm);
+                                    hyperedge_offsets_, disp_option, *output,
+                                    comm);
 
   if (!hgraph) {
     sprintf(message, "p[%d] could not initialise hypergraph - abort\n",
@@ -287,14 +290,14 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
 
   coarsener =
       Utils::buildParaCoarsener(my_rank, num_procs, numParts, constraint,
-                                hgraph, init_options, comm);
+                                hgraph, *output, init_options, comm);
   restrC =
       Utils::buildParaRestrCoarsener(my_rank, num_procs, numParts, constraint,
-                                     hgraph, init_options, comm);
+                                     hgraph, *output, init_options, comm);
   refiner = Utils::buildParaRefiner(my_rank, num_procs, numParts, constraint,
-                                    hgraph, init_options, comm);
+                                    hgraph, *output, init_options, comm);
   seqController = Utils::buildSeqController(my_rank, num_procs, numParts,
-                                            constraint, init_options);
+                                            constraint, *output, init_options);
 
   if (!coarsener) {
     sprintf(message, "p[%d] not able to build ParaCoarsener - abort\n",
@@ -318,7 +321,7 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
 
   controller = Utils::buildParaController(
       my_rank, num_procs, numParts, hgraph->total_number_of_vertices(), constraint,
-      coarsener, restrC, refiner, seqController, init_options, comm);
+      coarsener, restrC, refiner, seqController, *output, init_options, comm);
 
   if (!controller) {
     sprintf(message, "p[%d] not able to build ParaController - abort\n",
@@ -330,7 +333,7 @@ void k_way_partition(int numVertices, int numHedges, const int *vWeights,
   if (my_rank == 0 && disp_option > 0)
     Funct::printEnd(*output);
 
-  hgraph->compute_balance_warnings(numParts, constraint, comm);
+  hgraph->compute_balance_warnings(numParts, constraint, *output, comm);
 
   controller->set_hypergraph(hgraph);
   controller->set_weight_constraints(comm);

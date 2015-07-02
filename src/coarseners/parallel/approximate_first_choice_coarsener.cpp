@@ -7,10 +7,10 @@
 // 31/12/2004: Last Modified
 //
 // ###
+
 #include "coarseners/parallel/approximate_first_choice_coarsener.hpp"
 #include "data_structures/map_to_pos_int.hpp"
 #include "data_structures/internal/table_utils.hpp"
-#include "utility/logging.hpp"
 #include "Macros.h"
 #include <iostream>
 
@@ -19,10 +19,10 @@ namespace parallel {
 
 approximate_first_choice_coarsener::approximate_first_choice_coarsener(
     int rank, int nProcs, int nParts, int percentile, int inc, int vertVisOrder,
-    int matchReqOrder, int divByWt, int divByLen)
-    : approximate_coarsener(rank, nProcs, nParts, percentile, inc) {
-  vertexVisitOrder = static_cast<visit_order_t>(vertVisOrder - 1);
-  matchRequestVisitOrder = static_cast<visit_order_t>(matchReqOrder - 1);
+    int matchReqOrder, int divByWt, int divByLen, std::ostream &out)
+    : approximate_coarsener(rank, nProcs, nParts, percentile, inc, out) {
+  vertexVisitOrder = vertVisOrder;
+  matchRequestVisitOrder = matchReqOrder;
   divByCluWt = divByWt;
   divByHedgeLen = divByLen;
   limitOnIndexDuringCoarsening = 0;
@@ -31,19 +31,27 @@ approximate_first_choice_coarsener::approximate_first_choice_coarsener(
 }
 
 void approximate_first_choice_coarsener::dispCoarseningOptions() const {
-  info("[Parallel Coarsener: Apprximate First Choice]\n"
-       "-- Reduction ratio:            %f.3\n"
-       "-- Minimum number of nodes:    %i\n"
-       "-- Vertex visit order:         %s\n"
-       "-- Match request visit order:  %s\n"
-       "-- Divide by cluster weight:   %i\n"
-       "-- Divide by hyperedge length: %i\n"
-       "-- Start percentile:           %i\n"
-       "-- Percentile increment:       %i\n\n",
-       reduction_ratio_, minimum_number_of_nodes_,
-       parkway::to_c_str(vertexVisitOrder),
-       parkway::to_c_str(matchRequestVisitOrder),
-       divByCluWt, divByHedgeLen, startPercentile, increment);
+  switch (display_options_) {
+  case SILENT:
+
+    break;
+
+  default:
+
+    out_stream << "|--- PARA_C:" << std::endl
+               << "|- ApproxPFC:"
+               << " r = " << reduction_ratio_ << " min = " <<
+                                                 minimum_number_of_nodes_
+               << " vvo = ";
+    printVisitOrder(vertexVisitOrder);
+    out_stream << " mvo = ";
+    printVisitOrder(matchRequestVisitOrder);
+    out_stream << " divWt = " << divByCluWt << " divLen = " << divByHedgeLen
+               << " %ile = " << startPercentile << " inc = " << increment
+               << std::endl
+               << "|" << std::endl;
+    break;
+  }
 }
 
 void approximate_first_choice_coarsener::buildAuxiliaryStructs(int numTotPins,
@@ -134,7 +142,7 @@ parallel::hypergraph *approximate_first_choice_coarsener::coarsen(
 
   permuteVerticesArray(vertices, number_of_local_vertices_);
 
-  if (parkway::utility::status::handler::info_enabled()) {
+  if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
       if (vertex_weights_[i] > maxLocWt)
         maxLocWt = vertex_weights_[i];
@@ -142,11 +150,10 @@ parallel::hypergraph *approximate_first_choice_coarsener::coarsen(
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
 
-    info("[Parallel First Choice Coarsener]\n",
-         "-- Maximum vertex weight: %i\n"
-         "-- Maximum local weight:  %i\n"
-         "-- Average vertex weight: %i\n\n",
-         maximum_vertex_weight_, maxWt, aveVertexWt);
+    if (rank_ == 0) {
+      out_stream << "[PFCC] " << maximum_vertex_weight_ << " " << maxWt << " "
+                 << aveVertexWt << " ";
+    }
   }
 
   metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
@@ -495,7 +502,7 @@ void approximate_first_choice_coarsener::setReplyArrays(int highToLow, int maxVW
     assert(And(receive_lens_[i], 0x1) == 0);
 #endif
 
-    if (matchRequestVisitOrder == visit_order_t::RANDOM) {
+    if (matchRequestVisitOrder == RANDOM_ORDER) {
       visitOrderLen = Shiftr(receive_lens_[i], 1);
       visitOrder.reserve(visitOrderLen);
 
@@ -625,51 +632,53 @@ void approximate_first_choice_coarsener::processReqReplies() {
   }
 }
 
-void approximate_first_choice_coarsener::permuteVerticesArray(
-    dynamic_array<int> &verts, int nLocVerts) {
+void approximate_first_choice_coarsener::permuteVerticesArray(dynamic_array<int> &verts, int nLocVerts) {
   int i;
+
   switch (vertexVisitOrder) {
-    case visit_order_t::INCREASING:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      break;
+  case INCREASING_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    break;
 
-    case visit_order_t::DECREASING:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = nLocVerts - i - 1;
-      }
-      break;
+  case DECREASING_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = nLocVerts - i - 1;
+    }
+    break;
 
-    case visit_order_t::RANDOM:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.random_permutation();
-      break;
+  case RANDOM_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.random_permutation();
+    break;
 
-    case visit_order_t::INCREASING_WEIGHT:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.sort_between_using_another_array(
-          0, nLocVerts - 1, vertex_weights_, utility::sort_order::INCREASING);
-      break;
+  case INCREASING_WEIGHT_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::INCREASING);
+    break;
 
-    case visit_order_t::DECREASING_WEIGHT:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.sort_between_using_another_array(
-          0, nLocVerts - 1, vertex_weights_, utility::sort_order::DECREASING);
-      break;
+  case DECREASING_WEIGHT_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::DECREASING);
+    break;
 
-    default:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.random_permutation();
-      break;
+  default:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.random_permutation();
+    break;
   }
 }
 
@@ -795,6 +804,30 @@ int approximate_first_choice_coarsener::accept(int locVertex, int nonLocCluWt, i
 
       return 1;
     }
+  }
+}
+
+void approximate_first_choice_coarsener::printVisitOrder(int variable) const {
+  switch (variable) {
+  case INCREASING_ORDER:
+    out_stream << "inc-idx";
+    break;
+
+  case DECREASING_ORDER:
+    out_stream << "dec-idx";
+    break;
+
+  case INCREASING_WEIGHT_ORDER:
+    out_stream << "inc_wt";
+    break;
+
+  case DECREASING_WEIGHT_ORDER:
+    out_stream << "dec-wt";
+    break;
+
+  default:
+    out_stream << "rand";
+    break;
   }
 }
 

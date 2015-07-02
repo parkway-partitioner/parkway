@@ -39,15 +39,15 @@ class hypergraph :
  public:
   hypergraph(int rank, int number_of_processors, int number_of_local_vertices,
              int total_vertices, int minimum_vertex_index, int coarsen,
-             ds::dynamic_array<int> weight);
+             ds::dynamic_array<int> weight, int display_option);
 
   hypergraph(int rank, int number_of_processors, int number_of_local_vertices,
              int total_vertices, int minimum_vertex_index, int coarsen,
              int cut, ds::dynamic_array<int> weight,
-             ds::dynamic_array<int> part_array);
+             ds::dynamic_array<int> part_array, int display_option);
 
   hypergraph(int rank, int number_of_processors, const char *filename,
-             MPI_Comm comm);
+             int display_option, std::ostream &out, MPI_Comm comm);
 
   hypergraph(int rank, int number_of_processors, int number_of_local_vertices,
              int number_of_local_hedges, int max_hyperedge_length,
@@ -55,15 +55,14 @@ class hypergraph :
              ds::dynamic_array<int> hyperedge_weights,
              ds::dynamic_array<int> loc_pin_list,
              ds::dynamic_array<int> hyperedge_offsets,
-             MPI_Comm comm);
+             int display_option, std::ostream &out, MPI_Comm comm);
 
-  ~hypergraph() {
-  }
+  ~hypergraph();
 
-  void load_from_file(const char *filename, MPI_Comm comm);
+  void load_from_file(const char *filename, std::ostream &out, MPI_Comm comm);
 
   void initalize_partition_from_file(const char *filename, int numParts,
-                                     MPI_Comm comm);
+                                     std::ostream &out, MPI_Comm comm);
 
   void allocate_hyperedge_memory(int numHedges, int numLocPins);
   void contract_hyperedges(hypergraph &coarse, MPI_Comm comm);
@@ -73,8 +72,8 @@ class hypergraph :
 
   void remove_bad_partitions(double cutThreshold);
   void set_number_of_partitions(int nP) override;
-  void compute_partition_characteristics(
-      int pNum, int numParts, double constraint, MPI_Comm comm);
+  void compute_partition_characteristics(int pNum, int numParts, double constraint,
+                                         std::ostream &out, MPI_Comm comm);
   void copy_in_partition(const ds::dynamic_array<int> &partition, int numV,
                          int nP);
 
@@ -109,10 +108,11 @@ class hypergraph :
 
   int calculate_cut_size(int numParts, int pNum, MPI_Comm comm);
 
-  void check_partitions(int numParts, double constraint, MPI_Comm comm);
+  void check_partitions(int numParts, double constraint, std::ostream &out,
+                        MPI_Comm comm);
 
   void compute_balance_warnings(int numParts, double constraint,
-                                MPI_Comm comm);
+                                std::ostream &out, MPI_Comm comm);
 
   int total_number_of_pins(MPI_Comm comm);
   int total_number_of_hyperedges(MPI_Comm comm);
@@ -158,12 +158,13 @@ class hypergraph :
 
   void check_vertex_and_hyperedge_lengths(
       int hyperedge_data_length, const dynamic_array<int> &hyperedge_data,
-      const char *filename, MPI_Comm comm);
+      std::ostream &out, const char *filename, MPI_Comm comm);
 
   void load_data_from_blocks(const int data_length,
                              const dynamic_array<int> &hypergraph_data);
 
-  void check_loaded_vertex_and_hyperedge_lengths(const char *filename,
+  void check_loaded_vertex_and_hyperedge_lengths(std::ostream &out,
+                                                 const char *filename,
                                                  MPI_Comm comm);
 
   int compute_number_of_elements_to_send(dynamic_array<int> &copy_of_requests);

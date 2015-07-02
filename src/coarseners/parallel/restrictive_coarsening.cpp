@@ -10,7 +10,6 @@
 #include "coarseners/parallel/restrictive_coarsening.hpp"
 #include "data_structures/complete_binary_tree.hpp"
 #include "utility/array.hpp"
-#include "utility/logging.hpp"
 #include <iostream>
 
 namespace parkway {
@@ -18,8 +17,9 @@ namespace parallel {
 namespace ds = parkway::data_structures;
 namespace utility = parkway::utility;
 
-restrictive_coarsening::restrictive_coarsening(int rank, int nProcs, int nParts)
-    : coarsener(rank, nProcs, nParts),
+restrictive_coarsening::restrictive_coarsening(int rank, int nProcs, int nParts,
+                                               std::ostream &out)
+    : coarsener(rank, nProcs, nParts, out, "Restrictive Coarsener"),
       minimum_nodes_(0),
       total_clusters_(0) {
 }
@@ -45,7 +45,9 @@ void restrictive_coarsening::load(const hypergraph &h, MPI_Comm comm) {
   utility::set_to_zero<int>(vertex_to_hyperedges_offset_.data(),
                             number_of_local_vertices_ + 1);
 
-  info("[Parallel Coarsener: Restrictive]");
+  if (display_options_ > 1 && rank_ == 0) {
+    print_name(out_stream);
+  }
 
   // ###
   // use the data_out_sets_ to send local hyperedges to other
@@ -72,12 +74,13 @@ hypergraph *restrictive_coarsening::contract_hyperedges(hypergraph &h,
   hypergraph *coarseGraph =
       new hypergraph(rank_, processors_, cluster_index_, total_clusters_,
                      minimum_cluster_index_, stop_coarsening_,
-                     partition_cuts_[0], cluster_weights_, part_vector_);
+                     partition_cuts_[0], cluster_weights_, part_vector_,
+                     h.display_option());
 
   h.contractRestrHyperedges(*coarseGraph, comm);
   h.set_number_of_partitions(0);
 
-  if (parkway::utility::status::handler::progress_enabled()) {
+  if (display_options_ > 1) {
     int numTotCoarseVerts = coarseGraph->total_number_of_vertices();
     int numLocHedges = coarseGraph->number_of_hyperedges();
     int numLocPins = coarseGraph->number_of_pins();
@@ -87,10 +90,10 @@ hypergraph *restrictive_coarsening::contract_hyperedges(hypergraph &h,
     MPI_Reduce(&numLocHedges, &numTotHedges, 1, MPI_INT, MPI_MAX, 0, comm);
     MPI_Reduce(&numLocPins, &numTotPins, 1, MPI_INT, MPI_MAX, 0, comm);
 
-    progress("-- Number of coarse vertices: %i\n"
-             "-- Number of hyperedges:      %i\n"
-             "-- Number of pins:            %i\n",
-             numTotCoarseVerts, numTotHedges, numTotPins);
+    if (rank_ == 0) {
+      out_stream << numTotCoarseVerts << " " << numTotHedges << " "
+                 << numTotPins << " " << std::endl;
+    }
   }
 
   return coarseGraph;

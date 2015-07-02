@@ -7,14 +7,18 @@
 // 4/1/2005: Last Modified
 //
 // ###
+
 #include "refiners/serial/refiner.hpp"
 
 namespace parkway {
 namespace serial {
 
-refiner::refiner()
-    : number_of_parts_(0),
+refiner::refiner(int dL)
+    : loader(dL),
+      maximum_part_weight_(0),
+      number_of_parts_(0),
       accept_proportion_(0),
+      average_part_weight_(0),
       partition_vector_(nullptr) {
   part_weights_.resize(0);
 }

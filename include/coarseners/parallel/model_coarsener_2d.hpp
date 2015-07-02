@@ -17,7 +17,6 @@
 #include "coarseners/parallel/coarsener.hpp"
 #include "data_structures/match_request_table.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
-#include "types.hpp"
 #include <iostream>
 
 namespace parkway {
@@ -26,16 +25,17 @@ namespace ds = parkway::data_structures;
 
 class model_coarsener_2d : public coarsener {
  protected:
-  parkway::visit_order_t vertex_visit_order_;
-  parkway::visit_order_t match_request_visit_order_;
+  int vertex_visit_order_;
+  int match_request_visit_order_;
   int divide_by_cluster_weight_;
   int divide_by_hyperedge_length_;
   int limit_on_index_during_coarsening_;
   ds::match_request_table *table_;
 
  public:
-  model_coarsener_2d(int rank, int nProcs, int nParts, int vertVisOrder, int
-                     matchReqOrder, int divByWt, int divByLen);
+  model_coarsener_2d(int rank, int nProcs, int nParts, int vertVisOrder,
+                     int matchReqOrder, int divByWt, int divByLen,
+                     std::ostream &out);
   ~model_coarsener_2d();
 
   void display_options() const;
@@ -55,12 +55,14 @@ class model_coarsener_2d : public coarsener {
 
   int accept(int _locV, int _nonLocCluWt, int hToLow, int _maxWt);
 
+  void print_visit_order(int variable) const;
+
   inline void set_vertex_visit_order(int vO) {
-    vertex_visit_order_ = static_cast<parkway::visit_order_t>(vO - 1);
+    vertex_visit_order_ = vO;
   }
 
   inline void set_match_request_visit_order(int mvO) {
-    match_request_visit_order_ = static_cast<parkway::visit_order_t>(mvO - 1);
+    match_request_visit_order_ = mvO;
   }
 
   inline void set_divide_by_cluster_weight(int divBy) {

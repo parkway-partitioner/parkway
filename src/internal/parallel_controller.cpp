@@ -7,16 +7,18 @@
 // 4/1/2005: Last Modified
 //
 // ###
+
 #include "internal/parallel_controller.hpp"
-#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
 controller::controller(coarsener &c, refiner &r,
                        serial::controller &con, int rank, int nP,
-                       int percentile, int inc, int approxRef)
+                       int percentile, int inc, int approxRef,
+                       std::ostream &out)
     : global_communicator(rank, nP),
+      out_stream_(out),
       coarsener_(c),
       refiner_(r),
       serial_controller_(con) {
@@ -71,12 +73,15 @@ void controller::set_prescribed_partition(const char *filename, MPI_Comm comm) {
     int numVPerProc = hypergraph_->total_number_of_vertices() / processors_;
     int myOffset = rank_ * numVPerProc;
 
+    char message[512];
     std::ifstream in_stream;
+
     in_stream.open(filename, std::ifstream::in | std::ifstream::binary);
 
     if (!in_stream.is_open()) {
-      error_on_processor("[Processor %i] Could not open partition file %s\n",
-                         rank_, filename);
+      sprintf(message, "p[%d] could not open partition file %s\n", rank_,
+              filename);
+      out_stream_ << message;
       MPI_Abort(comm, 0);
     }
 
@@ -87,8 +92,9 @@ void controller::set_prescribed_partition(const char *filename, MPI_Comm comm) {
     in_stream.read((char *)(shuffle_partition_.data()), len);
 
     if (in_stream.gcount() != len) {
-      error_on_processor("[Processor %i] Could not read in %i elements\n",
-                         rank_, number_of_orig_local_vertices_);
+      sprintf(message, "p[%d] could not read in %d elements\n", rank_,
+              number_of_orig_local_vertices_);
+      out_stream_ << message;
       MPI_Abort(comm, 0);
     }
 
@@ -215,6 +221,7 @@ void controller::store_best_partition(int numV, const dynamic_array<int> array,
 }
 
 void controller::partition_to_file(const char *filename, MPI_Comm comm) const {
+  char message[512];
   std::ofstream out;
 
   if (rank_ == 0)
@@ -228,12 +235,11 @@ void controller::partition_to_file(const char *filename, MPI_Comm comm) const {
                std::ofstream::binary);
 
       if (!out.is_open()) {
-        warning_on_processor(
-            "[Processor %i] Cannot open %s\n", rank_, filename);
-      } else {
+        sprintf(message, "p[%d] cannot open %s\n", rank_, filename);
+        out_stream_ << message;
+      } else
         out.write((char *)(best_partition_.data()),
                   sizeof(int) * number_of_orig_local_vertices_);
-      }
 
       out.close();
     }

@@ -18,7 +18,8 @@ namespace parallel = parkway::parallel;
 
 class web_graph_serial_controller : public parkway::serial::controller {
  public:
-  web_graph_serial_controller(int rank, int nProcs, int nParts);
+  web_graph_serial_controller(int rank, int nProcs, int nParts,
+                                  std::ostream &out);
 
   virtual ~web_graph_serial_controller();
   virtual void display_options() const = 0;

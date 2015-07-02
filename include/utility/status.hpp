@@ -27,20 +27,12 @@ class handler {
     show_info_ = false;
   }
 
-  static bool info_enabled() {
-    return show_info_;
-  }
-
   static void enable_progress() {
     show_progress_ = true;
   }
 
   static void disable_progress() {
     show_progress_ = false;
-  }
-
-  static bool progress_enabled() {
-    return show_progress_;
   }
 
   ~handler() {
@@ -76,9 +68,6 @@ class handler {
 
   friend inline void info(const char *format, ...);
   friend inline void progress(const char *format, ...);
-  friend inline void warning(const char *format, ...);
-  friend inline void warning_on_processor(const char *format, ...);
-  friend inline void error_on_processor(const char *format, ...);
 
  private:
   static std::ostream *out_;
@@ -100,7 +89,6 @@ inline void info(const char *format, ...) {
     std::vsprintf(handler::buffer_.get(), format, args);
     va_end(args);
     *handler::out_ << handler::buffer_.get();
-    handler::out_->flush();
   }
 }
 
@@ -112,46 +100,6 @@ inline void progress(const char *format, ...) {
     va_start(args, format);
     std::vsprintf(handler::buffer_.get(), format, args);
     va_end(args);
-    *handler::out_ << handler::buffer_.get();
-    handler::out_->flush();
-  }
-}
-
-inline void warning(const char *format, ...) {
-  if (handler::rank_ == handler::write_on_ &&
-      handler::show_info_ &&
-      handler::out_ != nullptr) {
-    char *buffer = handler::buffer_.get();
-    std::sprintf(buffer, "[Warning!] ");
-    va_list args;
-    va_start(args, format);
-    std::vsprintf(buffer, format, args);
-    va_end(args);
-    *handler::out_ << handler::buffer_.get();
-  }
-}
-
-inline void warning_on_processor(const char *format, ...) {
-  if (handler::out_ != nullptr) {
-    char *buffer = handler::buffer_.get();
-    std::sprintf(buffer, "[Warning!] ");
-    va_list args;
-    va_start(args, format);
-    std::vsprintf(buffer, format, args);
-    va_end(args);
-    *handler::out_ << handler::buffer_.get();
-  }
-}
-
-inline void error_on_processor(const char *format, ...) {
-  if (handler::out_ != nullptr) {
-    va_list args;
-    char *buffer = handler::buffer_.get();
-    std::sprintf(buffer, "\33[31m");
-    va_start(args, format);
-    std::vsprintf(buffer, format, args);
-    va_end(args);
-    std::sprintf(buffer, "\33[0m");
     *handler::out_ << handler::buffer_.get();
   }
 }

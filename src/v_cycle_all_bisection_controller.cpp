@@ -14,13 +14,16 @@ namespace parkway {
 namespace serial {
 
 v_cycle_all_bisection_controller::v_cycle_all_bisection_controller(
-    int nRuns, double kT, double redFactor, int eeParam, int percentile, int
-    inc)
-    : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile,
-                                   inc, "all") {
-}
+    int nRuns, double kT, double redFactor, int eeParam, int percentile,
+    int inc, int dispL, std::ostream &out)
+    : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc,
+                                dispL, out) {}
 
 v_cycle_all_bisection_controller::~v_cycle_all_bisection_controller() {}
+
+void v_cycle_all_bisection_controller::print_type() const {
+  out_stream << " type = ALL";
+}
 
 void v_cycle_all_bisection_controller::compute_bisection() {
   serial::hypergraph *origGraph = hypergraphs_.top();

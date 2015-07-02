@@ -25,6 +25,7 @@ namespace ds = parkway::data_structures;
 
 class controller {
  protected:
+  std::ostream &out_stream_;
   int display_option_;
   int rank_;
   int number_of_processors_;
@@ -42,7 +43,7 @@ class controller {
   ds::dynamic_array<int> partition_vector_offsets_;
 
  public:
-  controller(int rank, int nProcs, int nParts);
+  controller(int rank, int nProcs, int nParts, std::ostream &out);
 
   virtual ~controller();
   virtual void display_options() const = 0;

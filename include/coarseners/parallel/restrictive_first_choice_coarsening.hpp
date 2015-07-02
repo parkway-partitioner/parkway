@@ -12,14 +12,13 @@
 #include <iostream>
 #include "coarseners/parallel/restrictive_coarsening.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
-#include "types.hpp"
 
 namespace parkway {
 namespace parallel {
 
 class restrictive_first_choice_coarsening : public restrictive_coarsening {
  protected:
-  parkway::visit_order_t vertex_visit_order_;
+  int vertex_visit_order_;
   int divide_by_cluster_weight_;
   int divide_by_hyperedge_length_;
   int limit_on_index_during_corasening_;
@@ -27,7 +26,7 @@ class restrictive_first_choice_coarsening : public restrictive_coarsening {
  public:
   restrictive_first_choice_coarsening(int rank, int nProcs, int nParts,
                                       int verVisOrder, int divByWt,
-                                      int divByLen);
+                                      int divByLen, std::ostream &out);
   ~restrictive_first_choice_coarsening();
 
   void display_options() const;

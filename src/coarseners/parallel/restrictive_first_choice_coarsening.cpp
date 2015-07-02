@@ -7,17 +7,17 @@
 // 31/12/2004: Last Modified
 //
 // ###
+
 #include "coarseners/parallel/restrictive_first_choice_coarsening.hpp"
-#include "utility/logging.hpp"
 
 namespace parkway {
 namespace parallel {
 
 restrictive_first_choice_coarsening::restrictive_first_choice_coarsening(
     int rank, int nProcs, int nParts, int verVisOrder, int divByWt,
-    int divByLen)
-    : restrictive_coarsening(rank, nProcs, nParts) {
-  vertex_visit_order_ = static_cast<visit_order_t>(verVisOrder - 1);
+    int divByLen, std::ostream &out)
+    : restrictive_coarsening(rank, nProcs, nParts, out) {
+  vertex_visit_order_ = verVisOrder;
   divide_by_cluster_weight_ = divByWt;
   divide_by_hyperedge_length_ = divByLen;
   limit_on_index_during_corasening_ = 0;
@@ -26,15 +26,24 @@ restrictive_first_choice_coarsening::restrictive_first_choice_coarsening(
 restrictive_first_choice_coarsening::~restrictive_first_choice_coarsening() {}
 
 void restrictive_first_choice_coarsening::display_options() const {
-  info("[Parallel Coarsener: Restrictive First Choice]\n"
-       "-- Reduction ratio: %.2f\n"
-       "-- Minimum number of nodes: %i\n"
-       "-- Vertex visit order: %s\n"
-       "-- Divide by cluster weight: %i\n"
-       "-- Divide by hyeredge length: %i\n\n",
-       reduction_ratio_, minimum_number_of_nodes_,
-       parkway::to_c_str(vertex_visit_order_),
-       divide_by_cluster_weight_, divide_by_hyperedge_length_);
+  switch (display_options_) {
+  case SILENT:
+
+    break;
+
+  default:
+
+    out_stream << "|--- PARA_RESTR_C:" << std::endl
+               << "|- PFC:"
+               << " r = " << reduction_ratio_ << " min = " << minimum_nodes_
+               << " vvo = ";
+      print_visit_order(vertex_visit_order_);
+    out_stream << " divWt = " << divide_by_cluster_weight_ << " divLen = " <<
+                                                              divide_by_hyperedge_length_
+               << std::endl
+               << "|" << std::endl;
+    break;
+  }
 }
 
 void restrictive_first_choice_coarsening::build_auxiliary_structures(int numPins,
@@ -99,18 +108,18 @@ hypergraph *restrictive_first_choice_coarsening::coarsen(hypergraph &h,
   for (i = 0; i < number_of_local_vertices_; ++i)
     vertexAdjEntry[i] = -1;
 
-  if (parkway::utility::status::handler::progress_enabled()) {
+  if (display_options_ > 1) {
     for (i = 0; i < number_of_local_vertices_; ++i) {
-      if (vertex_weights_[i] > maxLocWt) {
+      if (vertex_weights_[i] > maxLocWt)
         maxLocWt = vertex_weights_[i];
-      }
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
-    progress("-- Maximum vertex weight: %i\n"
-             "-- Maximum weight:        %i\n"
-             "-- Average vertex weight: %i\n",
-             maximum_vertex_weight_, maxWt, aveVertexWt);
+
+    if (rank_ == 0) {
+      out_stream << " " << maximum_vertex_weight_ << " " << maxWt << " " << aveVertexWt
+                 << " ";
+    }
   }
 
   metricVal = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;
@@ -296,47 +305,49 @@ void restrictive_first_choice_coarsening::permute_vertices_array(
     dynamic_array<int> &verts, int nLocVerts) {
   int i;
   switch (vertex_visit_order_) {
-    case visit_order_t::INCREASING:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      break;
+  case INCREASING_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    break;
 
-    case visit_order_t::DECREASING:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = nLocVerts - i - 1;
-      }
-      break;
+  case DECREASING_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = nLocVerts - i - 1;
+    }
+    break;
 
-    case visit_order_t::RANDOM:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.random_permutation();
-      break;
+  case RANDOM_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.random_permutation();
+    break;
 
-    case visit_order_t::INCREASING_WEIGHT:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.sort_between_using_another_array(
-          0, nLocVerts - 1, vertex_weights_, utility::sort_order::INCREASING);
-      break;
+  case INCREASING_WEIGHT_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::INCREASING);
+    break;
 
-    case visit_order_t::DECREASING_WEIGHT:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.sort_between_using_another_array(
-          0, nLocVerts - 1, vertex_weights_, utility::sort_order::DECREASING);
-      break;
+  case DECREASING_WEIGHT_ORDER:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.sort_between_using_another_array(
+        0, nLocVerts - 1, vertex_weights_,
+        parkway::utility::sort_order::DECREASING);
+    break;
 
-    default:
-      for (i = 0; i < nLocVerts; ++i) {
-        verts[i] = i;
-      }
-      verts.random_permutation();
-      break;
+  default:
+    for (i = 0; i < nLocVerts; ++i) {
+      verts[i] = i;
+    }
+    verts.random_permutation();
+    break;
   }
 }
 
@@ -356,7 +367,35 @@ void restrictive_first_choice_coarsening::set_cluster_indices(MPI_Comm comm) {
   MPI_Bcast(&total_clusters_, 1, MPI_INT, processors_ - 1, comm);
 
   for (i = 0; i < number_of_local_vertices_; ++i) {
+#ifdef DEBUG_COARSENER
+    assert(matchVector[i] != -1);
+#endif
     match_vector_[i] += minimum_cluster_index_;
+  }
+}
+
+void restrictive_first_choice_coarsening::print_visit_order(
+    int variable) const {
+  switch (variable) {
+  case INCREASING_ORDER:
+    out_stream << "inc-idx";
+    break;
+
+  case DECREASING_ORDER:
+    out_stream << "dec-idx";
+    break;
+
+  case INCREASING_WEIGHT_ORDER:
+    out_stream << "inc_wt";
+    break;
+
+  case DECREASING_WEIGHT_ORDER:
+    out_stream << "dec-wt";
+    break;
+
+  default:
+    out_stream << "rand";
+    break;
   }
 }
 

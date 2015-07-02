@@ -69,6 +69,8 @@
 
 #define RAND_SEED 117
 
+// # vertex visit order
+
 #define INCREASING_ORDER 1
 #define DECREASING_ORDER 2
 #define RANDOM_ORDER 3

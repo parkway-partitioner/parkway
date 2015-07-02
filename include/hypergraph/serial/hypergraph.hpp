@@ -44,8 +44,8 @@ class hypergraph : public parkway::base::hypergraph {
   void set_number_of_partitions(int nPartitions) override;
   void copy_out_partition(ds::dynamic_array<int> pVector, int numV, int pNo) const;
   void copy_in_partition(const ds::dynamic_array<int> pVector, int numV, int pNo, int cut);
-  void print_characteristics();
-  void print_percentiles();
+  void print_characteristics(std::ostream &o);
+  void print_percentiles(std::ostream &o);
 
   int keep_best_partition();
 

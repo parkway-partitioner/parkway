@@ -16,7 +16,8 @@
 namespace parkway {
 namespace serial {
 
-loader::loader() {
+loader::loader(int disp) {
+  dispOption = disp;
   currPercentile = 100;
   numHedges = 0;
   numVertices = 0;

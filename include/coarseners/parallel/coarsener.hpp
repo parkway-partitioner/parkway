@@ -22,13 +22,15 @@ namespace ds = parkway::data_structures;
 
 class coarsener : public loader, public parkway::base::coarsener {
  public:
-  coarsener(int rank, int number_of_processors, int number_of_parts);
+  coarsener(int rank, int number_of_processors, int number_of_parts,
+            std::ostream &out, std::string object_name = "Parallel Coarsener");
 
   virtual ~coarsener();
 
   virtual hypergraph *coarsen(hypergraph &h, MPI_Comm comm) = 0;
   virtual void set_cluster_indices(MPI_Comm comm) = 0;
   virtual void release_memory() = 0;
+  virtual void display_options() const = 0;
   virtual void build_auxiliary_structures(int numTotPins, double aveVertDeg,
                                           double aveHedgeSize) = 0;
 

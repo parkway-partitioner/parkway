@@ -18,10 +18,11 @@ class parallel_v_cycle_final_controller : public parallel_v_cycle_controller {
   parallel_v_cycle_final_controller(parallel::restrictive_coarsening &rc, parallel::coarsener &c,
                             parallel::refiner &r, parkway::serial::controller &ref, int rank,
                             int nP, int percentile, int inc, int approxRef,
-                            int limit, double limitAsPercent);
+                            int limit, double limitAsPercent, std::ostream &out);
   ~parallel_v_cycle_final_controller();
 
   void run(MPI_Comm comm);
+  void print_type() const;
 };
 
 #endif

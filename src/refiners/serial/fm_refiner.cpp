@@ -7,13 +7,13 @@
 // 30/11/2004: Last Modified
 //
 // ###
+
 #include "refiners/serial/fm_refiner.hpp"
-#include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
-fm_refiner::fm_refiner(int max, int insMethod, int ee, int dL) {
+fm_refiner::fm_refiner(int max, int insMethod, int ee, int dL) : refiner(dL) {
   bucket_arrays_length_ = 0;
   maximum_possible_gain_ = 0;
   maximum_non_positive_moves_ = 0;
@@ -40,13 +40,32 @@ fm_refiner::fm_refiner(int max, int insMethod, int ee, int dL) {
 fm_refiner::~fm_refiner() {
 }
 
-void fm_refiner::display_options() const {
-  std::string queue = (insert_method_ == FIFO) ? "FIFO" : "LIFO";
-  info("[Serial FM Refiner]\n"
-       "-- Queue:                 %s\n"
-       "-- Early exit threshold:  %i\n"
-       "-- Acceptance proportion: %f.2\n\n",
-       queue.c_str(), ee_threshold_, accept_proportion_);
+void fm_refiner::display_options(std::ostream &out) const {
+  switch (dispOption) {
+  case SILENT:
+    break;
+
+  default:
+
+    out << "|- FM:"
+        << " qDis = ";
+    printQdis(out);
+    out << " eeT = " << ee_threshold_ << " acc = " << accept_proportion_ << std::endl
+        << "|" << std::endl;
+    break;
+  }
+}
+
+void fm_refiner::printQdis(std::ostream &out) const {
+  switch (insert_method_) {
+  case FIFO:
+    out << "FIFO";
+    break;
+
+  default:
+    out << "LIFO";
+    break;
+  }
 }
 
 void fm_refiner::build_buckets() {

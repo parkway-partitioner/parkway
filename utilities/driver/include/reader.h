@@ -25,9 +25,11 @@ void initGraphStructs(int &numLocalVertices, int &numLocalHedges,
 void error(int myRank, int a, const char *note);
 
 void testRecordedPartition(const char *filename, int myRank, int numProcs,
-                           int numParts, double constraint, MPI_Comm comm);
+                           int numParts, double constraint, ostream &out,
+                           MPI_Comm comm);
 void testRecordedPartition(const char *filename, const int *pVector,
                            int numLocVerts, int myRank, int numProcs,
-                           int numParts, double constraint, MPI_Comm comm);
+                           int numParts, double constraint, ostream &out,
+                           MPI_Comm comm);
 
 #endif

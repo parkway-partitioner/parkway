@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
     }
 
     testRecordedPartition(argv[argc - 1], myRank, numProcs, numParts,
-                          constraint, MPI_COMM_WORLD);
+                          constraint, test_output, MPI_COMM_WORLD);
 
     if (myRank == 0)
       test_output << "----- completed testing recorded partition" << endl;
@@ -218,7 +218,8 @@ int main(int argc, char **argv) {
     }
 
     testRecordedPartition(argv[argc - 1], pVector, numVertices, myRank,
-                          numProcs, numParts, constraint, MPI_COMM_WORLD);
+                          numProcs, numParts, constraint, test_output,
+                          MPI_COMM_WORLD);
 
     if (myRank == 0) {
       test_output << "----- completed testing recorded partition" << endl;

@@ -1,3 +1,6 @@
+#ifndef _WEBGRAPH_SEQ_CONTROLLER_CPP
+#define _WEBGRAPH_SEQ_CONTROLLER_CPP
+
 // ### WebGraphSeqController.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -7,13 +10,12 @@
 // 07/04/2005: Last Modified
 //
 // ###
+
 #include "web_graph_serial_controller.hpp"
-#include "utility/logging.hpp"
 
 web_graph_serial_controller::web_graph_serial_controller(
-    int rank, int nProcs, int nParts)
-    : parkway::serial::controller(rank, nProcs, nParts) {
-}
+    int rank, int nProcs, int nParts, std::ostream &out)
+    : parkway::serial::controller(rank, nProcs, nParts, out) {}
 
 web_graph_serial_controller::~web_graph_serial_controller() {}
 
@@ -157,7 +159,9 @@ vertices.
   hypergraph_->set_hyperedge_offsets(hEdgeOffsets);
   hypergraph_->set_pin_list(pinList);
   hypergraph_->buildVtoHedges();
-  hypergraph_->print_characteristics();
+
+  if (display_option_ > 0 && rank_ == 0)
+    hypergraph_->print_characteristics(out_stream_);
 }
 
 void web_graph_serial_controller::initialize_serial_partitions(
@@ -315,10 +319,12 @@ void web_graph_serial_controller::initialize_serial_partitions(
   MPI_Allgatherv(pCuts.data(), keepMyPartition, MPI_INT, hPartCuts.data(),
                  recvLens.data(), recvDispls.data(), MPI_INT, comm);
 
-  if (parkway::utility::status::handler::progress_enabled()) {
-    for (i = 0; i < numKept; ++i) {
-      progress("%i ", hPartCuts[i]);
-    }
-    progress("\n");
+  if (display_option_ > 1 && rank_ == 0) {
+    for (i = 0; i < numKept; ++i)
+      out_stream_ << hPartCuts[i] << " ";
+
+    out_stream_ << std::endl;
   }
 }
+
+#endif

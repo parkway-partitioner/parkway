@@ -22,7 +22,7 @@ namespace ds = parkway::data_structures;
 class approximate_coarsener : public coarsener {
  public:
   approximate_coarsener(int _rank, int _numProcs, int _numParts,
-                        int percentile, int inc);
+                        int percentile, int inc, std::ostream &out);
 
   virtual ~approximate_coarsener();
 

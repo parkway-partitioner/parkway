@@ -14,9 +14,10 @@
 namespace parkway {
 namespace parallel {
 
-approximate_coarsener::approximate_coarsener(
-    int _rank, int processors, int _numParts, int percentile, int inc)
-    : coarsener(_rank, processors, _numParts) {
+approximate_coarsener::approximate_coarsener(int _rank, int processors,
+                                         int _numParts, int percentile, int inc,
+                                         std::ostream &out)
+    : coarsener(_rank, processors, _numParts, out) {
   startPercentile = percentile;
   currPercentile = percentile;
   increment = inc;
@@ -80,9 +81,19 @@ void approximate_coarsener::compute_hyperedges_to_load(
 
   myPercentileLen = hEdgeLens[hEdges[i]];
 
+  MPI_Barrier(comm);
+  std::cout << "myPercentileLen = " << myPercentileLen << std::endl;
+  MPI_Barrier(comm);
+
   MPI_Allreduce(&myPercentileLen, &percentileLen, 1, MPI_INT, MPI_MAX, comm);
 
   MPI_Barrier(comm);
+  if (rank_ == 0) {
+    std::cout << "percentileLen = " << percentileLen << std::endl;
+    std::cout << "maxHedgeLen = " << maxLen << std::endl;
+    std::cout << "aveLen = " << aveLen << std::endl;
+    std::cout << "currPercentile = " << currPercentile << std::endl;
+  }
 
   for (; i < numH; ++i)
     if (hEdgeLens[hEdges[i]] > percentileLen)

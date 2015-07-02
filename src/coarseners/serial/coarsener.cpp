@@ -15,8 +15,11 @@ namespace parkway {
 namespace serial {
 namespace ds = parkway::data_structures;
 
-coarsener::coarsener(int minimum_number_of_nodes, int max_weight, double ratio)
-    : parkway::base::coarsener(max_weight, minimum_number_of_nodes, ratio) {
+coarsener::coarsener(int minimum_number_of_nodes, int max_weight, double ratio,
+                     int display_option, std::string object_name)
+    : loader(display_option),
+      parkway::base::coarsener(object_name, max_weight,
+                               minimum_number_of_nodes, ratio) {
 }
 
 coarsener::~coarsener() {}

@@ -1,17 +1,17 @@
+
 #include "parallel_v_cycle_controller.hpp"
 #include "data_structures/complete_binary_tree.hpp"
-#include "utility/logging.hpp"
 
 namespace ds = parkway::data_structures;
 
-parallel_v_cycle_controller::parallel_v_cycle_controller(
-    parallel::restrictive_coarsening &rc, parallel::coarsener &c,
-    parallel::refiner &r, parkway::serial::controller &ref, int rank, int nP,
-    int percentile, int inc, int approxRef, int limit, double limitAsPercent,
-    std::string type)
-    : parallel::controller(c, r, ref, rank, nP, percentile, inc, approxRef),
-      restrictive_coarsening_(rc),
-      type_(type) {
+parallel_v_cycle_controller::parallel_v_cycle_controller(parallel::restrictive_coarsening &rc,
+                                                         parallel::coarsener &c, parallel::refiner &r,
+                                           parkway::serial::controller &ref, int rank, int nP,
+                                           int percentile, int inc,
+                                           int approxRef, int limit,
+                                           double limitAsPercent, std::ostream &out)
+    : parallel::controller(c, r, ref, rank, nP, percentile, inc, approxRef, out),
+      restrictive_coarsening_(rc) {
   if (limit)
     limit_on_cycles_ = limit;
   else
@@ -31,22 +31,28 @@ parallel_v_cycle_controller::parallel_v_cycle_controller(
 parallel_v_cycle_controller::~parallel_v_cycle_controller() {}
 
 void parallel_v_cycle_controller::display_options() const {
-  info("[Parallel Controller: V Cycler]\n"
-       "-- Number of parts:             %i\n"
-       "-- Parallel runs:               %i\n"
-       "-- Keep partition within:       %.2f\n"
-       "-- Reduction in keep threshold: %.2f\n"
-       "-- Approximate refine:          %i\n"
-       "-- Write partition to file:     %i\n"
-       "-- Type:                        %s\n"
-       "-- Limit on cycles:             %i\n"
-       "-- Limit as percent of cut:     %.2f\n"
-       "-- Start percentile:            %i\n"
-       "-- Percentile increment:        %i\n",
-       number_of_runs_, keep_partitions_within_, reduction_in_keep_threshold_,
-       approximate_refine_, write_partition_to_file_, type_.c_str(),
-       limit_on_cycles_, limit_as_percent_of_cut_, start_percentile_,
-       percentile_increment_);
+  switch (display_option_) {
+  case SILENT:
+    break;
+
+  default:
+
+    out_stream_ << "|--- PARA_CONTR (# parts = " << total_number_of_parts_
+               << "): " << std::endl
+               << "|- VCYCLE:"
+               << " pRuns = " << number_of_runs_ << " kT = " <<
+                                                    keep_partitions_within_
+               << " rKT = " << reduction_in_keep_threshold_
+               << " appRef = " << approximate_refine_
+               << " wTF = " << write_partition_to_file_;
+      print_type();
+    out_stream_ << " lim = " << limit_on_cycles_ << " %min = " <<
+                                                   limit_as_percent_of_cut_
+               << " start %le = " << start_percentile_
+               << " %le inc = " << percentile_increment_ << std::endl
+               << "|" << std::endl;
+    break;
+  }
 }
 
 void parallel_v_cycle_controller::set_weight_constraints(MPI_Comm comm) {
