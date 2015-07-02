@@ -29,10 +29,11 @@ if(NOT CMAKE_BUILD_TYPE)
       Release RelWithDebInfo." FORCE)
 endif()
 
-if(NOT PARKWAY_TESTS)
-  set(PARKWAY_TESTS false CACHE BOOL
-      "Choose to build with tests, options are: true false." FORCE)
-endif()
+option(PARKWAY_TESTS
+  "Build with tests, options are: true|false." OFF)
+option(PARKWAY_USE_COVERALLS
+  "Generate coveralls data (tests must also be enabled), options are:
+   true|false" OFF)
 
 # Add -Wall and -pedantic if GCC / Clang and building in debug mode.
 if(${CMAKE_BUILD_TYPE} STREQUAL "debug")
@@ -50,6 +51,8 @@ find_package(MPI REQUIRED)
 find_package(Boost COMPONENTS log_setup log thread system REQUIRED)
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
+# Add extra cmake scripts to the module path.
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${MAINFOLDER}/cmake")
 
 
 ### Testing framework #########################################################
