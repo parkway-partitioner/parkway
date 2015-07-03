@@ -1,6 +1,5 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
-
 // ### Macros.h ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London

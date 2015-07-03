@@ -10,3 +10,4 @@ logs
 *.part.*
 *.swp
 test_output.*
+include/configuration.hpp

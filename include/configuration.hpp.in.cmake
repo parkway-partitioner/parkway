@@ -1,0 +1,3 @@
+#cmakedefine PARKWAY_LINK_PATOH
+#cmakedefine PARKWAY_LINK_HMETIS
+#cmakedefine PARKWAY_UINT_KEY

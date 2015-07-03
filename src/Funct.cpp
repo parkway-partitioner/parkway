@@ -6,8 +6,8 @@
 // 12/1/2005: Last Modified
 //
 // ###
-
 #include "Funct.hpp"
+#include "utility/logging.hpp"
 #include <cstring>
 #include <cassert>
 
@@ -186,12 +186,12 @@ void Funct::qsortByAnotherArray(const int left, const int right, int *array,
   }
 }
 
-void Funct::printIntro(std::ostream &out) {
-  out << std::endl << " ------- PARKWAY2.0 -------" << std::endl << "|" << std::endl;
+void Funct::printIntro() {
+  info("\n ------- PARKWAY2.0 -------\n|\n");
 }
 
-void Funct::printEnd(std::ostream &out) {
-  out << " --------------------------" << std::endl << std::endl;
+void Funct::printEnd() {
+  info(" --------------------------\n\n");
 }
 
 void Funct::printMemUse(int myRank, const char *info) {

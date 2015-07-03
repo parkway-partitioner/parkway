@@ -38,12 +38,6 @@
 #define SLIDE2 48
 #endif
 
-// ### display options
-
-#define SILENT 0
-#define OPT_ONLY 1
-#define DISP_ALL 2
-
 // # random seed
 
 #define RAND_SEED 117

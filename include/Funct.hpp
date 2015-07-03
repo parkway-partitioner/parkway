@@ -36,7 +36,7 @@
 /* useful macros */
 
 #define RotateLeft(a, b)                                                       \
-  (b > (sizeof(HashKey)) ? (0) : ( ((a >> sizeof(HashKey) - b)) | (a << b) ))
+  (b > (sizeof(HashKey)) ? (0) : ( ((a >> (sizeof(HashKey) - b))) | (a << b) ))
 #ifdef USE_SPRNG
 #define RANDOM(a, b)                                                           \
   ((a) == (b) ? (a) : (static_cast<int>((sprng()) * ((b) - (a))) + (a)))
@@ -131,8 +131,8 @@ class Funct {
     return 1;
   }
 
-  static void printIntro(std::ostream &out);
-  static void printEnd(std::ostream &out);
+  static void printIntro();
+  static void printEnd();
   static void printMemUse(int myRank, const char *info);
 
   static void initStartMem();

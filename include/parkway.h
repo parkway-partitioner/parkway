@@ -15,6 +15,7 @@
 void k_way_partition(const char *file_name, const char *out_file, int num_parts,
                      double constraint, int &k_1cut, const int *options,
                      MPI_Comm comm);
+
 void k_way_partition(int numVertices, int numHedges, const int *vWeights,
                      const int *hEdgeWts, const int *offsets,
                      const int *pinList,

@@ -34,6 +34,16 @@ option(PARKWAY_TESTS
 option(PARKWAY_USE_COVERALLS
   "Generate coveralls data (tests must also be enabled), options are:
    true|false" OFF)
+option(PARKWAY_LINK_HMETIS "Link hMETIS" OFF)
+option(PARKWAY_LINK_PATOH "Link PaToH" OFF)
+option(PARKWAY_UINT_KEY "Use an insigned integer hash key" ON)
+
+# Set up the configuration file.
+configure_file (
+  "${MAINFOLDER}/include/configuration.hpp.in.cmake"
+  "${MAINFOLDER}/include/configuration.hpp"
+)
+
 
 # Add -Wall and -pedantic if GCC / Clang and building in debug mode.
 if(${CMAKE_BUILD_TYPE} STREQUAL "debug")

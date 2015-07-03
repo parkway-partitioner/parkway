@@ -33,7 +33,6 @@ int main(int argc, char **argv) {
   int numProcs;
   int numParts;
 
-  char testFile[512];
   char *outputFile;
 
   double constraint;
@@ -75,8 +74,6 @@ int main(int argc, char **argv) {
   }
 
   /* PROCESS COMMAND LINE */
-  sprintf(testFile, "test_output.%d.txt", numProcs);
-  ofstream test_output(testFile, ofstream::app | ofstream::out);
   parkway::utility::logging::set_log_file("logs/parkway_driver", myRank);
 
   outputFile = Funct::getParameterAsCharPtr(argc, argv, "-oFile", nullptr);
@@ -156,7 +153,7 @@ int main(int argc, char **argv) {
     // TESTING ParaPartKway(char*, char*, int, double, int&, int*, MPI_Comm)
 
     if (myRank == 0) {
-      test_output << "----- testing "
+      std::cout << "----- testing "
                      "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm): "
                   << endl;
     }
@@ -165,16 +162,16 @@ int main(int argc, char **argv) {
                     options, MPI_COMM_WORLD);
 
     if (myRank == 0) {
-      test_output << "----- completed ParaPartKway, best cut = " << bestCut
+      std::cout << "----- completed ParaPartKway, best cut = " << bestCut
                   << " -----" << endl;
-      test_output << "----- testing recorded partition: " << endl;
+      std::cout << "----- testing recorded partition: " << endl;
     }
 
     testRecordedPartition(argv[argc - 1], myRank, numProcs, numParts,
-                          constraint, test_output, MPI_COMM_WORLD);
+                          constraint, std::cout, MPI_COMM_WORLD);
 
     if (myRank == 0)
-      test_output << "----- completed testing recorded partition" << endl;
+      std::cout << "----- completed testing recorded partition" << endl;
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -201,7 +198,7 @@ int main(int argc, char **argv) {
     }
 
     if (myRank == 0) {
-      test_output << "----- testing "
+      std::cout << "----- testing "
                      "ParaPartKway(int,int,int*,int*,int*,int*,int,double,int&,"
                      "int*,int*,char*,MPI_Comm): " << endl;
     }
@@ -212,17 +209,17 @@ int main(int argc, char **argv) {
                     MPI_COMM_WORLD);
 
     if (myRank == 0) {
-      test_output << "----- tested ParaPartKway, best cut = " << bestCut
+      std::cout << "----- tested ParaPartKway, best cut = " << bestCut
                   << " -----" << endl;
-      test_output << "----- testing recorded partition: " << endl;
+      std::cout << "----- testing recorded partition: " << endl;
     }
 
     testRecordedPartition(argv[argc - 1], pVector, numVertices, myRank,
-                          numProcs, numParts, constraint, test_output,
+                          numProcs, numParts, constraint, std::cout,
                           MPI_COMM_WORLD);
 
     if (myRank == 0) {
-      test_output << "----- completed testing recorded partition" << endl;
+      std::cout << "----- completed testing recorded partition" << endl;
     }
 
     if (vWeights)

@@ -1,6 +1,3 @@
-#ifndef _UTILS_CPP
-#define _UTILS_CPP
-
 // ### Utils.cpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -17,7 +14,7 @@ using namespace std;
 
 parallel::coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
                                          int num_parts, double constraint,
-                                         parallel::hypergraph *h, ostream &out,
+                                         parallel::hypergraph *h,
                                          const int *options, MPI_Comm comm) {
   parallel::coarsener *c = nullptr;
 
@@ -107,7 +104,7 @@ parallel::coarsener *Utils::buildParaCoarsener(int my_rank, int num_proc,
 
 parallel::restrictive_coarsening *Utils::buildParaRestrCoarsener(
     int my_rank, int num_proc, int num_parts, double constraint,
-    parallel::hypergraph *h, ostream &out, const int *options, MPI_Comm comm) {
+    parallel::hypergraph *h, const int *options, MPI_Comm comm) {
   int coarsener_type = ParaRestFCC;
   int min_nodes = options[8];
 
@@ -157,7 +154,7 @@ parallel::restrictive_coarsening *Utils::buildParaRestrCoarsener(
 
 parallel::refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_parts,
                                      double constraint, parallel::hypergraph *h,
-                                     std::ostream &out, const int *options,
+                                     const int *options,
                                      MPI_Comm comm) {
   int refiner_type = ParaGreedyKway;
   int numTotPins = h->total_number_of_pins(comm);
@@ -185,7 +182,7 @@ parallel::refiner *Utils::buildParaRefiner(int my_rank, int num_proc, int num_pa
 
 serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
                                          int num_parts, double constraint,
-                                         ostream &out, const int *options) {
+                                         const int *options) {
   int numSeqRuns = options[14];
   int seqControllerType = options[15];
 
@@ -422,7 +419,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double paraKeepT = DEF_PARA_KEEP_THRESHOLD;
 
     seqC = new KHMetisController(k, my_rank, num_proc, num_parts,
-                                 seq_options.getArray(), out);
+                                 seq_options.getArray();
 
     seqC->setAcceptProp(paraKeepT);
     seqC->setNumSeqRuns(numSeqRuns);
@@ -447,8 +444,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
 
     double paraKeepT = DEF_PARA_KEEP_THRESHOLD;
 
-    seqC =
-        new PaToHController(k, my_rank, num_proc, num_parts, options[21], out);
+    seqC = new PaToHController(k, my_rank, num_proc, num_parts, options[21]);
 
     seqC->setAcceptProp(paraKeepT);
     seqC->setNumSeqRuns(numSeqRuns);
@@ -467,7 +463,7 @@ parallel::controller *Utils::buildParaController(
     int my_rank, int num_proc, int num_parts, int num_tot_verts,
     double constraint, parallel::coarsener *c,
     parallel::restrictive_coarsening *rc, parallel::refiner *r,
-    serial::controller *s, ostream &out, const int *options, MPI_Comm comm) {
+    serial::controller *s, const int *options, MPI_Comm comm) {
   int paraControllerType = options[22];
   int numParaRuns = options[4];
   int shuffleVertices = options[5];
@@ -530,7 +526,7 @@ parallel::controller *Utils::buildParaController(
         sprintf(message,
                 "p[%d] no ParaRestrCoarsener - create basic controller\n",
                 my_rank);
-        out << message;
+        cout << message;
       }
 
       if (noCoarsening && my_rank == 0) {
@@ -538,7 +534,7 @@ parallel::controller *Utils::buildParaController(
                 "p[%d] max coarse hypergraph size > orig hypergraph size - no "
                 "v-cycles possible\n",
                 my_rank);
-        out << message;
+        cout << message;
       }
 
       paraC = new parallel::basic_contoller(*c, *r, *s, my_rank, num_proc, percentile,
@@ -791,7 +787,7 @@ void Utils::initDefaultValues(const int *userOptions, int *programOptions) {
 }
 
 void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
-                               int paraOption, ostream &out, MPI_Comm comm) {
+                               int paraOption, MPI_Comm comm) {
   int my_rank;
   MPI_Comm_rank(comm, &my_rank);
 
@@ -799,7 +795,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
     if (!Funct::isPowerOf2(num_procs)) {
       MPI_Barrier(comm);
       if (my_rank == 0)
-        out << "number of processors must be a power of two when using "
+        cout << "number of processors must be a power of two when using "
                "parallel V-Cycling - abort\n";
 
       MPI_Abort(comm, 0);
@@ -808,7 +804,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
     if (num_parts < num_procs || num_parts % num_procs > 0) {
       MPI_Barrier(comm);
       if (my_rank == 0)
-        out << "number of parts in partition must be divisible by number of "
+        cout << "number of parts in partition must be divisible by number of "
                "processors when using parallel V-Cycling - abort\n";
 
       MPI_Abort(comm, 0);
@@ -817,7 +813,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
     if (seqOption <= 3 && !Funct::isPowerOf2(num_parts)) {
       MPI_Barrier(comm);
       if (my_rank == 0)
-        out << "number of parts in partition must be a power of two when using "
+        cout << "number of parts in partition must be a power of two when using "
                "generic recursive bisection - abort\n";
 
       MPI_Abort(comm, 0);
@@ -826,7 +822,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
     if (num_procs < 2) {
       MPI_Barrier(comm);
       if (my_rank == 0)
-        out << "number of processors must be greater than one - abort\n";
+        cout << "number of processors must be greater than one - abort\n";
 
       MPI_Abort(comm, 0);
     }
@@ -834,7 +830,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
     if (num_parts < 2) {
       MPI_Barrier(comm);
       if (my_rank == 0)
-        out << "number of parts must be greater than one - abort\n";
+        cout << "number of parts must be greater than one - abort\n";
 
       MPI_Abort(comm, 0);
     }
@@ -842,11 +838,9 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
     if (seqOption <= 3 && !Funct::isPowerOf2(num_parts)) {
       MPI_Barrier(comm);
       if (my_rank == 0)
-        out << "number of parts must be a power of two when using generic "
+        cout << "number of parts must be a power of two when using generic "
                "recursive bisection - abort\n";
       MPI_Abort(comm, 0);
     }
   }
 }
-
-#endif
