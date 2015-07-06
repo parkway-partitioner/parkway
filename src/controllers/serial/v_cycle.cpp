@@ -7,25 +7,24 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "v_cycle_bisection_controller.hpp"
+#include "controllers/serial/v_cycle.hpp"
 #include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
-v_cycle_bisection_controller::v_cycle_bisection_controller(
+v_cycle::v_cycle(
     const int nRuns, const double kT, const double redFactor, int eeParam,
     int percentile, int inc)
     : bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc) {
   restrictive_coarsener_ = nullptr;
-
   v_cycle_partition_.reserve(0);
 }
 
-v_cycle_bisection_controller::~v_cycle_bisection_controller() {
+v_cycle::~v_cycle() {
 }
 
-void v_cycle_bisection_controller::display_options() const {
+void v_cycle::display_options() const {
   assert(coarsener_ && initial_bisector_ && refiner_ && restrictive_coarsener_);
   info("|- V-CYC BSECTOR: kT = %.2f rF = %.2f percentile = %i increment = %i",
        keep_threshold_, reduction_factor_, start_percentile_,
@@ -38,7 +37,7 @@ void v_cycle_bisection_controller::display_options() const {
   refiner_->display_options();
 }
 
-void v_cycle_bisection_controller::build_restrictive_coarsener(double redRatio,
+void v_cycle::build_restrictive_coarsener(double redRatio,
                                                                int cType,
                                                                int minNodes) {
   switch (cType) {
@@ -69,7 +68,7 @@ void v_cycle_bisection_controller::build_restrictive_coarsener(double redRatio,
   }
 }
 
-void v_cycle_bisection_controller::record_v_cycle_partition(
+void v_cycle::record_v_cycle_partition(
     ds::dynamic_array<int> pVector, int numV) {
   v_cycle_partition_ = pVector;
   for (int i = 0; i < numV; ++i) {
@@ -77,7 +76,7 @@ void v_cycle_bisection_controller::record_v_cycle_partition(
   }
 }
 
-void v_cycle_bisection_controller::store_best_partition(
+void v_cycle::store_best_partition(
     ds::dynamic_array<int> pVector, int numV) {
   for (int i = 0; i < numV; ++i) {
     best_partition_[i] = pVector[i];

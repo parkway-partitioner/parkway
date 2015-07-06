@@ -7,7 +7,7 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "bisection_controller.hpp"
+#include "controllers/serial/bisection_controller.hpp"
 #include "utility/logging.hpp"
 
 namespace parkway {

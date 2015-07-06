@@ -9,23 +9,23 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "bisection_controller.hpp"
+#include "data_structures/dynamic_array.hpp"
+#include "controllers/serial/bisection_controller.hpp"
 #include "coarseners/serial/restrictive_first_choice_coarsener.hpp"
 
 namespace parkway {
 namespace serial {
 namespace ds = parkway::data_structures;
 
-class v_cycle_bisection_controller : public bisection_controller {
+class v_cycle : public bisection_controller {
  protected:
   ds::dynamic_array<int> v_cycle_partition_;
   restrictive_coarsener *restrictive_coarsener_;
 
  public:
-  v_cycle_bisection_controller(const int nRuns, const double kT,
-                               const double redFactor, int eeParam,
-                               int percentile, int inc);
-  virtual ~v_cycle_bisection_controller();
+  v_cycle(const int nRuns, const double kT, const double redFactor, int eeParam,
+          int percentile, int inc);
+  virtual ~v_cycle();
 
   void display_options() const;
   void build_restrictive_coarsener(double rRatio, int cType, int minV);

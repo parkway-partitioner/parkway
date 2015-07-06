@@ -7,21 +7,24 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "parallel_v_cycle_all_controller.hpp"
+#include "controllers/parallel/v_cycle_all.hpp"
 #include "utility/logging.hpp"
 
-parallel_v_cycle_all_controller::parallel_v_cycle_all_controller(
-    parallel::restrictive_coarsening &rc, parallel::coarsener &c, parallel::refiner &r,
-    parkway::serial::controller &ref, int rank, int nP, int percentile, int inc,
-    int approxRef, int limit, double limitAsPercent)
-    : parallel_v_cycle_controller(rc, c, r, ref, rank, nP, percentile, inc,
-                                  approxRef, limit, limitAsPercent) {
+namespace parkway {
+namespace parallel {
+
+v_cycle_all::v_cycle_all(
+    parallel::restrictive_coarsening &rc, parallel::coarsener &c,
+    parallel::refiner &r, parkway::serial::controller &ref, int rank, int nP,
+    int percentile, int inc, int approxRef, int limit, double limitAsPercent)
+    : parkway::parallel::v_cycle(rc, c, r, ref, rank, nP, percentile, inc,
+                                 approxRef, limit, limitAsPercent) {
 }
 
-parallel_v_cycle_all_controller::~parallel_v_cycle_all_controller() {
+v_cycle_all::~v_cycle_all() {
 }
 
-void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
+void v_cycle_all::run(MPI_Comm comm) {
   int i;
   int firstCutSize;
   int secondCutSize;
@@ -391,6 +394,9 @@ void parallel_v_cycle_all_controller::run(MPI_Comm comm) {
        percentRefinement, percentOther);
 }
 
-void parallel_v_cycle_all_controller::print_type() const {
+void v_cycle_all::print_type() const {
   info(" type = ALL");
 }
+
+}  // namespace parallel
+}  // namespace parkway

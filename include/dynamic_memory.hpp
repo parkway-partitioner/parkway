@@ -1,6 +1,5 @@
 #ifndef _DYNA_MEM_HPP
 #define _DYNA_MEM_HPP
-
 // ### DynaMem.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -11,9 +10,6 @@
 // 20/12/2004: Last Modified
 //
 // ###
-
-// for debug purposes, remove dependence on MemoryTracker
-//#  include "MemoryTracker.hpp"
 #include <memory>
 
 namespace dynamic_memory {

@@ -7,7 +7,6 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include "Utils.h"
 
 using namespace std;
@@ -259,9 +258,9 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    serial::v_cycle_all_bisection_controller *bC =
-        new serial::v_cycle_all_bisection_controller(
-            numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc);
+    serial::v_cycle_all *bC = new serial::v_cycle_all(numBisectRuns, keepT,
+                                                      redFactor, eeParam,
+                                                      startPercentile, inc);
 
     // ###
     // build the serial coarsener
@@ -329,8 +328,7 @@ serial::controller *Utils::buildSeqController(int my_rank, int num_proc,
     double keepT = DEF_KEEP_THRESHOLD;
     double redFactor = DEF_REDUC_FACTOR;
 
-    serial::v_cycle_final_bisection_controller *bC =
-        new serial::v_cycle_final_bisection_controller(
+    serial::v_cycle_final *bC = new serial::v_cycle_final(
             numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc);
 
     // ###
@@ -508,11 +506,9 @@ parallel::controller *Utils::buildParaController(
       int limitOnCycles = options[23];
       double limitAsPercent = static_cast<double>(options[24]) / 100;
 
-      paraC = new parallel_v_cycle_final_controller(*rc, *c, *r, *s, my_rank,
-                                                    num_proc, percentile,
-                                                    perCentInc, approxRef,
-                                                    limitOnCycles,
-                                                    limitAsPercent);
+      paraC = new parkway::parallel::v_cycle_final(
+          *rc, *c, *r, *s, my_rank, num_proc, percentile, perCentInc, approxRef,
+          limitOnCycles, limitAsPercent);
     }
   }
 
@@ -543,9 +539,9 @@ parallel::controller *Utils::buildParaController(
       int limitOnCycles = options[23];
       double limitAsPercent = static_cast<double>(options[24]) / 100;
 
-      paraC = new parallel_v_cycle_all_controller(*rc, *c, *r, *s, my_rank, num_proc,
-                                          percentile, perCentInc, approxRef,
-                                          limitOnCycles, limitAsPercent);
+      paraC = new parkway::parallel::v_cycle_all(
+          *rc, *c, *r, *s, my_rank, num_proc, percentile, perCentInc, approxRef,
+          limitOnCycles, limitAsPercent);
     }
   }
 

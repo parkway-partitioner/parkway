@@ -7,7 +7,7 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "recursive_bisection_contoller.hpp"
+#include "controllers/serial/recursive_bisection_contoller.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 #include "utility/logging.hpp"

@@ -1,10 +1,11 @@
-#include "parallel_v_cycle_controller.hpp"
+#include "controllers/parallel/v_cycle.hpp"
 #include "data_structures/complete_binary_tree.hpp"
 #include "utility/logging.hpp"
 
-namespace ds = parkway::data_structures;
+namespace parkway {
+namespace parallel {
 
-parallel_v_cycle_controller::parallel_v_cycle_controller(
+v_cycle::v_cycle(
     parallel::restrictive_coarsening &rc, parallel::coarsener &c,
     parallel::refiner &r, parkway::serial::controller &ref, int rank, int nP,
     int percentile, int inc, int approxRef, int limit, double limitAsPercent)
@@ -26,9 +27,9 @@ parallel_v_cycle_controller::parallel_v_cycle_controller(
   map_to_orig_vertices_.reserve(0);
 }
 
-parallel_v_cycle_controller::~parallel_v_cycle_controller() {}
+v_cycle::~v_cycle() {}
 
-void parallel_v_cycle_controller::display_options() const {
+void v_cycle::display_options() const {
   info("|--- PARA_CONTR (# parts = %i)\n"
        "|- VCYCLE:  pRuns = %i kT = %.2f rkT = %.2f appRef = %i wTF = %i",
        total_number_of_parts_, number_of_runs_, keep_partitions_within_,
@@ -40,7 +41,7 @@ void parallel_v_cycle_controller::display_options() const {
        percentile_increment_);
 }
 
-void parallel_v_cycle_controller::set_weight_constraints(MPI_Comm comm) {
+void v_cycle::set_weight_constraints(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
   assert(hgraph);
   assert(numTotalParts != -1);
@@ -71,7 +72,7 @@ void parallel_v_cycle_controller::set_weight_constraints(MPI_Comm comm) {
   serial_controller_.set_maximum_vertex_weight(maxVertWt);
 }
 
-void parallel_v_cycle_controller::record_v_cycle_partition(
+void v_cycle::record_v_cycle_partition(
     const parallel::hypergraph &h, int numIteration) {
 #ifdef DEBUG_CONTROLLER
   assert(numIteration >= 0);
@@ -122,7 +123,7 @@ void parallel_v_cycle_controller::record_v_cycle_partition(
 #endif
 }
 
-void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergraph &h,
+void v_cycle::gather_in_v_cycle_partition(parallel::hypergraph &h,
                                                               int cut,
                                                               MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
@@ -262,7 +263,7 @@ void parallel_v_cycle_controller::gather_in_v_cycle_partition(parallel::hypergra
   h.set_cut(0, cut);
 }
 
-void parallel_v_cycle_controller::project_v_cycle_partition(
+void v_cycle::project_v_cycle_partition(
     parallel::hypergraph &cG, parallel::hypergraph &fG, MPI_Comm comm) {
   // function spec:
   // if mapToInterVerts is empty (i.e. the map to the
@@ -537,7 +538,7 @@ void parallel_v_cycle_controller::project_v_cycle_partition(
     map_to_inter_vertices_[i] = minimum_inter_vertex_index_ + i;
 }
 
-void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
+void v_cycle::shuffle_v_cycle_vertices_by_partition(
     parallel::hypergraph &h, MPI_Comm comm) {
   // function spec:
   // as the vertices are shuffled modify the mapToInterVerts
@@ -690,7 +691,7 @@ void parallel_v_cycle_controller::shuffle_v_cycle_vertices_by_partition(
   map_to_inter_vertices_ = newToInter;
 }
 
-void parallel_v_cycle_controller::shift_v_cycle_vertices_to_balance(
+void v_cycle::shift_v_cycle_vertices_to_balance(
     parallel::hypergraph &h, MPI_Comm comm) {
   // function spec:
   // as the vertices are shuffled modify the mapToInterVerts
@@ -775,7 +776,7 @@ void parallel_v_cycle_controller::shift_v_cycle_vertices_to_balance(
   map_to_inter_vertices_ = *newToInter;
 }
 
-void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
+void v_cycle::update_map_to_orig_vertices(MPI_Comm comm) {
 #ifdef DEBUG_CONTROLLER
   int numLocalVertices = hgraph->getNumLocalVertices();
 #endif
@@ -915,7 +916,7 @@ void parallel_v_cycle_controller::update_map_to_orig_vertices(MPI_Comm comm) {
   map_to_orig_vertices_ = newMapToOrig;
 }
 
-void parallel_v_cycle_controller::reset_structures() {
+void v_cycle::reset_structures() {
     hypergraph_->reset_vectors();
 
   map_to_inter_vertices_.reserve(0);
@@ -925,3 +926,6 @@ void parallel_v_cycle_controller::reset_structures() {
   assert(bestVCyclePartition.getNumElem() == 0);
 #endif
 }
+
+}  // namespace parallel
+}  // namespace parkway

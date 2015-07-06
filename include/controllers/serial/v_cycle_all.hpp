@@ -9,17 +9,16 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
-#include "v_cycle_bisection_controller.hpp"
+#include "controllers/serial/v_cycle.hpp"
 
 namespace parkway {
 namespace serial {
 
-class v_cycle_all_bisection_controller : public v_cycle_bisection_controller {
+class v_cycle_all : public parkway::serial::v_cycle {
  public:
-  v_cycle_all_bisection_controller(int nRuns, double kT, double redFactor,
-                                   int eeParam, int percentile, int inc);
-  ~v_cycle_all_bisection_controller();
+  v_cycle_all(int nRuns, double kT, double redFactor, int eeParam,
+              int percentile, int inc);
+  ~v_cycle_all();
 
   void print_type() const;
   void compute_bisection();

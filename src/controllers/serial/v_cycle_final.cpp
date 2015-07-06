@@ -7,25 +7,25 @@
 // 4/1/2005: Last Modified
 //
 // ###
-#include "v_cycle_final_bisection_controller.hpp"
+#include "controllers/serial/v_cycle_final.hpp"
 #include "utility/logging.hpp"
 
 namespace parkway {
 namespace serial {
 
-v_cycle_final_bisection_controller::v_cycle_final_bisection_controller(
+v_cycle_final::v_cycle_final(
     int nRuns, double kT, double redFactor, int eeParam, int percentile,
     int inc)
-    : v_cycle_bisection_controller(nRuns, kT, redFactor, eeParam, percentile, inc) {
+    : parkway::serial::v_cycle(nRuns, kT, redFactor, eeParam, percentile, inc) {
 }
 
-v_cycle_final_bisection_controller::~v_cycle_final_bisection_controller() {}
+v_cycle_final::~v_cycle_final() {}
 
-void v_cycle_final_bisection_controller::print_type() const {
+void v_cycle_final::print_type() const {
   info(" type = BIG");
 }
 
-void v_cycle_final_bisection_controller::compute_bisection() {
+void v_cycle_final::compute_bisection() {
   serial::hypergraph *origGraph = hypergraphs_.top();
   serial::hypergraph *coarseGraph;
   serial::hypergraph *finerGraph;

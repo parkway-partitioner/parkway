@@ -1,6 +1,5 @@
 #ifndef _RECUR_BISECT_CONTROLLER_HPP
 #define _RECUR_BISECT_CONTROLLER_HPP
-
 // ### RecurBisectController.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -17,14 +16,12 @@
 // an unbalanced partition
 //
 // ###
-
 #include "internal/serial_controller.hpp"
-#include "v_cycle_final_bisection_controller.hpp"
-#include "v_cycle_all_bisection_controller.hpp"
+#include "controllers/serial/v_cycle_final.hpp"
+#include "controllers/serial/v_cycle_all.hpp"
+#include "controllers/serial/bisection.hpp"
 #include "refiners/serial/greedy_k_way_refiner.hpp"
-#include "bisection.hpp"
 #include "hypergraph/parallel/hypergraph.hpp"
-
 namespace parallel = parkway::parallel;
 
 class recursive_bisection_contoller : public parkway::serial::controller {

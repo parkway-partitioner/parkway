@@ -13,7 +13,7 @@
 //   then extend idea to v-cycle refinement
 //
 // ###
-#include "basic_contoller.hpp"
+#include "controllers/parallel/basic_contoller.hpp"
 #include <stack>
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "utility/logging.hpp"

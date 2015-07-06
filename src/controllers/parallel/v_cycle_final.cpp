@@ -7,20 +7,23 @@
 // 10/1/2005: Last Modified
 //
 // ###
-#include "parallel_v_cycle_final_controller.hpp"
+#include "controllers/parallel/v_cycle_final.hpp"
 #include "utility/logging.hpp"
 
-parallel_v_cycle_final_controller::parallel_v_cycle_final_controller(
+namespace parkway {
+namespace parallel {
+
+v_cycle_final::v_cycle_final(
     parallel::restrictive_coarsening &rc, parallel::coarsener &c, parallel::refiner &r,
     parkway::serial::controller &ref, int rank, int nP, int percentile, int inc,
     int approxRef, int limit, double limitAsPercent)
-    : parallel_v_cycle_controller(rc, c, r, ref, rank, nP, percentile, inc,
-                                  approxRef, limit, limitAsPercent) {
+    : parkway::parallel::v_cycle(rc, c, r, ref, rank, nP, percentile, inc,
+                                 approxRef, limit, limitAsPercent) {
 }
 
-parallel_v_cycle_final_controller::~parallel_v_cycle_final_controller() {}
+v_cycle_final::~v_cycle_final() {}
 
-void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
+void v_cycle_final::run(MPI_Comm comm) {
   int hEdgePercentile;
   int firstCutSize;
   int secondCutSize;
@@ -380,6 +383,9 @@ void parallel_v_cycle_final_controller::run(MPI_Comm comm) {
        percentRefinement, percentOther);
 }
 
-void parallel_v_cycle_final_controller::print_type() const {
+void v_cycle_final::print_type() const {
   info(" type = BIG");
 }
+
+}  // namespace parallel
+}  // namespace parkway

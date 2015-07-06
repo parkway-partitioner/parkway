@@ -7,7 +7,7 @@
 // 07/04/2005: Last Modified
 //
 // ###
-#include "web_graph_serial_controller.hpp"
+#include "controllers/serial/web_graph_serial_controller.hpp"
 #include "utility/logging.hpp"
 
 web_graph_serial_controller::web_graph_serial_controller(

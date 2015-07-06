@@ -15,10 +15,11 @@
 #include "coarseners/parallel/restrictive_first_choice_coarsening.hpp"
 #include "data_structures/dynamic_array.hpp"
 
+namespace parkway {
+namespace parallel {
 namespace ds = parkway::data_structures;
-namespace parallel = parkway::parallel;
 
-class parallel_v_cycle_controller : public parallel::controller {
+class v_cycle : public parallel::controller {
  protected:
   int limit_on_cycles_;
   int minimum_inter_vertex_index_;
@@ -34,13 +35,12 @@ class parallel_v_cycle_controller : public parallel::controller {
   parallel::restrictive_coarsening &restrictive_coarsening_;
 
  public:
-  parallel_v_cycle_controller(parallel::restrictive_coarsening &rc,
-                              parallel::coarsener &c, parallel::refiner &r,
-                              parkway::serial::controller &ref, int rank, int nP,
-                              int percentile, int inc, int approxRef, int limit,
-                              double limitAsPercent);
+  v_cycle(parallel::restrictive_coarsening &rc, parallel::coarsener &c,
+          parallel::refiner &r, parkway::serial::controller &ref, int rank,
+          int nP, int percentile, int inc, int approxRef, int limit,
+          double limitAsPercent);
 
-  virtual ~parallel_v_cycle_controller();
+  virtual ~v_cycle();
   virtual void run(MPI_Comm comm) = 0;
   virtual void print_type() const = 0;
 
@@ -58,5 +58,8 @@ class parallel_v_cycle_controller : public parallel::controller {
   void update_map_to_orig_vertices(MPI_Comm comm);
   void reset_structures();
 };
+
+}  // namespace parallel
+}  // namespace parkway
 
 #endif
