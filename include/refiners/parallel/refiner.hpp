@@ -14,47 +14,17 @@
 #include "hypergraph/parallel/loader.hpp"
 #include "data_structures/dynamic_array.hpp"
 #include "data_structures/map_to_pos_int.hpp"
+#include "internal/base/refiner.hpp"
 
 namespace parkway {
 namespace parallel {
 namespace ds = parkway::data_structures;
 
-class refiner : public loader {
- protected:
-  int maximum_part_weight_;
-  int number_of_partitions_;
-
-  ds::dynamic_array<int> partition_vector_;
-  ds::dynamic_array<int> partition_vector_offsets_;
-  ds::dynamic_array<int> partition_cuts_;
-
-  int *current_partition_vector_;
-  int current_partition_number_;
-
-  double balance_constraint_;
-  double average_part_weight_;
-
-  ds::dynamic_array<int> part_weights_;
-
-  /* newly added structures */
-  int number_of_non_local_vertices_;
-  int number_of_non_local_vertices_to_hyperedges_;
-  int *current_non_local_partition_vector_;
-
-  ds::dynamic_array<int> non_local_vertices_;
-  ds::dynamic_array<int> part_indices_;
-  ds::dynamic_array<int> index_into_part_indices_;
-
-  ds::dynamic_array<int> non_local_vertices_to_hyperedges_;
-  ds::dynamic_array<int> non_local_vertices_to_hyperedges_offsets_;
-
-  ds::map_to_pos_int to_non_local_vertices_;
-
+class refiner : public loader, public parkway::base::refiner {
  public:
   refiner(int rank, int nProcs, int nParts);
 
   virtual ~refiner();
-  virtual void display_options() const = 0;
   virtual void release_memory() = 0;
   virtual void initialize_data_structures(const parallel::hypergraph &h,
                                           MPI_Comm comm) = 0;
@@ -71,9 +41,33 @@ class refiner : public loader {
     balance_constraint_ = b;
   }
 
-  inline int maximum_part_weight() const {
-    return maximum_part_weight_;
-  }
+
+ protected:
+  int number_of_partitions_;
+
+  ds::dynamic_array<int> partition_vector_;
+  ds::dynamic_array<int> partition_vector_offsets_;
+  ds::dynamic_array<int> partition_cuts_;
+
+  int *current_partition_vector_;
+  int current_partition_number_;
+
+  double balance_constraint_;
+
+  /* newly added structures */
+  int number_of_non_local_vertices_;
+  int number_of_non_local_vertices_to_hyperedges_;
+  int *current_non_local_partition_vector_;
+
+  ds::dynamic_array<int> non_local_vertices_;
+  ds::dynamic_array<int> part_indices_;
+  ds::dynamic_array<int> index_into_part_indices_;
+
+  ds::dynamic_array<int> non_local_vertices_to_hyperedges_;
+  ds::dynamic_array<int> non_local_vertices_to_hyperedges_offsets_;
+
+  ds::map_to_pos_int to_non_local_vertices_;
+
 };
 
 }  // namespace parallel

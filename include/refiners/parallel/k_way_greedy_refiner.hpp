@@ -63,12 +63,11 @@ class k_way_greedy_refiner : public refiner {
                        int eExit, double lim);
   ~k_way_greedy_refiner();
 
-  void display_options() const;
+  void display_options() const override;
   void release_memory();
   void initialize_data_structures(const parallel::hypergraph &h, MPI_Comm comm);
   void reset_data_structures();
   void set_partitioning_structures(int pNumber, MPI_Comm comm);
-  // void initVertexPartTable(MPI_Comm comm);
   void refine(parallel::hypergraph &h, MPI_Comm comm);
 
   int greedy_k_way_refinement(parallel::hypergraph &h, int pNo, MPI_Comm comm);

@@ -17,8 +17,8 @@
 namespace parkway {
 namespace parallel {
 
-k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts, int
-                                           numVperP, int eExit, double lim)
+k_way_greedy_refiner::k_way_greedy_refiner(int rank, int nProcs, int nParts,
+                                           int numVperP, int eExit, double lim)
     : refiner(rank, nProcs, nParts) {
   int i;
   int j;

@@ -1,6 +1,5 @@
 #ifndef _KWAY_GREEDY_REFINER_HPP
 #define _KWAY_GREEDY_REFINER_HPP
-
 // ### GreedyKwayRefiner.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -10,7 +9,6 @@
 // 25/4/2004: Last Modified
 //
 // ###
-
 #include "refiners/serial/refiner.hpp"
 #include "hypergraph/VertexNode.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
@@ -20,7 +18,7 @@ namespace serial {
 namespace ds = parkway::data_structures;
 
 class greedy_k_way_refiner : public refiner {
-protected:
+ protected:
   int number_of_non_positive_moves_;
   double limit_;
 
@@ -48,17 +46,17 @@ protected:
   ds::dynamic_array<int> seen_vertices_;
   ds::dynamic_array<int> parts_spanned_;
 
-public:
+ public:
   greedy_k_way_refiner(int max, int nparts, double ave, double limit);
   ~greedy_k_way_refiner();
 
-  void display_options() const;
+  void display_options() const override;
   void build_data_structures();
   void destroy_data_structures();
   int initialize_data_structures();
   void update_adjacent_vertex_stats(int v, int sP, int bestDP);
 
-  void refine(hypergraph &h);
+  void refine(hypergraph &h) override;
   void rebalance(hypergraph &h);
 
   int greedy_pass();

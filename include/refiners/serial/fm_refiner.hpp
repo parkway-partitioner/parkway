@@ -62,7 +62,7 @@ public:
   fm_refiner(int max, int insMethod, int ee);
   ~fm_refiner();
 
-  void display_options() const;
+  void display_options() const override;
   void printQdis() const;
 
   void build_buckets();
@@ -86,7 +86,7 @@ public:
   void update_gains_0_to_1(int v);
   void undo_move(int v);
 
-  void refine(serial::hypergraph &h);
+  void refine(serial::hypergraph &h) override;
 
   int fm_pass();
   int rebalancing_pass(int largePart);
