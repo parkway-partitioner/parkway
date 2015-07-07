@@ -68,8 +68,7 @@ void approximate_coarsener::compute_hyperedges_to_load(
   }
 
   percentileThreshold = (static_cast<double>(j) * currPercentile) / 100;
-  Funct::qsortByAnotherArray(0, numH - 1, hEdges.data(),
-                             hEdgeLens.data(), INC);
+  hEdges.sort_using_another_array(hEdgeLens);
   toLoad.set();
 
   j = 0;

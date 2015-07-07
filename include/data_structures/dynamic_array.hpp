@@ -328,6 +328,15 @@ template <typename T> class dynamic_array {
   inline void random_permutation() {
     parkway::utility::random_permutation(this->data(), this->size());
   }
+
+  inline int search(const_reference value) {
+    for (std::size_t i = 0; i < this->size(); ++i) {
+      if (data_->at(i) == value) {
+        return i;
+      }
+    }
+    return -1;
+  }
 };
 
 }  // namespace data_structures

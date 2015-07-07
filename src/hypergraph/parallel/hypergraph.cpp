@@ -822,7 +822,7 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
   for (i = 0; i < number_of_vertices_; ++i)
     vertices[i] = i;
 
-  Funct::randomPermutation(vertices.data(), number_of_vertices_);
+  vertices.random_permutation();
 
   numSpareVertices = number_of_vertices_ % processors_;
   numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;
@@ -900,7 +900,7 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
   for (i = 0; i < number_of_vertices_; ++i)
     vertices[i] = i;
 
-  Funct::randomPermutation(vertices.data(), number_of_vertices_);
+  vertices.random_permutation();
 
   numSpareVertices = number_of_vertices_ % processors_;
   numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;

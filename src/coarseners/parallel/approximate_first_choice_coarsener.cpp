@@ -496,7 +496,7 @@ void approximate_first_choice_coarsener::setReplyArrays(int highToLow, int maxVW
       // processing match requests in random order
       // ###
 
-      Funct::randomPermutation(visitOrder.data(), visitOrderLen);
+      visitOrder.random_permutation();
 
       for (l = 0; l < visitOrderLen; ++l) {
 

@@ -11,6 +11,7 @@
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "hypergraph/serial/hypergraph.hpp"
 #include "utility/logging.hpp"
+#include "utility/math.hpp"
 
 namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
@@ -54,7 +55,7 @@ void recursive_bisection_contoller::convToBisectionConstraints() {
   assert(h);
 #endif
 
-  log_k_ = Funct::log2(number_of_parts_);
+  log_k_ = parkway::utility::math::log2(number_of_parts_);
 
   int j;
   int i;
@@ -849,7 +850,7 @@ int recursive_bisection_contoller::best_partition_processor(int cut,
       bestCut = allCuts[i];
   }
 
-  Funct::randomPermutation(procs.data(), nProcs);
+  procs.random_permutation();
 
   if (rank == 0) {
     for (i = 0; i < nProcs; ++i) {

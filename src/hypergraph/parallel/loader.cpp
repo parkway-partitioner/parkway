@@ -69,8 +69,7 @@ void loader::compute_hyperedges_to_load(ds::bit_field &to_load,
   double percentile_threshold =
       (static_cast<double>(total_weigtht) * percentile_) / 100;
 
-  Funct::qsortByAnotherArray(0, number_of_hyperedges - 1, hyperedges.data(),
-                             hyperedge_lengths.data(), INC);
+  hyperedges.sort_using_another_array(hyperedge_lengths);
   to_load.set();
 
   int i = 0;

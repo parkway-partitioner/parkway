@@ -422,7 +422,7 @@ void first_choice_coarsener::set_reply_arrays(int highToLow, int maxVWt) {
       // processing match requests in random order
       // ###
 
-      Funct::randomPermutation(visitOrder.data(), visitOrderLen);
+      visitOrder.random_permutation();
 
       for (l = 0; l < visitOrderLen; ++l) {
 

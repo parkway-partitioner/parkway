@@ -243,8 +243,7 @@ void hypergraph::print_characteristics() {
 
   info("%i ", weighted_ave / j);
 
-  Funct::qsortByAnotherArray(0, number_of_hyperedges_ - 1, hEdges.data(),
-                             hEdgeLens.data(), INC);
+  hEdges.sort_using_another_array(hEdgeLens);
 
   j = 0;
   int ij = 0;
@@ -287,8 +286,7 @@ void hypergraph::print_characteristics() {
   percentile_95 = (static_cast<double>(j) * 95) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  Funct::qsortByAnotherArray(0, number_of_vertices_ - 1, vertices.data(),
-                             vertex_weights_.data(), INC);
+  vertices.sort_using_another_array(vertex_weights_);
 
   j = 0;
   ij = 0;
@@ -517,7 +515,7 @@ void hypergraph::convert_to_DOMACS_graph_file(const char *fN) {
       for (ij = j + 1; ij < endOffset; ++ij) {
         v2 = pin_list_[ij];
 
-        if (Funct::search(vNeighs[v1]->data(), numVNeighs[v1], v2) == -1) {
+        if (vNeighs[v1]->search(v2) == -1) {
           vNeighs[v1]->at(numVNeighs[v1]++) = v2;
           ++numEdges;
         }
@@ -609,8 +607,7 @@ void hypergraph::print_percentiles() {
       "95, maxLength)\n");
   info("\t%i ", weighted_ave / j);
 
-  Funct::qsortByAnotherArray(0, number_of_hyperedges_ - 1, indices.data(),
-                             hEdgeLens.data(), INC);
+  indices.sort_using_another_array(hEdgeLens);
 
   j = 0;
   i = 0;
@@ -659,8 +656,7 @@ void hypergraph::print_percentiles() {
   percentile_50 = (static_cast<double>(j) * 50) / 100;
   percentile_25 = (static_cast<double>(j) * 25) / 100;
 
-  Funct::qsortByAnotherArray(0, number_of_vertices_ - 1, indices.data(),
-                             vertex_weights_.data(), INC);
+  indices.sort_using_another_array(vertex_weights_);
 
   info("vertex weight percentiles: (ave, 25, 50, 75, 95, maxWeight)\n");
   info("\t%.2f ", static_cast<double>(j) / number_of_vertices_);

@@ -40,8 +40,7 @@ void loader::compute_hyperedges_to_load(bit_field &toLoad) {
   }
 
   percentileThreshold = (static_cast<double>(j) * currPercentile) / 100;
-  Funct::qsortByAnotherArray(0, numHedges - 1, hEdges.data(),
-                             hEdgeLens.data(), INC);
+  hEdges.sort_using_another_array(hEdgeLens);
 
   j = 0;
   i = 0;

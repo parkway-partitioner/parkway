@@ -59,7 +59,7 @@ void table_utils::set_scatter_array(int size) {
     scatter_array_[i] = i;
   }
 
-  Funct::randomPermutation(scatter_array_.data(), scatter_size_);
+  scatter_array_.random_permutation();
 }
 
 }  // namespace internal

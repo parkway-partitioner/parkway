@@ -77,7 +77,7 @@ hypergraph *coarsener::build_coarse_hypergraph(dynamic_array<int> coarseWts,
     for (j = startHedgeOffset; j < endHedgeOffset; ++j)
       tempPinList[j] = matchVector[pinList[j]];
 
-    Funct::qsort(startHedgeOffset, endHedgeOffset - 1, tempPinList.data());
+    tempPinList.sort_between(startHedgeOffset, endHedgeOffset - 1);
 
     ++vDegs[tempPinList[startHedgeOffset]];
   }

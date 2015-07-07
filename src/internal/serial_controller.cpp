@@ -206,7 +206,7 @@ void controller::initialize_serial_partitions(
     for (i = 0; i < number_of_processors_; ++i)
       procs[i] = i;
 
-    Funct::randomPermutation(procs.data(), number_of_processors_);
+    procs.random_permutation();
 
     for (i = 0; i < number_of_processors_; ++i) {
       proc = procs[i];

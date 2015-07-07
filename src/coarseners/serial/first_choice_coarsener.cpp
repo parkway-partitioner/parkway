@@ -84,7 +84,7 @@ hypergraph *first_choice_coarsener::coarsen(const hypergraph &h) {
   if (currPercentile < 100)
     compute_hyperedges_to_load(toLoad);
 
-  Funct::randomPermutation(vertices.data(), numVertices);
+  vertices.random_permutation();
 
   metricVal = static_cast<double>(numVertices) / reduction_ratio_;
   limitOnIndex = numVertices - static_cast<int>(floor(metricVal - 1.0));

@@ -788,7 +788,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
   MPI_Comm_rank(comm, &my_rank);
 
   if (paraOption > 1) {
-    if (!Funct::isPowerOf2(num_procs)) {
+    if (!parkway::utility::math::is_power_of_2(num_procs)) {
       MPI_Barrier(comm);
       if (my_rank == 0)
         cout << "number of processors must be a power of two when using "
@@ -806,7 +806,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
       MPI_Abort(comm, 0);
     }
 
-    if (seqOption <= 3 && !Funct::isPowerOf2(num_parts)) {
+    if (seqOption <= 3 && !parkway::utility::math::is_power_of_2(num_parts)) {
       MPI_Barrier(comm);
       if (my_rank == 0)
         cout << "number of parts in partition must be a power of two when using "
@@ -831,7 +831,7 @@ void Utils::checkPartsAndProcs(int num_parts, int num_procs, int seqOption,
       MPI_Abort(comm, 0);
     }
 
-    if (seqOption <= 3 && !Funct::isPowerOf2(num_parts)) {
+    if (seqOption <= 3 && !parkway::utility::math::is_power_of_2(num_parts)) {
       MPI_Barrier(comm);
       if (my_rank == 0)
         cout << "number of parts must be a power of two when using generic "

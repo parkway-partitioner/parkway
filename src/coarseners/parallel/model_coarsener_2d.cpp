@@ -452,17 +452,10 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
     hEdgeLens[i] = hyperedge_offsets_[i + 1] - hyperedge_offsets_[i];
   }
 
-  /* sort hedges in increasing order of capacity_ */
+  // sort hedges in increasing order of capacity_
+  hEdges.sort_using_another_array(hEdgeLens);
 
-  Funct::qsortByAnotherArray(0, number_of_hyperedges_ - 1, hEdges.data(),
-                             hEdgeLens.data(), INC);
-
-  /*
-  */
-
-  /* now sort the hyperedges of same capacity_ in
-     decreasing order of weight */
-
+  // now sort the hyperedges of same capacity_ in decreasing order of weight
   int leftBound = 0;
   int rightBound;
   int length;
@@ -471,11 +464,13 @@ parallel::hypergraph *model_coarsener_2d::parallel_hyperedge_coarsen(
     length = hyperedge_weights_[leftBound];
     rightBound = leftBound + 1;
 
-    for (; rightBound < number_of_hyperedges_ && hEdgeLens[rightBound] == length;
-         ++rightBound)
-      ;
-    Funct::qsortByAnotherArray(leftBound, rightBound - 1, hEdges.data(),
-                               hyperedge_weights_.data(), DEC);
+    while (rightBound < number_of_hyperedges_ && hEdgeLens[rightBound] == length) {
+      ++rightBound;
+    }
+
+    hEdges.sort_between_using_another_array(
+        leftBound, rightBound - 1, hyperedge_weights_,
+        parkway::utility::sort_order::DECREASING);
     leftBound = rightBound;
   }
 
@@ -659,7 +654,7 @@ void model_coarsener_2d::set_reply_arrays(int highToLow, int maxVWt) {
       // processing match requests in random order
       // ###
 
-      Funct::randomPermutation(visitOrder.data(), visitOrderLen);
+      visitOrder.random_permutation();
 
       for (l = 0; l < visitOrderLen; ++l) {
 

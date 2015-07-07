@@ -1,6 +1,5 @@
 #ifndef _FUNCT_HPP
 #define _FUNCT_HPP
-
 // ### Funct.hpp ###
 //
 // Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
@@ -36,15 +35,15 @@
 
 #define RotateLeft(a, b)                                                       \
   (b > (sizeof(HashKey)) ? (0) : ( ((a >> (sizeof(HashKey) - b))) | (a << b) ))
-#ifdef USE_SPRNG
-#define RANDOM(a, b)                                                           \
-  ((a) == (b) ? (a) : (static_cast<int>((sprng()) * ((b) - (a))) + (a)))
-#else
+
 template <typename T>
 T RANDOM(T a, T b) {
+#ifdef USE_SPRNG
+  return a == b ? a : (static_cast<int>(sprng() * ((b) - (a))) + (a));
+#else
   return a == b ? a : (static_cast<int>(drand48() * ((b) - (a))) + (a));
-}
 #endif
+}
 
 using parkway::data_structures::dynamic_array;
 
@@ -68,76 +67,11 @@ class Funct {
   inline static void setShift2(int s) { shift2 = s; }
   inline static void setMaxHedgeLen(int m) { maxHedgeLen = m; }
 
-  inline static int search(const int *array, const int length,
-                           const int target) {
-    int i = 0;
-
-    for (; i < length; ++i)
-      if (array[i] == target)
-        return i;
-
-    return -1;
-  }
-
-  inline static void qsort(const int left, const int right, int *array) {
-    int left_arrow = left;
-    int right_arrow = right;
-
-    int pivot = array[(left + right) / 2];
-
-    do {
-      while (array[right_arrow] > pivot) {
-        --right_arrow;
-      }
-      while (array[left_arrow] < pivot) {
-        ++left_arrow;
-      }
-
-      if (left_arrow <= right_arrow) {
-        std::swap(array[left_arrow], array[right_arrow]);
-        ++left_arrow;
-        --right_arrow;
-      }
-    } while (right_arrow >= left_arrow);
-
-    if (left < right_arrow) {
-      qsort(left, right_arrow, array);
-    }
-
-    if (left_arrow < right) {
-      qsort(left_arrow, right, array);
-    }
-  }
-
-  inline static int log2(int a) {
-    int result = 0;
-    while (a >>= 1) {
-      ++result;
-    }
-    return result;
-  }
-
-  inline static int isPowerOf2(int num) {
-    if (num == 1)
-      return 1;
-
-    while (num > 1) {
-      if (num & 0x1)
-        return 0;
-      num = num >> 1;
-    }
-
-    return 1;
-  }
-
   static void printIntro();
   static void printEnd();
 
   static void initStartMem();
   static void write_to_memory();
-  static void randomPermutation(int *array, int size);
-  static void qsortByAnotherArray(const int left, const int right, int *array,
-                                  const int *valArray, const int order);
 
   static int setTableSize(int approxNumElem);
   static int getParameterAsInteger(int argc, char **argv, const char *cmpr,

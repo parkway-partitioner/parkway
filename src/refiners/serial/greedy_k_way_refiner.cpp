@@ -495,7 +495,7 @@ int greedy_k_way_refiner::rebalancing_pass() {
   for (i = 0; i < number_of_parts_; ++i)
     verticesInParts[i] = nullptr;
 
-  Funct::randomPermutation(vertices_.data(), numVertices);
+  vertices_.random_permutation();
 
   for (i = 0; i < numVertices; ++i) {
     vertex = vertices_[i];

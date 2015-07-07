@@ -8,6 +8,7 @@
 // ###
 #include "Funct.hpp"
 #include "utility/logging.hpp"
+#include "utility/math.hpp"
 #include "configuration.hpp"
 #include <cstring>
 #include <cassert>
@@ -84,9 +85,9 @@ double Funct::toRecurBal(double e, int nP) {
   double a;
   double b;
 
-  if (isPowerOf2(nP)) {
+  if (parkway::utility::math::is_power_of_2(nP)) {
     a = (1.0 + e) / nP;
-    b = 1.0 / log2(nP);
+    b = 1.0 / parkway::utility::math::log2(nP);
   } else {
     /* give the balance for nearest
        power of 2 above nP          */
@@ -118,13 +119,13 @@ HashKey Funct::computeHash(const int *vs, int len) {
   for (i = 0; i < maxHedgeLen; ++i) {
     if (i < len) {
       sum += vs[i];
-      key = key xor RotateLeft(vs[i], slide1);
+      key ^= RotateLeft(vs[i], slide1);
     } else {
       sum += 1;
-      key = key xor RotateLeft(1, slide1);
+      key ^= RotateLeft(1, slide1);
     }
 
-    key = key xor RotateLeft(sum, slide2);
+    key ^= RotateLeft(sum, slide2);
 
     slide1 = (slide1 + shift1) % sizeof(HashKey);
     slide2 = (slide2 + shift2) % sizeof(HashKey);
@@ -133,59 +134,6 @@ HashKey Funct::computeHash(const int *vs, int len) {
   return key;
 }
 
-void Funct::randomPermutation(int *array, int size) {
-  int i;
-  int ij;
-
-  for (i = 0; i < size; ++i) {
-    ij = RANDOM(i, size);
-    std::swap(array[i], array[ij]);
-  }
-}
-
-void Funct::qsortByAnotherArray(const int left, const int right, int *array,
-                                const int *valArray, const int order) {
-  int left_arrow = left;
-  int right_arrow = right;
-
-  int pivot = array[(left + right) / 2];
-
-  if (order == INC) {
-    do {
-      while (valArray[array[right_arrow]] > valArray[pivot])
-        --right_arrow;
-      while (valArray[array[left_arrow]] < valArray[pivot])
-        ++left_arrow;
-
-      if (left_arrow <= right_arrow) {
-        std::swap(array[left_arrow++], array[right_arrow--]);
-      }
-    } while (right_arrow >= left_arrow);
-
-    if (left < right_arrow)
-      qsortByAnotherArray(left, right_arrow, array, valArray, order);
-
-    if (left_arrow < right)
-      qsortByAnotherArray(left_arrow, right, array, valArray, order);
-  } else {
-    do {
-      while (valArray[array[right_arrow]] < valArray[pivot])
-        --right_arrow;
-      while (valArray[array[left_arrow]] > valArray[pivot])
-        ++left_arrow;
-
-      if (left_arrow <= right_arrow) {
-        std::swap(array[left_arrow++], array[right_arrow--]);
-      }
-    } while (right_arrow >= left_arrow);
-
-    if (left < right_arrow)
-      qsortByAnotherArray(left, right_arrow, array, valArray, order);
-
-    if (left_arrow < right)
-      qsortByAnotherArray(left_arrow, right, array, valArray, order);
-  }
-}
 
 void Funct::printIntro() {
   info("\n ------- Parkway v%s -------\n|\n", VERSION_STRING);
