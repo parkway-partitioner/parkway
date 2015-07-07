@@ -48,7 +48,6 @@ T RANDOM(T a, T b) {
 using parkway::data_structures::dynamic_array;
 
 class Funct {
-  static char *startHeap;
   static int shift1;
   static int shift2;
   static int maxHedgeLen;
@@ -59,19 +58,10 @@ class Funct {
   Funct();
   ~Funct();
 
-  inline static int getShift1() { return shift1; }
-  inline static int getShift2() { return shift2; }
-  inline static int getMaxHedgeLen() { return maxHedgeLen; }
-
-  inline static void setShift1(int s) { shift1 = s; }
-  inline static void setShift2(int s) { shift2 = s; }
   inline static void setMaxHedgeLen(int m) { maxHedgeLen = m; }
 
   static void printIntro();
   static void printEnd();
-
-  static void initStartMem();
-  static void write_to_memory();
 
   static int setTableSize(int approxNumElem);
   static int getParameterAsInteger(int argc, char **argv, const char *cmpr,
@@ -83,7 +73,6 @@ class Funct {
   static double toRecurBal(double e, int nP);
 
   static HashKey computeHash(const int *vs, int len);
-  static int getTableSize(int n);
 };
 
 #endif

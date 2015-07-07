@@ -13,7 +13,6 @@
 #include <cstring>
 #include <cassert>
 
-char *Funct::startHeap = 0;
 int Funct::shift1 = 7;
 int Funct::shift2 = 13;
 int Funct::maxHedgeLen = 0;
