@@ -21,6 +21,7 @@ set(PROJECT_LIB ${PROJECT_NAME})
 
 set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/thirdparty)
 
+
 ### Extra CMake opptions ######################################################
 # Add a CMake build type requirement. Default to release with debug info.
 if(NOT CMAKE_BUILD_TYPE)

@@ -8,6 +8,7 @@
 // ###
 #include "Funct.hpp"
 #include "utility/logging.hpp"
+#include "configuration.hpp"
 #include <cstring>
 #include <cassert>
 
@@ -187,7 +188,7 @@ void Funct::qsortByAnotherArray(const int left, const int right, int *array,
 }
 
 void Funct::printIntro() {
-  info("\n ------- PARKWAY2.0 -------\n|\n");
+  info("\n ------- Parkway v%s -------\n|\n", VERSION_STRING);
 }
 
 void Funct::printEnd() {
