@@ -9,12 +9,11 @@
 // 4/1/2005: Last Modified
 //
 // ###
-
 #include <ostream>
 #include <stack>
 #include "hypergraph/serial/hypergraph.hpp"
 #include "coarseners/serial/first_choice_coarsener.hpp"
-#include "initial_bisector.hpp"
+#include "controllers/serial/initial_bisector.hpp"
 
 namespace parkway {
 namespace serial {

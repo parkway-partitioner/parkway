@@ -7,8 +7,7 @@
 // 12/1/2005: Last Modified
 //
 // ###
-
-#include "initial_bisector.hpp"
+#include "controllers/serial/initial_bisector.hpp"
 #include "utility/logging.hpp"
 
 namespace parkway {
