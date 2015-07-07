@@ -193,33 +193,3 @@ void Funct::printIntro() {
 void Funct::printEnd() {
   info(" --------------------------\n\n");
 }
-
-void Funct::printMemUse(int myRank, const char *info) {
-  write_log(myRank, "Mem use at point: %s", info);
-
-  char filename[512];
-  char word[1024];
-  int pid = getpid();
-  int next = 0;
-
-  sprintf(filename, "/proc/%d/status", pid);
-
-  FILE *fp = fopen(filename, "r");
-  assert(fp);
-
-  fscanf(fp, " %s ", word);
-
-  while (!feof(fp)) {
-    if (next) {
-      write_log(myRank, "using %s kB", word);
-      break;
-    }
-
-    if (strstr(word, "VmRSS"))
-      next = 1;
-
-    fscanf(fp, " %s ", word);
-  }
-
-  fclose(fp);
-}

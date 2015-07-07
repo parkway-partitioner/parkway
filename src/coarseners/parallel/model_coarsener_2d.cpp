@@ -157,7 +157,7 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
 
   for (; index < number_of_local_vertices_; ++index) {
     if (index % 50000 == 0 && rank_ == 0)
-      write_log(rank_, "considering local vertex index %d", index);
+      LOG(info) << "considering local vertex index " << index;
 
     if (match_vector_[vertices[index]] == -1) {
       vertex = vertices[index];
@@ -237,13 +237,11 @@ parallel::hypergraph *model_coarsener_2d::parallel_first_choice_coarsen(
               assert(numVisited >= 0);
 #endif
               if (matchInfoLoc.insert(candidatV, numVisited)) {
-                write_log(rank_, "numEntries %d",
-                          matchInfoLoc.size());
-                write_log(rank_, "using hash %d",
-                          matchInfoLoc.use_hash());
-                write_log(rank_, "numSlots %d", matchInfoLoc.capacity());
-                write_log(rank_, "candidatV %d", candidatV);
-                write_log(rank_, "neighbourLoc %d", neighbourLoc);
+                LOG(info) << "numEntries " << matchInfoLoc.size();
+                LOG(info) << "using hash " << matchInfoLoc.use_hash();
+                LOG(info) << "numSlots " << matchInfoLoc.capacity();
+                LOG(info) << "candidatV " << candidatV;
+                LOG(info) << "neighbourLoc " << neighbourLoc;
                 assert(0);
               }
 

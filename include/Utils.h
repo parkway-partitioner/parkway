@@ -14,7 +14,6 @@
 #include <time.h>
 
 #include "mpi.h"
-#include "Log.h"
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "controllers/serial/recursive_bisection_contoller.hpp"
 #include "controllers/parallel/basic_contoller.hpp"

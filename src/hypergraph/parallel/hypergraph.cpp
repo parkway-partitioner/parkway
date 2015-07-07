@@ -27,7 +27,6 @@
 #include "data_structures/new_hyperedge_index_table.hpp"
 #include "utility/sorting.hpp"
 #include "utility/logging.hpp"
-#include "Log.h"
 
 #include <bitset>
 

@@ -24,7 +24,6 @@
 #include <cstdlib>
 
 #include "Macros.h"
-#include "Log.h"
 #include "data_structures/dynamic_array.hpp"
 
 #ifdef USE_SPRNG
@@ -133,7 +132,6 @@ class Funct {
 
   static void printIntro();
   static void printEnd();
-  static void printMemUse(int myRank, const char *info);
 
   static void initStartMem();
   static void write_to_memory();
