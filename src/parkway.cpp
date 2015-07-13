@@ -9,8 +9,8 @@
 #include "internal/parallel_controller.hpp"
 #include "hypergraph/hypergraph.hpp"
 #include "utility/logging.hpp"
+#include "utility/component_builders.hpp"
 #include "options.hpp"
-#include "Utils.h"
 
 namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
@@ -28,7 +28,7 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
   int rank;
   MPI_Comm_rank(comm, &rank);
 
-  Utils::check_parts_and_processors(options, comm);
+  parkway::check_parts_and_processors(options, comm);
 
 /* init pseudo-random number generator */
 #ifdef USE_SPRNG
@@ -71,10 +71,18 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
   ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
 
   int num_parts = options.get<int>("number-of-parts");
-  parallel::coarsener *coarsener = Utils::buildParaCoarsener(rank, options, hgraph, comm);
-  parallel::restrictive_coarsening *restrC = Utils::buildParaRestrCoarsener(rank, options, hgraph, comm);
-  parallel::refiner *refiner = Utils::buildParaRefiner(rank, options, hgraph, comm);
-  serial::controller *seqController = Utils::buildSeqController(rank, options);
+  parallel::coarsener *coarsener = parkway::build_parallel_coarsener(
+      rank, options, hgraph, comm);
+
+  parallel::restrictive_coarsening *restrC =
+      parkway::build_parallel_restrictive_coarsener(rank, options, hgraph, comm);
+
+  parallel::refiner *refiner = parkway::build_parallel_refiner(
+      rank, options, hgraph, comm);
+
+  serial::controller *seqController = parkway::build_sequential_controller(
+      rank, options);
+
   MPI_Barrier(comm);
 
   if (!coarsener) {
@@ -92,7 +100,7 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
     MPI_Abort(comm, 0);
   }
 
-  parallel::controller *controller = Utils::buildParaController(
+  parallel::controller *controller = parkway::build_parallel_controller(
       rank, hgraph->total_number_of_vertices(), coarsener, restrC, refiner,
       seqController, options, comm);
 

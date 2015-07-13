@@ -1,14 +1,5 @@
-#ifndef _UTILS_H
-#define _UTILS_H
-// ### Utils.h ###
-//
-// Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-//
-// HISTORY:
-//
-// 10/1/2005: Last Modified
-//
-// ###
+#ifndef INCLUDE_UTILITY_COMPONENT_BUILDERS_HPP_
+#define INCLUDE_UTILITY_COMPONENT_BUILDERS_HPP_
 
 #include <math.h>
 #include <time.h>
@@ -27,23 +18,24 @@
 namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
 
-namespace Utils {
-parallel::coarsener *buildParaCoarsener(
+namespace parkway {
+
+parallel::coarsener *build_parallel_coarsener(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm);
 
-parallel::restrictive_coarsening *buildParaRestrCoarsener(
+parallel::restrictive_coarsening *build_parallel_restrictive_coarsener(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm);
 
-parallel::refiner *buildParaRefiner(
+parallel::refiner *build_parallel_refiner(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm);
 
-serial::controller *buildSeqController(
+serial::controller *build_sequential_controller(
     int rank, const parkway::options &options);
 
-parallel::controller *buildParaController(
+parallel::controller *build_parallel_controller(
     int rank, int num_tot_verts, parallel::coarsener *c,
     parallel::restrictive_coarsening *rc, parallel::refiner *r,
     serial::controller *s, const parkway::options &options, MPI_Comm comm);
@@ -94,4 +86,4 @@ inline void get_connectivity_values(int metric, int &div_by_clu_weight,
 
 }
 
-#endif
+#endif  // INCLUDE_UTILITY_COMPONENT_BUILDERS_HPP_

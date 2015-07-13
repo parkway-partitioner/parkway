@@ -1,19 +1,8 @@
-// ### Utils.cpp ###
-//
-// Copyright (C) 2004, Aleksandar Trifunovic, Imperial College London
-//
-// HISTORY:
-//
-// 4/1/2005: Last Modified
-//
-// ###
-#include "Utils.h"
+#include "utility/component_builders.hpp"
 
-using namespace std;
+namespace parkway {
 
-namespace Utils {
-
-parallel::coarsener *buildParaCoarsener(
+parallel::coarsener *build_parallel_coarsener(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm) {
   int numTotPins = h->total_number_of_pins(comm);
@@ -68,7 +57,7 @@ parallel::coarsener *buildParaCoarsener(
 }
 
 
-parallel::restrictive_coarsening *buildParaRestrCoarsener(
+parallel::restrictive_coarsening *build_parallel_restrictive_coarsener(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm) {
   const std::string &visit_order =
@@ -104,7 +93,7 @@ parallel::restrictive_coarsening *buildParaRestrCoarsener(
   return c;
 }
 
-parallel::refiner *buildParaRefiner(
+parallel::refiner *build_parallel_refiner(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm) {
 
@@ -130,8 +119,8 @@ parallel::refiner *buildParaRefiner(
   return r;
 }
 
-serial::controller *buildSeqController(int rank,
-                                       const parkway::options &options) {
+serial::controller *build_sequential_controller(
+    int rank, const parkway::options &options) {
   int num_parts = options.get<int>("number-of-parts");
   int numSeqRuns = options.get<int>("serial-partitioning.number-of-runs");
   bool use_patoh = options.get<bool>("serial-partitioning.use-patoh");
@@ -168,9 +157,6 @@ serial::controller *buildSeqController(int rank,
           numBisectRuns, keepT, redFactor, eeParam, startPercentile, inc);
       bC->build_coarsener(options);
     }
-
-
-    // TODO(gb610): finish tidying this crap up!!!!
 
     // ###
     // build the seq initial partitioner
@@ -270,7 +256,7 @@ serial::controller *buildSeqController(int rank,
   return seqC;
 }
 
-parallel::controller *buildParaController(
+parallel::controller *build_parallel_controller(
     int rank, int num_tot_verts, parallel::coarsener *c,
     parallel::restrictive_coarsening *rc, parallel::refiner *r,
     serial::controller *s, const parkway::options &options, MPI_Comm comm) {
@@ -341,225 +327,6 @@ parallel::controller *buildParaController(
   return paraC;
 }
 
-// void Utils::initDefaultValues(const int *userOptions, int *programOptions) {
-//   double r;
-//
-//   programOptions[0] = userOptions[0];
-//
-//   if (programOptions[0] == 0) {
-//     // ###
-//     // set all to defaults
-//
-//     programOptions[1] = 0;
-//     programOptions[2] = 0;
-//     programOptions[3] = 0;
-//     programOptions[4] = 1;
-//     programOptions[5] = 0;
-//     programOptions[6] = 100;
-//     programOptions[7] = 0;
-//     programOptions[8] = 200;
-//     programOptions[9] = 7;
-//     programOptions[10] = 4;
-//     programOptions[11] = 3;
-//     programOptions[12] = 0;
-//     programOptions[13] = 3;
-//     programOptions[14] = 1;
-//     programOptions[15] = 2;
-//     programOptions[16] = 1;
-//     programOptions[17] = 2;
-//     programOptions[18] = 10;
-//     programOptions[19] = 2;
-//     programOptions[20] = 2;
-//     programOptions[21] = 1;
-//     programOptions[22] = 1;
-//     programOptions[23] = LARGE_CONSTANT;
-//     programOptions[24] = 0;
-//     programOptions[25] = 70;
-//     programOptions[26] = 70;
-//     programOptions[27] = 100;
-//     programOptions[28] = 0;
-//   } else {
-//     // ###
-//     // otherwise set as requested
-//
-//     if (userOptions[1] >= 0) {
-//       programOptions[1] = userOptions[1];
-//     } else {
-//       programOptions[1] = 0;
-//     }
-//
-//     if (userOptions[2] >= 0 && userOptions[2] < 3) {
-//       programOptions[2] = userOptions[2];
-//     } else {
-//       programOptions[2] = 0;
-//     }
-//
-//     if (userOptions[3] >= 0 && userOptions[3] < 3) {
-//       programOptions[3] = userOptions[3];
-//     } else {
-//       programOptions[3] = 0;
-//     }
-//
-//     if (userOptions[4] > 0 && userOptions[4] < LARGE_CONSTANT) {
-//       programOptions[4] = userOptions[4];
-//     } else {
-//       programOptions[4] = 1;
-//     }
-//
-//     if (userOptions[5] < 0 || userOptions[5] > 2) {
-//       programOptions[5] = 0;
-//     } else {
-//       programOptions[5] = userOptions[5];
-//     }
-//
-//     if (userOptions[6] <= 100 && userOptions[6] > 0) {
-//       programOptions[6] = userOptions[6];
-//     } else {
-//       programOptions[6] = 100;
-//     }
-//
-//     if (userOptions[7] <= (100 - programOptions[6]) && userOptions[7] >= 0) {
-//       programOptions[7] = userOptions[7];
-//     } else {
-//       programOptions[7] = 0;
-//     }
-//
-//     if (userOptions[8] > 100 #<{(|&& userOptions[8] < 1000|)}>#) {
-//       programOptions[8] = userOptions[8];
-//     } else {
-//       programOptions[8] = 200;
-//     }
-//
-//     r = static_cast<double>(userOptions[9]) / userOptions[10];
-//
-//     if (r > 1.1 && r < 3.0) {
-//       programOptions[9] = userOptions[9];
-//       programOptions[10] = userOptions[10];
-//     } else {
-//       programOptions[9] = 7;
-//       programOptions[10] = 4;
-//     }
-//
-//     if (userOptions[11] > 0 && userOptions[11] < 6) {
-//       programOptions[11] = userOptions[11];
-//     } else {
-//       programOptions[11] = 3;
-//     }
-//
-//     if (userOptions[12] >= 0 && userOptions[12] < 4) {
-//       programOptions[12] = userOptions[12];
-//     } else {
-//       programOptions[12] = 3;
-//     }
-//
-//     if (userOptions[13] == 2 || userOptions[13] == 3) {
-//       programOptions[13] = userOptions[13];
-//     } else {
-//       programOptions[13] = 3;
-//     }
-//
-//     if (userOptions[14] > 0 && userOptions[14] < LARGE_CONSTANT) {
-//       programOptions[14] = userOptions[14];
-//     } else {
-//       programOptions[14] = 1;
-//     }
-//
-//     if (userOptions[15] > 0 && userOptions[15] < 6) {
-// #ifndef PARKWAY_LINK_HMETIS
-//       if (userOptions[15] == 4)
-//         programOptions[15] = 2;
-//       else
-// #endif
-// #ifndef PARKWAY_LINK_PATOH
-//           if (userOptions[15] == 5)
-//         programOptions[15] = 2;
-//       else
-// #endif
-//         programOptions[15] = userOptions[15];
-//     } else {
-//       programOptions[15] = 2;
-//     }
-//
-//     if (userOptions[16] == 1 || userOptions[16] == 2) {
-//       programOptions[16] = userOptions[16];
-//     } else {
-//       programOptions[16] = 1;
-//     }
-//
-//     if (userOptions[17] > 0 && userOptions[17] < LARGE_CONSTANT) {
-//       programOptions[17] = userOptions[17];
-//     } else {
-//       programOptions[17] = 2;
-//     }
-//
-//     if (userOptions[18] > 0 && userOptions[18] < LARGE_CONSTANT) {
-//       programOptions[18] = userOptions[18];
-//     } else {
-//       programOptions[18] = 10;
-//     }
-//
-//     if (userOptions[19] > 0 && userOptions[19] < 6) {
-//       programOptions[19] = userOptions[19];
-//     } else {
-//       programOptions[19] = 2;
-//     }
-//
-//     if (userOptions[20] >= 0 && userOptions[20] < 4) {
-//       programOptions[20] = userOptions[20];
-//     } else {
-//       programOptions[20] = 2;
-//     }
-//
-//     if (userOptions[21] > 0 && userOptions[21] < 4) {
-//       programOptions[21] = userOptions[21];
-//     } else {
-//       programOptions[21] = 1;
-//     }
-//
-//     if (userOptions[22] > 0 && userOptions[22] < 4) {
-//       programOptions[22] = userOptions[22];
-//     } else {
-//       programOptions[22] = 1;
-//     }
-//
-//     if (userOptions[23] > 0 && userOptions[23] < LARGE_CONSTANT) {
-//       programOptions[23] = userOptions[23];
-//     } else {
-//       programOptions[23] = LARGE_CONSTANT;
-//     }
-//
-//     if (userOptions[24] >= 0 && userOptions[24] < 100) {
-//       programOptions[24] = userOptions[24];
-//     } else {
-//       programOptions[24] = 0;
-//     }
-//
-//     if (userOptions[25] > 0 && userOptions[25] < 100) {
-//       programOptions[25] = userOptions[25];
-//     } else {
-//       programOptions[25] = 0;
-//     }
-//
-//     if (userOptions[26] > 0 && userOptions[26] < 100) {
-//       programOptions[26] = userOptions[26];
-//     } else {
-//       programOptions[26] = 70;
-//     }
-//
-//     if (userOptions[27] > 0 && userOptions[27] <= 100) {
-//       programOptions[27] = userOptions[27];
-//     } else {
-//       programOptions[27] = 100;
-//     }
-//
-//     if (userOptions[28] >= 0 || userOptions[28] < 4) {
-//       programOptions[28] = userOptions[28];
-//     } else {
-//       programOptions[28] = 0;
-//     }
-//   }
-// }
-
 void check_parts_and_processors(const parkway::options &options, MPI_Comm comm) {
   bool use_patoh = options.get<bool>("serial-partitioning.use-patoh");
   bool use_hmetis = options.get<bool>("serial-partitioning.use-hmetis");
@@ -599,4 +366,4 @@ void check_parts_and_processors(const parkway::options &options, MPI_Comm comm) 
   }
 }
 
-}  // namespace Utils
+}  // namespace parkway
