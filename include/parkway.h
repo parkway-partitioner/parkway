@@ -9,18 +9,9 @@
 // 03/12/2004: Last Modified
 //
 // ###
+#include "options.hpp"
+#include "mpi.h"
 
-#include "Utils.h"
-
-void k_way_partition(const char *file_name, const char *out_file, int num_parts,
-                     double constraint, int &k_1cut, const int *options,
-                     MPI_Comm comm);
-
-void k_way_partition(int numVertices, int numHedges, const int *vWeights,
-                     const int *hEdgeWts, const int *offsets,
-                     const int *pinList,
-                     int numParts, double constraint, int &k_1cut,
-                     const int *options, int *pVector, const char *outfile,
-                     MPI_Comm comm);
+int k_way_partition(const parkway::options &options, MPI_Comm comm);
 
 #endif

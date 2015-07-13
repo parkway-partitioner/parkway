@@ -28,7 +28,7 @@ class v_cycle : public bisection_controller {
   virtual ~v_cycle();
 
   void display_options() const;
-  void build_restrictive_coarsener(double rRatio, int cType, int minV);
+  virtual void build_coarsener(const parkway::options &options) override;
   void record_v_cycle_partition(ds::dynamic_array<int> pVector,  int n);
   void store_best_partition(ds::dynamic_array<int> pVector, int n);
 

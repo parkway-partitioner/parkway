@@ -43,34 +43,18 @@ void bisection_controller::display_options() const {
   refiner_->display_options();
 }
 
-void bisection_controller::build_coarsener(double redRatio, int cType,
-                                           int minNodes) {
-  switch (cType) {
-  case FCwithFanOutDiv:
-    coarsener_ =
-        new first_choice_coarsener((minNodes << 1), -1, redRatio, 1, 1);
-    break;
+void bisection_controller::build_coarsener(const parkway::options &options) {
+  int min_nodes = options.get<int>("coarsening.minimum-coarse-vertices") / 2;
+  double reduction_ratio = options.get<double>("coarsening.reduction-ratio");
+  int max_weight = -1;
+  int fan_out = static_cast<int>(
+      options.get<bool>("serial-partitioning.util-fan-out"));
+  int divide_by_weight = static_cast<int>(
+      options.get<bool>("serial-partitioning.divide-by-cluster-weight"));
 
-  case FCwithoutFanOutDiv:
-    coarsener_ =
-        new first_choice_coarsener((minNodes << 1), -1, redRatio, 0, 1);
-    break;
-
-  case FCwithFanOut:
-    coarsener_ =
-        new first_choice_coarsener((minNodes << 1), -1, redRatio, 1, 0);
-    break;
-
-  case FCwithoutFanOut:
-    coarsener_ =
-        new first_choice_coarsener((minNodes << 1), -1, redRatio, 0, 0);
-    break;
-
-  default:
-    coarsener_ =
-        new first_choice_coarsener((minNodes << 1), -1, redRatio, 1, 1);
-    break;
-  }
+  coarsener_ = new first_choice_coarsener(min_nodes, max_weight,
+                                          reduction_ratio, fan_out,
+                                          divide_by_weight);
 }
 
 void bisection_controller::build_initial_bisector(int numInitRuns) {

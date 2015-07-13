@@ -14,6 +14,7 @@
 #include "hypergraph/serial/hypergraph.hpp"
 #include "coarseners/serial/first_choice_coarsener.hpp"
 #include "controllers/serial/initial_bisector.hpp"
+#include "options.hpp"
 
 namespace parkway {
 namespace serial {
@@ -46,7 +47,7 @@ class bisection_controller {
   virtual ~bisection_controller();
   virtual void display_options() const;
 
-  void build_coarsener(double redRatio, int cType, int minNodes);
+  virtual void build_coarsener(const parkway::options &options);
   void build_initial_bisector(int numInitRuns);
   void build_refiner(int queueD);
 

@@ -78,6 +78,7 @@ class handler {
   friend inline void progress(const char *format, ...);
   friend inline void warning(const char *format, ...);
   friend inline void warning_on_processor(const char *format, ...);
+  friend inline void error(const char *format, ...);
   friend inline void error_on_processor(const char *format, ...);
 
  private:
@@ -139,6 +140,19 @@ inline void warning_on_processor(const char *format, ...) {
     va_start(args, format);
     std::vsprintf(buffer, format, args);
     va_end(args);
+    *handler::out_ << handler::buffer_.get();
+  }
+}
+
+inline void error(const char *format, ...) {
+  if (handler::rank_ == handler::write_on_ && handler::out_ != nullptr) {
+    va_list args;
+    char *buffer = handler::buffer_.get();
+    std::sprintf(buffer, "\33[31m");
+    va_start(args, format);
+    std::vsprintf(buffer, format, args);
+    va_end(args);
+    std::sprintf(buffer, "\33[0m");
     *handler::out_ << handler::buffer_.get();
   }
 }

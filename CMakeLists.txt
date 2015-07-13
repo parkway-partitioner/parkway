@@ -59,7 +59,8 @@ endif()
 ### Packages ##################################################################
 # Find any required packages.
 find_package(MPI REQUIRED)
-find_package(Boost COMPONENTS log_setup log thread system REQUIRED)
+find_package(Boost COMPONENTS
+  log_setup log thread program_options system REQUIRED)
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
 # Add extra cmake scripts to the module path.

@@ -37,35 +37,20 @@ void v_cycle::display_options() const {
   refiner_->display_options();
 }
 
-void v_cycle::build_restrictive_coarsener(double redRatio,
-                                                               int cType,
-                                                               int minNodes) {
-  switch (cType) {
-  case RestrFCwithFanOutDiv:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        (minNodes << 1), -1, redRatio, 1, 1);
-    break;
+void v_cycle::build_coarsener(const parkway::options &options) {
+  int min_nodes = options.get<int>("coarsening.minimum-coarse-vertices") / 2;
+  double reduction_ratio = options.get<double>("coarsening.reduction-ratio");
+  int max_weight = -1;
+  int fan_out = static_cast<int>(
+      options.get<bool>("serial-partitioning.util-fan-out"));
+  int divide_by_weight = static_cast<int>(
+      options.get<bool>("serial-partitioning.divide-by-cluster-weight"));
 
-  case RestrFCwithoutFanOutDiv:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        (minNodes << 1), -1, redRatio, 0, 1);
-    break;
+  coarsener_ = new first_choice_coarsener(
+      min_nodes, max_weight, reduction_ratio, fan_out, divide_by_weight);
 
-  case RestrFCwithFanOut:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        (minNodes << 1), -1, redRatio, 1, 0);
-    break;
-
-  case RestrFCwithoutFanOut:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        (minNodes << 1), -1, redRatio, 0, 0);
-    break;
-
-  default:
-    restrictive_coarsener_ = new restrictive_first_choice_coarsener(
-        (minNodes << 1), -1, redRatio, 1, 1);
-    break;
-  }
+  restrictive_coarsener_ = new restrictive_first_choice_coarsener(
+      min_nodes, max_weight, reduction_ratio, fan_out, divide_by_weight);
 }
 
 void v_cycle::record_v_cycle_partition(

@@ -7,10 +7,10 @@
 // 25/1/2005: Last Modified
 //
 // ###
-
 #include "parkway.h"
 #include "reader.h"
 #include "utility/logging.hpp"
+#include "options.hpp"
 
 int main(int argc, char **argv) {
   /* DRIVER MAIN */
@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
 
   double constraint;
 
+  parkway::options opts(argc, argv);
+
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
   MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
@@ -60,14 +62,7 @@ int main(int argc, char **argv) {
          "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm) - default\n");
     info("\t       1 -> tests "
          "ParaPartKway(int,int,int*,int*,int*,int*,int,double,int&,int*,int*,"
-         "char*,MPI_Comm)\n");
-    info("\t -c <balance_constraint>\n");
-    info("\t       double precision number defining the balance constraint "
-         "on partition\n");
-    info("\t -nParts <number_of_parts>\n");
-    info("\t     - the number of parts in the partition sought. By ");
-    info("default, will look for partitions of\n");
-    info("\t       size 4\n\n");
+         "char*,MPI_Comm)\n\n");
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
@@ -76,10 +71,10 @@ int main(int argc, char **argv) {
   /* PROCESS COMMAND LINE */
   parkway::utility::logging::set_log_file("logs/parkway_driver", myRank);
 
-  outputFile = Funct::getParameterAsCharPtr(argc, argv, "-oFile", nullptr);
   testType = Funct::getParameterAsInteger(argc, argv, "-tType", 0);
-  numParts = Funct::getParameterAsInteger(argc, argv, "-nParts", 4);
-  constraint = Funct::getParameterAsDouble(argc, argv, "-c", 0.05);
+
+  numParts = opts.get<int>("number-of-parts");
+  constraint = opts.get<double>("balance-constraint");
 
   /* SETTING OPTIONS FOR TEST */
 
@@ -149,93 +144,21 @@ int main(int argc, char **argv) {
   // and early exit
   options[28] = 0;
 
-  if (testType == 0) {
-    // TESTING ParaPartKway(char*, char*, int, double, int&, int*, MPI_Comm)
-
-    if (myRank == 0) {
-      std::cout << "----- testing "
-                     "ParaPartKway(char*,char*,int,double,int&,int*,MPI_Comm): "
-                  << endl;
-    }
-
-    k_way_partition(argv[argc - 1], outputFile, numParts, constraint, bestCut,
-                    options, MPI_COMM_WORLD);
-
-    if (myRank == 0) {
-      std::cout << "----- completed ParaPartKway, best cut = " << bestCut
-                  << " -----" << endl;
-      std::cout << "----- testing recorded partition: " << endl;
-    }
-
-    testRecordedPartition(argv[argc - 1], myRank, numProcs, numParts,
-                          constraint, std::cout, MPI_COMM_WORLD);
-
-    if (myRank == 0)
-      std::cout << "----- completed testing recorded partition" << endl;
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    /* END TEST */
-  } else {
-    // TESTING
-    // ParaPartKway(int, int, int*, int*, int*, int*, int, double, int&, int*,
-    //              int*, char*, MPI_Comm)
-
-    int numVertices;
-    int numHedges;
-    int *vWeights = nullptr;
-    int *hEdgeWts = nullptr;
-    int *pinList = nullptr;
-    int *offsets = nullptr;
-    int *pVector = nullptr;
-
-    initGraphStructs(numVertices, numHedges, vWeights, hEdgeWts, pinList,
-                     offsets, argv[argc - 1], myRank);
-
-    pVector = new int[numVertices];
-    if (!pVector) {
-      error(myRank, numVertices, "[p vector]");
-    }
-
-    if (myRank == 0) {
-      std::cout << "----- testing "
-                     "ParaPartKway(int,int,int*,int*,int*,int*,int,double,int&,"
-                     "int*,int*,char*,MPI_Comm): " << endl;
-    }
-
-    k_way_partition(numVertices, numHedges, vWeights, hEdgeWts, offsets,
-                    pinList,
-                    numParts, constraint, bestCut, options, pVector, outputFile,
-                    MPI_COMM_WORLD);
-
-    if (myRank == 0) {
-      std::cout << "----- tested ParaPartKway, best cut = " << bestCut
-                  << " -----" << endl;
-      std::cout << "----- testing recorded partition: " << endl;
-    }
-
-    testRecordedPartition(argv[argc - 1], pVector, numVertices, myRank,
-                          numProcs, numParts, constraint, std::cout,
-                          MPI_COMM_WORLD);
-
-    if (myRank == 0) {
-      std::cout << "----- completed testing recorded partition" << endl;
-    }
-
-    if (vWeights)
-      delete[] vWeights;
-    if (hEdgeWts)
-      delete[] hEdgeWts;
-    if (pinList)
-      delete[] pinList;
-    if (offsets)
-      delete[] offsets;
-    if (pVector)
-      delete[] pVector;
-
-    /* END TEST */
+  if (myRank == 0) {
+    std::cout << "--- testing: k_way_partition(const parkway::options &, MPI_Comm)" << std::endl;
   }
 
+  bestCut = k_way_partition(opts, MPI_COMM_WORLD);
+
+  if (myRank == 0) {
+    std::cout << "--- completed testing, best cut = " << bestCut << " ---\n";
+    std::cout << "--- testing recorded partition: " << endl;
+  }
+
+  testRecordedPartition(argv[argc - 1], myRank, numProcs, numParts,
+                        constraint, std::cout, MPI_COMM_WORLD);
+
+  MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 
   return 0;

@@ -27,11 +27,10 @@ install:
   - (cd $BOOST_ROOT; ./b2 threading=multi --prefix=$BOOST_ROOT -d0 install)
 
 
-script: ./configure -DCMAKE_BUILD_TYPE=Debug -DPARKWAY_TESTS=true -DPARKWAY_USE_COVERALLS=true -DBOOST_ROOT=$BOOST_ROOT -DBOOST_INCLUDEDIR=$BOOST_ROOT/include
+script: ./configure -DCMAKE_BUILD_TYPE=Debug -DPARKWAY_TESTS=true -DBOOST_ROOT=$BOOST_ROOT -DBOOST_INCLUDEDIR=$BOOST_ROOT/include
      && make
      && ./bin/parkway_test_driver
-     && make coveralls
-     && mpirun -np 2 ./bin/parkway_driver -nParts 8 hypergraphs/ibm16.hgr.bin
+     && mpirun -np 2 ./bin/parkway_driver --config hypergraphs/test-config.ini
 
 os:
   - linux

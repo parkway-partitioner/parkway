@@ -13,8 +13,8 @@
 namespace parkway {
 namespace serial {
 
-restrictive_first_choice_coarsener::restrictive_first_choice_coarsener(int _min, int _maxwt, double r, int fanOut,
-                                   int dbWt)
+restrictive_first_choice_coarsener::restrictive_first_choice_coarsener(
+    int _min, int _maxwt, double r, int fanOut, int dbWt)
     : restrictive_coarsener(_min, _maxwt, r) {
   util_fan_out_ = fanOut;
   divide_by_cluster_weight_ = dbWt;

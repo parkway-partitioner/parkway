@@ -2,35 +2,24 @@
 #include <fstream>
 #include <iostream>
 #include "data_structures/internal/table_utils.hpp"
+#include "coarseners/parallel/coarsener.hpp"
+#include "coarseners/parallel/restrictive_coarsening.hpp"
+#include "refiners/parallel/refiner.hpp"
+#include "internal/serial_controller.hpp"
+#include "internal/parallel_controller.hpp"
 #include "hypergraph/hypergraph.hpp"
 #include "utility/logging.hpp"
+#include "options.hpp"
+#include "Utils.h"
 
 namespace parallel = parkway::parallel;
 namespace serial = parkway::serial;
 namespace ds = parkway::data_structures;
 
-void k_way_partition(const char *file_name, const char *out_file, int num_parts,
-                     double constraint, int &k_1cut, const int *options,
-                     MPI_Comm comm) {
-#ifdef MEM_CHECK
-  MemoryTracker::start();
-#endif
-
-  char part_file[512];
+int k_way_partition(const parkway::options &options, MPI_Comm comm) {
   char shuffle_file[512];
   char message[512];
 
-  int init_options[26];
-  int disp_option;
-  int output_partition_tofile;
-  int num_procs;
-  int my_rank;
-
-#ifdef USE_SPRNG
-  int seed;
-#endif
-
-  parallel::hypergraph *hgraph = nullptr;
   parallel::coarsener *coarsener = nullptr;
   parallel::restrictive_coarsening *restrC = nullptr;
   parallel::refiner *refiner = nullptr;
@@ -39,18 +28,20 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
 
   ds::internal::table_utils tableUtils;
 
-  MPI_Comm_size(comm, &num_procs);
-  MPI_Comm_rank(comm, &my_rank);
+  int number_of_processors;
+  MPI_Comm_size(comm, &number_of_processors);
+  options.set_number_of_processors(number_of_processors);
 
-  Utils::initDefaultValues(options, init_options);
-  Utils::checkPartsAndProcs(num_parts, num_procs, init_options[15],
-                            init_options[22], comm);
+  int rank;
+  MPI_Comm_rank(comm, &rank);
 
-  output_partition_tofile = init_options[3];
+  Utils::check_parts_and_processors(options, comm);
+
+  bool output_partition_tofile = options.get<bool>("write-partitions-to-file");
 
 /* init pseudo-random number generator */
-
 #ifdef USE_SPRNG
+  int seed;
   if (init_options[1] == 0) {
     seed = make_sprng_seed();
   } else {
@@ -61,71 +52,63 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
     sprintf(
         message,
         "p[%d] could not initialise sprng random number generator - abort\n",
-        my_rank);
+        rank);
     std::cout << message;
     MPI_Abort(comm, 0);
   }
 #else
-  if (init_options[1] == 0)
-    srand48((my_rank + 1) * RAND_SEED);
+  if (options.get<int>("sprng-seed") == 0)
+    srand48((rank + 1) * RAND_SEED);
   else
-    srand48(init_options[1]);
+    srand48(options.get<int>("sprng-seed"));
 #endif
 
-  sprintf(part_file, "%s.part.%d", file_name, num_parts);
-  sprintf(shuffle_file, "%s.part.%d", file_name, num_procs);
+
+  const char *file_name = options.get<std::string>("hypergraph").c_str();
+  sprintf(shuffle_file, "%s.part.%d", file_name, number_of_processors);
 
   Funct::printIntro();
-
-  hgraph = new parallel::hypergraph(my_rank, num_procs, file_name, comm);
+  parallel::hypergraph *hgraph = new parallel::hypergraph(
+      rank, number_of_processors, file_name, comm);
 
   if (!hgraph) {
-    sprintf(message,
-            "p[%d] not able to build local hypergraph from %s - abort\n",
-            my_rank, file_name);
-    std::cout << message;
+    error_on_processor("p[%d] not able to build local hypergraph from %s - "
+                       "abort\n", rank, file_name);
     MPI_Abort(comm, 0);
   }
 
   ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
 
-  coarsener = Utils::buildParaCoarsener(my_rank, num_procs, num_parts,
-                                        constraint, hgraph, init_options, comm);
-  restrC = Utils::buildParaRestrCoarsener(my_rank, num_procs, num_parts,
-                                          constraint, hgraph, init_options, comm);
-  refiner = Utils::buildParaRefiner(my_rank, num_procs, num_parts, constraint,
-                                    hgraph, init_options, comm);
-  seqController = Utils::buildSeqController(my_rank, num_procs, num_parts,
-                                            constraint, init_options);
+  int num_parts = options.get<int>("number-of-parts");
+  double constraint = options.get<double>("balance-constraint");
+  coarsener = Utils::buildParaCoarsener(rank, options, hgraph, comm);
+  restrC = Utils::buildParaRestrCoarsener(rank, options, hgraph, comm);
+  refiner = Utils::buildParaRefiner(rank, options, hgraph, comm);
+  seqController = Utils::buildSeqController(rank, options);
+  MPI_Barrier(comm);
 
   if (!coarsener) {
-    sprintf(message, "p[%d] not able to build ParaCoarsener - abort\n",
-            my_rank);
-    std::cout << message;
+    error_on_processor("p[%d] not able to build ParaCoarsener - abort\n", rank);
     MPI_Abort(comm, 0);
   }
 
   if (!refiner) {
-    sprintf(message, "p[%d] not able to build ParaRefiner - abort\n", my_rank);
-    std::cout << message;
+    error_on_processor("p[%d] not able to build ParaRefiner - abort\n", rank);
     MPI_Abort(comm, 0);
   }
 
   if (!seqController) {
-    sprintf(message, "p[%d] not able to build SeqController - abort\n",
-            my_rank);
-    std::cout << message;
+    error_on_processor("p[%d] not able to build SeqController - abort\n", rank);
     MPI_Abort(comm, 0);
   }
 
   controller = Utils::buildParaController(
-      my_rank, num_procs, num_parts, hgraph->total_number_of_vertices(), constraint,
-      coarsener, restrC, refiner, seqController, init_options, comm);
+      rank, hgraph->total_number_of_vertices(), coarsener, restrC, refiner,
+      seqController, options, comm);
 
   if (!controller) {
-    sprintf(message, "p[%d] not able to build ParaController - abort\n",
-            my_rank);
-    std::cout << message;
+    error_on_processor("p[%d] not able to build ParaController - "
+                       "abort\n", rank);
     MPI_Abort(comm, 0);
   }
 
@@ -138,176 +121,12 @@ void k_way_partition(const char *file_name, const char *out_file, int num_parts,
   controller->set_weight_constraints(comm);
   controller->run(comm);
 
-  if (output_partition_tofile) {
+  if (options.get<bool>("write-partitions-to-file")) {
+  char part_file[512];
+    sprintf(part_file, "%s.part.%d", file_name,
+            options.get<int>("number-of-parts"));
     controller->partition_to_file(part_file, comm);
   }
 
-  k_1cut = controller->best_cut_size();
-
-#ifdef MEM_CHECK
-  MemoryTracker::stop();
-#endif
-}
-
-void k_way_partition(int numVertices, int numHedges, const int *vWeights,
-                     const int *hEdgeWts, const int *offsets,
-                     const int *pinList, int numParts, double constraint,
-                     int &k_1cut, const int *options, int *pVector,
-                     const char *out_file, MPI_Comm comm) {
-  int num_procs;
-  int my_rank;
-  int maxHedgeLen = 0;
-  int globMaxHedgeLen;
-  int init_options[26];
-  int disp_option;
-
-#ifdef USE_SPRNG
-  int seed;
-#endif
-
-  char message[512];
-
-  int i;
-  int j;
-
-  ds::dynamic_array<int> vertex_weights(numVertices);
-  vertex_weights.set_data(const_cast<int *>(vWeights), numVertices);
-
-  ds::dynamic_array<int> hyperedge_weights(numHedges);
-  vertex_weights.set_data(const_cast<int *>(hEdgeWts), numHedges);
-
-  ds::dynamic_array<int> hyperedge_offsets_(numHedges + 1);
-  vertex_weights.set_data(const_cast<int *>(offsets), numHedges);
-
-  ds::dynamic_array<int> pin_list(hyperedge_offsets_.back() - 1);
-  vertex_weights.set_data(const_cast<int *>(pinList), hyperedge_offsets_.back() - 1);
-
-
-  parallel::hypergraph *hgraph = nullptr;
-  parallel::coarsener *coarsener = nullptr;
-  parallel::restrictive_coarsening *restrC = nullptr;
-  parallel::refiner *refiner = nullptr;
-  serial::controller *seqController = nullptr;
-  parallel::controller *controller = nullptr;
-
-  ds::internal::table_utils tableUtils;
-
-  MPI_Comm_size(comm, &num_procs);
-  MPI_Comm_rank(comm, &my_rank);
-
-  if (out_file) {
-    if (!parkway::utility::status::handler::set_log_file(out_file)) {
-      sprintf(message, "p[%d] could not open file %s - abort\n", my_rank,
-              out_file);
-      std::cout << message;
-      MPI_Abort(comm, 0);
-    }
-  }
-
-  Utils::initDefaultValues(options, init_options);
-  Utils::checkPartsAndProcs(numParts, num_procs, init_options[15],
-                            init_options[22], comm);
-
-/* init pseudo-random number generator */
-
-#ifdef USE_SPRNG
-  if (init_options[1] == 0)
-    seed = make_sprng_seed();
-  else
-    seed = init_options[1];
-
-  if (!init_sprng(0, seed, SPRNG_DEFAULT)) {
-    sprintf(
-        message,
-        "p[%d] could not initialise sprng random number generator - abort\n",
-        my_rank);
-    std::cout << message;
-    MPI_Abort(comm, 0);
-  }
-#else
-  if (init_options[1] == 0)
-    srand48((my_rank + 1) * RAND_SEED);
-  else
-    srand48(init_options[1]);
-#endif
-
-  for (i = 0; i < numHedges; ++i) {
-    j = offsets[i + 1] - offsets[i];
-
-    if (j > maxHedgeLen)
-      maxHedgeLen = j;
-  }
-
-  MPI_Allreduce(&maxHedgeLen, &globMaxHedgeLen, 1, MPI_INT, MPI_MAX, comm);
-
-  Funct::printIntro();
-
-  hgraph = new parallel::hypergraph(my_rank, num_procs, numVertices, numHedges,
-                                    globMaxHedgeLen, vertex_weights,
-                                    hyperedge_weights, pin_list,
-                                    hyperedge_offsets_, comm);
-
-  if (!hgraph) {
-    sprintf(message, "p[%d] could not initialise hypergraph - abort\n",
-            my_rank);
-    std::cout << message;
-    MPI_Abort(comm, 0);
-  }
-
-  ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
-
-  coarsener = Utils::buildParaCoarsener(my_rank, num_procs, numParts,
-                                        constraint, hgraph, init_options, comm);
-
-  restrC = Utils::buildParaRestrCoarsener(my_rank, num_procs, numParts,
-                                          constraint, hgraph, init_options,
-                                          comm);
-
-  refiner = Utils::buildParaRefiner(my_rank, num_procs, numParts, constraint,
-                                    hgraph, init_options, comm);
-
-  seqController = Utils::buildSeqController(my_rank, num_procs, numParts,
-                                            constraint, init_options);
-
-  if (!coarsener) {
-    sprintf(message, "p[%d] not able to build ParaCoarsener - abort\n",
-            my_rank);
-    std::cout << message;
-    MPI_Abort(comm, 0);
-  }
-
-  if (!refiner) {
-    sprintf(message, "p[%d] not able to build ParaRefiner - abort\n", my_rank);
-    std::cout << message;
-    MPI_Abort(comm, 0);
-  }
-
-  if (!seqController) {
-    sprintf(message, "p[%d] not able to build SeqController - abort\n",
-            my_rank);
-    std::cout << message;
-    MPI_Abort(comm, 0);
-  }
-
-  controller = Utils::buildParaController(
-      my_rank, num_procs, numParts, hgraph->total_number_of_vertices(), constraint,
-      coarsener, restrC, refiner, seqController, init_options, comm);
-
-  if (!controller) {
-    sprintf(message, "p[%d] not able to build ParaController - abort\n",
-            my_rank);
-    std::cout << message;
-    MPI_Abort(comm, 0);
-  }
-
-  Funct::printEnd();
-
-  hgraph->compute_balance_warnings(numParts, constraint, comm);
-
-  controller->set_hypergraph(hgraph);
-  controller->set_weight_constraints(comm);
-  controller->run(comm);
-  controller->copy_out_partition(numVertices, pVector);
-
-  k_1cut = controller->best_cut_size();
+  return controller->best_cut_size();
 }
