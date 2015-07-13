@@ -17,27 +17,18 @@ namespace serial = parkway::serial;
 namespace ds = parkway::data_structures;
 
 int k_way_partition(const parkway::options &options, MPI_Comm comm) {
-  char shuffle_file[512];
-  char message[512];
-
-  parallel::coarsener *coarsener = nullptr;
-  parallel::restrictive_coarsening *restrC = nullptr;
-  parallel::refiner *refiner = nullptr;
-  serial::controller *seqController = nullptr;
-  parallel::controller *controller = nullptr;
-
+  LOG(trace) << "Starting k-way partition.";
   ds::internal::table_utils tableUtils;
 
   int number_of_processors;
   MPI_Comm_size(comm, &number_of_processors);
+  LOG(trace) << "Setting number of processors to " << number_of_processors;
   options.set_number_of_processors(number_of_processors);
 
   int rank;
   MPI_Comm_rank(comm, &rank);
 
   Utils::check_parts_and_processors(options, comm);
-
-  bool output_partition_tofile = options.get<bool>("write-partitions-to-file");
 
 /* init pseudo-random number generator */
 #ifdef USE_SPRNG
@@ -49,11 +40,8 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
   }
 
   if (!init_sprng(0, seed, SPRNG_DEFAULT)) {
-    sprintf(
-        message,
-        "p[%d] could not initialise sprng random number generator - abort\n",
-        rank);
-    std::cout << message;
+    error_on_processor("p[%d] could not initialise sprng random number "
+                       "generator - abort\n", rank);
     MPI_Abort(comm, 0);
   }
 #else
@@ -63,11 +51,14 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
     srand48(options.get<int>("sprng-seed"));
 #endif
 
-
-  const char *file_name = options.get<std::string>("hypergraph").c_str();
+  const std::string file_name_string = options.get<std::string>("hypergraph");
+  const char *file_name = file_name_string.c_str();
+  char shuffle_file[512];
   sprintf(shuffle_file, "%s.part.%d", file_name, number_of_processors);
 
   Funct::printIntro();
+
+  LOG(trace) << "Creating initial hypergraph";
   parallel::hypergraph *hgraph = new parallel::hypergraph(
       rank, number_of_processors, file_name, comm);
 
@@ -80,11 +71,10 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
   ds::internal::table_utils::set_scatter_array(hgraph->total_number_of_vertices());
 
   int num_parts = options.get<int>("number-of-parts");
-  double constraint = options.get<double>("balance-constraint");
-  coarsener = Utils::buildParaCoarsener(rank, options, hgraph, comm);
-  restrC = Utils::buildParaRestrCoarsener(rank, options, hgraph, comm);
-  refiner = Utils::buildParaRefiner(rank, options, hgraph, comm);
-  seqController = Utils::buildSeqController(rank, options);
+  parallel::coarsener *coarsener = Utils::buildParaCoarsener(rank, options, hgraph, comm);
+  parallel::restrictive_coarsening *restrC = Utils::buildParaRestrCoarsener(rank, options, hgraph, comm);
+  parallel::refiner *refiner = Utils::buildParaRefiner(rank, options, hgraph, comm);
+  serial::controller *seqController = Utils::buildSeqController(rank, options);
   MPI_Barrier(comm);
 
   if (!coarsener) {
@@ -102,7 +92,7 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
     MPI_Abort(comm, 0);
   }
 
-  controller = Utils::buildParaController(
+  parallel::controller *controller = Utils::buildParaController(
       rank, hgraph->total_number_of_vertices(), coarsener, restrC, refiner,
       seqController, options, comm);
 
@@ -114,6 +104,7 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
 
   Funct::printEnd();
 
+  double constraint = options.get<double>("balance-constraint");
   hgraph->compute_balance_warnings(num_parts, constraint, comm);
 
   controller->set_hypergraph(hgraph);
@@ -122,9 +113,8 @@ int k_way_partition(const parkway::options &options, MPI_Comm comm) {
   controller->run(comm);
 
   if (options.get<bool>("write-partitions-to-file")) {
-  char part_file[512];
-    sprintf(part_file, "%s.part.%d", file_name,
-            options.get<int>("number-of-parts"));
+    char part_file[512];
+    sprintf(part_file, "%s.part.%d", file_name, num_parts);
     controller->partition_to_file(part_file, comm);
   }
 

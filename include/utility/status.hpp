@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include "utility/logging.hpp"
 
 namespace parkway {
 namespace utility {
@@ -122,53 +123,58 @@ inline void warning(const char *format, ...) {
   if (handler::rank_ == handler::write_on_ &&
       handler::show_info_ &&
       handler::out_ != nullptr) {
-    char *buffer = handler::buffer_.get();
-    std::sprintf(buffer, "[Warning!] ");
+    *handler::out_ << "[Warning!] ";
     va_list args;
     va_start(args, format);
-    std::vsprintf(buffer, format, args);
+    std::vsprintf(handler::buffer_.get(), format, args);
     va_end(args);
     *handler::out_ << handler::buffer_.get();
+    BOOST_LOG_TRIVIAL(warning) << handler::buffer_.get();
+    handler::out_->flush();
   }
 }
 
 inline void warning_on_processor(const char *format, ...) {
   if (handler::out_ != nullptr) {
-    char *buffer = handler::buffer_.get();
-    std::sprintf(buffer, "[Warning!] ");
+    *handler::out_ << "[Warning!] ";
     va_list args;
     va_start(args, format);
-    std::vsprintf(buffer, format, args);
+    std::vsprintf(handler::buffer_.get(), format, args);
     va_end(args);
     *handler::out_ << handler::buffer_.get();
+    BOOST_LOG_TRIVIAL(warning) << handler::buffer_.get();
+    handler::out_->flush();
   }
 }
 
 inline void error(const char *format, ...) {
   if (handler::rank_ == handler::write_on_ && handler::out_ != nullptr) {
+    *handler::out_ << "\33[31m";
     va_list args;
-    char *buffer = handler::buffer_.get();
-    std::sprintf(buffer, "\33[31m");
     va_start(args, format);
-    std::vsprintf(buffer, format, args);
+    std::vsprintf(handler::buffer_.get(), format, args);
     va_end(args);
-    std::sprintf(buffer, "\33[0m");
     *handler::out_ << handler::buffer_.get();
+    BOOST_LOG_TRIVIAL(error) << handler::buffer_.get();
+    *handler::out_ << "\33[0m";
+    handler::out_->flush();
   }
 }
 
 inline void error_on_processor(const char *format, ...) {
   if (handler::out_ != nullptr) {
+    *handler::out_ << "\33[31m";
     va_list args;
-    char *buffer = handler::buffer_.get();
-    std::sprintf(buffer, "\33[31m");
     va_start(args, format);
-    std::vsprintf(buffer, format, args);
+    std::vsprintf(handler::buffer_.get(), format, args);
     va_end(args);
-    std::sprintf(buffer, "\33[0m");
     *handler::out_ << handler::buffer_.get();
+    BOOST_LOG_TRIVIAL(error) << handler::buffer_.get();
+    *handler::out_ << "\33[0m";
+    handler::out_->flush();
   }
 }
+
 
 }
 }
