@@ -155,8 +155,9 @@ int main(int argc, char **argv) {
     std::cout << "--- testing recorded partition: " << endl;
   }
 
-  testRecordedPartition(argv[argc - 1], myRank, numProcs, numParts,
-                        constraint, std::cout, MPI_COMM_WORLD);
+  testRecordedPartition(opts.get<std::string>("hypergraph").c_str(),
+                        myRank, numProcs, numParts, constraint, std::cout,
+                        MPI_COMM_WORLD);
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
