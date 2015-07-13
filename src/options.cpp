@@ -456,8 +456,6 @@ void options::generate_options_file() const {
     "\n"
     "# Hypergraph file to partition.\n"
     "hypergraph =\n"
-    "# Configuration file to load (leave blank to use defaults).\n"
-    "config =\n"
     "# Number of parallel partitioning runs.\n"
     "number-of-runs = 1\n"
     "# Number of parts sought in partition.\n"

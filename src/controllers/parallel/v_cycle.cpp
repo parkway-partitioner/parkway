@@ -36,7 +36,7 @@ void v_cycle::display_options() const {
        reduction_in_keep_threshold_, approximate_refine_,
        write_partition_to_file_);
   print_type();
-  info(" lim = %i %%min = %i start %%le = %i %%le inc = %i\n|\n",
+  info(" lim = %i %%min = %.2f start %%le = %i %%le inc = %i\n|\n",
        limit_on_cycles_, limit_as_percent_of_cut_, start_percentile_,
        percentile_increment_);
 }
