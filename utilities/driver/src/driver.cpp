@@ -152,12 +152,7 @@ int main(int argc, char **argv) {
 
   if (myRank == 0) {
     std::cout << "--- completed testing, best cut = " << bestCut << " ---\n";
-    std::cout << "--- testing recorded partition: " << endl;
   }
-
-  testRecordedPartition(opts.get<std::string>("hypergraph").c_str(),
-                        myRank, numProcs, numParts, constraint, std::cout,
-                        MPI_COMM_WORLD);
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
