@@ -19,7 +19,6 @@
 // 3/2/2005: Last Modified
 //
 // ###
-
 #include "hypergraph/parallel/hypergraph.hpp"
 #include "data_structures/bit_field.hpp"
 #include "data_structures/complete_binary_tree.hpp"
@@ -27,8 +26,6 @@
 #include "data_structures/new_hyperedge_index_table.hpp"
 #include "utility/sorting.hpp"
 #include "utility/logging.hpp"
-
-#include <bitset>
 
 namespace parkway {
 namespace parallel {
@@ -80,70 +77,10 @@ hypergraph::hypergraph(int rank, int number_of_processors,
 hypergraph::hypergraph(int rank, int number_of_processors, const char *filename,
                        MPI_Comm comm)
     : global_communicator(rank, number_of_processors) {
+  LOG(trace) << "Constructing a hypergraph from " << filename;
   load_from_file(filename, comm);
 }
 
-hypergraph::hypergraph(int rank, int number_of_processors,
-                       int number_of_local_vertices, int number_of_local_hedges,
-                       int max_hyperedge_length,
-                       ds::dynamic_array<int> vertex_weights,
-                       ds::dynamic_array<int> hyperedge_weights,
-                       ds::dynamic_array<int> loc_pin_list,
-                       ds::dynamic_array<int> hyperedge_offsets,
-                       MPI_Comm comm)
-    : global_communicator(rank_, number_of_processors) {
-  MPI_Allreduce(&number_of_local_vertices, &total_number_of_vertices_, 1,
-                MPI_INT, MPI_SUM, comm);
-  MPI_Scan(&number_of_local_vertices, &minimum_vertex_index_, 1, MPI_INT,
-           MPI_SUM, comm);
-
-  number_of_vertices_ = number_of_local_vertices;
-  minimum_vertex_index_ -= number_of_vertices_;
-  vertex_weight_ = 0;
-
-  vertex_weights_.resize(number_of_vertices_);
-  match_vector_.resize(number_of_vertices_);
-
-  for (int i = 0; i < number_of_vertices_; ++i) {
-    vertex_weights_[i] = vertex_weights[i];
-    vertex_weight_ += vertex_weights_[i];
-    match_vector_[i] = -1;
-  }
-
-  /* hyperedges stored in pinlist */
-  int hyperedge_index = 0;
-  int pin_counter = 0;
-  for (int i = 0; i < number_of_local_hedges; ++i) {
-    int start_offset = hyperedge_offsets[i];
-    int end_offset = hyperedge_offsets[i + 1];
-    int length = end_offset - start_offset;
-
-    if (length > 1) {
-      hyperedge_weights_[hyperedge_index] = hyperedge_weights[i];
-      hyperedge_offsets_[hyperedge_index++] = pin_counter;
-      for (int j = start_offset; j < end_offset; ++j) {
-        pin_list_[pin_counter++] = loc_pin_list[j];
-      }
-    }
-  }
-
-  hyperedge_offsets_[hyperedge_index] = pin_counter;
-
-  number_of_pins_ = pin_counter;
-  number_of_hyperedges_ = hyperedge_index;
-  do_not_coarsen = 0;
-  number_of_partitions_ = 0;
-
-  if (parkway::utility::status::handler::info_enabled()) {
-    int i;
-    int j;
-    MPI_Reduce(&number_of_pins_, &i, 1, MPI_INT, MPI_SUM, 0, comm);
-    MPI_Reduce(&number_of_hyperedges_, &j, 1, MPI_INT, MPI_SUM, 0, comm);
-    info("|--- Hypergraph (as loaded):\n"
-         "| |V| = %i |E| = %i |Pins| = %i\n"
-         "|\n", total_number_of_vertices_, j, i);
-  }
-}
 
 hypergraph::~hypergraph() {
 }
@@ -153,6 +90,7 @@ void hypergraph::load_from_file(const char *filename, MPI_Comm comm) {
   char my_file[512];
   sprintf(my_file, "%s-%d", filename, rank_);
   std::ifstream in_stream(my_file, std::ifstream::in | std::ifstream::binary);
+  LOG(trace) << "Loading hypergraph from part file " << my_file;
 
   // Print message if the file could not be opened.
   if (!in_stream.is_open()) {
@@ -174,6 +112,10 @@ void hypergraph::load_from_file(const char *filename, MPI_Comm comm) {
   total_number_of_vertices_ = buffer[0];
   number_of_vertices_ = buffer[1];
   int hyperedge_data_length = buffer[2];
+  LOG(info) << "Hypergraph loading metadata"
+      << ". |V| (total) = " << total_number_of_vertices_
+      << ", |V| (local) = " << number_of_vertices_
+      << ", hyperedge data length = " << hyperedge_data_length;
 
   minimum_vertex_index_ = (total_number_of_vertices_ / processors_) * rank_;
 
@@ -210,6 +152,7 @@ void hypergraph::load_from_file(const char *filename, MPI_Comm comm) {
 
 void hypergraph::initalize_partition_from_file(
     const char *filename, int number_of_parts, MPI_Comm comm) {
+  LOG(trace) << "Initializing partition from file";
   int vertices_per_processor = total_number_of_vertices_ / processors_;
   number_of_partitions_ = 1;
 
@@ -239,6 +182,7 @@ void hypergraph::initalize_partition_from_file(
 
   in_stream.close();
   partition_cuts_[0] = calculate_cut_size(number_of_parts, 0, comm);
+  LOG(info) << "Loaded partition with cut " << partition_cuts_[0];
 }
 
 void hypergraph::allocate_hyperedge_memory(int numHedges, int numLocPins) {
@@ -248,13 +192,14 @@ void hypergraph::allocate_hyperedge_memory(int numHedges, int numLocPins) {
 }
 
 void hypergraph::contract_hyperedges(hypergraph &coarse, MPI_Comm comm) {
-  int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
+  LOG(trace) << "Contracting hyperedges";
 
+  int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
   dynamic_array<int> original_contracted_pin_list(number_of_pins_, -1);
   compute_requests_for_remote_vertex_matches(vertices_per_proc_fine,
                                              original_contracted_pin_list);
 
-  // compute number of elements to send to other processors
+  // Compute number of elements to send to other processors.
   ds::dynamic_array<int> copy_of_requests;
   int total_to_send = compute_number_of_elements_to_send(copy_of_requests);
   MPI_Alltoall(send_lens_.data(), 1, MPI_INT, receive_lens_.data(), 1, MPI_INT,
@@ -299,7 +244,7 @@ void hypergraph::contract_hyperedges(hypergraph &coarse, MPI_Comm comm) {
       ceil(static_cast<double>(number_of_hyperedges_) * 1.5));
   ds::new_hyperedge_index_table table(table_size);
 
-  // run through the recv data_
+  // run through the recv data
   // for each encountered hyperedge:
   // - compute hash-key
   // - check for duplicates in the hash table
@@ -379,6 +324,7 @@ void hypergraph::contractRestrHyperedges(hypergraph &coarse, MPI_Comm comm) {
 
 
 void hypergraph::project_partitions(hypergraph &coarse, MPI_Comm comm) {
+  LOG(trace) << "Projecting partitions";
   dynamic_array<int> coarse_partition = coarse.partition_vector();
   dynamic_array<int> coarse_partition_offsets = coarse.partition_offsets();
 
@@ -387,6 +333,7 @@ void hypergraph::project_partitions(hypergraph &coarse, MPI_Comm comm) {
 
   // initialise the local partition structures
   number_of_partitions_ = coarse.number_of_partitions();
+  LOG(trace) << "Number of coarse partitions: " << number_of_partitions_;
   partition_cuts_ = coarse.partition_cuts();
   partition_vector_.assign(number_of_partitions_ * number_of_vertices_, 0);
   partition_vector_offsets_.assign(number_of_partitions_ + 1, 0);
@@ -501,7 +448,8 @@ void hypergraph::reset_vectors() {
 }
 
 void hypergraph::remove_bad_partitions(double cut_threshold) {
-  int best_partition = 1;
+  // Find the partition with the best cut.
+  int best_partition = 0;
   int best_cut = partition_cuts_[0];
   for (int i = 1; i < number_of_partitions_; ++i) {
     if (partition_cuts_[i] < best_cut) {
@@ -511,7 +459,7 @@ void hypergraph::remove_bad_partitions(double cut_threshold) {
   }
 
   int accepted_cut = best_cut +
-      static_cast<int>(floor(static_cast<float>(best_cut) * cut_threshold));
+      static_cast<int>(floor(static_cast<double>(best_cut) * cut_threshold));
 
   int index_into_new = 0;
   int index_into_old = 0;
@@ -520,8 +468,9 @@ void hypergraph::remove_bad_partitions(double cut_threshold) {
     if (partition_cuts_[i] <= accepted_cut) {
       bool pSeenBefore = false;
       for (int j = 0; j < number_of_new_partitions; ++j) {
-        if (partition_cuts_[j] == partition_cuts_[i])
+        if (partition_cuts_[j] == partition_cuts_[i]) {
           pSeenBefore = true;
+        }
       }
       if (!pSeenBefore) {
         if (index_into_old > index_into_new) {
@@ -580,8 +529,8 @@ void hypergraph::compute_partition_characteristics(
              MPI_INT, MPI_SUM, 0, comm);
 
   if (rank_ == 0) {
-    double average_part_weight = static_cast<double>(
-        total_hypergraph_weight) / number_of_parts;
+    double average_part_weight =
+        static_cast<double>(total_hypergraph_weight) / number_of_parts;
     int max_allowed_part_weight = static_cast<int>(
         floor(average_part_weight + average_part_weight * constraint));
 
@@ -601,8 +550,8 @@ void hypergraph::compute_partition_characteristics(
          "\tcut = %i\n"
          "\tmax_allowed_part_weight = %i\n"
          "\tmin_part_weight = %i\n"
-         "\tmax_part_weight = %i\n", cut, max_allowed_part_weight,
-         min_part_weight, max_part_weight);
+         "\tmax_part_weight = %i\n",
+         cut, max_allowed_part_weight, min_part_weight, max_part_weight);
   }
   MPI_Barrier(comm);
 }
@@ -616,8 +565,8 @@ void hypergraph::copy_in_partition(const dynamic_array<int> &partition,
   }
 }
 
-void hypergraph::copy_out_partition(ds::dynamic_array<int> &partition, int numV,
-                                    int nP) const {
+void hypergraph::copy_out_partition(ds::dynamic_array<int> &partition,
+                                    int numV, int nP) const {
   int start_offset = partition_vector_offsets_[nP];
   int end_offset = partition_vector_offsets_[nP + 1];
   for (int i = start_offset; i < end_offset; ++i) {
@@ -766,14 +715,9 @@ void hypergraph::prescribed_vertex_shuffle(ds::dynamic_array<int> &mapToOrigV,
 
 void hypergraph::prescribed_vertex_shuffle(ds::dynamic_array<int> &prescribedAssignment,
                                            int nLocVer, MPI_Comm comm) {
-  int i;
+  dynamic_array<int> local_vertices_per_processors(processors_, 0);
 
-  dynamic_array<int> local_vertices_per_processors(processors_);
-
-  for (i = 0; i < processors_; ++i)
-    local_vertices_per_processors[i] = 0;
-
-  for (i = 0; i < number_of_vertices_; ++i) {
+  for (int i = 0; i < number_of_vertices_; ++i) {
     ++local_vertices_per_processors[prescribedAssignment[i]];
   }
 
@@ -781,19 +725,12 @@ void hypergraph::prescribed_vertex_shuffle(ds::dynamic_array<int> &prescribedAss
 }
 
 void hypergraph::shuffle_vertices_by_partition(int nParts, MPI_Comm comm) {
-  int i;
-  int j;
-
   int number_of_partsPerProc = nParts / processors_;
-
   dynamic_array<int> vertex_to_processor(number_of_vertices_);
-  dynamic_array<int> local_vertices_per_processors(processors_);
+  dynamic_array<int> local_vertices_per_processors(processors_, 0);
 
-  for (i = 0; i < processors_; ++i)
-    local_vertices_per_processors[i] = 0;
-
-  for (i = 0; i < number_of_vertices_; ++i) {
-    j = partition_vector_[i] / number_of_partsPerProc;
+  for (int i = 0; i < number_of_vertices_; ++i) {
+    int j = partition_vector_[i] / number_of_partsPerProc;
     vertex_to_processor[i] = j;
     ++local_vertices_per_processors[j];
   }
@@ -802,15 +739,6 @@ void hypergraph::shuffle_vertices_by_partition(int nParts, MPI_Comm comm) {
 }
 
 void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, MPI_Comm comm) {
-  int numVerticesEvenlyAllocated;
-  int numSpareVertices;
-  int totSpareVertices;
-  int toProc;
-
-  int i;
-  int j;
-  int ij;
-
   dynamic_array<int> vertices(number_of_vertices_);
   dynamic_array<int> vertex_to_processor(number_of_vertices_);
   dynamic_array<int> local_vertices_per_processors(processors_);
@@ -819,20 +747,22 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
 
   /* first compute the V->proc map */
 
-  for (i = 0; i < number_of_vertices_; ++i)
+  for (int i = 0; i < number_of_vertices_; ++i) {
     vertices[i] = i;
+  }
 
   vertices.random_permutation();
 
-  numSpareVertices = number_of_vertices_ % processors_;
-  numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;
+  int numSpareVertices = number_of_vertices_ % processors_;
+  int numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;
 
   MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.data(), 1,
                 MPI_INT, comm);
 
-  totSpareVertices = 0;
+  int totSpareVertices = 0;
 
-  for (i = 0; i < processors_; ++i) {
+  int j;
+  for (int i = 0; i < processors_; ++i) {
     j = totSpareVertices;
     totSpareVertices += indexIntoSpares[i];
     indexIntoSpares[i] = j;
@@ -841,54 +771,44 @@ void hypergraph::shuffle_vertices_randomly(ds::dynamic_array<int> &mapToOrigV, M
   vSpareToProc.resize(totSpareVertices);
 
   j = totSpareVertices / processors_;
-  ij = totSpareVertices % processors_;
+  int ij = totSpareVertices % processors_;
 
   if (j == 0) {
-    for (i = 0; i < totSpareVertices; ++i) {
+    for (int i = 0; i < totSpareVertices; ++i) {
       vSpareToProc[i] = processors_ - 1;
     }
   } else {
-    for (i = 0; i < totSpareVertices - ij; ++i) {
+    for (int i = 0; i < totSpareVertices - ij; ++i) {
       vSpareToProc[i] = i % processors_;
     }
 
-    for (i = totSpareVertices - ij; i < totSpareVertices; ++i) {
+    for (int i = totSpareVertices - ij; i < totSpareVertices; ++i) {
       vSpareToProc[i] = processors_ - 1;
     }
   }
 
-  for (i = 0; i < numVerticesEvenlyAllocated; ++i) {
+  for (int i = 0; i < numVerticesEvenlyAllocated; ++i) {
     j = i % processors_;
     vertex_to_processor[vertices[i]] = j;
   }
 
   j = number_of_vertices_ / processors_;
-  for (i = 0; i < processors_; ++i)
+  for (int i = 0; i < processors_; ++i)
     local_vertices_per_processors[i] = j;
 
-  for (i = numVerticesEvenlyAllocated; i < number_of_vertices_; ++i) {
+  for (int i = numVerticesEvenlyAllocated; i < number_of_vertices_; ++i) {
     j = i - numVerticesEvenlyAllocated;
-    toProc = vSpareToProc[indexIntoSpares[rank_] + j];
+    int toProc = vSpareToProc[indexIntoSpares[rank_] + j];
     vertex_to_processor[vertices[i]] = toProc;
     ++local_vertices_per_processors[toProc];
   }
 
   /* map V->proc is now computed */
-
   shuffleVerticesAftRandom(vertex_to_processor, local_vertices_per_processors,
                            mapToOrigV, comm);
 }
 
 void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
-  int numVerticesEvenlyAllocated;
-  int numSpareVertices;
-  int totSpareVertices;
-  int toProc;
-
-  int i;
-  int j;
-  int ij;
-
   dynamic_array<int> vertices(number_of_vertices_);
   dynamic_array<int> vertex_to_processor(number_of_vertices_);
   dynamic_array<int> local_vertices_per_processors(processors_);
@@ -897,20 +817,22 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
 
   /* first compute the V->proc map */
 
-  for (i = 0; i < number_of_vertices_; ++i)
+  for (int i = 0; i < number_of_vertices_; ++i) {
     vertices[i] = i;
+  }
 
   vertices.random_permutation();
 
-  numSpareVertices = number_of_vertices_ % processors_;
-  numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;
+  int numSpareVertices = number_of_vertices_ % processors_;
+  int numVerticesEvenlyAllocated = number_of_vertices_ - numSpareVertices;
 
   MPI_Allgather(&numSpareVertices, 1, MPI_INT, indexIntoSpares.data(), 1,
                 MPI_INT, comm);
 
-  totSpareVertices = 0;
+  int totSpareVertices = 0;
 
-  for (i = 0; i < processors_; ++i) {
+  int j;
+  for (int i = 0; i < processors_; ++i) {
     j = totSpareVertices;
     totSpareVertices += indexIntoSpares[i];
     indexIntoSpares[i] = j;
@@ -919,34 +841,34 @@ void hypergraph::shuffle_vertices_randomly(hypergraph &fG, MPI_Comm comm) {
   vSpareToProc.resize(totSpareVertices);
 
   j = totSpareVertices / processors_;
-  ij = totSpareVertices % processors_;
+  int ij = totSpareVertices % processors_;
 
   if (j == 0) {
-    for (i = 0; i < totSpareVertices; ++i) {
+    for (int i = 0; i < totSpareVertices; ++i) {
       vSpareToProc[i] = processors_ - 1;
     }
   } else {
-    for (i = 0; i < totSpareVertices - ij; ++i) {
+    for (int i = 0; i < totSpareVertices - ij; ++i) {
       vSpareToProc[i] = i % processors_;
     }
 
-    for (i = totSpareVertices - ij; i < totSpareVertices; ++i) {
+    for (int i = totSpareVertices - ij; i < totSpareVertices; ++i) {
       vSpareToProc[i] = processors_ - 1;
     }
   }
 
-  for (i = 0; i < numVerticesEvenlyAllocated; ++i) {
+  for (int i = 0; i < numVerticesEvenlyAllocated; ++i) {
     j = i % processors_;
     vertex_to_processor[vertices[i]] = j;
   }
 
   j = number_of_vertices_ / processors_;
-  for (i = 0; i < processors_; ++i)
+  for (int i = 0; i < processors_; ++i)
     local_vertices_per_processors[i] = j;
 
-  for (i = numVerticesEvenlyAllocated; i < number_of_vertices_; ++i) {
+  for (int i = numVerticesEvenlyAllocated; i < number_of_vertices_; ++i) {
     j = i - numVerticesEvenlyAllocated;
-    toProc = vSpareToProc[indexIntoSpares[rank_] + j];
+    int toProc = vSpareToProc[indexIntoSpares[rank_] + j];
     vertex_to_processor[vertices[i]] = toProc;
     ++local_vertices_per_processors[toProc];
   }
@@ -967,8 +889,6 @@ void hypergraph::shuffle_vertices(
 
   // compute the prefix sums for vertices going to different processors
   // use prefix sum to determine the new vertex indices for local vertices
-  // newIndex[v] = newVertIndex[vertex_to_processor[v]] +
-  //    minIndexOnProc[vertex_to_processor[v]]
   dynamic_array<int> total_vertices_per_processor(processors_);
   MPI_Allreduce(local_vertices_per_processors.data(),
                 total_vertices_per_processor.data(), processors_,
@@ -1166,14 +1086,14 @@ void hypergraph::shuffle_vertices(
   }
 }
 
-void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_processor,
-                                          ds::dynamic_array<int> &local_vertices_per_processors,
-                                          ds::dynamic_array<int> &mapToOrigV, MPI_Comm comm) {
+void hypergraph::shuffleVerticesAftRandom(
+    ds::dynamic_array<int> &vertex_to_processor,
+    ds::dynamic_array<int> &local_vertices_per_processors,
+    ds::dynamic_array<int> &mapToOrigV, MPI_Comm comm) {
   // assume that same number of vertices will remain on each processor
   int max_local_vertex = minimum_vertex_index_ + number_of_vertices_;
   int vertices_per_proc_fine = total_number_of_vertices_ / processors_;
   int vToOrigVexist = to_origin_vertex_.capacity();
-  int total_to_send;
   int total_to_receive;
   int vertex;
   int start_offset;
@@ -1233,15 +1153,14 @@ void hypergraph::shuffleVerticesAftRandom(ds::dynamic_array<int> &vertex_to_proc
 
   /* compute number of elements to send to other processors */
 
-  j = 0;
+  int total_to_send = 0;
   for (int i = 0; i < processors_; ++i) {
-    send_displs_[i] = j;
-    j += send_lens_[i];
+    send_displs_[i] = total_to_send;
+    total_to_send += send_lens_[i];
   }
 
-  send_array_.resize(j);
-  copy_of_requests.resize(j);
-  total_to_send = j;
+  send_array_.resize(total_to_send);
+  copy_of_requests.resize(total_to_send);
 
   j = 0;
   for (ij = 0; ij < processors_; ++ij) {

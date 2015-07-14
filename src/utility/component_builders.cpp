@@ -1,10 +1,12 @@
 #include "utility/component_builders.hpp"
+#include "utility/logging.hpp"
 
 namespace parkway {
 
 parallel::coarsener *build_parallel_coarsener(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm) {
+  LOG(trace) << "Building parallel coarsener";
   int numTotPins = h->total_number_of_pins(comm);
   double aveVertDeg = h->average_vertex_degree(comm);
   double aveHedgeSize = h->average_hyperedge_size(comm);
@@ -60,6 +62,7 @@ parallel::coarsener *build_parallel_coarsener(
 parallel::restrictive_coarsening *build_parallel_restrictive_coarsener(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm) {
+  LOG(trace) << "Building parallel restrictive coarsener";
   const std::string &visit_order =
       options.get<std::string>("coarsening.vertex-visit-order");
 
@@ -96,6 +99,7 @@ parallel::restrictive_coarsening *build_parallel_restrictive_coarsener(
 parallel::refiner *build_parallel_refiner(
     int rank, const parkway::options &options, parallel::hypergraph *h,
     MPI_Comm comm) {
+  LOG(trace) << "Building parallel refiner";
 
   int numTotPins = h->total_number_of_pins(comm);
 
@@ -121,6 +125,7 @@ parallel::refiner *build_parallel_refiner(
 
 serial::controller *build_sequential_controller(
     int rank, const parkway::options &options) {
+  LOG(trace) << "Building sequential controller";
   int num_parts = options.get<int>("number-of-parts");
   int numSeqRuns = options.get<int>("serial-partitioning.number-of-runs");
   bool use_patoh = options.get<bool>("serial-partitioning.use-patoh");
@@ -260,6 +265,7 @@ parallel::controller *build_parallel_controller(
     int rank, int num_tot_verts, parallel::coarsener *c,
     parallel::restrictive_coarsening *rc, parallel::refiner *r,
     serial::controller *s, const parkway::options &options, MPI_Comm comm) {
+  LOG(trace) << "Building parallel controller";
   const std::string &v_cycle = options.get<std::string>("refinement.v-cycles");
 
   int numParaRuns = options.get<int>("number-of-runs");

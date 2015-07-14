@@ -16,9 +16,9 @@
 namespace parkway {
 namespace parallel {
 
-first_choice_coarsener::first_choice_coarsener(int rank, int nProcs, int nParts,
-                                 int vertVisOrder, int matchReqOrder,
-                                 int divByWt, int divByLen)
+first_choice_coarsener::first_choice_coarsener(
+    int rank, int nProcs, int nParts, int vertVisOrder, int matchReqOrder,
+    int divByWt, int divByLen)
     : coarsener(rank, nProcs, nParts) {
   vertex_visit_order_ = vertVisOrder;
   match_request_visit_order_ = matchReqOrder;
@@ -69,7 +69,6 @@ void first_choice_coarsener::release_memory() {
 
 hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
   load(h, comm);
-
 
   if (number_of_vertices_ < minimum_number_of_nodes_ || h.dont_coarsen()) {
     return nullptr;
@@ -128,7 +127,7 @@ hypergraph *first_choice_coarsener::coarsen(hypergraph &h, MPI_Comm comm) {
     }
 
     MPI_Reduce(&maxLocWt, &maxWt, 1, MPI_INT, MPI_MAX, 0, comm);
-    progress(" %i %i %i ", maximum_vertex_weight_, maxWt, aveVertexWt);
+    progress("[PFCC] %i %i %i ", maximum_vertex_weight_, maxWt, aveVertexWt);
   }
 
   metric = static_cast<double>(number_of_local_vertices_) / reduction_ratio_;

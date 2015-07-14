@@ -49,14 +49,6 @@ class hypergraph :
   hypergraph(int rank, int number_of_processors, const char *filename,
              MPI_Comm comm);
 
-  hypergraph(int rank, int number_of_processors, int number_of_local_vertices,
-             int number_of_local_hedges, int max_hyperedge_length,
-             ds::dynamic_array<int> vertex_weights,
-             ds::dynamic_array<int> hyperedge_weights,
-             ds::dynamic_array<int> loc_pin_list,
-             ds::dynamic_array<int> hyperedge_offsets,
-             MPI_Comm comm);
-
   ~hypergraph();
 
   void load_from_file(const char *filename, MPI_Comm comm);

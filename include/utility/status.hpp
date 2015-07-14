@@ -150,6 +150,7 @@ inline void warning_on_processor(const char *format, ...) {
 inline void error(const char *format, ...) {
   if (handler::rank_ == handler::write_on_ && handler::out_ != nullptr) {
     *handler::out_ << "\33[31m";
+    handler::out_->flush();
     va_list args;
     va_start(args, format);
     std::vsprintf(handler::buffer_.get(), format, args);
@@ -164,6 +165,7 @@ inline void error(const char *format, ...) {
 inline void error_on_processor(const char *format, ...) {
   if (handler::out_ != nullptr) {
     *handler::out_ << "\33[31m";
+    handler::out_->flush();
     va_list args;
     va_start(args, format);
     std::vsprintf(handler::buffer_.get(), format, args);
